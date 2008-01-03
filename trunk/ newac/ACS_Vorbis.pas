@@ -658,8 +658,10 @@ implementation
     end;
   end;
 
-initialization
+
   const
-    CW = DWord($133f)
+    CW = DWord($133f);
+
+initialization
   Set8087CW(CW);
 end.
