@@ -1,0 +1,18 @@
+#labels Featured,Phase-Support
+= Introduction =
+
+	An introduction to NewAC, Delphi components for manipulating audio data.
+	
+== Author ==
+	Andrei Borovsky, anb@symmetrica.net
+
+== Contributors ==
+	Several people have made contributions to the ACS code.
+
+  * Lev Amelin for improved and extended TMP3Out component.
+  * Thomas la Cour (http://www.top-house.dk/~nr161/delphi/) for providing Monkey Audio input/output components.
+  * Jan Henrik Ejme for adding ACM-playing support.
+  * Thomas Grelle for improving CDRip support.
+  * Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany) for some useful corrections and suggestions.
+  * Sergei Borisov for quite a few contributions, including TWVIn and TWVOut components.
+  * Eriks Aleksans for many useful suggestions.
