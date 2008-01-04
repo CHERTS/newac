@@ -45,6 +45,7 @@ type
     FMaxResidualPartitionOrder : Word;
     FMinResidualPartitionOrder : Word;
     FCompressionLevel : Integer;
+    BolckInserted : Boolean;
     procedure SetEnableLooseMidSideStereo(val : Boolean);
     procedure SetBestModelSearch(val : Boolean);
     procedure SetCompressionLevel(val : Integer);
@@ -103,6 +104,102 @@ type
   FLACUBuf = array[0..0] of FLAC__uint32;
   PFLACUBuf = ^FLACBuf;
 
+  type
+  TBlockInfo = record
+   BlockType : Word;
+   BlockLength : LongWord;
+   HasNext : Boolean;
+  end;
+
+  TVComments = record
+    Vendor : Utf8String;
+    Title : Utf8String;
+    Artist : Utf8String;
+    Album : Utf8String;
+    Date : Utf8String;
+    Genre : Utf8String;
+    Track : Utf8String;
+  end;
+
+  function BuildCommentsBlock(var Comments : TVComments; var Block : Pointer) : Integer;
+  var
+    BS : Integer;
+    Header : array[0..4] of Byte;
+    t : byte;
+    P : PChar;
+    i, StrCount : Integer;
+    procedure AddString(const Str : Utf8String);
+    var
+      l : Integer;
+    begin
+      l := Length(Str);
+      Move(l, P[i], 4);
+      Inc(i, 4);
+      Move(Str[1], P[i], l);
+      Inc(i, l);
+    end;
+  begin
+    BS := 4;
+    StrCount := 0;
+    Comments.Vendor := Utf8Encode('Bogus');
+    Inc(BS, Length(Comments.Vendor) + 4);
+    if Comments.Title <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Title) + 4);
+    end;
+    if Comments.Artist <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Artist) + 4);
+    end;
+    if Comments.Album <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Album) + 4);
+    end;
+    if Comments.Date <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Date) + 4);
+    end;
+    if Comments.Genre <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Genre) + 4);
+    end;
+    if Comments.Track <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Track) + 4);
+    end;
+    Header[0] := FLAC__METADATA_TYPE_VORBIS_COMMENT;
+    Move(BS, Header[1], 3);
+    t := Header[3];
+    Header[3] := Header[1];
+    Header[1] := t;
+    Result := BS + 4;
+    GetMem(Block, Result);
+    P := PChar(Block);
+    Move(Header[0], P[0], 4);
+    i := 4;
+    AddString(Comments.Vendor);
+    Move(StrCount, P[i], 4);
+    Inc(i, 4);
+    if Comments.Title <> '' then
+      AddString(Comments.Title);
+    if Comments.Artist <> '' then
+      AddString(Comments.Artist);
+    if Comments.Album <> '' then
+      AddString(Comments.Album);
+    if Comments.Date <> '' then
+      AddString(Comments.Date);
+    if Comments.Genre <> '' then
+      AddString(Comments.Genre);
+    if Comments.Track <> '' then
+      AddString(Comments.Track);
+  end;
+
 
   function EncWriteCBFunc(encoder : P_FLAC__StreamEncoder;
                                 buffer : PFLAC__byte;
@@ -110,11 +207,32 @@ type
                                 client_data : Pointer) : Integer; cdecl;
   var
     FLACOut : TFLACOut;
+    t : Byte;
+    BI : TBlockInfo;
+    Header : array[0..3] of Byte;
+    Comm : TVComments;
+    Block : Pointer;
+    BL : Integer;
   begin
     FLACOut := TFLACOut(client_data);
     Result := FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     try
       FLACOut.FStream.Write(buffer^, bytes);
+      Move(buffer^, Header, 4);
+      BI.HasNext := (Header[0] shr 7) = 0;
+      BI.BlockType := Header[0] mod 128;
+      if (BI.HasNext) and (BI.BlockType = FLAC__METADATA_TYPE_STREAMINFO) then
+      begin
+        if not FLACOut.BolckInserted then
+        begin
+          FLACOut.BolckInserted := True;
+          Comm.Artist := Utf8Encode('ARTIST=Pica');
+          Comm.Title := Utf8Encode('TITLE=ChuChu');
+          BL := BuildCommentsBlock(Comm, Block);
+          FLACOut.FStream.Write(Block^, BL);
+          FreeMem(Block);
+        end;
+      end;
     except
       Result := FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
     end;
@@ -397,6 +515,7 @@ type
       else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or fmShareExclusive, FAccessMask);
     end;
     EndOfInput := False;
+    BolckInserted := False;
     _encoder := FLAC__stream_encoder_new;
     if _encoder = nil then
     raise EAuException.Create('Failed to initialize FLAC encoder.');
@@ -658,12 +777,6 @@ type
     else FCompressionLevel := Val;
   end;
 
-type
-  TBlockInfo = record
-   BlockType : Word;
-   BlockLength : LongWord;
-   HasNext : Boolean;
-  end;
 
   procedure GetBlockInfo(FS : TStream; var BI : TBlockInfo);
   var
