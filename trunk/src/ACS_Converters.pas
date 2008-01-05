@@ -9,8 +9,8 @@
 
 unit ACS_Converters;
 
-{ Title: ACS_Converters
-    Classes which convert bit depth, samples, and stereo/mono. }
+(* Title: ACS_Converters
+    Classes which convert bit depth, samples, and stereo/mono. *)
 
 interface
 

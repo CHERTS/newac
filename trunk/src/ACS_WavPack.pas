@@ -11,8 +11,8 @@
 
 unit ACS_WavPack;
 
-{ Title: ACS_WavPack
-    Delphi interface for WavPack (.wv) files via wavpackdll.dll }
+(* Title: ACS_WavPack
+    Delphi interface for WavPack (.wv) files via wavpackdll.dll *)
 
 interface
 
@@ -24,7 +24,7 @@ uses
 
 type
 
-  { class TWVIn }
+  (* class TWVIn *)
 
   TWVIn = class(TAuTaggedFileIn)
   private
@@ -53,7 +53,7 @@ type
   published
   end;
 
-  { class TWVOut }
+  (* class TWVOut *)
 
   TWVCompressionLevel = (wvclFast, wvclHigh, wvclVeryHigh);
 
@@ -127,7 +127,7 @@ type
 const
   byte_sample_base = t_byte_sample((High(t_byte_sample) shr 1) + 1);
 
-{ class TWVIn }
+(* class TWVIn *)
 
 constructor TWVIn.Create(AOwner: TComponent);
 begin
@@ -417,7 +417,7 @@ begin
 end;
 
 
-{ class TWVOut }
+(* class TWVOut *)
 
 constructor TWVOut.Create(AOwner: TComponent);
 begin

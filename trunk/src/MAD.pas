@@ -3,8 +3,8 @@
 
 unit MAD;
 
-{ Unit: MAD.pas
-    Delphi interface to MADLib.dll }
+(* Unit: MAD.pas
+    Delphi interface to MADLib.dll *)
 
 interface
 

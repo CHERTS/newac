@@ -18,8 +18,8 @@
 
 unit AuSampleRate;
 
-{ Title: AuSampleRate
-    Classes which implement resampling of audio data. }
+(* Title: AuSampleRate
+    Classes which implement resampling of audio data. *)
 
 interface
 

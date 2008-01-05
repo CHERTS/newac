@@ -9,8 +9,8 @@
 
 unit ACS_Tags;
 
-{ Title: ACS_Tags
-    Utility classes for Tags. }
+(* Title: ACS_Tags
+    Utility classes for Tags. *)
 
 interface
 
@@ -24,7 +24,7 @@ type
   end;
   PTagValueInfo = ^TTagValueInfo;
 
-  { class TAuTags }
+  (* class TAuTags *)
 
   TAuTags = class(TPersistent)
   private
@@ -60,14 +60,14 @@ type
     property AsWideString[const Id: String]: WideString read GetAsWideString;
   end;
 
-  { class TId3Tags }
+  (* class TId3Tags *)
 
   TId3Tags = class(TAuTags)
   public
     constructor Create; override;
   end;
 
-  { class TId3v1Tags }
+  (* class TId3v1Tags *)
 
   TId3v1Tags = class(TId3Tags)
   private
@@ -95,7 +95,7 @@ type
     property Comment: String read GetComment write SetComment;
   end;
 
-  { class TId3v2Tags }
+  (* class TId3v2Tags *)
 
   TId3v2Tags = class(TId3Tags)
   private
@@ -123,7 +123,7 @@ type
     property Comment: WideString read GetComment write SetComment;
   end;
 
-  { class TAPEv2Tags }
+  (* class TAPEv2Tags *)
 
   TAPEv2Tags = class(TAuTags)
   private
@@ -274,7 +274,7 @@ implementation
 
 uses Variants, SysUtils, Math;
 
-{ class TAuTags }
+(* class TAuTags *)
 
 constructor TAuTags.Create;
 begin
@@ -460,7 +460,7 @@ begin
 end;
 
 
-{ class TId3Tags }
+(* class TId3Tags *)
 
 constructor TId3Tags.Create;
 begin
@@ -476,7 +476,7 @@ begin
 end;
 
 
-{ class TId3v1Tags }
+(* class TId3v1Tags *)
 
 function TId3v1Tags.GetArtist: String;
 var
@@ -553,7 +553,7 @@ begin
 end;
 
 
-{ class TId3v2Tags }
+(* class TId3v2Tags *)
 
 function TId3v2Tags.GetArtist: WideString;
 begin
@@ -626,7 +626,7 @@ begin
 end;
 
 
-{ class TAPEv2Tags }
+(* class TAPEv2Tags *)
 
 constructor TAPEv2Tags.Create;
 begin

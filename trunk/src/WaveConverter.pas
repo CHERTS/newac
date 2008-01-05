@@ -9,10 +9,10 @@
 
 unit WaveConverter;
 
-{ Unit: WaveConverter.pas
+(* Unit: WaveConverter.pas
     Classes to convert WAV files copyright (c) 2002-2007, Andrei Borovsky
     (anb@symmetrica.net). All rights reserved. See the LICENSE file for more
-    details. }
+    details. *)
 
 interface
 
@@ -49,7 +49,7 @@ type
 
 implementation
 
-{ TWaveConverter }
+(* TWaveConverter *)
 
 function TWaveConverter.Convert: integer;
 var

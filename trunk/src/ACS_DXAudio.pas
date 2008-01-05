@@ -9,8 +9,8 @@
 
 unit ACS_DXAudio;
 
-{ Title: ACS_DXAudio
-    Classes which deal with audio data from DirectX. }
+(* Title: ACS_DXAudio
+    Classes which deal with audio data from DirectX. *)
 
 interface
 

@@ -9,8 +9,8 @@
 
 unit ACS_Classes;
 
-{ Title: ACS_Classes 
-    Ancestor classes for all input and output components. }
+(* Title: ACS_Classes 
+    Ancestor classes for all input and output components. *)
 
 interface
 
@@ -58,8 +58,8 @@ type
   EAuException = class(Exception)
   end;
 
-  { Class: TAuFileStream
-      TFileStream analog that handles Unicode. }
+  (* Class: TAuFileStream
+      TFileStream analog that handles Unicode. *)
 
   TAuFileStream = class(THandleStream)
   public
@@ -68,8 +68,8 @@ type
     destructor Destroy; override;
   end;
 
-  { Class: TAuThread
-      Custom TThread descendant that does something. }
+  (* Class: TAuThread
+      Custom TThread descendant that does something. *)
 
   TAuThread = class(TThread)
   private
@@ -89,8 +89,8 @@ type
     procedure Execute; override;
   end;
 
-{ Class: TAuInput
-    The ancestor class for all input components. }
+(* Class: TAuInput
+    The ancestor class for all input components. *)
 
   TAuInput = class(TComponent)
   protected
@@ -114,16 +114,16 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); virtual;
-    { Function: CopyData 
+    (* Function: CopyData 
         Writes no more than BufferSize data into Buffer 
         
       Parameters:
       
         Buffer: Pointer - the buffer to write to
         BufferSize: Integer - the number of bytes to write
-    }
+    *)
     function CopyData(Buffer : Pointer; BufferSize : Integer) : Integer;
-    { Function: FillBuffer
+    (* Function: FillBuffer
         The same as <CopyData> but tries to fill the Buffer. EOF is set to 
         True if end of data was reached while filling the buffer, the buffer 
         itself may still contain valid data.
@@ -138,7 +138,7 @@ type
       Returns:
       
         Integer - Number of bytes written
-    }
+    *)
     // The same as CopyData but tries to fill the Buffer.
     // EOF is set to True if end of data was reached while filling the buffer
     // the buffer itself may still contain valid data.
@@ -154,16 +154,16 @@ type
     property Position : Int64 read FPosition;
     property SampleRate : Integer read GetSR;
     property Channels : Integer read GetCh;
-    { Property: Size
+    (* Property: Size
         A read only property which returns FSize. FSize is calculated in
         OpenFile method as the FULL file size. More precise calculations
-        regarding StartSample/EndSample are done in <Init>. }
+        regarding StartSample/EndSample are done in <Init>. *)
     property Size : Int64 read FSize;
     property TotalTime : Integer read GetTotalTime;
   end;
 
-{ Class: TAuOutput
-    The ancestor class for all output components. }
+(* Class: TAuOutput
+    The ancestor class for all output components. *)
 
   TAuOutput = class(TComponent)
   protected
@@ -216,8 +216,8 @@ type
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
   end;
 
-{ Class: TAuStreamedInput
-    A descendant of <TAuInput> to deal with streams. }
+(* Class: TAuStreamedInput
+    A descendant of <TAuInput> to deal with streams. *)
 
   TAuStreamedInput = class(TAuInput)
   protected
@@ -231,8 +231,8 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
-{ Class: TAuStreamedOutput
-    A descendant of <TAuOutput> to deal with streams. }
+(* Class: TAuStreamedOutput
+    A descendant of <TAuOutput> to deal with streams. *)
 
   TAuStreamedOutput = class(TAuOutput)
   protected
@@ -243,8 +243,8 @@ type
     property Stream : TStream read FStream write SetStream;
   end;
 
-  { Class: TAuFileIn
-      A descendant of <TAuStreamedInput> to deal with files. }
+  (* Class: TAuFileIn
+      A descendant of <TAuStreamedInput> to deal with files. *)
 
   TAuFileIn = class(TAuStreamedInput)
   private
@@ -283,12 +283,12 @@ type
       if the file is already opened.
       This method should fill FChan, FBPS, FSR, and FSize with values.
     *)
-    { Procedure: OpenFile
+    (* Procedure: OpenFile
         Opens the file in FileName if it is not already open. For performance 
         reasons the file is opened when any of its data is accessed the first 
         time and is then kept open until it is done with. The descendants' 
         FileOpen implementations use the FOpened constant to check if the file 
-        is already opened. }
+        is already opened. *)
     procedure OpenFile; virtual; abstract;
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : Integer; override;
@@ -308,15 +308,15 @@ type
     property Time : Integer read GetTime;
     property TotalSamples : Int64 read GetTotalSamples;
     property Valid : Boolean read GetValid;
-    { Property: WideFileName
+    (* Property: WideFileName
         Allows you to handle file names in Unicode. Setting its value overrides
-        the value set to FileName. }
+        the value set to FileName. *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     property EndSample : Int64 read FEndSample write FEndSample;
-    { Property: Filename
+    (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
-      the value set to WideFileName. }
+      the value set to WideFileName. *)
     property FileName : TFileName read FFileName write SetFileName stored True;
     property Loop : Boolean read FLoop write FLoop;
     property StartSample : Int64 read FStartSample write FStartSample;
@@ -332,18 +332,18 @@ type
     procedure SetId3v2Tags(Value: TId3v2Tags);
     procedure SetAPEv2Tags(Value: TAPEv2Tags);
   protected
-{Ross--- }
+(* Ross--- *)
     property _Id3v1Tags: TId3v1Tags read FId3v1Tags write SetId3v1Tags;
     property _Id3v2Tags: TId3v2Tags read FId3v2Tags write SetId3v2Tags;
     property _APEv2Tags: TAPEv2Tags read FAPEv2Tags write SetAPEv2Tags;
-{ ---Ross}
+(* ---Ross *)
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
-  { Class: TAuFileOut
-      A descendant of <TAuStreamedOutput> to deal with files. }
+  (* Class: TAuFileOut
+      A descendant of <TAuStreamedOutput> to deal with files. *)
 
   TAuFileOut = class(TAuStreamedOutput)
   private
@@ -368,7 +368,7 @@ type
 
   TAuTaggedFileOut = class(TAuFileOut)
   private
-{Ross--- }
+(* Ross--- *)
     FId3v1Tags: TId3v1Tags;
     FId3v2Tags: TId3v2Tags;
     FAPEv2Tags: TAPEv2Tags;
@@ -376,16 +376,16 @@ type
     procedure SetId3v1Tags(Value: TId3v1Tags);
     procedure SetId3v2Tags(Value: TId3v2Tags);
     procedure SetAPEv2Tags(Value: TAPEv2Tags);
-{ ---Ross}
+(* ---Ross *)
   protected
-{Ross--- }
+(* Ross--- *)
     property Id3v1Tags: TId3v1Tags read FId3v1Tags write SetId3v1Tags;
     property Id3v2Tags: TId3v2Tags read FId3v2Tags write SetId3v2Tags;
     property APEv2Tags: TAPEv2Tags read FAPEv2Tags write SetAPEv2Tags;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-{ ---Ross}
+(* ---Ross *)
   end;
 
   TAuConverter = class(TAuInput)
@@ -875,12 +875,12 @@ end;
 
   function TAuFileIn.GetValid;
   begin
-{Ross---
+(* Ross---
     if (not FStreamAssigned) and (FileName = '') then
- ---Ross}
-{Ross--- }
+ ---Ross *)
+(* Ross--- *)
     if (not FStreamAssigned) and (WideFileName = '') then
-{ ---Ross}
+(* ---Ross *)
     begin
       Result := False;
     end else
@@ -1212,7 +1212,7 @@ end;
     inherited Destroy;
   end;
 
-{Ross--- }
+(* Ross--- *)
   procedure TAuTaggedFileIn.SetId3v1Tags(Value: TId3v1Tags);
   begin
     FId3v1Tags.Assign(Value);
@@ -1228,7 +1228,7 @@ end;
     FAPEv2Tags.Assign(Value);
   end;
 
-{ ---Ross}
+(* ---Ross *)
   procedure TAuFileIn.SetWideFileName;
   begin
     CloseFile;
@@ -1247,7 +1247,7 @@ end;
     FFileName := FN;
   end;
 
-{Ross--- }
+(* Ross--- *)
   procedure TAuTaggedFileOut.SetId3v1Tags(Value: TId3v1Tags);
   begin
     FId3v1Tags.Assign(Value);
@@ -1263,7 +1263,7 @@ end;
     FAPEv2Tags.Assign(Value);
   end;
 
-{ ---Ross}
+(* ---Ross *)
   procedure TAuFileOut.SetWideFileName;
   begin
     FWideFileName := FN;
@@ -1279,31 +1279,31 @@ end;
   constructor TAuTaggedFileIn.Create;
   begin
     inherited Create(AOwner);
-{Ross--- }
+(* Ross--- *)
     FId3v1Tags := TId3v1Tags.Create();
     FId3v2Tags := TId3v2Tags.Create();
     FAPEv2Tags := TAPEv2Tags.Create();
-{ ---Ross}
+(* ---Ross *)
   end;
 
   destructor TAuTaggedFileIn.Destroy;
   begin
-{Ross--- }
+(* Ross--- *)
     FId3v1Tags.Free();
     FId3v2Tags.Free();
     FAPEv2Tags.Free();
-{ ---Ross}
+(* ---Ross *)
     inherited Destroy;
   end;
 
   constructor TAuTaggedFileOut.Create;
   begin
     inherited Create(AOwner);
-{Ross--- }
+(* Ross--- *)
     FId3v1Tags := TId3v1Tags.Create();
     FId3v2Tags := TId3v2Tags.Create();
     FAPEv2Tags := TAPEv2Tags.Create();
-{ ---Ross}
+(* ---Ross *)
   end;
 
   destructor TAuTaggedFileOut.Destroy;

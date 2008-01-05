@@ -1,7 +1,7 @@
 unit WavPackDLL;
 
-{ Unit: WavPackDLL
-    Delphi headers for wavpack.dll. }
+(* Unit: WavPackDLL
+    Delphi headers for wavpack.dll. *)
 
 interface
 
@@ -17,14 +17,14 @@ var
 type
   PWavpackContext = type Pointer;
 
-  { class EWavpackException }
+  (* class EWavpackException *)
 
   EWavpackException = class(Exception)
   end;
 
   TMD5Sum = packed array [0 .. 15] of Byte;
 
-  { class TWavpackDecoder }
+  (* class TWavpackDecoder *)
 
   TwvOpenFlag = (
     wvofWVC, wvofTags, wvofWrapper, wvof2chMax,
@@ -120,7 +120,7 @@ type
     property LastError: String read GetLastError;
   end;
 
-  { class TWavpackEncoder }
+  (* class TWavpackEncoder *)
 
   TwvConfigFlag = (
     wvcfReserved00000001, wvcfReserved00000002, wvcfReserved00000004,
@@ -442,7 +442,7 @@ begin
 end;
 
 
-{ class TWavpackDecoder }
+(* class TWavpackDecoder *)
 
 var
   stream_reader: TWavpackStreamReader;
@@ -671,7 +671,7 @@ begin
 end;
 
 
-{ class TWavpackEncoder }
+(* class TWavpackEncoder *)
 
 function blockout(Stream: TStream; Buffer: Pointer; Count: Integer): LongBool; cdecl;
 begin
@@ -811,7 +811,7 @@ begin
 end;
 
 
-{ stream reader functions }
+(* stream reader functions *)
 
 function stream_read_bytes(Stream: TStream; Data: Pointer; ByteCount: Integer): Integer; cdecl;
 begin

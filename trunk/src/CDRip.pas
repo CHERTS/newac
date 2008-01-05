@@ -5,20 +5,18 @@
   Copyright (C) 1999 - 2002 Albert Faber
 
   Note by A.B.:
-  Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit.
-*)
+  Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit. *)
 
 unit CDRip;
 
-{ Title: CDRip
+(* Title: CDRip
     Delphi header file for CDRip.dll. 
     Translated from CDRip.h header by Andrei Borovsky, acs@compiler4.net
     The original C/C++ header and library
     Copyright (C) 1999 - 2002 Albert Faber
 
     Note by A.B.:
-    Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit.
-}
+    Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit. *)
 
 interface
 

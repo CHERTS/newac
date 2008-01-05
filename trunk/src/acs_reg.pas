@@ -1,7 +1,7 @@
 unit acs_reg;
 
-{ Title: ACS_Reg 
-    Registers all ACS components. }
+(* Title: ACS_Reg 
+    Registers all ACS components. *)
 
 interface
 

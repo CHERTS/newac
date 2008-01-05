@@ -7,8 +7,8 @@
 
 unit libwma1;
 
-{ Title: libwma1.pas
-    Delphi headers for WMA files. }
+(* Title: libwma1.pas
+    Delphi headers for WMA files. *)
 
 interface
 
@@ -474,7 +474,7 @@ implementation
    end;
 
 
- {  function SeletBestConfig(SubType : TGUID; pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
+ (*  function SeletBestConfig(SubType : TGUID; pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
    var
     pProfileMgr : IWMProfileManager;
     pCodecInfo : IWMCodecInfo3;
@@ -563,7 +563,7 @@ implementation
     end;
     ppStreamConfig := pBestMatch;
     Result := True;
-  end;  }
+  end;  *)
 
   function SeletBestConfig(SubType : TGUID; pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
    var

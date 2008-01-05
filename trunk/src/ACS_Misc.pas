@@ -9,8 +9,8 @@
 
 unit ACS_Misc;
 
-{ Title: ACS_Misc
-    Miscellaneous classes which don't fit anywhere else.  }
+(* Title: ACS_Misc
+    Miscellaneous classes which don't fit anywhere else.  *)
 
 interface
 
