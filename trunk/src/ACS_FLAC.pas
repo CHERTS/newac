@@ -72,9 +72,11 @@ type
   { Property: Blocksize
       The size you want some blocks to be. Has nothing to do with <BestModelSearch> }
     property BlockSize : Word read FBlockSize write FBlockSize;
-  { Property: Compression Level
+  { Property: CompressionLevel
       What level you want your compression at. }
     property CompressionLevel : Integer read FCompressionLevel write SetCompressionLevel;
+  (* Property: EnableMidSideStereo
+      Set this property to True to get a bit more compression. *)
     property EnableMidSideStereo : Boolean read FEnableMidSideStereo write FEnableMidSideStereo;
     property EnableLooseMidSideStereo : Boolean read FEnableLooseMidSideStereo write SetEnableLooseMidSideStereo;
     property MaxLPCOrder : Word read FMaxLPCOrder write FMaxLPCOrder;
@@ -82,7 +84,11 @@ type
     property MinResidualPartitionOrder : Word read FMinResidualPartitionOrder write FMinResidualPartitionOrder;
     property QLPCoeffPrecision : Word read FQLPCoeffPrecision write FQLPCoeffPrecision;
     property QLPCoeffPrecisionSearch : Boolean read FQLPCoeffPrecisionSearch write FQLPCoeffPrecisionSearch;
+  (* Property: Tags
+      The set of Vorbis-style comments (artist, title, etc.) that  you can add to the output file. *)
     property Tags : TVorbisTags read FTags write SetTags;
+  (* Property: Verify
+      Setting Verify to True forces the FLAC encoder to verify its own output. It slows down encoding process and usually unnecessary. *)
     property Verify : Boolean read FVerify write FVerify;
   end;
 
