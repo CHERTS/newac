@@ -7,6 +7,9 @@
 
 unit ACS_WinMedia;
 
+{ Title: ACS_WinMedia
+    Delphi interface for Windows Media Audio (.wma) files via ..? }
+
 interface
 
 uses

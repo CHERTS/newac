@@ -1,5 +1,8 @@
 unit WavPackDLL;
 
+{ Unit: WavPackDLL
+    Delphi headers for wavpack.dll. }
+
 interface
 
 uses

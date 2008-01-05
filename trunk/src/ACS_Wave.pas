@@ -9,6 +9,11 @@
 
 unit ACS_Wave;
 
+{ Title: ACS_Wave
+    Delphi interface for WAV files via MMSystem copyright (c) 2002-2007, Andrei
+    Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
+    for more details. }
+
 interface
 
 uses
@@ -30,7 +35,36 @@ const
 
 type
 
+  { Enum: TWavType
+      The format of the WAV.
+    
+    wtUnsupported - a WAV format that isn't supported
+    wtPCM - a WAV which is PCM (the normal format, use this if you're unsure)
+    wtDVIADPCM - a WAV which is DVIADPCM (uhh..)
+    wtACM - an MP3 packed inside a WAV
+  }
+
   TWavType = (wtUnsupported, wtPCM, wtDVIADPCM, wtMSADPCM, wtACM);
+
+  { Record: TWaveHeader
+      Represents a RIFF file header.
+
+    Properties:    
+
+    RIFF: array [0..3] of Char - 'RIFF'
+    FileSize: Integer - FileSize - 8
+    RIFFType: array [0..3] of Char - 'WAVE'
+    FmtChunkId: array [0..3] of Char - 'fmt' marks the beginning of the format chunk
+    FmtChunkSize: Integer - 16 the size of the format chunk
+    FormatTag: Word - One of WAVE_FORMAT_XXX constants
+    Channels: Word - 1=mono, 2=stereo
+    SampleRate: Integer; - sample rate
+    BytesPerSecond: Inteter; - bytes per second
+    BlockAlign: Word; - block alignment?
+    BitsPerSample: Word - 8, 16 or 32 Bits/sample
+    DataChunkId: array [0..3] of Char - 'data' marks the beginning of the data chunk
+    DataSize: Integer - Data size in bytes  
+  }
 
   TWaveHeader = record
     // RIFF file header
@@ -51,6 +85,30 @@ type
     DataSize: Integer;   // Data size in bytes
   end;
 
+{ Record: TDVIADPCMHeader
+    RIFF file header for DVIADPCM (version NNFCAIWFLDL).
+
+  Properties:
+    RIFF: array [0..3] of Char - 'RIFF' begins RIFF file header
+    FileSize: Integer - FileSize - 8
+    RIFFType: array [0..3] of Char - 'WAVE'   
+    FmtChunkId: array [0..3] of Char - 'fmt' Format chunk
+    FmtChunkSize: Integer - 20
+    FormatTag: Word - WAVE_FORMAT_DVI_ADPCM
+    Channels: Word - 1=mono, 2=stereo
+    SampleRate: Integer;
+    BytesPerSecond: Integer;
+    BlockAlign: Word;
+    BitsPerSample: Word - 3, 4 bits/sample
+    cbSize: Word - The size in bytes of the extra information
+    SamplesPerBlock: Word - number of samples per channel per Block
+    FactChunkId: array [0..3] of Char - 'fact' begin Fact Chunk
+    FactChunkSize : Integer - 4
+    DataLength : Integer;
+    DataChunkId: array [0..3] of Char - 'data' begin Data Chunk
+    DataSize: Integer -  Data size in bytes
+  }
+  
   TDVIADPCMHeader = record
     // RIFF file header
     RIFF: array [0..3] of Char;          // = 'RIFF'

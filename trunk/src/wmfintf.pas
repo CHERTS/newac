@@ -5,6 +5,10 @@
 
 unit wmfintf;
 
+{ Unit: wmfintf.pas
+    Delphi headers for Windows Media related stuff. Contains the bits from the 
+    Windows Media SDK header files relevant to encoding/decoding data. }
+
 interface
 uses
   Windows, ActiveX, _DirectSound, MMSystem;

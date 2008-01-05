@@ -9,6 +9,9 @@
 
 unit ACS_smpeg;
 
+{ Title: ACS_SMPEG
+    Delphi interface for SMPEG. Shows how easy adding a new format can be. }
+
 interface
 
 uses

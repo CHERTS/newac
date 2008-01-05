@@ -1,15 +1,12 @@
 unit MACDll;
-{
-  Delphi interface to MACDll.dll 3.97
-  by Thomas la Cour 30-04-2003
-  http://www.top-house.dk/~nr161/delphi/
+{ Unit: MACDll.pas
+    Delphi interface to MACDll.dll 3.97 by Thomas la Cour 30-04-2003
+    http://www.top-house.dk/~nr161/delphi/. Still missing StartEx for
+    TAPECompress.
 
-  still missing:
-  StartEx for TAPECompress
+    Slightly modified by Andrei Borovsky for better ACS/NewAC compliance.
 
-  Slightly modified by Andrei Borovsky for better ACS/NewAC complience.
-
-  Updated by Sergei Borisov < jr_ross@mail.ru >
+    Updated by Sergei Borisov (jr_ross@mail.ru)
 }
 
 (* $Date: 2007/08/15 10:00:23 $ $Revision: 1.3 $ *)

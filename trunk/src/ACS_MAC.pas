@@ -14,6 +14,9 @@
 
 unit ACS_MAC;
 
+{ Title: ACS_MAC
+    Delphi interface for Monkey's Audio (.ape) files via MACDll.dll }
+
 interface
 
 uses

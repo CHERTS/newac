@@ -9,6 +9,8 @@
 
 unit ACS_Streams;
 
+{ Title: ACS_Streams
+    Utility classes for streams. }
 
 interface
 
