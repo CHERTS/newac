@@ -9,8 +9,8 @@
 
 unit ACS_Filters;
 
-{ Title: ACS_Filters
-    Classes which run filters on audio data. }
+(* Title: ACS_Filters
+    Classes which run filters on audio data. *)
 
 interface
 

@@ -8,8 +8,8 @@
 
 unit FLAC;
 
-{ Title: FLAC
-    Headers for libFLAC v1.1.4 by Andrei Borovsky (anb@symmetrica.net). }
+(* Title: FLAC
+    Headers for libFLAC v1.1.4 by Andrei Borovsky (anb@symmetrica.net). *)
 
 interface
 
@@ -380,10 +380,10 @@ type
  //       return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
  //     else
  //       return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
- //   }
+ //   *)
  //   else
  //     return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
- // }
+ // *)
  // \endcode
  // \note In general, FLAC__StreamDecoder functions which change the
  // state should not be called on the \a decoder while in the callback.
@@ -425,7 +425,7 @@ type
  //     return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
  //   else
  //     return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
- // }
+ // *)
  // \endcode
 
  // \note In general, FLAC__StreamDecoder functions which change the
@@ -461,8 +461,8 @@ type
 //*   else {
 //*     *absolute_byte_offset = (FLAC__uint64)pos;
 //*     return FLAC__STREAM_DECODER_TELL_STATUS_OK;
-//*   }
-//* }
+//*   *)
+//* *)
 //* \endcode
 //* \note In general, FLAC__StreamDecoder functions which change the
 //* state should not be called on the \a decoder while in the callback.
@@ -500,8 +500,8 @@ type
 //*   else {
 //*     *stream_length = (FLAC__uint64)filestats.st_size;
 //*     return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
-//*   }
-//* }
+//*   *)
+//* *)
 //* \endcode
 
 //* \note In general, FLAC__StreamDecoder functions which change the
@@ -532,7 +532,7 @@ type
 //* {
 //*   FILE *file = ((MyClientData*)client_data)->file;
 //*   return feof(file)? true : false;
-//* }
+//* *)
 //* \endcode
 //* \note In general, FLAC__StreamDecoder functions which change the
 //* state should not be called on the \a decoder while in the callback.
@@ -1415,166 +1415,166 @@ const
   FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR = 8;
   // Memory allocation failed. */
 
-{* Possible return values for the FLAC__stream_encoder_init_*() functions.
- }
-{ enum  }
+(* Possible return values for the FLAC__stream_encoder_init_*() functions.
+ *)
+(* enum  *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_OK = 0;
-{*< Initialization was successful. }
+(*< Initialization was successful. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR =  1;
-{*< General failure to set up encoder; call FLAC__stream_encoder_get_state() for cause. }
+(*< General failure to set up encoder; call FLAC__stream_encoder_get_state() for cause. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_UNSUPPORTED_CONTAINER =  2;
-{*< The library was not compiled with support for the given container
+(*< The library was not compiled with support for the given container
 	 * format.
-	 }
+	 *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_CALLBACKS =  3;
-{*< A required callback was not supplied. }
+(*< A required callback was not supplied. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_NUMBER_OF_CHANNELS =  4;
-{*< The encoder has an invalid setting for number of channels. }
+(*< The encoder has an invalid setting for number of channels. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BITS_PER_SAMPLE =  5;
-{*< The encoder has an invalid setting for bits-per-sample.
+(*< The encoder has an invalid setting for bits-per-sample.
 	 * FLAC supports 4-32 bps but the reference encoder currently supports
 	 * only up to 24 bps.
-	 }
+	 *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_SAMPLE_RATE =  6;
-{*< The encoder has an invalid setting for the input sample rate. }
+(*< The encoder has an invalid setting for the input sample rate. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BLOCK_SIZE =  7;
-{*< The encoder has an invalid setting for the block size. }
+(*< The encoder has an invalid setting for the block size. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_MAX_LPC_ORDER =  8;
-{*< The encoder has an invalid setting for the maximum LPC order. }
+(*< The encoder has an invalid setting for the maximum LPC order. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_QLP_COEFF_PRECISION =  9;
-{*< The encoder has an invalid setting for the precision of the quantized linear predictor coefficients. }
+(*< The encoder has an invalid setting for the precision of the quantized linear predictor coefficients. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER = 10;
-{*< The specified block size is less than the maximum LPC order. }
+(*< The specified block size is less than the maximum LPC order. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE = 11;
-{*< The encoder is bound to the <A HREF="../format.html#subset">Subset</A> but other settings violate it. }
+(*< The encoder is bound to the <A HREF="../format.html#subset">Subset</A> but other settings violate it. *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA = 12;
-{*< The metadata input to the encoder is invalid, in one of the following ways:
+(*< The metadata input to the encoder is invalid, in one of the following ways:
 	 * - FLAC__stream_encoder_set_metadata() was called with a null pointer but a block count > 0
 	 * - One of the metadata blocks contains an undefined type
 	 * - It contains an illegal CUESHEET as checked by FLAC__format_cuesheet_is_legal()
 	 * - It contains an illegal SEEKTABLE as checked by FLAC__format_seektable_is_legal()
 	 * - It contains more than one SEEKTABLE block or more than one VORBIS_COMMENT block
-	 }
+	 *)
 
   FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED = 13;
-{*< FLAC__stream_encoder_init_*() was called when the encoder was
+(*< FLAC__stream_encoder_init_*() was called when the encoder was
 	 * already initialized, usually because
 	 * FLAC__stream_encoder_finish() was not called.
-	 }
+	 *)
 
-{ end of enum }
+(* end of enum *)
 
-{* Maps a FLAC__StreamEncoderInitStatus to a C string.
+(* Maps a FLAC__StreamEncoderInitStatus to a C string.
  *
  *  Using a FLAC__StreamEncoderInitStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
- }
-{!!} { extern FLAC_API const char * const FLAC__StreamEncoderInitStatusString[]; }
+ *)
+{!!} (* extern FLAC_API const char * const FLAC__StreamEncoderInitStatusString[]; *)
 
 
-{* Return values for the FLAC__StreamEncoder read callback.
- }
-{ enum  }
+(* Return values for the FLAC__StreamEncoder read callback.
+ *)
+(* enum  *)
 
   FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE =  0;
-{*< The read was OK and decoding can continue. }
+(*< The read was OK and decoding can continue. *)
 
   FLAC__STREAM_ENCODER_READ_STATUS_END_OF_STREAM =  1;
-{*< The read was attempted at the end of the stream. }
+(*< The read was attempted at the end of the stream. *)
 
   FLAC__STREAM_ENCODER_READ_STATUS_ABORT =  2;
-{*< An unrecoverable error occurred. }
+(*< An unrecoverable error occurred. *)
 
   FLAC__STREAM_ENCODER_READ_STATUS_UNSUPPORTED =  3;
-{*< Client does not support reading back from the output. }
+(*< Client does not support reading back from the output. *)
 
-{ end of enum }
+(* end of enum *)
 
-{* Maps a FLAC__StreamEncoderReadStatus to a C string.
+(* Maps a FLAC__StreamEncoderReadStatus to a C string.
  *
  *  Using a FLAC__StreamEncoderReadStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
- }
-{!!} { extern FLAC_API const char * const FLAC__StreamEncoderReadStatusString[]; }
+ *)
+{!!} (* extern FLAC_API const char * const FLAC__StreamEncoderReadStatusString[]; *)
 
 
-{* Return values for the FLAC__StreamEncoder write callback.
- }
-{ enum  }
+(* Return values for the FLAC__StreamEncoder write callback.
+ *)
+(* enum  *)
 
   FLAC__STREAM_ENCODER_WRITE_STATUS_OK = 0;
-{*< The write was OK and encoding can continue. }
+(*< The write was OK and encoding can continue. *)
 
   FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR =  1;
-{*< An unrecoverable error occurred.  The encoder will return from the process call. }
+(*< An unrecoverable error occurred.  The encoder will return from the process call. *)
 
-{ end of enum }
+(* end of enum *)
 
-{* Maps a FLAC__StreamEncoderWriteStatus to a C string.
+(* Maps a FLAC__StreamEncoderWriteStatus to a C string.
  *
  *  Using a FLAC__StreamEncoderWriteStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
- }
-{!!} { extern FLAC_API const char * const FLAC__StreamEncoderWriteStatusString[]; }
+ *)
+{!!} (* extern FLAC_API const char * const FLAC__StreamEncoderWriteStatusString[]; *)
 
 
-{* Return values for the FLAC__StreamEncoder seek callback.
- }
-{ enum  }
+(* Return values for the FLAC__StreamEncoder seek callback.
+ *)
+(* enum  *)
 
   FLAC__STREAM_ENCODER_SEEK_STATUS_OK =  0;
-{*< The seek was OK and encoding can continue. }
+(*< The seek was OK and encoding can continue. *)
 
   FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR =  1;
-{*< An unrecoverable error occurred. }
+(*< An unrecoverable error occurred. *)
 
   FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED =  2;
-{*< Client does not support seeking. }
+(*< Client does not support seeking. *)
 
-{ end of enum }
+(* end of enum *)
 
-{* Maps a FLAC__StreamEncoderSeekStatus to a C string.
+(* Maps a FLAC__StreamEncoderSeekStatus to a C string.
  *
  *  Using a FLAC__StreamEncoderSeekStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
- }
-{!!} { extern FLAC_API const char * const FLAC__StreamEncoderSeekStatusString[]; }
+ *)
+{!!} (* extern FLAC_API const char * const FLAC__StreamEncoderSeekStatusString[]; *)
 
 
-{* Return values for the FLAC__StreamEncoder tell callback.
- }
-{ enum  }
+(* Return values for the FLAC__StreamEncoder tell callback.
+ *)
+(* enum  *)
 
   FLAC__STREAM_ENCODER_TELL_STATUS_OK =  0;
-{*< The tell was OK and encoding can continue. }
+(*< The tell was OK and encoding can continue. *)
 
   FLAC__STREAM_ENCODER_TELL_STATUS_ERROR =  1;
-{*< An unrecoverable error occurred. }
+(*< An unrecoverable error occurred. *)
 
   FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED =  2;
-{*< Client does not support seeking. }
+(*< Client does not support seeking. *)
 
-{ end of enum }
+(* end of enum *)
 
-{* Maps a FLAC__StreamEncoderTellStatus to a C string.
+(* Maps a FLAC__StreamEncoderTellStatus to a C string.
  *
  *  Using a FLAC__StreamEncoderTellStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
- }
-{!!} { extern FLAC_API const char * const FLAC__StreamEncoderTellStatusString[]; }
+ *)
+{!!} (* extern FLAC_API const char * const FLAC__StreamEncoderTellStatusString[]; *)
 
 
 type
@@ -1597,7 +1597,7 @@ type
  * FLAC__StreamEncoderReadStatus read_cb(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
  * {
  *   FILE *file = ((MyClientData* )client_data)->file;
-    if(*bytes > 0) {
+ *  if(*bytes > 0) {
  *     *bytes = fread(buffer, sizeof(FLAC__byte), *bytes, file);
  *     if(ferror(file))
  *       return FLAC__STREAM_ENCODER_READ_STATUS_ABORT;
@@ -1742,8 +1742,8 @@ type
 // *   else {
 // *     *absolute_byte_offset = (FLAC__uint64)pos;
 // *     return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
-// *   }
-// * }
+// *   *)
+// * *)
 // * \endcode
 // *
 // * \note In general, FLAC__StreamEncoder functions which change the
@@ -1812,37 +1812,37 @@ type
                                         frames_written, total_frames_estimate : LongWord;
                                         client_data : Pointer); cdecl;
 
-{********************************************************************** 
+(********************************************************************** 
  * 
  * Class constructor/destructor
  *
  **********************************************************************}
 
-{* Create a new stream encoder instance.  The instance is created with
+(* Create a new stream encoder instance.  The instance is created with
  *  default settings; see the individual FLAC__stream_encoder_set_*()
  *  functions for each setting's default.
  * 
  * \retval FLAC__StreamEncoder* 
  *    \c NULL if there was an error allocating memory, else the new instance. 
- }
+ *)
  FLAC__stream_encoder_new_t = function : P_FLAC__StreamEncoder; cdecl;
 
-{* Free an encoder instance.  Deletes the object pointed to by \a encoder. 
+(* Free an encoder instance.  Deletes the object pointed to by \a encoder. 
  * 
  * \param encoder  A pointer to an existing encoder.
  * \assert
  *    \code encoder != NULL \endcode 
- }
+ *)
 FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl;
 
 
-{********************************************************************** 
+(********************************************************************** 
  * 
  * Public class method prototypes 
  * 
  **********************************************************************}
 
-{* Set the serial number for the FLAC stream to use in the Ogg container. 
+(* Set the serial number for the FLAC stream to use in the Ogg container. 
  * 
  * \note 
  * This does not need to be set for native FLAC encoding. 
@@ -1858,10 +1858,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_ogg_serial_number_t = function(encoder : P_FLAC__StreamEncoder; serial_number: long) : FLAC__bool; cdecl;
 
-{* Set the "verify" flag.  If \c true, the encoder will verify it's own
+(* Set the "verify" flag.  If \c true, the encoder will verify it's own
  *  encoded output by feeding it through an internal decoder and comparing
  *  the original signal against the decoded signal.  If a mismatch occurs,
  *  the process call will return \c false.  Note that this will slow the
@@ -1874,10 +1874,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true. 
- }
+ *)
   FLAC__stream_encoder_set_verify_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{* Set the <A HREF="../format.html#subset">Subset</A> flag.  If \c true, 
+(* Set the <A HREF="../format.html#subset">Subset</A> flag.  If \c true, 
  *  the encoder will comply with the Subset and will check the 
  *  settings during FLAC__stream_encoder_init_*() to see if all settings
  *  comply.  If \c false, the settings may take advantage of the full
@@ -1892,10 +1892,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true. 
- }
+ *)
   FLAC__stream_encoder_set_streamable_subset_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{* Set the number of channels to be encoded.
+(* Set the number of channels to be encoded.
  * 
  * \default \c 2 
  * \param  encoder  An encoder instance to set. 
@@ -1904,10 +1904,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_channels_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set the sample resolution of the input to be encoded. 
+(* Set the sample resolution of the input to be encoded. 
  * 
  * \warning 
  * Do not feed the encoder data that is wider than the value you 
@@ -1920,10 +1920,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_bits_per_sample_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set the sample rate (in Hz) of the input to be encoded.
+(* Set the sample rate (in Hz) of the input to be encoded.
  * 
  * \default \c 44100 
  * \param  encoder  An encoder instance to set. 
@@ -1932,10 +1932,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true. 
- }
+ *)
   FLAC__stream_encoder_set_sample_rate_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set the compression level
+(* Set the compression level
  * 
  * The compression level is roughly proportional to the amount of effort 
  * the encoder expends to compress the file.  A higher level usually 
@@ -1995,10 +1995,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_compression_level_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set the blocksize to use while encoding.
+(* Set the blocksize to use while encoding.
  *
  * The number of samples to use per frame.  Use \c 0 to let the encoder 
  * estimate a blocksize; this is usually best. 
@@ -2010,10 +2010,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true. 
- }
+ *)
   FLAC__stream_encoder_set_blocksize_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set to \c true to enable mid-side encoding on stereo input.  The
+(* Set to \c true to enable mid-side encoding on stereo input.  The
  *  number of channels must be 2 for this to have any effect.  Set to 
  *  \c false to use only independent channel coding.
  *
@@ -2024,10 +2024,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_do_mid_side_stereo_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{* Set to \c true to enable adaptive switching between mid-side and
+(* Set to \c true to enable adaptive switching between mid-side and
  *  left-right encoding on stereo input.  Set to \c false to use 
  *  exhaustive searching.  Setting this to \c true requires 
  *  FLAC__stream_encoder_set_do_mid_side_stereo() to also be set to
@@ -2040,11 +2040,11 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_loose_mid_side_stereo_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{ @@@@add to unit tests}
-{* Sets the apodization function(s) the encoder will use when windowing
+(* @@@@add to unit tests}
+(* Sets the apodization function(s) the encoder will use when windowing
  *  audio data for LPC analysis. 
  * 
  * The \a specification is a plain ASCII string which specifies exactly
@@ -2086,10 +2086,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code specification != NULL \endcode 
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_apodization_t = function(encoder : P_FLAC__StreamEncoder; specification: PChar) : FLAC__bool; cdecl;
 
-{* Set the maximum LPC order, or \c 0 to use only the fixed predictors.
+(* Set the maximum LPC order, or \c 0 to use only the fixed predictors.
  *
  * \default \c 0 
  * \param  encoder  An encoder instance to set. 
@@ -2098,10 +2098,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true. 
- }
+ *)
   FLAC__stream_encoder_set_max_lpc_order_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set the precision, in bits, of the quantized linear predictor 
+(* Set the precision, in bits, of the quantized linear predictor 
  *  coefficients, or \c 0 to let the encoder select it based on the
  *  blocksize.
  *
@@ -2116,10 +2116,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_qlp_coeff_precision_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set to \c false to use only the specified quantized linear predictor
+(* Set to \c false to use only the specified quantized linear predictor
  *  coefficient precision, or \c true to search neighboring precision
  *  values and use the best one.
  * 
@@ -2130,99 +2130,99 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool 
  *    \c false if the encoder is already initialized, else \c true. 
- }
+ *)
   FLAC__stream_encoder_set_do_qlp_coeff_prec_search_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{* Deprecated.  Setting this value has no effect. 
+(* Deprecated.  Setting this value has no effect. 
  * 
  * \default \c false
  * \param  encoder  An encoder instance to set. 
  * \param  value    See above.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool 
- *    \c false if the encoder is already initialized, else \c true. 
- }
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ *)
   FLAC__stream_encoder_set_do_escape_coding_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{* Set to \c false to let the encoder estimate the best model order
- *  based on the residual signal energy, or \c true to force the 
- *  encoder to evaluate all order models and select the best. 
+(* Set to \c false to let the encoder estimate the best model order
+ *  based on the residual signal energy, or \c true to force the
+ *  encoder to evaluate all order models and select the best.
  *
- * \default \c false 
- * \param  encoder  An encoder instance to set. 
- * \param  value    See above.
- * \assert 
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool 
- *    \c false if the encoder is already initialized, else \c true. 
- }
-  FLAC__stream_encoder_set_do_exhaustive_model_search_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
-
-{* Set the minimum partition order to search when coding the residual.
- *  This is used in tandem with 
- *  FLAC__stream_encoder_set_max_residual_partition_order(). 
- * 
- *  The partition order determines the context size in the residual. 
- *  The context size will be approximately <tt>blocksize / (2 ^ order)</tt>. 
- * 
- *  Set both min and max values to \c 0 to force a single context,
- *  whose Rice parameter is based on the residual signal variance.
- *  Otherwise, set a min and max order, and the encoder will search 
- *  all orders, using the mean of each context for its Rice parameter, 
- *  and use the best.
- * 
- * \default \c 0 
- * \param  encoder  An encoder instance to set. 
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
  * \param  value    See above.
  * \assert
- *    \code encoder != NULL \endcode 
- * \retval FLAC__bool 
- *    \c false if the encoder is already initialized, else \c true. 
- }
-  FLAC__stream_encoder_set_min_residual_partition_order_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ *)
+  FLAC__stream_encoder_set_do_exhaustive_model_search_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__bool) : FLAC__bool; cdecl;
 
-{* Set the maximum partition order to search when coding the residual. 
+(* Set the minimum partition order to search when coding the residual.
  *  This is used in tandem with
- *  FLAC__stream_encoder_set_min_residual_partition_order(). 
- * 
- *  The partition order determines the context size in the residual. 
+ *  FLAC__stream_encoder_set_max_residual_partition_order().
+ *
+ *  The partition order determines the context size in the residual.
  *  The context size will be approximately <tt>blocksize / (2 ^ order)</tt>.
- * 
- *  Set both min and max values to \c 0 to force a single context, 
- *  whose Rice parameter is based on the residual signal variance. 
+ *
+ *  Set both min and max values to \c 0 to force a single context,
+ *  whose Rice parameter is based on the residual signal variance.
  *  Otherwise, set a min and max order, and the encoder will search
  *  all orders, using the mean of each context for its Rice parameter,
  *  and use the best.
- * 
- * \default \c 0
- * \param  encoder  An encoder instance to set. 
- * \param  value    See above. 
- * \assert 
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool 
- *    \c false if the encoder is already initialized, else \c true. 
- }
-  FLAC__stream_encoder_set_max_residual_partition_order_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
-
-{* Deprecated.  Setting this value has no effect. 
- * 
+ *
  * \default \c 0
  * \param  encoder  An encoder instance to set.
- * \param  value    See above. 
+ * \param  value    See above.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool 
- *    \c false if the encoder is already initialized, else \c true. 
- }
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ *)
+  FLAC__stream_encoder_set_min_residual_partition_order_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
+
+(* Set the maximum partition order to search when coding the residual.
+ *  This is used in tandem with
+ *  FLAC__stream_encoder_set_min_residual_partition_order().
+ *
+ *  The partition order determines the context size in the residual.
+ *  The context size will be approximately <tt>blocksize / (2 ^ order)</tt>.
+ *
+ *  Set both min and max values to \c 0 to force a single context,
+ *  whose Rice parameter is based on the residual signal variance.
+ *  Otherwise, set a min and max order, and the encoder will search
+ *  all orders, using the mean of each context for its Rice parameter,
+ *  and use the best.
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ *)
+  FLAC__stream_encoder_set_max_residual_partition_order_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
+
+(* Deprecated.  Setting this value has no effect.
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ *)
 //  FLAC__stream_encoder_set_rice_parameter_search_dist_t = function(encoder : P_FLAC__StreamEncoder; value: unsigned) : FLAC__bool; cdecl;
 
-{* Set an estimate of the total samples that will be encoded. 
- *  This is merely an estimate and may be set to \c 0 if unknown. 
- *  This value will be written to the STREAMINFO block before encoding, 
- *  and can remove the need for the caller to rewrite the value later 
- *  if the value is known before encoding. 
- * 
+(* Set an estimate of the total samples that will be encoded.
+ *  This is merely an estimate and may be set to \c 0 if unknown.
+ *  This value will be written to the STREAMINFO block before encoding,
+ *  and can remove the need for the caller to rewrite the value later
+ *  if the value is known before encoding.
+ *
  * \default \c 0
  * \param  encoder  An encoder instance to set. 
  * \param  value    See above.
@@ -2230,11 +2230,11 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
- }
+ *)
   FLAC__stream_encoder_set_total_samples_estimate_t = function(encoder : P_FLAC__StreamEncoder; value: FLAC__uint64) : FLAC__bool; cdecl;
 
-{* Set the metadata blocks to be emitted to the stream before encoding. 
- *  A value of \c NULL, \c 0 implies no metadata; otherwise, supply an 
+(* Set the metadata blocks to be emitted to the stream before encoding. 
+ *  A value of \c NULL, \c 0 implies no metadata; otherwise, supply an
  *  array of pointers to metadata blocks.  The array is non-const since 
  *  the encoder may need to change the \a is_last flag inside them, and
  *  in some cases update seek point offsets.  Otherwise, the encoder will
@@ -2243,7 +2243,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * 
  * \note 
  * The encoder stores only copies of the pointers in the \a metadata array; 
- * the metadata blocks themselves must survive at least until after 
+ * the metadata blocks themselves must survive at least until after
  * FLAC__stream_encoder_finish() returns.  Do not free the blocks until then. 
  * 
  * \note
@@ -2261,7 +2261,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \note
  * SEEKTABLE blocks are handled specially.  Since you will not know 
  * the values for the seek point stream offsets, you should pass in 
- * a SEEKTABLE 'template', that is, a SEEKTABLE object with the 
+ * a SEEKTABLE 'template', that is, a SEEKTABLE object with the
  * required sample numbers (or placeholder points), with \c 0 for the 
  * \a frame_samples and \a stream_offset fields for each point.  If the
  * client has specified that it supports seeking by providing a seek
@@ -2297,7 +2297,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \a metadata does contain a VORBIS_COMMENT block and it is not the 
  * first, the init function will reorder \a metadata by moving the
  * VORBIS_COMMENT block to the front; the relative ordering of the other 
- * blocks will remain as they were. 
+ * blocks will remain as they were.
  * 
  * \note The Ogg FLAC mapping limits the number of metadata blocks per 
  * stream to \c 65535.  If \a num_blocks exceeds this the function will
@@ -2313,21 +2313,21 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \c false if the encoder is already initialized, else \c true. 
  *    \c false if the encoder is already initialized, or if
  *    \a num_blocks > 65535 if encoding to Ogg FLAC, else \c true. 
- }
+ *)
 
 //  FLAC__stream_encoder_set_metadata_t = function(encoder : P_FLAC__StreamEncoder; {!!}VAR *: FLAC__StreamMetadataVAR px1: ptr; num_blocks: unsigned) : FLAC__bool; cdecl;
 
-{* Get the current encoder state.
+(* Get the current encoder state.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__StreamEncoderState
  *    The current encoder state.
- }
+ *)
   FLAC__stream_encoder_get_state_t = function(encoder : P_FLAC__StreamEncoder): Integer; cdecl;
 
-{* Get the state of the verify stream decoder.
+(* Get the state of the verify stream decoder.
  *  Useful when the stream encoder state is
  *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
  *
@@ -2336,10 +2336,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__StreamDecoderState
  *    The verify stream decoder state.
- }
+ *)
   FLAC__stream_encoder_get_verify_decoder_state_t = function(encoder : P_FLAC__StreamEncoder): Integer; cdecl;
 
-{* Get the current encoder state as a C string. 
+(* Get the current encoder state as a C string. 
  *  This version automatically resolves 
  *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR by getting the 
  *  verify decoder's state. 
@@ -2349,10 +2349,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode 
  * \retval const char *
  *    The encoder state as a C string.  Do not modify the contents. 
- }
- //  const char *FLAC__stream_encoder_get_resolved_state_string(const FLAC__StreamEncoder *encoder); }
+ *)
+ //  const char *FLAC__stream_encoder_get_resolved_state_string(const FLAC__StreamEncoder *encoder); *)
 
-{* Get relevant values about the nature of a verify decoder error.
+(* Get relevant values about the nature of a verify decoder error.
  *  Useful when the stream encoder state is 
  *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.  The arguments should 
  *  be addresses in which the stats will be returned, or NULL if value
@@ -2368,7 +2368,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \param  got           The actual value returned by the decoder. 
  * \assert 
  *    \code encoder != NULL \endcode 
- }
+ *)
 
   FLAC__stream_encoder_get_verify_decoder_error_stats_t = procedure(encoder : P_FLAC__StreamEncoder;
                                                                             var absolute_sample: FLAC__uint64;
@@ -2378,176 +2378,176 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
                                                                             var expected: FLAC__int32;
                                                                             var got: FLAC__int32); cdecl;
 
-{* Get the "verify" flag.
+(* Get the "verify" flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_set_verify().
- }
+ *)
   FLAC__stream_encoder_get_verify_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the <A HREF="../format.html#subset>Subset</A> flag.
+(* Get the <A HREF="../format.html#subset>Subset</A> flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_set_streamable_subset().
- }
+ *)
   FLAC__stream_encoder_get_streamable_subset_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the number of input channels being processed.
+(* Get the number of input channels being processed.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_channels().
- }
+ *)
 
  FLAC__stream_encoder_get_channels_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the input sample resolution setting.
+(* Get the input sample resolution setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_bits_per_sample().
- }
+ *)
 
  FLAC__stream_encoder_get_bits_per_sample_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the input sample rate setting.
+(* Get the input sample rate setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_sample_rate().
- }
+ *)
 
  FLAC__stream_encoder_get_sample_rate_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the blocksize setting.
+(* Get the blocksize setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_blocksize().
- }
+ *)
 
  FLAC__stream_encoder_get_blocksize_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the "mid/side stereo coding" flag.
+(* Get the "mid/side stereo coding" flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_get_do_mid_side_stereo().
- }
+ *)
   FLAC__stream_encoder_get_do_mid_side_stereo_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the "adaptive mid/side switching" flag.
+(* Get the "adaptive mid/side switching" flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_set_loose_mid_side_stereo().
- }
+ *)
   FLAC__stream_encoder_get_loose_mid_side_stereo_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the maximum LPC order setting.
+(* Get the maximum LPC order setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_max_lpc_order().
- }
+ *)
 
  FLAC__stream_encoder_get_max_lpc_order = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the quantized linear predictor coefficient precision setting.
+(* Get the quantized linear predictor coefficient precision setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_qlp_coeff_precision().
- }
+ *)
 
   FLAC__stream_encoder_get_qlp_coeff_precision_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the qlp coefficient precision search flag.
+(* Get the qlp coefficient precision search flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_set_do_qlp_coeff_prec_search().
- }
+ *)
   FLAC__stream_encoder_get_do_qlp_coeff_prec_search_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the "escape coding" flag.
+(* Get the "escape coding" flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_set_do_escape_coding().
- }
+ *)
   FLAC__stream_encoder_get_do_escape_coding_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the exhaustive model search flag.
+(* Get the exhaustive model search flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
  *    See FLAC__stream_encoder_set_do_exhaustive_model_search().
- }
+ *)
   FLAC__stream_encoder_get_do_exhaustive_model_search_t = function(encoder : P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Get the minimum residual partition order setting.
+(* Get the minimum residual partition order setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_min_residual_partition_order().
- }
+ *)
 
  FLAC__stream_encoder_get_min_residual_partition_order_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get maximum residual partition order setting.
+(* Get maximum residual partition order setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_max_residual_partition_order().
- }
+ *)
 
  FLAC__stream_encoder_get_max_residual_partition_order_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the Rice parameter search distance setting.
+(* Get the Rice parameter search distance setting.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval unsigned
  *    See FLAC__stream_encoder_set_rice_parameter_search_dist().
- }
+ *)
 
  FLAC__stream_encoder_get_rice_parameter_search_dist_t = function(encoder : P_FLAC__StreamEncoder) : unsigned; cdecl;
 
-{* Get the previously set estimate of the total samples to be encoded.
+(* Get the previously set estimate of the total samples to be encoded.
  *  The encoder merely mimics back the value given to
  *  FLAC__stream_encoder_set_total_samples_estimate() since it has no
  *  other way of knowing how many samples the client will encode.
@@ -2557,11 +2557,11 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \code encoder != NULL \endcode
  * \retval FLAC__uint64
  *    See FLAC__stream_encoder_get_total_samples_estimate().
- }
+ *)
 
   FLAC__stream_encoder_get_total_samples_estimate_t = function(encoder : P_FLAC__StreamEncoder): FLAC__uint64;
 
-{* Initialize the encoder instance to encode native FLAC streams.
+(* Initialize the encoder instance to encode native FLAC streams.
  *
  *  This flavor of initialization sets up the encoder to encode to a
  *  native FLAC stream. I/O is performed via callbacks to the client.
@@ -2621,7 +2621,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \retval FLAC__StreamEncoderInitStatus
  *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
- }
+ *)
 
  FLAC__stream_encoder_init_stream_t = function(encoder : P_FLAC__StreamEncoder;
                                                write_callback : FLAC__StreamEncoderWriteCallback;
@@ -2630,7 +2630,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
                                                metadata_callback : FLAC__StreamEncoderMetadataCallback;
                                                client_data : Pointer) : Integer; cdecl;
 
-{* Initialize the encoder instance to encode Ogg FLAC streams.
+(* Initialize the encoder instance to encode Ogg FLAC streams.
  *
  *  This flavor of initialization sets up the encoder to encode to a FLAC
  *  stream in an Ogg container.  I/O is performed via callbacks to the
@@ -2695,7 +2695,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \retval FLAC__StreamEncoderInitStatus
  *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
- }
+ *)
 
   FLAC__stream_encoder_init_ogg_stream_t = function(encoder: P_FLAC__StreamEncoder;
                                                     read_callback : FLAC__StreamEncoderReadCallback;
@@ -2707,7 +2707,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
 
 
 
-{* Initialize the encoder instance to encode native FLAC files.
+(* Initialize the encoder instance to encode native FLAC files.
  *
  *  This flavor of initialization sets up the encoder to encode to a plain
  *  FLAC file.  If POSIX fopen() semantics are not sufficient (for example,
@@ -2736,13 +2736,13 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \retval FLAC__StreamEncoderInitStatus
  *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
- }
+ *)
 
  FLAC__stream_encoder_init_file_t = function(encoder : P_FLAC__StreamEncoder; filename : PChar;
                                              progress_callback : FLAC__StreamEncoderProgressCallback;
                                              client_data : Pointer) : Integer; cdecl;
 
-{* Initialize the encoder instance to encode Ogg FLAC files.
+(* Initialize the encoder instance to encode Ogg FLAC files.
  *
  *  This flavor of initialization sets up the encoder to encode to a plain
  *  Ogg FLAC file.  If POSIX fopen() semantics are not sufficient (for example,
@@ -2771,12 +2771,12 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  * \retval FLAC__StreamEncoderInitStatus
  *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
  *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
- }
+ *)
 
   FLAC__stream_encoder_init_ogg_file_t = function(encoder : P_FLAC__StreamEncoder; filename: PChar; progress_callback: FLAC__StreamEncoderProgressCallback; client_data: Pointer) : Integer; cdecl;
 
 
-{* Finish the encoding process.
+(* Finish the encoding process.
  *  Flushes the encoding buffer, releases resources, resets the encoder
  *  settings to their defaults, and returns the encoder state to
  *  FLAC__STREAM_ENCODER_UNINITIALIZED.  Note that this can generate
@@ -2800,11 +2800,12 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    mode is set (see FLAC__stream_encoder_set_verify()), there was a
  *    verify mismatch; else \c true.  If \c false, caller should check the
  *    state with FLAC__stream_encoder_get_state() for more information
- *    about the error.}
+ *    about the error.
+ *)
 
   FLAC__stream_encoder_finish_t = function(encoder: P_FLAC__StreamEncoder) : FLAC__bool; cdecl;
 
-{* Submit data for encoding.
+(* Submit data for encoding.
  *  This version allows you to supply the input data via an array of
  *  pointers, each pointer pointing to an array of \a samples samples
  *  representing one channel.  The samples need not be block-aligned,
@@ -2828,10 +2829,10 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \c true if successful, else \c false; in this case, check the
  *    encoder state with FLAC__stream_encoder_get_state() to see what
  *    went wrong.
- }
+ *)
   FLAC__stream_encoder_process_t = function(encoder : P_FLAC__StreamEncoder; buffer : PFLAC__int32; samples: unsigned) : FLAC__bool; cdecl;
 
-{* Submit data for encoding.
+(* Submit data for encoding.
  *  This version allows you to supply the input data where the channels
  *  are interleaved into a single array (i.e. channel0_sample0,
  *  channel1_sample0, ... , channelN_sample0, channel0_sample1, ...).
@@ -2860,7 +2861,7 @@ FLAC__stream_encoder_delete_t = procedure(encoder: P_FLAC__StreamEncoder); cdecl
  *    \c true if successful, else \c false; in this case, check the
  *    encoder state with FLAC__stream_encoder_get_state() to see what
  *    went wrong.
- }
+ *)
   FLAC__stream_encoder_process_interleaved_t = function(encoder : P_FLAC__StreamEncoder; buffer: PFLAC__int32; samples: unsigned) : FLAC__bool; cdecl;
 
 

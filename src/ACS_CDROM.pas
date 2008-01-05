@@ -11,8 +11,8 @@
 
 unit ACS_CDROM;
 
-{ Title: ACS_CDROM
-    Delphi interface to read audio data from a CD-ROM. }
+(* Title: ACS_CDROM
+    Delphi interface to read audio data from a CD-ROM. *)
 
 interface
 

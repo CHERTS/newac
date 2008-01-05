@@ -1,5 +1,5 @@
 unit MACDll;
-{ Unit: MACDll.pas
+(* Unit: MACDll.pas
     Delphi interface to MACDll.dll 3.97 by Thomas la Cour 30-04-2003
     http://www.top-house.dk/~nr161/delphi/. Still missing StartEx for
     TAPECompress.
@@ -633,7 +633,7 @@ begin
   Result := MilliSeconds / MS_PER_DAY;
 end;
 
-{ EAPEException }
+(* EAPEException *)
 
 constructor EAPEException.Create(MacErrorCode: Integer);
 begin
@@ -833,8 +833,8 @@ type
   ); stdcall;
 
 // c_APEDecompress_GetData; Index 24;	Information not available
-{ __declspec( dllexport ) int __stdcall c_APEDecompress_GetData(
-APE_DECOMPRESS_HANDLE hAPEDecompress, char * pBuffer, int nBlocks, int * pBlocksRetrieved);}
+(* __declspec( dllexport ) int __stdcall c_APEDecompress_GetData(
+APE_DECOMPRESS_HANDLE hAPEDecompress, char * pBuffer, int nBlocks, int * pBlocksRetrieved); *)
 
   c_APEDecompress_GetData_t = function(
   hAPEDecompress: APE_DECOMPRESS_HANDLE;
@@ -1070,7 +1070,7 @@ begin // APE_INFO_WAVEFORMATEX = 1026;
 end;
 
 function TAPEDecompress.InfoIOSource: LongInt;
-// I/O source (CIO *) [ignored, ignored]
+// I/O source (CIO) [ignored, ignored]
 begin // APE_INFO_IO_SOURCE = 1027;
   Result := GetInfo(APE_INFO_IO_SOURCE);
 end;

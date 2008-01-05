@@ -14,8 +14,8 @@
 
 unit ACS_MAC;
 
-{ Title: ACS_MAC
-    Delphi interface for Monkey's Audio (.ape) files via MACDll.dll }
+(* Title: ACS_MAC
+    Delphi interface for Monkey's Audio (.ape) files via MACDll.dll *)
 
 interface
 
@@ -122,12 +122,12 @@ begin
   macFillWaveFormatEx(WaveFormatEx, FInput.SampleRate, FInput.BitsPerSample, FInput.Channels);
 
   r := APECompress.Start(
-{Ross---
+(* Ross---
     PChar(String((FWideFileName))),
- ---Ross}
-{Ross--- }
+ ---Ross *)
+(* Ross--- *)
     PChar(String(FWideFileName)),
-{ ---Ross}
+(* ---Ross *)
     @WaveFormatEx,
     FMaxAudioBytes,
     FCompressionLevel,
@@ -232,9 +232,9 @@ begin
 {Ross---
     APEDecompress := TAPEDecompress.Create(FileName);
  ---Ross}
-{Ross--- }
+{Ross--- *)
     APEDecompress := TAPEDecompress.Create(FWideFileName);
-{ ---Ross}
+(* ---Ross}
     if APEDecompress.Handle <> 0 then
     begin
       FSize := APEDecompress.InfoWavTotalBytes;

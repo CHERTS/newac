@@ -10,12 +10,12 @@
 
 unit ogg;
 
-{ Unit: ogg.pas
+(* Unit: ogg.pas
     Delphi/Kylix headers for OggVorbis software codec. Translated from ogg.h
     and os_types.h headers by Andrei Borovsky (acs@compiler4.net). 
     
     The original C/C++ headers and libraries (C) COPYRIGHT 1994-2001 by the
-    XIPHOPHORUS Company http://www.xiph.org. }
+    XIPHOPHORUS Company http://www.xiph.org. *)
 
 interface
 

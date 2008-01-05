@@ -22,16 +22,16 @@
 
 unit ACS_LAME;
 
-{ Title: ACS_LAME
-    Delphi interface for MP3 encoding using lame.dll. }
+(* Title: ACS_LAME
+    Delphi interface for MP3 encoding using lame.dll. *)
 
 interface
 
 uses
   Classes, SysUtils, ACS_Classes, ACS_Types, lame,
-{Ross--- }
+{Ross--- *)
   ACS_Tags,
-{ ---Ross}
+(* ---Ross}
 {$IFDEF LINUX}
   libc;
 {$ENDIF}
@@ -103,9 +103,9 @@ type
     property Id3TagComment : String read FComment write FComment;
     property Id3TagGenre : String read FGenre write FGenre;
  ---Ross}
-{Ross--- }
+{Ross--- *)
     property Id3v1Tags;
-{ ---Ross}
+(* ---Ross}
     property Quality     : TMP3Quality read FQuality write FQuality default ql5;
 
     property SampleRate     : TMP3SampleRate read FSampleRate write FSampleRate default srDefault;
@@ -288,7 +288,7 @@ implementation
     id3tag_set_comment(_plgf, PChar(FComment));
     id3tag_set_genre(_plgf, PChar(FGenre));
  ---Ross}
-{Ross--- }
+{Ross--- *)
     id3tag_set_title(_plgf, PChar(Id3v1Tags.Title));
     id3tag_set_artist(_plgf, PChar(Id3v1Tags.Artist));
     id3tag_set_album(_plgf, PChar(Id3v1Tags.Album));
@@ -296,7 +296,7 @@ implementation
     id3tag_set_track(_plgf, PChar(IntToStr(Id3v1Tags.Track)));
     id3tag_set_comment(_plgf, PChar(Id3v1Tags.Comment));
     id3tag_set_genre(_plgf, PChar(Id3v1Tags.Genre));
-{ ---Ross}
+(* ---Ross}
     res := lame_encode_flush(_plgf, mp3buf, mp3buf_size);
     FStream.Write(mp3buf^, res);
     if not FStreamAssigned then FStream.Free;

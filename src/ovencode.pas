@@ -8,10 +8,10 @@
 
 unit ovencode;
 
-{ Unit: ovencode
+(* Unit: ovencode
     Delphi headers for ovencode.dll (c) 2007 Andrei Borovsky,
     (anb@symmetrica.net). For code that has been baked in an oven. (ogg vorbis
-    encode?) }
+    encode?) *)
 
 interface
 

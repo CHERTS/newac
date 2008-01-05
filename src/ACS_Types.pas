@@ -9,6 +9,9 @@
 
 unit ACS_Types;
 
+(* Title: ACS_Types 
+    Utility types used by the various ACS Classes. *)
+
 interface
 
 type

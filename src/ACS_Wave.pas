@@ -9,10 +9,10 @@
 
 unit ACS_Wave;
 
-{ Title: ACS_Wave
+(* Title: ACS_Wave
     Delphi interface for WAV files via MMSystem copyright (c) 2002-2007, Andrei
     Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
-    for more details. }
+    for more details. *)
 
 interface
 
@@ -35,18 +35,18 @@ const
 
 type
 
-  { Enum: TWavType
+  (* Enum: TWavType
       The format of the WAV.
     
     wtUnsupported - a WAV format that isn't supported
     wtPCM - a WAV which is PCM (the normal format, use this if you're unsure)
     wtDVIADPCM - a WAV which is DVIADPCM (uhh..)
     wtACM - an MP3 packed inside a WAV
-  }
+  *)
 
   TWavType = (wtUnsupported, wtPCM, wtDVIADPCM, wtMSADPCM, wtACM);
 
-  { Record: TWaveHeader
+  (* Record: TWaveHeader
       Represents a RIFF file header.
 
     Properties:    
@@ -64,7 +64,7 @@ type
     BitsPerSample: Word - 8, 16 or 32 Bits/sample
     DataChunkId: array [0..3] of Char - 'data' marks the beginning of the data chunk
     DataSize: Integer - Data size in bytes  
-  }
+  *)
 
   TWaveHeader = record
     // RIFF file header
@@ -85,7 +85,7 @@ type
     DataSize: Integer;   // Data size in bytes
   end;
 
-{ Record: TDVIADPCMHeader
+(* Record: TDVIADPCMHeader
     RIFF file header for DVIADPCM (version NNFCAIWFLDL).
 
   Properties:
@@ -107,7 +107,7 @@ type
     DataLength : Integer;
     DataChunkId: array [0..3] of Char - 'data' begin Data Chunk
     DataSize: Integer -  Data size in bytes
-  }
+  *)
   
   TDVIADPCMHeader = record
     // RIFF file header

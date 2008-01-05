@@ -9,10 +9,10 @@
 
 unit libsamplerate;
 
-{ Unit: libsamplerate.pas
+(* Unit: libsamplerate.pas
     Delphi headers for libsamplerate.dll by Andrei Borovsky
 (anb@symmetrica.net) The original headers are copyright (C) 2002-2004 Erik de
-Castro Lopo (erikd@mega-nerd.com). }
+Castro Lopo (erikd@mega-nerd.com). *)
 
 interface
 

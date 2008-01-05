@@ -10,13 +10,12 @@
 
 unit Codec;
 
-{ Title: Codec
+(* Title: Codec
     Delphi/Kylix headers for OggVorbis software codec.
     Translated from codec.h header
     by Andrei Borovsky, acs@compiler4.net
     The original C/C++ headers and libraries (C) COPYRIGHT 1994-2001
-    by the XIPHOPHORUS Company http://www.xiph.org/
-}
+    by the XIPHOPHORUS Company http://www.xiph.org/ *)
 
 interface
 
