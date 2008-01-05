@@ -9,6 +9,11 @@
 
 unit WaveConverter;
 
+{ Unit: WaveConverter.pas
+    Classes to convert WAV files copyright (c) 2002-2007, Andrei Borovsky
+    (anb@symmetrica.net). All rights reserved. See the LICENSE file for more
+    details. }
+
 interface
 
 uses

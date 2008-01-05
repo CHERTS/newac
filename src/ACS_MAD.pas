@@ -10,6 +10,9 @@
 
 unit ACS_MAD;
 
+{ Title: ACS_MAD
+    Delphi interface for MADDll.dll }
+
 interface
 
 uses

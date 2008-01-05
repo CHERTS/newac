@@ -9,6 +9,10 @@
 
 unit ACS_Vorbis;
 
+{ Title: ACS_Vorbis
+    Delphi interface for Vorbis media (ogg) via vorbis.dll, vorbisenc.dll, and 
+    vorbisfile.dll. }
+
 {$DEFINE USE_VORBIS_11} // {$DEFINE USE_VORBIS_10} for old versions
 
 interface

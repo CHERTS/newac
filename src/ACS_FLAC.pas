@@ -9,6 +9,9 @@
 
 unit ACS_FLAC;
 
+{ Title: ACS_FLAC 
+    Delphi interface to flac.dll }
+
 interface
 
 uses
@@ -27,6 +30,10 @@ const
   BUF_SIZE = $6000;
 
 type
+
+{ Class: TFLACOut
+    A descendant of <TAuFileOut> which handles FLAC files. More information
+    about FLAC can be found at http://flac.sourceforge.com. }
 
   TFLACOut = class(TAuFileOut)
   private
@@ -57,8 +64,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+  { Property: BestModelSearch
+      Similar to America's Next Top Model, except for algorithms. } 
     property BestModelSearch : Boolean read FBestModelSearch write SetBestModelSearch;
+  { Property: Blocksize
+      The size you want some blocks to be. Has nothing to do with <BestModelSearch> }
     property BlockSize : Word read FBlockSize write FBlockSize;
+  { Property: Compression Level
+      What level you want your compression at. }
     property CompressionLevel : Integer read FCompressionLevel write SetCompressionLevel;
     property EnableMidSideStereo : Boolean read FEnableMidSideStereo write FEnableMidSideStereo;
     property EnableLooseMidSideStereo : Boolean read FEnableLooseMidSideStereo write SetEnableLooseMidSideStereo;

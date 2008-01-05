@@ -13,6 +13,14 @@
 
 unit lame;
 
+{ Unit: lame.pas
+    Delphi/Kylix header for LAME encoder. Translated from lame.h C/C++ header
+    by Andrei Borovsky, acs@compiler4.net The original C/C++ header and library
+    Copyright (c) 1999 Mark Taylor.
+
+    Note by A.B.: Some fragments of the original header file are skipped. See
+    the comments in source. }
+  
 interface
 
 uses

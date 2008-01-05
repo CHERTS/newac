@@ -11,6 +11,9 @@
 
 unit ACS_WavPack;
 
+{ Title: ACS_WavPack
+    Delphi interface for WavPack (.wv) files via wavpackdll.dll }
+
 interface
 
 uses

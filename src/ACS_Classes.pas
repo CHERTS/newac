@@ -9,6 +9,9 @@
 
 unit ACS_Classes;
 
+{ Title: ACS_Classes 
+    Ancestor classes for all input and output components. }
+
 interface
 
 uses
@@ -55,9 +58,8 @@ type
   EAuException = class(Exception)
   end;
 
-  (*
-    TFileStream analog that handles unicode
-  *)
+  { Class: TAuFileStream
+      TFileStream analog that handles Unicode. }
 
   TAuFileStream = class(THandleStream)
   public
@@ -65,6 +67,9 @@ type
     constructor Create(const FileName: WideString; Mode: Word; Rights: Cardinal); overload;
     destructor Destroy; override;
   end;
+
+  { Class: TAuThread
+      Custom TThread descendant that does something. }
 
   TAuThread = class(TThread)
   private
@@ -83,6 +88,9 @@ type
     Delay : Integer;
     procedure Execute; override;
   end;
+
+{ Class: TAuInput
+    The ancestor class for all input components. }
 
   TAuInput = class(TComponent)
   protected
@@ -106,8 +114,31 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); virtual;
-    // CopyData writes no more than BufferSize data into Buffer
+    { Function: CopyData 
+        Writes no more than BufferSize data into Buffer 
+        
+      Parameters:
+      
+        Buffer: Pointer - the buffer to write to
+        BufferSize: Integer - the number of bytes to write
+    }
     function CopyData(Buffer : Pointer; BufferSize : Integer) : Integer;
+    { Function: FillBuffer
+        The same as <CopyData> but tries to fill the Buffer. EOF is set to 
+        True if end of data was reached while filling the buffer, the buffer 
+        itself may still contain valid data.
+        
+      Parameters:
+      
+        Buffer: Pointer - the buffer to write to
+        BufferSize: Integer - the number of bytes to write      
+        var EOF: Boolean - set to True if end of data was reached while filling 
+          the buffer.
+     
+      Returns:
+      
+        Integer - Number of bytes written
+    }
     // The same as CopyData but tries to fill the Buffer.
     // EOF is set to True if end of data was reached while filling the buffer
     // the buffer itself may still contain valid data.
@@ -123,9 +154,16 @@ type
     property Position : Int64 read FPosition;
     property SampleRate : Integer read GetSR;
     property Channels : Integer read GetCh;
+    { Property: Size
+        A read only property which returns FSize. FSize is calculated in
+        OpenFile method as the FULL file size. More precise calculations
+        regarding StartSample/EndSample are done in <Init>. }
     property Size : Int64 read FSize;
     property TotalTime : Integer read GetTotalTime;
   end;
+
+{ Class: TAuOutput
+    The ancestor class for all output components. }
 
   TAuOutput = class(TComponent)
   protected
@@ -178,6 +216,9 @@ type
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
   end;
 
+{ Class: TAuStreamedInput
+    A descendant of <TAuInput> to deal with streams. }
+
   TAuStreamedInput = class(TAuInput)
   protected
     FStream : TStream;
@@ -190,6 +231,9 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
+{ Class: TAuStreamedOutput
+    A descendant of <TAuOutput> to deal with streams. }
+
   TAuStreamedOutput = class(TAuOutput)
   protected
     FStream : TStream;
@@ -198,6 +242,9 @@ type
   public
     property Stream : TStream read FStream write SetStream;
   end;
+
+  { Class: TAuFileIn
+      A descendant of <TAuStreamedInput> to deal with files. }
 
   TAuFileIn = class(TAuStreamedInput)
   private
@@ -236,7 +283,12 @@ type
       if the file is already opened.
       This method should fill FChan, FBPS, FSR, and FSize with values.
     *)
-
+    { Procedure: OpenFile
+        Opens the file in FileName if it is not already open. For performance 
+        reasons the file is opened when any of its data is accessed the first 
+        time and is then kept open until it is done with. The descendants' 
+        FileOpen implementations use the FOpened constant to check if the file 
+        is already opened. }
     procedure OpenFile; virtual; abstract;
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : Integer; override;
@@ -256,19 +308,15 @@ type
     property Time : Integer read GetTime;
     property TotalSamples : Int64 read GetTotalSamples;
     property Valid : Boolean read GetValid;
-
-    (* The WideFileName property aloows you to handle file names in unicode.
-     Setting its value overrides the value set to FileName. *)
-
+    { Property: WideFileName
+        Allows you to handle file names in Unicode. Setting its value overrides
+        the value set to FileName. }
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     property EndSample : Int64 read FEndSample write FEndSample;
-
-    (*
-       File name in 8-bit encoding. Setting this property's value overrides
-       the value set to WideFileName.
-    *)
-
+    { Property: Filename
+        File name in 8-bit encoding. Setting this property's value overrides
+      the value set to WideFileName. }
     property FileName : TFileName read FFileName write SetFileName stored True;
     property Loop : Boolean read FLoop write FLoop;
     property StartSample : Int64 read FStartSample write FStartSample;
@@ -293,6 +341,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
+
+  { Class: TAuFileOut
+      A descendant of <TAuStreamedOutput> to deal with files. }
 
   TAuFileOut = class(TAuStreamedOutput)
   private

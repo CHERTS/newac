@@ -9,6 +9,9 @@
 
 unit ACS_Procs;
 
+{ Title: ACS_Procs
+    Utility procedures. }
+
 interface
 
 uses

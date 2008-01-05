@@ -9,6 +9,9 @@
 
 unit ACS_AudioMix;
 
+{ Title: ACS_AudioMix
+    Classes that mix audio. }
+
 interface
 
 uses

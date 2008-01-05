@@ -7,6 +7,9 @@
 
 unit libwma1;
 
+{ Title: libwma1.pas
+    Delphi headers for WMA files. }
+
 interface
 
 uses

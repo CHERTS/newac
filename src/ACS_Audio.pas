@@ -14,6 +14,9 @@
 
 unit ACS_Audio;
 
+{ Title: ACS_Audio
+    Classes dealing with audio data via MMSystem. }
+
 interface
 
 uses

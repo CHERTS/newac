@@ -22,6 +22,9 @@
 
 unit ACS_LAME;
 
+{ Title: ACS_LAME
+    Delphi interface for MP3 encoding using lame.dll. }
+
 interface
 
 uses

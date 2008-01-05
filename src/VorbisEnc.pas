@@ -10,6 +10,13 @@
 
 unit VorbisEnc;
 
+{ Unit: VorbisEnc.pas
+    Delphi/Kylix headers for Ogg Vorbis software codec. Translated from
+    vorbisenc.h header by Andrei Borovsky (anb@symmetrica.net)
+    
+    The original C/C++ headers and libraries (C) COPYRIGHT 1994-2001 by the
+    XIPHOPHORUS Company http://www.xiph.org/. }
+
 interface
 
 uses
