@@ -9,8 +9,8 @@
 
 unit ACS_FLAC;
 
-{ Title: ACS_FLAC 
-    NewAC interface to flac.dll }
+(* Title: ACS_FLAC 
+    NewAC interface to flac.dll *)
 
 interface
 
@@ -31,9 +31,9 @@ const
 
 type
 
-{ Class: TFLACOut
+(* Class: TFLACOut
     A descendant of <TAuFileOut> which handles FLAC files. More information
-    about FLAC can be found at http://flac.sourceforge.com. }
+    about FLAC can be found at http://flac.sourceforge.com. *)
 
   TFLACOut = class(TAuFileOut)
   private
@@ -66,14 +66,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-  { Property: BestModelSearch
-      Similar to America's Next Top Model, except for algorithms. } 
+  (* Property: BestModelSearch
+      Similar to America's Next Top Model, except for algorithms. *) 
     property BestModelSearch : Boolean read FBestModelSearch write SetBestModelSearch;
-  { Property: Blocksize
-      The size you want some blocks to be. Has nothing to do with <BestModelSearch> }
+  (* Property: Blocksize
+      The size you want some blocks to be. Has nothing to do with <BestModelSearch> *)
     property BlockSize : Word read FBlockSize write FBlockSize;
-  { Property: CompressionLevel
-      What level you want your compression at. }
+  (* Property: CompressionLevel
+      What level you want your compression at. *)
     property CompressionLevel : Integer read FCompressionLevel write SetCompressionLevel;
   (* Property: EnableMidSideStereo
       Set this property to True to get a bit more compression. *)
@@ -531,7 +531,7 @@ type
     FEnableMidSideStereo := True;
     FCompressionLevel := -1;
     FTags := TVorbisTags.Create;
-    if not (csDesigning	in ComponentState) then
+    if not (csDesigning in ComponentState) then
     if not LibFLACLoaded then
     raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
   end;
@@ -677,7 +677,7 @@ type
   constructor TFLACIn.Create;
   begin
     inherited Create(AOwner);
-    if not (csDesigning	in ComponentState) then
+    if not (csDesigning in ComponentState) then
     if not LibFLACLoaded then
     raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
     FComments := TVorbisTags.Create;
