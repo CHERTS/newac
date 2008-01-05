@@ -1,0 +1,18 @@
+Crash Message:
+
+   Could not open V:\newac\demos\Editors\WaveFileConverter\????? ????? at d:/naturaldocs/Modules/NaturalDocs/Languages.pm line 1404, <CONFIG_FILEHANDLE> line 404.
+
+Natural Docs version Development Release 12-07-2007 (1.35 base)
+Perl version 5.8.8 on MSWin32
+
+Command Line:
+
+   -s newac -img v:\newac\doc\images\ -i v:\newac\ -o html v:\newac\doc\html -p v:\newac\doc\config
+
+Stack Trace:
+
+   NaturalDocs::Error::CatchDeath, called from
+   NaturalDocs::Languages::LanguageOf, line 1404, called from
+   NaturalDocs::Project::GetAllSupportedFiles, line 1246, called from
+   NaturalDocs::Project::LoadSourceFileInfo, line 319, called from
+   (eval), line 327 of d:\naturaldocs\NaturalDocs

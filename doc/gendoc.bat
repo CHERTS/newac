@@ -1,3 +1,4 @@
+@echo off
 rem this ends up being a call to a batch file outside the project tree
 rem that's because it contains passwords to my slave box where NaturalDocs lives
 rem on the slave, v: is mapped to "d:\projects" on the primary computer.
