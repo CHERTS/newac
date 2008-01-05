@@ -2,7 +2,7 @@ Format: Development Release 12-07-2007 (1.35 base)
 
 
 Title: NewAC
-SubTitle: v1.3.1
+SubTitle: v1.3.2
 
 Footer: Copyright © 2002-2007 Andrei Borovsky. All rights reserved.
 Timestamp: Generated on month day, year
@@ -48,8 +48,8 @@ File: About the Documentation  (doc\txt\about documentation.txt)
 
 Group: Demos  {
 
-   File: Audio Processor  (demos\AudioProcessor\Main.pas)
-   File: Components Demo  (demos\ComponentsDemo\ComponentsDemo.pas)
+   File: Audio Processor  (demos\Tutorial\AudioProcessor\Main.pas)
+   File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
    }  # Group: Demos
 
 Group: Units  {
@@ -90,6 +90,7 @@ Group: Units  {
 
    Group: Headers  {
 
+      File: ACS_Types  (src\ACS_Types.pas)
       File: CDRip  (src\CDRip.pas)
       File: Codec  (src\Codec.pas)
       File: DSWrapper  (src\DSWrapper.pas)
