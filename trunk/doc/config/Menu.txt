@@ -46,6 +46,12 @@ Link: NewAC Source Google Code  (http://code.google.com/p/newac/)
 File: Component Writer's Guide  (doc\txt\cwguide.txt)
 File: About the Documentation  (doc\txt\about documentation.txt)
 
+Group: Demos  {
+
+   File: Audio Processor  (demos\AudioProcessor\Main.pas)
+   File: Components Demo  (demos\ComponentsDemo\ComponentsDemo.pas)
+   }  # Group: Demos
+
 Group: Units  {
 
    Group: I/O  {
@@ -113,5 +119,6 @@ Group: Index  {
    Constant Index: Constants
    Type Index: Types
    File Index: Files
+   Variable Index: Variables
    }  # Group: Index
 
