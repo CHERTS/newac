@@ -1,8 +1,9 @@
-(*
-  This unit is a demo showing how to build new input and output components for NewAC.
-*)
 
 unit ComponentsDemo;
+
+{ Title: Components Demo
+    This unit is a demo showing how to build new input and output components for 
+  NewAC. }
 
 interface
 
@@ -14,18 +15,18 @@ uses
 
 const
 
-(*
-  The InitialBufferSize constant holds the initial size of the input buffer.
-  This way we can change the default buffer size easily, without delving into the code.
-*)
+{ Const: InitialBufferSize
+    An Integer equal to $1000 (that's 4096 bytes, if you don't speak hex). The 
+    InitialBufferSize constant holds the initial size of the input buffer. 
+    This way we can change the default buffer size easily, without delving into 
+    the code. }
   InitialBufferSize : Integer = $1000;
 
 type
 
-(*
-  TDemoWaveIn is a demo input component capable of reading data from raw PCM
-  wav files. Like most input components, it descends from the TAuFileIn class.
-*)
+{ Class: TDemoWaveIn 
+    A demo input component capable of reading data from raw PCM wav files. Like 
+    most input components, it descends from the TAuFileIn class. }
 
   TDemoWaveIn = class(TAuFileIn)
   private
@@ -35,73 +36,74 @@ type
     CurrentBufSize : Integer;
   protected
 
-    (*
-      The OpenFile method is called by the base methods of TAuFileIn class to open the file.
-      It should prepare the component for reading data.
-      This method also sets values for several interna; and inherited fields.
-    *)
+    { Procedure: OpenFile
+        Called by the base methods of TAuFileIn class to open the file. It 
+        should prepare the component for reading data. This method also sets 
+        values for several internal and inherited fields. }
+      
     procedure OpenFile; override;
 
-    (*
-      The CloseFile method is called by the base methods of TAuFileIn class to close the file.
-      It should clear all resources assosiated with input.
-    *)
+    { Procedure: CloseFile
+      Called by the base methods of TAuFileIn class to close the file. It 
+      should clear all resources assosiated with input. }
+
     procedure CloseFile; override;
   public
 
-    (*
+    { Constructor: Create
       Reimplementing constructor and destructor is optional.
-      It depends on the requirements of your component.
-    *)
+      It depends on the requirements of your component. }
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    (*
-      The GetData method is used by NewAC to retrieve decoded data.
-      You should pass the number of bytes you want to read in the  Bytes parameter.
-      This method returns the pointer to the data buffre in the Buffer
-      variable parameter and the number of bytes actually read
-      in the buffer in the Bytes paramter.
-      The buffer pointer must be provided by THIS method and not by the caller.
-      The pointer returned by GetData should be valid until the next call to
-      the method.
-      When the input data end is reached this method should return nil in the Buffer
-      and 0 in the Bytes parameter.
-      The GetData method can return less bytes than it is asked to
-      and it should not be considered as an end of file indication.
-    *)
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
 
-    (*
-      The SeekInternal method performs the file seeking. The new position is set in samples,
-      not in bytes, relatively to the beginning of the file. Seek should return True
-      if the input is seekable and False otherwise.
-      This method implementation is optional. If your input component doesn't support
-      seeking You can implement in like this:
+      { Procedure: GetData 
+          Used by NewAC to retrieve decoded data. You should pass the number of
+          bytes you want to read in the Bytes parameter. This method returns
+          the pointer to the data buffee in the Buffer variable parameter and
+          the number of bytes actually read in the buffer in the Bytes
+          paramter. The buffer pointer must be provided by THIS method and not
+          the caller. The pointer returned by GetData should be valid until the
+          next call to the method. When the input data end is reached this
+          method should return nil in the Buffer and 0 in the Bytes parameter.
+          The method may be called several times after the end of input and it
+          should allways return nil and 0 values. The GetData method can return
+          less bytes than it is asked to and it should not be considered as an
+          end of file indication.
 
-      function TSomeInputComponent.SeekInternal(var SampleNum : Int64) : Boolean;
-      begin
-        Result := False;
-      end;
+      Parameters:
 
-      As you can see the argument of SeekInternal is pased by reference.
-      If the caller requests to move to a sample that doesn't exists,
-      (that's beyond the end of file) you can set her to the correct sample number.
-      This behavoir s optional, as you can simply return False.
+        Buffer: Pointer - an *unassigned* pointer to use for the results,
+          GetData initializes the pointer itself. Bytes: Integer - the number
+          of bytes to read, returns bytes read. }
 
+    procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
+
+
+      { Function:
+          Seek The Seek method performs the file seeking. The new position is
+          set in samples, not in bytes, relatively to the beginning of the
+          file. Seek should return True if the input is seekable and False
+          otherwise. This method implementation is optional. If your input
+          component doesn't support seeking, something like the following would
+          be used.
+
+  > function TSomeInputComponent.Seek(SampleNum : Integer) : Boolean;
+  > begin
+  > Result := False;
+  > end;
 
       In the SampleNum parameter we pass the new position in the input stream
       in frames (which are called samples ;-) relative to the beginning
-      of the stream.
-    *)
-    function SeekInternal(var SampleNum : Int64) : Boolean; override;
+      of the stream. }
+    function Seek(SampleNum : Integer) : Boolean; override;
   end;
 
-(*
-  TDemoWaveOut is a demo output component capable of storing data on disk or in a stream
-  in the raw PCM wav format. Like most output components, it descends
-  from the TAuFileOut class.
-*)
+{ Class: TDemoWaveOut 
+    A demo output component capable of storing data on disk or in a stream
+    in the raw PCM wav format. Like most output components, it descends
+    from the <TAuFileOut> class. }
 
   TDemoWaveOut = class(TAuFileOut)
   private
@@ -109,28 +111,35 @@ type
 
   protected
 
-    (*
-      The prepare procedure performs all the steps required to initialize output.
-    *)
+    { Procedure: Prepare
+        Performs all the steps required to initialize output. }
 
     procedure Prepare; override;
 
-    (*
-      The DoOutput function is called in a loop to perform actual output.
-      If the Abort parameter is set to True the function must do whatever is needed
-      to stop the output. The function may be called several times with the Abort value
-      set to True. The return value indicartes wheter an output operation should continue.
-      If the function has done its job (because of an end of input file condition,
-      or because the Abort parameter is set to True, or because of some failure,
-      it should return False as a result. Otherwise it returns True.
-    *)
+
+      { Function: DoOutput 
+          Called in a loop to perform actual output. If the Abort parameter is
+          set to True the function must do whatever is needed to stop the
+          output. The function may be called several times with the Abort value
+          set to True. The return value indicartes wheter an output operation
+          should continue. If the function has done its job (because of an end
+          of input file condition, or because the Abort parameter is set to
+          True, or because of some failure, it should return False as a result.
+          Otherwise it returns True.
+
+      Parameters:
+
+        Abort: Boolean - set to True in order to stop the output operation
+
+      Returns:
+
+        Success - Boolean }
 
     function DoOutput(Abort : Boolean):Boolean; override;
 
-    (*
-      The following method is called to do whatever is needed to close the output,
-      and to free any associated resources.
-    *)
+    { Procedure: Done
+        Called to do whatever is needed to close the output as well as freeing 
+        any associated resources. }
 
     procedure Done; override;
   public
@@ -140,12 +149,18 @@ type
 
 implementation
 
-(*
-  The data structure for the ReadRIFFHeader helper function.
-  See the comments below.
-*)
-
 type
+
+{ Record: TAudioInfo
+  The data structure for the <ReadRIFFHeader> helper function. 
+  
+  Properties:
+  
+    BitsPerSample : Integer; - Bits per sample
+    SampleRate : Integer; - sample rate
+    Channels : Integer; - channels (1 for mono, 2 for stereo)
+    TotalSamples : Integer; - total number of samples?
+}
 
   TAudioInfo = record
     BitsPerSample : Integer;
@@ -154,13 +169,12 @@ type
     TotalSamples : Integer;
   end;
 
-(*
-  Constants for the ReadRIFFHeader helper function.
-  See the comments below.
-*)
-
 const
 
+
+{ Constants:
+    For the <ReadRIFFHeader> helper function. }
+    
   WAVE_FORMAT_PCM = 1;
 
   LookingForRIFF = 0;
@@ -169,9 +183,8 @@ const
   LookingForFACT = 3;
   LookingForDATA = 4;
 
-  (*
-    The following function is used internally by ReadRIFFHeader.
-  *)
+  { Function: Compare4 
+      Used internally by <ReadRIFFHeader>. }
 
   function Compare4(S1, S2 : PChar) : Boolean;
   var
@@ -187,11 +200,10 @@ const
   end;
 
 
-(*
-  ReadRIFFHeader is a helper function that parses wav file header and gets
-  audio data parameters. This is relevant only to wave file readers, so
-  I don't comment on it.
-*)
+  { Function: ReadRIFFHeader 
+      A helper function that parses wav file header and gets audio data
+      parameters. This is relevant only to wave file readers, so I don't
+      comment on it. }
 
   function ReadRIFFHeader(Stream : TStream; var AudioInfo : TAudioInfo) : Boolean;
   var
