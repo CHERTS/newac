@@ -1,0 +1,1 @@
+call d:\projects\gendoc_newac.bat
