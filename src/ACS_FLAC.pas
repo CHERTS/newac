@@ -10,7 +10,7 @@
 unit ACS_FLAC;
 
 { Title: ACS_FLAC 
-    Delphi interface to flac.dll }
+    NewAC interface to flac.dll }
 
 interface
 
@@ -53,9 +53,11 @@ type
     FMinResidualPartitionOrder : Word;
     FCompressionLevel : Integer;
     BolckInserted : Boolean;
+    FTags : TVorbisTags;
     procedure SetEnableLooseMidSideStereo(val : Boolean);
     procedure SetBestModelSearch(val : Boolean);
     procedure SetCompressionLevel(val : Integer);
+    procedure SetTags(Value : TVorbisTags);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -80,6 +82,7 @@ type
     property MinResidualPartitionOrder : Word read FMinResidualPartitionOrder write FMinResidualPartitionOrder;
     property QLPCoeffPrecision : Word read FQLPCoeffPrecision write FQLPCoeffPrecision;
     property QLPCoeffPrecisionSearch : Boolean read FQLPCoeffPrecisionSearch write FQLPCoeffPrecisionSearch;
+    property Tags : TVorbisTags read FTags write SetTags;
     property Verify : Boolean read FVerify write FVerify;
   end;
 
@@ -134,7 +137,7 @@ type
     Track : Utf8String;
   end;
 
-  function BuildCommentsBlock(var Comments : TVComments; var Block : Pointer) : Integer;
+  function BuildCommentsBlock(var Comments : TVComments; var Block : Pointer; HasNext : Boolean) : Integer;
   var
     BS : Integer;
     Header : array[0..4] of Byte;
@@ -154,7 +157,7 @@ type
   begin
     BS := 4;
     StrCount := 0;
-    Comments.Vendor := Utf8Encode('Bogus');
+    Comments.Vendor := Utf8Encode('VENDOR=Hacked');
     Inc(BS, Length(Comments.Vendor) + 4);
     if Comments.Title <> '' then
     begin
@@ -187,6 +190,8 @@ type
       Inc(BS, Length(Comments.Track) + 4);
     end;
     Header[0] := FLAC__METADATA_TYPE_VORBIS_COMMENT;
+    if not HasNext then
+      Inc(Header[0], 128);
     Move(BS, Header[1], 3);
     t := Header[3];
     Header[3] := Header[1];
@@ -230,22 +235,33 @@ type
     FLACOut := TFLACOut(client_data);
     Result := FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     try
-      FLACOut.FStream.Write(buffer^, bytes);
-      Move(buffer^, Header, 4);
-      BI.HasNext := (Header[0] shr 7) = 0;
-      BI.BlockType := Header[0] mod 128;
-      if (BI.HasNext) and (BI.BlockType = FLAC__METADATA_TYPE_STREAMINFO) then
+      if not FLACOut.BolckInserted then
       begin
-        if not FLACOut.BolckInserted then
+        Move(buffer^, Header, 4);
+        BI.HasNext := (Header[0] shr 7) = 0;
+        BI.BlockType := Header[0] mod 128;
+        if (BI.BlockType = FLAC__METADATA_TYPE_VORBIS_COMMENT) then
         begin
           FLACOut.BolckInserted := True;
-          Comm.Artist := Utf8Encode('ARTIST=Pica');
-          Comm.Title := Utf8Encode('TITLE=ChuChu');
-          BL := BuildCommentsBlock(Comm, Block);
+          if FlacOut.FTags.Artist <> '' then
+            Comm.Artist := Utf8Encode(WideString('ARTIST=') + FlacOut.FTags.Artist);
+          if FlacOut.FTags.Album <> '' then
+            Comm.Album := Utf8Encode(WideString('ALBUM=') + FlacOut.FTags.Album);
+          if FlacOut.FTags.Title <> '' then
+            Comm.Title := Utf8Encode(WideString('TITLE=') + FlacOut.FTags.Title);
+          if FlacOut.FTags.Date <> '' then
+            Comm.Date := Utf8Encode(WideString('DATE=') + FlacOut.FTags.Date);
+          if FlacOut.FTags.Genre <> '' then
+            Comm.Genre := Utf8Encode(WideString('GENRE=') + FlacOut.FTags.Genre);
+          if FlacOut.FTags.Track <> 0 then
+            Comm.Track := Utf8Encode(WideString('TRACK=') + IntToStr(FlacOut.FTags.Track));
+          BL := BuildCommentsBlock(Comm, Block, BI.HasNext);
           FLACOut.FStream.Write(Block^, BL);
           FreeMem(Block);
-        end;
-      end;
+        end else
+        FLACOut.FStream.Write(buffer^, bytes);
+      end else
+      FLACOut.FStream.Write(buffer^, bytes);
     except
       Result := FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
     end;
@@ -508,6 +524,7 @@ type
     FBestModelSearch := False;
     FEnableMidSideStereo := True;
     FCompressionLevel := -1;
+    FTags := TVorbisTags.Create;
     if not (csDesigning	in ComponentState) then
     if not LibFLACLoaded then
     raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
@@ -515,6 +532,7 @@ type
 
   destructor TFLACOut.Destroy;
   begin
+    FTags.Free;
     inherited Destroy;
   end;
 
@@ -875,6 +893,10 @@ type
     Result := FComments;
   end;
 
+  procedure TFLACOut.SetTags;
+  begin
+    FTags.Assign(Value);
+  end;
 
 
 end.
