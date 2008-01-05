@@ -72,17 +72,17 @@ type
 
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
 
-    (*
-      The SeekInternal method performs the file seeking. The new position is
-      set in samples, not in bytes, relatively to the beginning of the file.
-      Seek should return True if the input is seekable and False otherwise.
-      This method implementation is optional. If your input component doesn't
-      support seeking You can implement in like this:
+    (* Procedure: SeekInternal 
+      Performs the file seeking. The new position is set in samples, not in
+      bytes, relatively to the beginning of the file. Seek should return True
+      if the input is seekable and False otherwise. This method implementation
+      is optional. If your input component doesn't support seeking,
+      implement in like this.
 
-      function TSomeInputComponent.SeekInternal(var SampleNum : Int64): Boolean;
-      begin
-        Result := False;
-      end;
+  > function TSomeInputComponent.SeekInternal(var SampleNum : Int64):  Boolean;
+  > begin
+  > Result := False;
+  > end;
 
       As you can see the argument of SeekInternal is passed by reference. If
       the caller requests to move to a sample that doesn't exists, (that's
@@ -113,7 +113,7 @@ type
 
     procedure Prepare; override;
 
-    (* Procedure DoOutput
+    (* Procedure: DoOutput
       Called in a loop to perform actual output. If the Abort parameter is set
       to True the function must do whatever is needed to stop the output. The
       function may be called several times with the Abort value set to True.
