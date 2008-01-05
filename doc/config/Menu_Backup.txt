@@ -1,0 +1,118 @@
+Format: Development Release 12-07-2007 (1.35 base)
+
+
+Title: NewAC
+SubTitle: v1.3.1
+
+Footer: Copyright © 2002-2007 Andrei Borovsky. All rights reserved.
+Timestamp: Generated on month day, year
+#   m     - One or two digit month.  January is "1"
+#   mm    - Always two digit month.  January is "01"
+#   mon   - Short month word.  January is "Jan"
+#   month - Long month word.  January is "January"
+#   d     - One or two digit day.  1 is "1"
+#   dd    - Always two digit day.  1 is "01"
+#   day   - Day with letter extension.  1 is "1st"
+#   yy    - Two digit year.  2006 is "06"
+#   yyyy  - Four digit year.  2006 is "2006"
+#   year  - Four digit year.  2006 is "2006"
+
+
+# --------------------------------------------------------------------------
+# 
+# Cut and paste the lines below to change the order in which your files
+# appear on the menu.  Don't worry about adding or removing files, Natural
+# Docs will take care of that.
+# 
+# You can further organize the menu by grouping the entries.  Add a
+# "Group: [name] {" line to start a group, and add a "}" to end it.
+# 
+# You can add text and web links to the menu by adding "Text: [text]" and
+# "Link: [name] ([URL])" lines, respectively.
+# 
+# The formatting and comments are auto-generated, so don't worry about
+# neatness when editing the file.  Natural Docs will clean it up the next
+# time it is run.  When working with groups, just deal with the braces and
+# forget about the indentation and comments.
+# 
+# --------------------------------------------------------------------------
+
+
+
+
+Group: Demos  {
+
+   File: Audio Processor  (Demos\AudioProcessor\Main.pas)
+   File: Components Demo  (Demos\ComponentsDemo\ComponentsDemo.pas)
+   }  # Group: Demos
+
+Group: Units  {
+
+   Group: I/O  {
+
+      File: ACS_CDROM  (src\ACS_CDROM.pas)
+      File: ACS_Classes  (src\ACS_Classes.pas)
+      File: ACS_DXAudio  (src\ACS_DXAudio.pas)
+      File: ACS_FLAC  (src\ACS_FLAC.pas)
+      File: ACS_LAME  (src\ACS_LAME.pas)
+      File: ACS_MAC  (src\ACS_MAC.pas)
+      File: ACS_MAD  (src\ACS_MAD.pas)
+      File: ACS_SMPEG  (src\ACS_smpeg.pas)
+      File: ACS_Tags  (src\ACS_Tags.pas)
+      File: ACS_Vorbis  (src\ACS_Vorbis.pas)
+      File: ACS_WavPack  (src\ACS_WavPack.pas)
+      File: ACS_Wave  (src\ACS_Wave.pas)
+      File: ACS_WinMedia  (src\ACS_WinMedia.pas)
+      File: ACS_Audio  (src\ACS_Audio.pas)
+      File: ACS_AudioMix  (src\ACS_AudioMix.pas)
+      }  # Group: I/O
+
+   Group: Conversion  {
+
+      File: ACS_Converters  (src\ACS_Converters.pas)
+      File: ACS_Filters  (src\ACS_Filters.pas)
+      File: AuSampleRate  (src\AuSampleRate.pas)
+      }  # Group: Conversion
+
+   Group: Utility  {
+
+      File: ACS_Misc  (src\ACS_Misc.pas)
+      File: ACS_Procs  (src\ACS_Procs.pas)
+      File: ACS_Reg  (src\acs_reg.pas)
+      File: ACS_Streams  (src\ACS_Streams.pas)
+      }  # Group: Utility
+
+   Group: Headers  {
+
+      File: CDRip  (src\CDRip.pas)
+      File: Codec  (src\Codec.pas)
+      File: DSWrapper  (src\DSWrapper.pas)
+      File: FLAC  (src\FLAC.pas)
+      File: lame.pas  (src\lame.pas)
+      File: libsamplerate.pas  (src\libsamplerate.pas)
+      File: libwma1.pas  (src\libwma1.pas)
+      File: MACDll.pas  (src\MACDll.pas)
+      File: MAD.pas  (src\MAD.pas)
+      File: ogg.pas  (src\ogg.pas)
+      File: ovencode  (src\ovencode.pas)
+      File: VorbisEnc.pas  (src\VorbisEnc.pas)
+      File: VorbisFile.pas  (src\VorbisFile.pas)
+      File: WaveConverter.pas  (src\WaveConverter.pas)
+      File: WavPackDLL  (src\WavPackDLL.pas)
+      File: wmfintf.pas  (src\wmfintf.pas)
+      }  # Group: Headers
+
+   }  # Group: Units
+
+Group: Index  {
+
+   Index: Everything
+   Class Index: Classes
+   Property Index: Properties
+   Function Index: Functions
+   Constant Index: Constants
+   Type Index: Types
+   Variable Index: Variables
+   File Index: Files
+   }  # Group: Index
+
