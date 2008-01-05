@@ -111,6 +111,8 @@ Group: Units  {
 
    }  # Group: Units
 
+File: Tips &amp; Tricks  (doc\txt\tips and tricks.txt)
+
 Group: Index  {
 
    Index: Everything
