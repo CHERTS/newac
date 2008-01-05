@@ -15,6 +15,7 @@ Contributors:
 	-	Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany) for some useful corrections and suggestions.
 	-	Sergei Borisov for quite a few contributions, including TWVIn and TWVOut components.
 	-	Eriks Aleksans for many useful suggestions.
+	- Wayne Thursby for preparing documentation and not breaking things (not entirely, at least)
 
 Section: On the Web
 	

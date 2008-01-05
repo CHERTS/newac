@@ -44,9 +44,9 @@ V:\newac\src\ACS_Wave.pas	1199563771	1	ACS_Wave
 V:\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas	1199560748	0	V:\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas
 V:\newac\demos\Players\CDPlayer\Main.pas	1199560734	0	V:\newac\demos\Players\CDPlayer\Main.pas
 V:\newac\src\VorbisFile.pas	1199563771	1	VorbisFile.pas
-V:\newac\doc\txt\introduction.txt	1199511443	1	Introduction
+V:\newac\doc\txt\introduction.txt	1199575117	1	Introduction
 V:\newac\demos\Converters\Wav2Ogg\Main.pas	1199560746	0	V:\newac\demos\Converters\Wav2Ogg\Main.pas
-V:\newac\demos\Tutorial\ComponentsDemo\ComponentsDemo.pas	1199561372	1	Components Demo
+V:\newac\demos\Tutorial\ComponentsDemo\ComponentsDemo.pas	1199575068	1	Components Demo
 V:\newac\demos\Converters\Wav2WMA\Main.pas	1199560743	0	V:\newac\demos\Converters\Wav2WMA\Main.pas
 V:\newac\src\ACS_Converters.pas	1199563771	1	ACS_Converters
 V:\newac\src\wmfintf.pas	1199563770	1	wmfintf.pas
@@ -67,6 +67,7 @@ V:\newac\src\CDRip.pas	1199563770	1	CDRip
 V:\newac\src\FLAC.pas	1199563771	1	FLAC
 V:\newac\demos\Recorders-rippers\CDRipper\Main.pas	1199560747	0	V:\newac\demos\Recorders-rippers\CDRipper\Main.pas
 V:\newac\src\ACS_CDROM.pas	1199563770	1	ACS_CDROM
+V:\newac\doc\txt\tips and tricks.txt	1199568315	1	Tips & Tricks
 V:\newac\demos\Players\WVPlayer\Main.pas	1199560735	0	V:\newac\demos\Players\WVPlayer\Main.pas
 V:\newac\src\_DirectSound.pas	1199563770	0	V:\newac\src\_DirectSound.pas
 V:\newac\demos\Players\AudioPlayer\README.txt	1199560737	0	V:\newac\demos\Players\AudioPlayer\README.txt
