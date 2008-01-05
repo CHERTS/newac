@@ -3,7 +3,7 @@
     the input is stereo it is converted to mono. 
 
     - This demo accepts 16 bps input. 
-    - In order to use AudioProcessor component you should set its OnGeData event
+    - In order to use AudioProcessor component you should set its OnGetData event
       handler at least.
     - In this demo we also set OnGetChannels event handler.
     -  Don't forget to assign WaveIn1's FileName property.
