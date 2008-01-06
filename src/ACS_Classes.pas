@@ -278,7 +278,18 @@ type
     FSeekable : Boolean;
     procedure SetStream(aStream : TStream); virtual;
   public
+    (* Property: Seekable
+      This read-only property indicates whenever the input is sekable.*)
     property Seekable : Boolean read FSeekable write FSeekable;
+    (* Property: Stream
+      Use this property to set the input data stream for the input component.
+      Any TStream descendant may be used as a data source.
+      Note that if you set Stream, you own it, that is you have to create, destroy and position
+      the stream explicitly.
+      In TAuFileIn descendants the value assigned to this property takes over the FileName property,
+      i. e. if both Stream and FileName properties are assigned, the stream and not the file will be used for the actual input.
+      To unassign this property set it to nil.
+      If the stream is seekable it will be reset to the beginning at the end of the playback.*)
     property Stream : TStream read FStream write SetStream;
     constructor Create(AOwner: TComponent); override;
   end;
@@ -353,8 +364,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: Seek
-        This method allows you to change the current playing position seek in
-        the input. If input is stopped calling Seek sets the sample from wich
+        This method allows you to change the current playing position in the
+        the input component. If the input comonent is stopped or paused calling Seek sets the sample from wich
         the playback will begin. Note that not all inputs are seekable.
 
       Parameters:
