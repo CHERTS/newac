@@ -296,7 +296,7 @@ type
   end;
 
   (* Class: TAuFileIn
-      A descendant of <TAuStreamedInput> to deal with files. *)
+      A descendant of <TAuStreamedInput> to deal with files and streams. *)
 
   TAuFileIn = class(TAuStreamedInput)
   private
@@ -338,8 +338,8 @@ type
         This method is called internally by <TAuInput.Init>, you should never call it directly. *)
     procedure OpenFile; virtual; abstract;
     (* Procedure: CloseFile
-        Closes Opens the file opened with <OpenFile>. The FOpened constant should be set to 0.
-        
+        Closes the file opened with <OpenFile>. Sets the FOpened constant to 0.
+
         Note:
         This method is called internally by <TAuInput.Flush>, you should never call it directly. *)
     procedure CloseFile; virtual; abstract;
@@ -375,10 +375,10 @@ type
           data buffer. Unlike many other data reading functions GetData
           doesn't take our buffer pointer but provides you with its own.
         Bytes - When you call GetData you pass to Bytes the number of bytes
-          you want to get. When the function returns the Bytes variable holds
+          you want to get. When the method returns the Bytes variable holds
           the number of bytes in the Buffer.
 
-      Note: 
+      Note:
       Usually you should not call this method directly.
     *)
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
@@ -393,12 +393,22 @@ type
         overrides the value set to FileName. *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
+    (* Property: EndSample
+        Set this property's value to the sample (frame) you want the input to stop playing at.
+        By default it is set to -1 which indicates "play to the end of input."
+        Changing this property value has an effect only when the compoentn is idle.*)
     property EndSample : Int64 read FEndSample write FEndSample;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName stored True;
+    (* Property: Loop
+        If set to True, the input loops (i.e. starts again from the beginning after it is finished).*)
     property Loop : Boolean read FLoop write FLoop;
+    (* Property: StartSample
+        Set this property's value to the sample (frame) you want the input to start playing from.
+        By default it is set to 0
+        Calling the <Seek> methd when the component is idle has the same effect.*)
     property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
@@ -423,7 +433,7 @@ type
   end;
 
   (* Class: TAuFileOut
-      A descendant of <TAuStreamedOutput> to deal with files. *)
+      A descendant of <TAuStreamedOutput> to deal with files and streams. *)
 
   TAuFileOut = class(TAuStreamedOutput)
   private
@@ -440,9 +450,19 @@ type
 {$IFDEF LINUX}
     property AccessMask : Integer read FAccessMask write FAccessMask;
 {$ENDIF}
+    (* Property: WideFileName
+        Allows you to handle file names in Unicode. Setting its value
+        overrides the value set to FileName. *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
+    (* Property: FileMode
+       This property can take one of two values foRewrite (default) and foAppend.
+       In the foRewrite mode the new file overwrites the previous one (if it existed).
+       In the foAppend mode the new content is added to the existing. Currently only <TWaveOut> and <TVorbisOut> components support this mode.*)
     property FileMode : TFileOutputMode read FFileMode write SetFileMode;
+    (* Property: Filename
+        File name in 8-bit encoding. Setting this property's value overrides
+        the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName;
   end;
 
@@ -468,6 +488,9 @@ type
 (* ---Ross *)
   end;
 
+   (* Class: TAuConverter
+      The ancestor of all converter components*)
+
   TAuConverter = class(TAuInput)
   protected
     FInput : TAuInput;
@@ -476,6 +499,9 @@ type
   public
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
   published
+    (* Property: Input
+       Like the output components converters can be assigned an input.
+       Unlike the output components converters themselves can be input sources (for output components and other converters.*)
     property Input : TAuInput read FInput write SetInput;
   end;
 
@@ -500,6 +526,10 @@ type
    end;
 
    PEventRecord = ^TEventRecord;
+
+  (*
+   This is an internal class, no urgent need to document it.
+   *)
 
   TEventHandler = class(TThread)
   private
