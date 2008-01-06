@@ -13,7 +13,7 @@
 {*    http://sourceforge.net/projects/delphi-dx9sdk                           *}
 {*                                                                            *}
 {*----------------------------------------------------------------------------*}
-{*  $Id: _DXTypes.pas,v 1.1 2007/08/15 10:00:40 Admin Exp $  }
+{*  $Id$  }
 {******************************************************************************}
 {                                                                              }
 { The contents of this file are used with permission, subject to the Mozilla   }
