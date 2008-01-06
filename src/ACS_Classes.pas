@@ -230,7 +230,9 @@ type
         Resumes previously paused output. *)
     procedure Resume;
     (* Procedure: Run
-        After an input component has been assigned, call Run to start audio-processing chain. *)
+        After an input component has been assigned, call Run to start audio-processing chain.
+        When called Run returns at once while actual audio processing goes on in the different thread.
+        You will get <OnProgress> events as audio processing goes on and <OnDone> event when the job is done.*)
     procedure Run;
     (* Procedure: Stop
       Stops the busy component or does nothing if the component is idle. The
@@ -343,19 +345,18 @@ type
         If input is stopped calling Seek sets the sample from wich the playback will begin.
         Note that not all inputs are seekable.
       Parameters:
-        SampleNum : Int64 - The number of sample (frame) to play from. This number is set relative to the beginning of the stream.
+        SampleNum - The number of sample (frame) to play from. This number is set relative to the beginning of the stream.
       Returns:
         Boolean - The False value indicates that either a seek failed (you are seeking beyond the end of file)
-        or that input stream is not seekable.
-    *)
+        or that input stream is not seekable. *)
     function Seek(SampleNum : Int64) : Boolean;
     (* Procedure: GetData
         This method retrieves input data. You specify the number of bytes you want to get, but you may get less
         and it should not be considered as an end of input indication.
       Parameters:
-        var Buffer : Pointer - This is the variable where GetData will put a pointer to a data buffer.
+        Buffer - This is the variable where GetData will put a pointer to a data buffer.
            Unlike many other data reading functions GetData doesn't take our buffer pointer but provides you with its own.
-        var Bytes : Integer - When you call GetData you pass to Bytes the number of bytes you want to get.
+        Bytes - When you call GetData you pass to Bytes the number of bytes you want to get.
            When the function returns the Bytes variable holds the number of bytes in the Buffer.
       When the end of input is reached Getdata sets Buffer to nil and Bytes to 0.
       Note: Usually you should not call this method directly.
