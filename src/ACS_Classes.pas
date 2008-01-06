@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Exp$ *)
+(* $Id$ *)
 
 unit ACS_Classes;
 
@@ -175,14 +175,14 @@ type
     property SampleRate : Integer read GetSR;
     property Channels : Integer read GetCh;
 
-    (* Property: Size
+    (* Property: Size : Int64
         A read only property which returns input data size in bytes.
         The value of tis property becomes valid after <Init> has been called.
         For some inputs (like <TDXAudioIn>) the data size may be not known in advance.
         In this case Size returns -1  *)
     property Size : Int64 read FSize;
 
-    (* Property: TotalTime
+    (* Property: TotalTime : Integer
         A read only property which returns input playback time in seconds.
         TotalTime value may be valid only if the <Size> of the input is known.
     *)
@@ -226,9 +226,24 @@ type
     {$IFDEF WIN32}
     procedure Abort;
     {$ENDIF}
+    (*Procedure: Pause
+     Pauses the output
+    *)
     procedure Pause;
+    (* Procedure: Resume
+      Resumes previously paused output*)
     procedure Resume;
+    (*Procedure: Run
+    After an input component has been assigned, call Run to start audio-processing chain.*)
     procedure Run;
+    (*Procedure: Stop
+      Stops the busy component or does nothing if the component is idle.
+      Parameters:
+         Async : Boolean = True - if this parameter value is set to True (the default) Stop is called in asynchronous mode.
+         The method returns at once and OnDone event is raised when output is actually finished.
+         If this parameter is set to False the Stop method is called in blocking mode. It returns only after the output is actualy done.
+         No event is raised in this case.
+     *)
     procedure Stop(Async : Boolean = True);
     property Delay : Integer read GetDelay write SetDelay;
     property ThreadPriority : {$IFDEF LINUX} Integer {$ENDIF} {$IFDEF WIN32} TThreadPriority {$ENDIF} read GetPriority write SetPriority;
