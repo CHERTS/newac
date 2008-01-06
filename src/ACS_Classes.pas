@@ -143,24 +143,30 @@ type
     procedure Reset; virtual;
 
     (* Procedure: Init
-     This method prepares input component for reading data.
-     Note: usually this method is called internally by the output or converter component to which the input component is assigned. You can call this method if you want to get direct access to the audio stream. In such a case the sequence of calls should look like this:
+     This method prepares input component for reading data. Usually this
+     method is called internally by the output or converter component to which
+     the input component is assigned. You can call this method if you want to
+     get direct access to the audio stream. In such a case the sequence of
+     calls should look like this.
 
-     InputComponent.Init;
-     InputComponent.GetData(...); // in a loop
-     InputComponent.Flush;
+  > InputComponent.Init;
+  > InputComponent.GetData(...); // in a loop
+  > InputComponent.Flush;
     *)
     procedure Init;// virtual;
 
-    (*
-    Procedure: Flush
+    (* Procedure: Flush
 
-    This method closes the current input (opened with <Init>), clearing up all temporary structures alocated during data transfer.
-    Note: usually this method is called internally by the output or converter component to which the input component is assigned. You can call this method if you want to get direct access to the audio stream. In such a case the sequence of calls should look like this:
+    This method closes the current input (opened with <Init>), clearing up all
+    temporary structures alocated during data transfer. Usually this method is
+    called internally by the output or converter component to which the input
+    component is assigned. You can call this method if you want to get direct
+    access to the audio stream. In such a case the sequence of calls should
+    look like this.
 
-    InputComponent.Init;
-    InputComponent.GetData(...); // in a loop
-    InputComponent.Flush;
+  > InputComponent.Init;
+  > InputComponent.GetData(...); // in a loop
+  > InputComponent.Flush;
     *)
     procedure Flush;
     procedure _Lock;
@@ -175,8 +181,7 @@ type
     (* Property: Size
         A read only property which returns input data size in bytes.
         The value of tis property becomes valid after <Init> has been called.
-        For some inputs (like <TDXAudioIn>) the data size may be not known in advance.
-        In this case Size returns -1  *)
+        For some inputs (like <TDXAudioIn>) the data size may be not known in advance. In this case Size returns -1  *)
     property Size : Int64 read FSize;
 
     (* Property: TotalTime
@@ -230,9 +235,12 @@ type
         Resumes previously paused output. *)
     procedure Resume;
     (* Procedure: Run
-        After an input component has been assigned, call Run to start audio-processing chain.
-        When called Run returns at once while actual audio processing goes on in the different thread.
-        You will get <OnProgress> events as audio processing goes on and <OnDone> event when the job is done.*)
+        After an input component has been assigned, call Run to start
+        audio-processing chain. When called Run returns at once while actual
+        audio processing goes on in the different thread. You will get
+        <OnProgress> events as audio processing goes on and <OnDone> event
+        when the job is done.
+    *)
     procedure Run;
     (* Procedure: Stop
       Stops the busy component or does nothing if the component is idle. The
@@ -325,11 +333,15 @@ type
         time and is then kept open until it is done with. The descendants'
         FileOpen implementations use the FOpened constant to check if the file
         is already opened.
-        Note: This method is called internally by <Init>, you should never call it directly *)
+
+        Note:
+        This method is called internally by <TAuInput.Init>, you should never call it directly. *)
     procedure OpenFile; virtual; abstract;
     (* Procedure: CloseFile
-        Closes Opens the file opened with <Open>. The FOpened constant should be set to 0.
-        This method is called internally by <Flush>, you should never call it directly *)
+        Closes Opens the file opened with <OpenFile>. The FOpened constant should be set to 0.
+        
+        Note:
+        This method is called internally by <TAuInput.Flush>, you should never call it directly. *)
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : Integer; override;
     procedure Reset; override;
@@ -341,25 +353,33 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: Seek
-        This method allows you to change the current playing position seek in the input.
-        If input is stopped calling Seek sets the sample from wich the playback will begin.
-        Note that not all inputs are seekable.
+        This method allows you to change the current playing position seek in
+        the input. If input is stopped calling Seek sets the sample from wich
+        the playback will begin. Note that not all inputs are seekable.
+
       Parameters:
         SampleNum - The number of sample (frame) to play from. This number is set relative to the beginning of the stream.
+
       Returns:
-        Boolean - The False value indicates that either a seek failed (you are seeking beyond the end of file)
-        or that input stream is not seekable. *)
+        Boolean - The False value indicates that either a seek failed (you are seeking beyond the end of file) or that input stream is not seekable. *)
     function Seek(SampleNum : Int64) : Boolean;
     (* Procedure: GetData
-        This method retrieves input data. You specify the number of bytes you want to get, but you may get less
-        and it should not be considered as an end of input indication.
+        This method retrieves input data. You specify the number of bytes you
+        want to get, but you may get less and it should not be considered as
+        an end of input indication. When the end of input is reached Getdata sets Buffer to nil and Bytes to 0.
+
+
       Parameters:
-        Buffer - This is the variable where GetData will put a pointer to a data buffer.
-           Unlike many other data reading functions GetData doesn't take our buffer pointer but provides you with its own.
-        Bytes - When you call GetData you pass to Bytes the number of bytes you want to get.
-           When the function returns the Bytes variable holds the number of bytes in the Buffer.
-      When the end of input is reached Getdata sets Buffer to nil and Bytes to 0.
-      Note: Usually you should not call this method directly.
+
+        Buffer - This is the variable where GetData will put a pointer to a
+          data buffer. Unlike many other data reading functions GetData
+          doesn't take our buffer pointer but provides you with its own.
+        Bytes - When you call GetData you pass to Bytes the number of bytes
+          you want to get. When the function returns the Bytes variable holds
+          the number of bytes in the Buffer.
+
+      Note: 
+      Usually you should not call this method directly.
     *)
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
     function SetStartTime(Minutes, Seconds : Integer) : Boolean;
