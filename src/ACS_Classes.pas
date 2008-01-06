@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.20 $ $Date: 2007/12/14 14:49:26 $ *)
+(* $Exp$ *)
 
 unit ACS_Classes;
 
@@ -144,7 +144,27 @@ type
     // the buffer itself may still contain valid data.
     function FillBuffer(Buffer : Pointer; BufferSize : Integer; var EOF : Boolean) : Integer;
     procedure Reset; virtual;
+
+    (* Procedure: Init
+     This method prepares input component for reading data.
+     Note: usually this method is called internally by the output or converter component to which the input component is assigned. You can call this method if you want to get direct access to the audio stream. In such a case the sequence of calls should look like this:
+
+     InputComponent.Init;
+     InputComponent.GetData(...); // in a loop
+     InputComponent.Flush;
+    *)
     procedure Init;// virtual;
+
+    (*
+    Procedure: Flush
+
+    This method closes the current input (opened with <Init>), clearing up all temporary structures alocated during data transfer.
+    Note: usually this method is called internally by the output or converter component to which the input component is assigned. You can call this method if you want to get direct access to the audio stream. In such a case the sequence of calls should look like this:
+
+    InputComponent.Init;
+    InputComponent.GetData(...); // in a loop
+    InputComponent.Flush;
+    *)
     procedure Flush;
     procedure _Lock;
     procedure _Unlock;
@@ -154,11 +174,18 @@ type
     property Position : Int64 read FPosition;
     property SampleRate : Integer read GetSR;
     property Channels : Integer read GetCh;
+
     (* Property: Size
-        A read only property which returns FSize. FSize is calculated in
-        OpenFile method as the FULL file size. More precise calculations
-        regarding StartSample/EndSample are done in <Init>. *)
+        A read only property which returns input data size in bytes.
+        The value of tis property becomes valid after <Init> has been called.
+        For some inputs (like <TDXAudioIn>) the data size may be not known in advance.
+        In this case Size returns -1  *)
     property Size : Int64 read FSize;
+
+    (* Property: TotalTime
+        A read only property which returns input playback time in seconds.
+        TotalTime value may be valid only if the <Size> of the input is known.
+    *)
     property TotalTime : Integer read GetTotalTime;
   end;
 
