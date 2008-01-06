@@ -318,12 +318,16 @@ type
       More precise calculations regarding StartSample/EndSample are done in Init. *)
      
     (* Procedure: OpenFile
-        Opens the file in FileName if it is not already open. For performance 
-        reasons the file is opened when any of its data is accessed the first 
-        time and is then kept open until it is done with. The descendants' 
-        FileOpen implementations use the FOpened constant to check if the file         is already opened. This method should fill FChan, FBPS, FSR, and FSize with values.
-    *)
+        Opens the file or stream if it is not already open. For performance
+        reasons the file is opened when any of its data is accessed the first
+        time and is then kept open until it is done with. The descendants'
+        FileOpen implementations use the FOpened constant to check if the file
+        is already opened.
+        Note: This method is called internally by <Init>, you should never call it directly *)
     procedure OpenFile; virtual; abstract;
+    (* Procedure: CloseFile
+        Closes Opens the file opened with <Open>. The FOpened constant should be set to 0.
+        This method is called internally by <Flush>, you should never call it directly *)
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : Integer; override;
     procedure Reset; override;
@@ -334,7 +338,28 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function: Seek
+        This method allows you to change the current playing position seek in the input.
+        If input is stopped calling Seek sets the sample from wich the playback will begin.
+        Note that not all inputs are seekable.
+      Parameters:
+        SampleNum : Int64 - The number of sample (frame) to play from. This number is set relative to the beginning of the stream.
+      Returns:
+        Boolean - The False value indicates that either a seek failed (you are seeking beyond the end of file)
+        or that input stream is not seekable.
+    *)
     function Seek(SampleNum : Int64) : Boolean;
+    (* Procedure: GetData
+        This method retrieves input data. You specify the number of bytes you want to get, but you may get less
+        and it should not be considered as an end of input indication.
+      Parameters:
+        var Buffer : Pointer - This is the variable where GetData will put a pointer to a data buffer.
+           Unlike many other data reading functions GetData doesn't take our buffer pointer but provides you with its own.
+        var Bytes : Integer - When you call GetData you pass to Bytes the number of bytes you want to get.
+           When the function returns the Bytes variable holds the number of bytes in the Buffer.
+      When the end of input is reached Getdata sets Buffer to nil and Bytes to 0.
+      Note: Usually you should not call this method directly.
+    *)
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
     function SetStartTime(Minutes, Seconds : Integer) : Boolean;
     function SetEndTime(Minutes, Seconds : Integer) : Boolean;
