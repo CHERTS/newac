@@ -139,9 +139,6 @@ type
       
         Integer - Number of bytes written
     *)
-    // The same as CopyData but tries to fill the Buffer.
-    // EOF is set to True if end of data was reached while filling the buffer
-    // the buffer itself may still contain valid data.
     function FillBuffer(Buffer : Pointer; BufferSize : Integer; var EOF : Boolean) : Integer;
     procedure Reset; virtual;
 
@@ -175,14 +172,14 @@ type
     property SampleRate : Integer read GetSR;
     property Channels : Integer read GetCh;
 
-    (* Property: Size : Int64
+    (* Property: Size
         A read only property which returns input data size in bytes.
         The value of tis property becomes valid after <Init> has been called.
         For some inputs (like <TDXAudioIn>) the data size may be not known in advance.
         In this case Size returns -1  *)
     property Size : Int64 read FSize;
 
-    (* Property: TotalTime : Integer
+    (* Property: TotalTime
         A read only property which returns input playback time in seconds.
         TotalTime value may be valid only if the <Size> of the input is known.
     *)
@@ -226,23 +223,26 @@ type
     {$IFDEF WIN32}
     procedure Abort;
     {$ENDIF}
-    (*Procedure: Pause
-     Pauses the output
-    *)
+    (* Procedure: Pause
+       Pauses the output. *)
     procedure Pause;
     (* Procedure: Resume
-      Resumes previously paused output*)
+        Resumes previously paused output. *)
     procedure Resume;
-    (*Procedure: Run
-    After an input component has been assigned, call Run to start audio-processing chain.*)
+    (* Procedure: Run
+        After an input component has been assigned, call Run to start audio-processing chain. *)
     procedure Run;
-    (*Procedure: Stop
-      Stops the busy component or does nothing if the component is idle.
+    (* Procedure: Stop
+      Stops the busy component or does nothing if the component is idle. The
+      method returns at once and OnDone event is raised when output is
+      actually finished.
+
       Parameters:
-         Async : Boolean = True - if this parameter value is set to True (the default) Stop is called in asynchronous mode.
-         The method returns at once and OnDone event is raised when output is actually finished.
-         If this parameter is set to False the Stop method is called in blocking mode. It returns only after the output is actualy done.
-         No event is raised in this case.
+         Async: Boolean = True - if this parameter value is set to True (the
+         default) Stop is called in asynchronous mode. If this parameter is
+         set to False the Stop method is called in blocking mode. It returns
+         only after the output is actualy done. No event is raised in this
+         case.
      *)
     procedure Stop(Async : Boolean = True);
     property Delay : Integer read GetDelay write SetDelay;
@@ -316,21 +316,13 @@ type
     (* Note on FSize calculation:
       FSize is calculated in OpenFile method as the FULL file size.
       More precise calculations regarding StartSample/EndSample are done in Init. *)
-
-    (*
-      OpenFile doesn't actually open a file every time it is called.
-      For performance reasons the file is opened when any of its data is accessed
-      the first time and is then kept open untill it is done with.
-      The descendants' FileOpen implementations use the FOpened constant to check
-      if the file is already opened.
-      This method should fill FChan, FBPS, FSR, and FSize with values.
-    *)
+     
     (* Procedure: OpenFile
         Opens the file in FileName if it is not already open. For performance 
         reasons the file is opened when any of its data is accessed the first 
         time and is then kept open until it is done with. The descendants' 
-        FileOpen implementations use the FOpened constant to check if the file 
-        is already opened. *)
+        FileOpen implementations use the FOpened constant to check if the file         is already opened. This method should fill FChan, FBPS, FSR, and FSize with values.
+    *)
     procedure OpenFile; virtual; abstract;
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : Integer; override;
@@ -351,14 +343,14 @@ type
     property TotalSamples : Int64 read GetTotalSamples;
     property Valid : Boolean read GetValid;
     (* Property: WideFileName
-        Allows you to handle file names in Unicode. Setting its value overrides
-        the value set to FileName. *)
+        Allows you to handle file names in Unicode. Setting its value
+        overrides the value set to FileName. *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     property EndSample : Int64 read FEndSample write FEndSample;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
-      the value set to WideFileName. *)
+        the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName stored True;
     property Loop : Boolean read FLoop write FLoop;
     property StartSample : Int64 read FStartSample write FStartSample;
@@ -727,7 +719,7 @@ end;
   constructor TAuOutput.Create;
   begin
     inherited Create(AOwner);
-    if not (csDesigning	in ComponentState) then
+    if not (csDesigning in ComponentState) then
     begin
     Thread := TAuThread.Create(True);
     Thread.Parent := Self;
@@ -740,7 +732,7 @@ end;
 
   destructor TAuOutput.Destroy;
   begin
-      if not (csDesigning	in ComponentState) then
+      if not (csDesigning in ComponentState) then
       begin
         Stop(False);
         ReleaseEventHandler;
