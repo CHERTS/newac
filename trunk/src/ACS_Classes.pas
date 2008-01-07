@@ -235,32 +235,62 @@ type
         Resumes previously paused output. *)
     procedure Resume;
     (* Procedure: Run
-        After an input component has been assigned, call Run to start the audio processing chain. When called, Run returns at once while the actual audio processing goes on in the different thread. You will get <OnProgress> events while audio processing continues and an <OnDone> event when the job is done.
-    *)
+        After an input component has been assigned, call Run to start the audio processing chain. When called, Run returns at once while the actual audio processing goes on in the different thread. You will get <OnProgress> events while audio processing continues and an <OnDone> event when the job is done.*)
     procedure Run;
     (* Procedure: Stop
-      Stops the busy component or does nothing if the component is idle. The
-      method returns at once and OnDone event is raised when output is
-      actually finished.
+      Stops the busy component or does nothing if the component is idle.
 
       Parameters:
          Async: Boolean = True - If this parameter value is set to True (the
-         default), Stop is called in asynchronous mode. If this parameter is
-         set to False the Stop method is called in blocking mode. It returns
-         only after the output is actualy done. No event is raised in this
-         case.
-     *)
+         default), Stop is called in an asynchronous mode. In this mode the
+         method returns at once and OnDone event is raised when output is
+         actually finished.
+         If this parameter is set to False the Stop method
+         is called in blocking mode. In this moe it returns only after the output
+         is actualy done. No event is raised in this case.*)
     procedure Stop(Async : Boolean = True);
     property Delay : Integer read GetDelay write SetDelay;
+    (* Property: ThreadPriority
+        This property allows you to set the priority of the output thread.*)
     property ThreadPriority : {$IFDEF LINUX} Integer {$ENDIF} {$IFDEF WIN32} TThreadPriority {$ENDIF} read GetPriority write SetPriority;
+    (* Property: Progress
+        Read Progress to get the output progress in percents.
+        This value is meaningful only after the input component has been set
+        and only if the input component can tell the size of its stream.*)
     property Progress : Integer read GetProgress;
+    (* Property: Status
+        This read only property indicates the output component's current status.
+        Possible values are:
+
+        tosPlaying: the component is performing its task;
+        tosPaused: the component is paused (the Pause method was called);
+        tosIdle: the component is idle;*)
     property Status : TOutputStatus read GetStatus;
+    (* Property: TimeElapsed
+       The time in seconds that has passed since the playback was started.
+       Useful for real time components like <TDXAudioOut>.*)
     property TimeElapsed : Integer read GetTE;
+    (* Property: ExceptionMessage
+       Most exceptions that may occur during NewAC operation are suppressed.
+       If an exception occurs, the operation is stopped and the <OnThreadException> event is raised.
+       ExceptionMessage holds the exception  text.*)
     property ExceptionMessage : String read FExceptionMessage;
   published
+    (* Property: Input
+       This property allows you to set the input component for the output component.
+       The valid input components must be descendants of TAuInput.*)
     property Input : TAuInput read Finput write SetInput;
+    (* Property: OnDone
+       OnDone event is raised when the component has finished its job or was stopped asynchronously.
+       From this event handler you can perform any action on the output component, even remove the component itself!*)
     property OnDone : TOutputDoneEvent read FOnDone write FOndone;
+    (* Property: OnProgress
+       OnProgress event is raised periodically to indicate output progress.
+       Use <Progress> property to get the progress value.
+       OnProgress event is sent asynchronously and you can perform any action on the output component from the event handler.*)
     property OnProgress : TOutputProgressEvent read FOnProgress write FOnProgress;
+    (* Property: OnThreadException
+       This event is raised if an exception has occured.*)
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
   end;
 
