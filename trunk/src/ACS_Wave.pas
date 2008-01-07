@@ -10,7 +10,7 @@
 unit ACS_Wave;
 
 (* Title: ACS_Wave
-    Delphi interface for WAV files via MMSystem copyright (c) 2002-2007, Andrei
+    Delphi interface for WAV files copyright (c) 2002-2007, Andrei
     Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
     for more details. *)
 
