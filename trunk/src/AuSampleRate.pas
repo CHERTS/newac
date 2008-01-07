@@ -5,6 +5,8 @@
   You can contact me at anb@symmetrica.net
 *)
 
+(* $Id$ *)
+
 (*
   Currently TResampler cannot perform resampling at 24 bps.
   The component can accept 24 bit input but it will produce only 16 bit output.
