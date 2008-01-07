@@ -1260,7 +1260,8 @@ end;
       Size := FStream.Size;
       FStream.Seek(4, soFromBeginning);
       FStream.Write(Size, 4);
-    end else // if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
+    end;  // if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
+    if FWavType = wtPCM then
     begin
       BlockSize := FInput.Size + 44 - FStream.Position;
       if BlockSize > 0 then
