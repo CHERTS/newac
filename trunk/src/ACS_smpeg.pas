@@ -5,12 +5,12 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.15 $ $Date: 2007/12/12 20:56:47 $ *)
+(* $Id$ *)
 
 unit ACS_smpeg;
 
 (* Title: ACS_SMPEG
-    Delphi interface for SMPEG. Shows how easy adding a new format can be. *)
+    Delphi interface for mp3 playback. Uses Windows Media Audio decoder (the <TWMin> component). *)
 
 interface
 
