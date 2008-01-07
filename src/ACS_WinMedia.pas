@@ -5,10 +5,12 @@
   You can contact me at anb@symmetrica.net
 *)
 
+(* $Id$ *)
+
 unit ACS_WinMedia;
 
 (* Title: ACS_WinMedia
-    Delphi interface for Windows Media Audio (.wma) files via ..? *)
+    Delphi interface for Windows Media Audio (.wma) using the Windows built-in codec *)
 
 interface
 
