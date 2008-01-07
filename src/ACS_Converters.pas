@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.12 $ $Date: 2007/11/26 20:56:26 $ *)
+(* $Id$ *)
 
 unit ACS_Converters;
 
