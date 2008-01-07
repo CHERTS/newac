@@ -857,7 +857,7 @@ const
         wtACM:
         begin
           BufStart := 1;
-          l := FStream.Read(Buf, BUF_SIZE);
+          FStream.Read(Buf, BUF_SIZE);
         end;
       end;
     end;
@@ -872,7 +872,6 @@ const
   var
     OffsSize : Int64;
   begin
-    OffsSize := FPosition;
     Result := True;
     BufStart := 1;
     BufEnd := 0;
