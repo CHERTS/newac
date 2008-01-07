@@ -5,10 +5,13 @@
   You can contact me at anb@symmetrica.net
 *)
 
+(* $Id$ *)
+
 unit libwma1;
 
 (* Title: libwma1.pas
-    Delphi headers for WMA files. *)
+    This Delphi unit provides a simple C-style interface for reading and writing WMA files.
+    (c) 2007 Andrei Borovsky *)
 
 interface
 
