@@ -235,11 +235,7 @@ type
         Resumes previously paused output. *)
     procedure Resume;
     (* Procedure: Run
-        After an input component has been assigned, call Run to start
-        audio-processing chain. When called Run returns at once while actual
-        audio processing goes on in the different thread. You will get
-        <OnProgress> events as audio processing goes on and <OnDone> event
-        when the job is done.
+        After an input component has been assigned, call Run to start the audio processing chain. When called, Run returns at once while the actual audio processing goes on in the different thread. You will get <OnProgress> events while audio processing continues and an <OnDone> event when the job is done.
     *)
     procedure Run;
     (* Procedure: Stop
@@ -248,8 +244,8 @@ type
       actually finished.
 
       Parameters:
-         Async: Boolean = True - if this parameter value is set to True (the
-         default) Stop is called in asynchronous mode. If this parameter is
+         Async: Boolean = True - If this parameter value is set to True (the
+         default), Stop is called in asynchronous mode. If this parameter is
          set to False the Stop method is called in blocking mode. It returns
          only after the output is actualy done. No event is raised in this
          case.
@@ -279,17 +275,19 @@ type
     procedure SetStream(aStream : TStream); virtual;
   public
     (* Property: Seekable
-      This read-only property indicates whenever the input is sekable.*)
+      This read only property indicates when the input is seekable. *)
+    // The description says read only, but it has read and write
     property Seekable : Boolean read FSeekable write FSeekable;
     (* Property: Stream
       Use this property to set the input data stream for the input component.
-      Any TStream descendant may be used as a data source.
-      Note that if you set Stream, you own it, that is you have to create, destroy and position
-      the stream explicitly.
-      In TAuFileIn descendants the value assigned to this property takes over the FileName property,
-      i. e. if both Stream and FileName properties are assigned, the stream and not the file will be used for the actual input.
-      To unassign this property set it to nil.
-      If the stream is seekable it will be reset to the beginning at the end of the playback.*)
+      Any TStream descendant may be used as a data source. Note that if you
+      set Stream, you own it, that is you have to create, destroy and position
+      the stream explicitly. In TAuFileIn descendants the value assigned to
+      this property takes over the FileName property, i. e. if both Stream and
+      FileName properties are assigned, the stream and not the file will be
+      used for the actual input. To unassign this property set it to nil. If
+      the stream is seekable it will be reset to the beginning at the end of
+      the playback. *)
     property Stream : TStream read FStream write SetStream;
     constructor Create(AOwner: TComponent); override;
   end;
@@ -346,13 +344,16 @@ type
         is already opened.
 
         Note:
-        This method is called internally by <TAuInput.Init>, you should never call it directly. *)
+        This method is called internally by <TAuInput.Init>, you should never
+        call it directly. *)
     procedure OpenFile; virtual; abstract;
     (* Procedure: CloseFile
-        Closes the file opened with <OpenFile>. Sets the FOpened constant to 0.
+        Closes the file opened with <OpenFile>. Sets the FOpened constant to
+        0.
 
         Note:
-        This method is called internally by <TAuInput.Flush>, you should never call it directly. *)
+        This method is called internally by <TAuInput.Flush>, you should never
+        call it directly. *)
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : Integer; override;
     procedure Reset; override;
@@ -365,19 +366,25 @@ type
     destructor Destroy; override;
     (* Function: Seek
         This method allows you to change the current playing position in the
-        the input component. If the input comonent is stopped or paused calling Seek sets the sample from wich
-        the playback will begin. Note that not all inputs are seekable.
+        the input component. If the input component is stopped or paused,
+        calling Seek sets the sample from which the playback will begin. Note
+        that not all inputs are seekable.
 
       Parameters:
-        SampleNum - The number of sample (frame) to play from. This number is set relative to the beginning of the stream.
+        SampleNum - The number of sample (frame) to play from. This number is
+          set relative to the beginning of the stream.
 
       Returns:
-        Boolean - The False value indicates that either a seek failed (you are seeking beyond the end of file) or that input stream is not seekable. *)
+        Boolean - A False value indicates that either a seek failed (you are
+          seeking beyond the end of file) or that input stream is not
+          seekable.
+    *)
     function Seek(SampleNum : Int64) : Boolean;
     (* Procedure: GetData
         This method retrieves input data. You specify the number of bytes you
         want to get, but you may get less and it should not be considered as
-        an end of input indication. When the end of input is reached Getdata sets Buffer to nil and Bytes to 0.
+        an end of input indication. When the end of input is reached Getdata
+        sets Buffer to nil and Bytes to 0.
 
 
       Parameters:
@@ -405,21 +412,22 @@ type
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     (* Property: EndSample
-        Set this property's value to the sample (frame) you want the input to stop playing at.
-        By default it is set to -1 which indicates "play to the end of input."
-        Changing this property value has an effect only when the compoentn is idle.*)
+        Set this property's value to the sample (frame) you want the input to
+        stop playing at. By default it is set to -1 which indicates "play to
+        the end of input." Changing this property value has an effect only
+        when the component is idle. *)
     property EndSample : Int64 read FEndSample write FEndSample;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName stored True;
     (* Property: Loop
-        If set to True, the input loops (i.e. starts again from the beginning after it is finished).*)
+        If set to True, the input loops (i.e. starts again from the beginning
+        after it is finished). *)
     property Loop : Boolean read FLoop write FLoop;
     (* Property: StartSample
-        Set this property's value to the sample (frame) you want the input to start playing from.
-        By default it is set to 0
-        Calling the <Seek> methd when the component is idle has the same effect.*)
+        Set this property's value to the sample (frame) you want the input to
+        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect. *)
     property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
@@ -467,9 +475,11 @@ type
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     (* Property: FileMode
-       This property can take one of two values foRewrite (default) and foAppend.
-       In the foRewrite mode the new file overwrites the previous one (if it existed).
-       In the foAppend mode the new content is added to the existing. Currently only <TWaveOut> and <TVorbisOut> components support this mode.*)
+       This property can take one of two values foRewrite (default) and
+       foAppend. In the foRewrite mode the new file overwrites the previous
+       one (if it existed). In the foAppend mode the new content is added to
+       the existing. Currently only <TWaveOut> and <TVorbisOut> components
+       support this mode.*)
     property FileMode : TFileOutputMode read FFileMode write SetFileMode;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
@@ -500,7 +510,7 @@ type
   end;
 
    (* Class: TAuConverter
-      The ancestor of all converter components*)
+      The ancestor of all converter components *)
 
   TAuConverter = class(TAuInput)
   protected
@@ -512,7 +522,7 @@ type
   published
     (* Property: Input
        Like the output components converters can be assigned an input.
-       Unlike the output components converters themselves can be input sources (for output components and other converters.*)
+       Unlike the output components converters themselves can be input sources (for output components and other converters. *)
     property Input : TAuInput read FInput write SetInput;
   end;
 
