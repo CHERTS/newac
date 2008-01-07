@@ -215,40 +215,42 @@ implementation
       if IBufferEnd = 0 then
       begin
         EndOfInput := True;
-        Buffer := nil;
-        Bytes := 0;
-        Exit;
-      end;
-      ilen := IBufferEnd;
-      if IBufferEnd > InitialBufferSize then
-        ilen := InitialBufferSize;
-      src_short_to_float_array(@InputBuffer, @IFloatBuffer, ilen);
-      //SmallIntToSingle(@InputBuffer, @IFloatBuffer, ilen div 2);
-      Data.input_frames := (ilen div 2) div FInput.Channels;
-      Data.output_frames := (IOBufSize div 2) div FInput.Channels;
-      if EndOfInput and (IBufferEnd <= InitialBufferSize) then
-        Data.end_of_input := 1
-      else
-        Data.end_of_input := 0;
-      res := src_process(_State, Data);
-      if res <> 0 then
+        OBufferEnd := FSize - FPosition;
+        if OBufferEnd < 0 then OBufferEnd := 0;
+        FillChar(OutputBuffer[0], OBufferEnd, 0);
+      end else
       begin
-        EndOfInput := True;
-        Buffer := nil;
-        Bytes := 0;
-        raise EAuException.Create(src_strerror(res));
-      end;
-      SingleToSmallInt(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
-      //src_float_to_short_array(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
-      OBufferEnd := Data.output_frames_gen * FInput.Channels * 2;
-      ilen := Data.nput_frames_used  * FInput.Channels * 2;
-      for i := ilen to IBufferEnd - 1 do
-        InputBuffer[i - ilen] := InputBuffer[i];
-      Dec(IBufferEnd, ilen);
-      if FInput.BitsPerSample = 8 then
-      begin
-        Convert16To8(@OutputBuffer, OBufferEnd);
-        OBufferEnd := OBufferEnd div 2;
+        ilen := IBufferEnd;
+        if IBufferEnd > InitialBufferSize then
+          ilen := InitialBufferSize;
+        src_short_to_float_array(@InputBuffer, @IFloatBuffer, ilen);
+        //SmallIntToSingle(@InputBuffer, @IFloatBuffer, ilen div 2);
+        Data.input_frames := (ilen div 2) div FInput.Channels;
+        Data.output_frames := (IOBufSize div 2) div FInput.Channels;
+        if EndOfInput and (IBufferEnd <= InitialBufferSize) then
+          Data.end_of_input := 1
+        else
+          Data.end_of_input := 0;
+        res := src_process(_State, Data);
+        if res <> 0 then
+        begin
+          EndOfInput := True;
+          Buffer := nil;
+          Bytes := 0;
+          raise EAuException.Create(src_strerror(res));
+        end;
+        SingleToSmallInt(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
+        //src_float_to_short_array(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
+        OBufferEnd := Data.output_frames_gen * FInput.Channels * 2;
+        ilen := Data.nput_frames_used  * FInput.Channels * 2;
+        for i := ilen to IBufferEnd - 1 do
+          InputBuffer[i - ilen] := InputBuffer[i];
+        Dec(IBufferEnd, ilen);
+        if FInput.BitsPerSample = 8 then
+        begin
+          Convert16To8(@OutputBuffer, OBufferEnd);
+          OBufferEnd := OBufferEnd div 2;
+        end;
       end;
     end; // OBufferStart >= OBufferEnd
     if OBufferEnd = 0 then
@@ -256,7 +258,6 @@ implementation
       EndOfInput := True;
       Buffer := nil;
       Bytes := 0;
-      FSize := -1;
       Exit;
     end;
     if Bytes > OBufferEnd - OBufferStart then
