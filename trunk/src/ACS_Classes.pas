@@ -519,6 +519,8 @@ type
     procedure SetInput(aInput : TAuInput); virtual;
   public
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure _Pause; override;
+    procedure _Resume; override;
   published
     (* Property: Input
        Like the output components converters can be assigned an input.
@@ -1529,6 +1531,15 @@ begin
   end;
 end;
 
+procedure TAuConverter._Pause;
+begin
+  FInput._Pause;
+end;
+
+procedure TAuConverter._Resume;
+begin
+  FInput._Resume;
+end;
 
 
 initialization
