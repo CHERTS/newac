@@ -13,9 +13,6 @@
   This doesn't apply to the pass through mode (when the input sample rate
   is the same as the output sample rate) in which the audio data is passed
   unmodified.
-  Note also that TResampler canoot predict output size exactly. You should be ready
-  that the actual outpput size will be several hundred bytes less than expected.
-  Most NewAC components can handle this situation easily.
 *)
 
 unit AuSampleRate;
