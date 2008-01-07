@@ -1,11 +1,11 @@
 (*
-  This file is a part of New Audio Components package v 1.2
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 1.4
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.14 $ $Date: 2007/11/26 20:56:11 $ *)
+(* $Id$ *)
 
 unit ACS_Wave;
 
@@ -1212,11 +1212,13 @@ end;
 
   procedure TWaveOut.Done;
   var
-    Size : Integer;
+    Size, i : Integer;
     Hdr : TDVIADPCMHeader;
+    BlockSize : Integer;
+    P : Pointer;
   begin
-//    if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
-    if FStream <> nil then
+    if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
+//    if FStream <> nil then
     begin
       case FWavType of
         wtPCM:
@@ -1258,6 +1260,16 @@ end;
       Size := FStream.Size;
       FStream.Seek(4, soFromBeginning);
       FStream.Write(Size, 4);
+    end else // if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
+    begin
+      BlockSize := FInput.Size + 44 - FStream.Position;
+      if BlockSize > 0 then
+      begin
+        GetMem(P, BlockSize);
+        FillChar(P^, BlockSize, 0);
+        FStream.Write(P^, BlockSize);
+        FreeMem(P);
+      end;
     end;
     if (not FStreamAssigned) and (FStream <> nil) then FStream.Free;
     FInput.Flush;
