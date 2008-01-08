@@ -24,6 +24,10 @@ const
 
 type
 
+  (* Class: TDXAudioOut
+      This component performs audio output.
+      Descends from <TAuOutput>. *)
+
   TDXAudioOut = class(TAuOutput)
   private
     Freed : Boolean;
@@ -49,13 +53,30 @@ type
     destructor Destroy; override;
     procedure Pause;
     procedure Resume;
+    (* Property: DeviceCount
+         This read only property returns the number of logical output DirectSound devices.*)
     property DeviceCount : Integer read FDeviceCount;
+    (* Property: DeviceName[Number : Integer]
+         This read only array property returns the name of the device specified by its number.
+         The valid numbers range from 0 to <DeviceCount> - 1.*)
     property DeviceName[Number : Integer] : String read GetDeviceName;
+    (* Property: Underruns
+         This read only property returns the number of internal buffer underruns that have occured during playback.*)
     property Underruns : Integer read FUnderruns;
+    (* Property: BufferSize
+         Use this property to set the component's internal buffer size if the defult one doesn't suite you.*)
     property BufferSize : Integer read FBufferSize write FBufferSize;
   published
+    (* Property: DeviceNumber
+         Use this property to select the playback device by number.
+         The property default value is 0 which corresponds to the default audio output device in your system.
+         The valid numbers range from 0 to <DeviceCount> - 1.*)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
   end;
+
+  (* Class: TDXAudioIn
+      This component performs audio recording.
+      Descends from <TAuInput>. *)
 
   TDXAudioIn = class(TAuInput)
   private
@@ -88,15 +109,43 @@ type
     destructor Destroy; override;
     procedure _Pause; override;
     procedure _Resume; override;
+    (* Property: DeviceCount
+         This read only property returns the number of logical input DirectSound devices.*)
     property DeviceCount : Integer read FDeviceCount;
+    (* Property: DeviceName[Number : Integer]
+         This read only array property returns the name of the device specified by its number.
+         The valid numbers range from 0 to <DeviceCount> - 1.*)
     property DeviceName[Number : Integer] : String read GetDeviceName;
+    (* Property: Underruns
+         This read only property returns the number of internal buffer underruns that have occured during recording.*)
     property Underruns : Integer read FUnderruns;
   published
+    (* Property: BytesToRead
+         Use this property to set the number of bytes the component should record.
+         Be carefull as the number of bytes you request should constitue the integer number of frames.
+         If you set this property value to -1 the component will be recording endlessly until you stop it.*)
     property BytesToRead : Integer read FBytesToRead write FBytesToRead;
+    (* Property: DeviceNumber
+         Use this property to select the recording device by number.
+         The property default value is 0 which corresponds to the default audio input device in your system.
+         The valid numbers range from 0 to <DeviceCount> - 1.*)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    (* Property: InBitsPerSample
+        Use this property to set the number of bits per sample in the audio stream the component will provide.
+        Possible values are 8, 16, and 24 (the last one depends on the capabilities of your hardware).*)
     property InBitsPerSample : Integer read GetBPS write FBPS stored True;
+    (* Property: InChannels
+        Use this property to set the number of channels in the audio stream the component will provide.
+        Possible values are 1 (mono), and 2 (stereo).*)
     property InChannels : Integer read GetCh write FChan stored True;
+    (* Property: InChannels
+        Use this property to set the sample rate of the audio stream the component will provide.
+        Possible values range from 4000 to 128000 (depends on the capabilities of your hardware).*)
     property InSampleRate : Integer read GetSR write FFreq stored True;
+    (* Property: BytesToRead
+         Use this property to set the recording duration (in seconds).
+         If set this property overrides the value of <BytesToRead>.
+         If you set this property value to -1 (the default) the component will be recording endlessly until you stop it.*)
     property RecTime : Integer read FRecTime write SetRecTime;
   end;
 
