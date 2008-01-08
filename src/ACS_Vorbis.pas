@@ -40,7 +40,7 @@ type
   PBuffer = ^TBuffer;
 
   (* Class: TVorbisOut
-    The Ogg  Vorbis encoder component. *)
+      The Ogg Vorbis encoder component. *)
 
   TVorbisOut = class(TAuFileOut)
   private
@@ -77,32 +77,50 @@ type
     destructor Destroy; override;
   published
     (* Property: Compression
-      Use this property to set the compression ratio for the file being created. The valid values vary from -0.1 (maximum compression, lowest quality) to 1.0 (minimum compression, highest quality).
-      If <DesiredNominalBitrate> property is assigned a value other than brAutoSelect, Compression property is ignored.*)
+      Use this property to set the compression ratio for the file being
+      created. The valid values vary from -0.1 (maximum compression, lowest
+      quality) to 1.0 (minimum compression, highest quality). If
+      <DesiredNominalBitrate> property is assigned a value other than
+      brAutoSelect, Compression property is ignored. *)
     property Compression : Single read FCompression write FCompression stored True;
    (* Property: Comments
-      Use this property to add tags (comments) to an Ogg Vorbis file. The standard comments inlude Arist, Album, Title, Date, Genre, and track.*)
+      Use this property to add tags (comments) to an Ogg Vorbis file. The
+      standard comments inlude Arist, Album, Title, Date, Genre, and Track. *)
     property Comments : TVorbisTags read FComments write SetComments;
    (* Property: DesiredMaximumBitrate
-      Use this property to set the desired maximum bitrate limit for the file being created.
-      The values of this property are brXXX constants, indicating bitrates in kbps.
-      Depending on the parameters of the incoming audio data the actual maximum bitrate may be hihger than that specified with this property.
-      This property has an effect only if <DesiredNominalBitrate> property is assigned a value other than brAutoSelect.*)
+      Use this property to set the desired maximum bitrate limit for the file
+      being created. The values of this property are brXXX constants,
+      indicating bitrates in kbps. Depending on the parameters of the incoming
+      audio data the actual maximum bitrate may be hihger than that specified
+      with this property. This property has an effect only if
+      <DesiredNominalBitrate> property is assigned a value other than
+      brAutoSelect. *)
     property DesiredMaximumBitrate : TVorbisBitRate read FDesiredMaximumBitrate write SetDesiredMaximumBitrate;
    (* Property: DesiredNominalBitrate
-      If this property is set to a value other than brAutoSelect (the default value), the Compression property is ignored and the size/quality of the output file are determined by the values of <DesiredNominalBitrate>, <DesiredMaximumBitrate>, and <MinimumBitrate> properties.
-      The values of this property are brXXX constants, indicating bitrates in kbps.
-      Depending on the parameters of the incoming audio data the output file's actual nomial bitrate may be different from that specified with this property.
-      Note: It is recommended by Ogg Vorbis developers to use the <Compression> property rather than specify bitrates directly.*)
+      If this property is set to a value other than brAutoSelect (the default
+      value), the Compression property is ignored and the size/quality of the
+      output file are determined by the values of <DesiredNominalBitrate>,
+      <DesiredMaximumBitrate>, and <MinimumBitrate> properties. The values of
+      this property are brXXX constants, indicating bitrates in kbps.
+      Depending on the parameters of the incoming audio data the output file's
+      actual nomial bitrate may be different from that specified with this
+      property.
+
+      Note: 
+      It is recommended by Ogg Vorbis developers to use the <Compression>
+      property rather than specify bitrates directly. *)
     property DesiredNominalBitrate : TVorbisBitRate read FDesiredNominalBitrate write SetDesiredNominalBitrate;
    (* Property: MinimumBitrate
-     Use this property to set the minimum bitrate limit for the file being created.
-     The values of this property are brXXX constants, indicating bitrates in kbps.
-     This property has an effect only if DesiredNominalBitrate property is assigned a value other than brAutoSelect.*)
+     Use this property to set the minimum bitrate limit for the file being
+     created. The values of this property are brXXX constants, indicating
+     bitrates in kbps. This property has an effect only if
+     DesiredNominalBitrate property is assigned a value other than
+     brAutoSelect.*)
     property MinimumBitrate : TVorbisBitRate read FMinimumBitrate write SetMinimumBitrate;
    (* Property: Serial
-      Use this property to set the serial number of the logical bitstream in Virbis file.
-      The value of this property is of any concern only if you create multy-streamed Vorbis files (in foAppend mode).*)
+      Use this property to set the serial number of the logical bitstream in
+      virbis file. The value of this property is of any concern only if you
+      create multy-streamed vorbis files (in foappend mode). *)
     property Serial : Integer read FSerial write FSerial;
 //    property Vendor : String read FVendor write FVendor;
   end;
@@ -136,32 +154,38 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (*Property: BitStreams
-      Read this property to get number of logical bitstreams in the multi-streamed file.
-      By default the component plays all the bitstreams from the first to the last just as if they were the same bitstream.
-      The playback time also refers to the total time of all the bitstreams.
-      You need to handle bitstreams-related properties only if you want to navigate between several bitstreams in a multi-streamed file.*)
+    (* Property: BitStreams
+      Read this property to get number of logical bitstreams in the
+      multi-streamed file. By default the component plays all the bitstreams
+      from the first to the last just as if they were the same bitstream. The
+      playback time also refers to the total time of all the bitstreams. You
+      need to handle bitstreams-related properties only if you want to
+      navigate between several bitstreams in a multi-streamed file. *)
     property BitStreams : Integer read GetBitStreams;
-   (* Property: Comments
-      Use this property to read tags (comments) added to an Ogg Vorbis file. The standard comments inlude Arist, Album, Title, Date, Genre, and Track.*)
+    (* Property: Comments
+      Use this property to read tags (comments) added to an Ogg Vorbis file.
+      The standard comments inlude Arist, Album, Title, Date, Genre, and
+      Track. *)
     property Comments : TVorbisTags read GetComments;
     (* Property: CurrentBitStream
-      Read this property to get the number of the current bitstream being played (0 < = CurrentBitStream < BitStreams).
-      Assigning a value to this property makes the component start playback from the begininning of the specified logical bitstream.
-      This property can be used only during actual playback process.*)
+      Read this property to get the number of the current bitstream being
+      played (0 < = CurrentBitStream < BitStreams). Assigning a value to this
+      property makes the component start playback from the begininning of the
+      specified logical bitstream. This property can be used only during
+      actual playback process. *)
     property CurrentBitStream : Integer read GetCurrentBitStream write SetCurrentBitStream;
-    (*Property: InstantBitRate
-      Use this property to get current bitrate (in bits per second) of the VBR-encoded Vorbis file.*)
+    (* Property: InstantBitRate
+      Use this property to get current bitrate (in bits per second) of the VBR-encoded Vorbis file. *)
     property InstantBitRate : Integer read GetInstantBitRate;
     //property Vendor : String read FVendor;
-    (*Property: MaxBitrate
-      Use this property to get the maximum bitrate (in bits per second) of the Vorbis file.*)
+    (* Property: MaxBitrate
+      Use this property to get the maximum bitrate (in bits per second) of the Vorbis file. *)
     property MaxBitrate: Integer read GetMaxBitrate;
-    (*Property: MinBitrate
-      Use this property to get the minimum bitrate (in bits per second) of the Vorbis file.*)
+    (* Property: MinBitrate
+      Use this property to get the minimum bitrate (in bits per second) of the Vorbis file. *)
     property MinBitrate: Integer read GetMinBitrate;
-    (*Property: NominalBitrate
-      Use this property to get the nominal bitrate (in bits per second) of the Vorbis file.*)
+    (* Property: NominalBitrate
+      Use this property to get the nominal bitrate (in bits per second) of the Vorbis file. *)
     property NominalBitrate: Integer read GetNominalBitrate;
   end;
 
@@ -250,7 +274,7 @@ implementation
     FDesiredNominalBitrate := brAutoSelect;
     FDesiredMaximumBitrate := brAutoSelect;
     FMinimumBitrate := brAutoSelect;
-    if not (csDesigning	in ComponentState) then
+    if not (csDesigning in ComponentState) then
     begin
       if not LiboggLoaded then
       raise EAuException.Create(LiboggPath + ' library could not be loaded.');
@@ -319,7 +343,7 @@ implementation
     if not CanOutput then Exit;
     if Abort or EndOfStream then
     begin
-      (* We don't close file here to avoide exceptions
+      (* We don't close file here to avoid exceptions
         if output componenet's Stop method is called *)
       Result := False;
       Exit;
@@ -397,7 +421,7 @@ implementation
   begin
     inherited Create(AOwner);
     FComments := TVorbisTags.Create;
-    if not (csDesigning	in ComponentState) then
+    if not (csDesigning in ComponentState) then
     begin
       if not LiboggLoaded then
       raise EAuException.Create(LiboggPath + ' library could not be loaded.');
@@ -519,9 +543,9 @@ implementation
       BufEnd := 0;
       if not _EndOfStream then
       begin
-        (* The ov_read function can return data in quite small chunks
-          (of about 512 bytes). We keep reading data until the buffer is filled
-          or there is no more data to read. *)
+        (* The ov_read function can return data in quite small chunks (of
+        about 512 bytes). We keep reading data until the buffer is filled or
+        there is no more data to read. *)
         while BufEnd < BUF_SIZE do
         begin
           l := ov_read(VFile, @buf[BufEnd + 1], BUF_SIZE - BufEnd, 0, 2, 1, @cursec);
@@ -684,7 +708,7 @@ implementation
       minbr := VorbisBitrateToInt(Self.FMinimumBitrate);
       if minbr < 0 then minbr := nombr;
       if vorbis_encode_init(@VInfo, FInput.Channels, FInput.SampleRate, maxbr, nombr, minbr) <> 0 then
-        raise EAuException.Create('Vorbis codec setup with the requested bitrate failed. Try lower bitrate');
+        raise EAuException.Create('Vorbis codec setup with the requested bitrate failed. Try a lower bitrate.');
 
     end;
     vorbis_comment_init(@VComm);
