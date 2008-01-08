@@ -40,7 +40,8 @@ type
   PBuffer = ^TBuffer;
 
   (* Class: TVorbisOut
-      The Ogg Vorbis encoder component. *)
+      The Ogg Vorbis encoder component.
+      Descends from <TAuFileOut>.*)
 
   TVorbisOut = class(TAuFileOut)
   private
@@ -126,7 +127,8 @@ type
   end;
 
   (* Class: TVorbisOut
-    The Ogg  Vorbis decoder component. *)
+    The Ogg  Vorbis decoder component.
+    Descends from <TAuFileIn>.*)
 
   TVorbisIn = class(TAuFileIn)
   private
