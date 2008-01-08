@@ -20,6 +20,8 @@ uses
 
 type
 
+   TMediaType = (mtV8, mtV9, mtLossless);
+
    QWORD = Int64;
 
    TAudioStream = class(TInterfacedObject, IStream)
@@ -568,7 +570,7 @@ implementation
     Result := True;
   end;  *)
 
-  function SeletBestConfig(SubType : TGUID; pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
+  function SeletBestConfig(pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
    var
     pProfileMgr : IWMProfileManager;
     pCodecInfo : IWMCodecInfo3;
@@ -660,7 +662,7 @@ implementation
      format.nSamplesPerSec := SampleRate;
      format.wBitsPerSample := BitsPerSample;
      format.wFormatTag := 1;
-     if not SeletBestConfig(WMMEDIASUBTYPE_WMAudioV8, format, DesiredBitrate, Config) then
+     if not SeletBestConfig(format, DesiredBitrate, Config) then
        raise exception.Create('Failed to init codec');
      WMCreateProfileManager(ProfileManager);
      ProfileManager.CreateEmptyProfile(WMT_VER_9_0, Profile);
