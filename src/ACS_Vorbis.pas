@@ -119,8 +119,8 @@ type
     property MinimumBitrate : TVorbisBitRate read FMinimumBitrate write SetMinimumBitrate;
    (* Property: Serial
       Use this property to set the serial number of the logical bitstream in
-      virbis file. The value of this property is of any concern only if you
-      create multy-streamed vorbis files (in foappend mode). *)
+      virbis file. The value of this property is of concern only if you
+      create multi-streamed vorbis files (in foAppend mode). *)
     property Serial : Integer read FSerial write FSerial;
 //    property Vendor : String read FVendor write FVendor;
   end;
