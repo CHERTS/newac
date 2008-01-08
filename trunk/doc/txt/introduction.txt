@@ -204,6 +204,9 @@ This section explains how to avoid some errors that are most often encountered b
 	-	Never call an output component's Run method if the component is busy. You can check if it is by inspecting the value of the Status property. Output component goes to the busy state after its Run method is called. When component becomes idle, its OnDone event is triggered.
 	-	With the TCDIn component it is a good practice to check if the right kind of media is in the drive before calling any disc-concerning method. You can check the CD in the drive by means of DiscInfo and Status properties.
 	-	When using file input components always check if the assigned file is valid with Valid property before reading any file description properties or calling Run method.
+	-	Some of NewAC components require external DLLs. When you start a NewAC application and it cannot find a required DLL it shows a message "foobar.dll could not be found"... but not under Vista. Vista hides this message (just like many other important technical messages) from a user and tells you instead that your "application suddenly stopped working". This may give you a false impression that the NewAC application is screwed up under Vista. That’s not so. If you get this "the application suddenly stopped working" dialog right when the app starts, check, first of all, if all the required DLLs are accessible to the application.
+Keep in mind that all the demos provided with NewAC work under Vista (at least under 32-bit version).
+
 
 Section: Legacy Components
 
