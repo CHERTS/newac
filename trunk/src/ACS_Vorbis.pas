@@ -85,13 +85,13 @@ type
     property Compression : Single read FCompression write FCompression stored True;
    (* Property: Comments
       Use this property to add tags (comments) to an Ogg Vorbis file. The
-      standard comments inlude Arist, Album, Title, Date, Genre, and Track. *)
+      standard comments include Artist, Album, Title, Date, Genre, and Track. *)
     property Comments : TVorbisTags read FComments write SetComments;
    (* Property: DesiredMaximumBitrate
       Use this property to set the desired maximum bitrate limit for the file
       being created. The values of this property are brXXX constants,
       indicating bitrates in kbps. Depending on the parameters of the incoming
-      audio data the actual maximum bitrate may be hihger than that specified
+      audio data the actual maximum bitrate may be higher than that specified
       with this property. This property has an effect only if
       <DesiredNominalBitrate> property is assigned a value other than
       brAutoSelect. *)
@@ -103,7 +103,7 @@ type
       <DesiredMaximumBitrate>, and <MinimumBitrate> properties. The values of
       this property are brXXX constants, indicating bitrates in kbps.
       Depending on the parameters of the incoming audio data the output file's
-      actual nomial bitrate may be different from that specified with this
+      actual nominal bitrate may be different from that specified with this
       property.
 
       Note: 
@@ -120,7 +120,7 @@ type
    (* Property: Serial
       Use this property to set the serial number of the logical bitstream in
       virbis file. The value of this property is of concern only if you
-      create multi-streamed vorbis files (in foAppend mode). *)
+      create multi-streamed Vorbis files (in foAppend mode). *)
     property Serial : Integer read FSerial write FSerial;
 //    property Vendor : String read FVendor write FVendor;
   end;
@@ -159,18 +159,18 @@ type
       multi-streamed file. By default the component plays all the bitstreams
       from the first to the last just as if they were the same bitstream. The
       playback time also refers to the total time of all the bitstreams. You
-      need to handle bitstreams-related properties only if you want to
+      need to handle bitstream-related properties only if you want to
       navigate between several bitstreams in a multi-streamed file. *)
     property BitStreams : Integer read GetBitStreams;
     (* Property: Comments
       Use this property to read tags (comments) added to an Ogg Vorbis file.
-      The standard comments inlude Arist, Album, Title, Date, Genre, and
+      The standard comments include Artist, Album, Title, Date, Genre, and
       Track. *)
     property Comments : TVorbisTags read GetComments;
     (* Property: CurrentBitStream
       Read this property to get the number of the current bitstream being
       played (0 < = CurrentBitStream < BitStreams). Assigning a value to this
-      property makes the component start playback from the begininning of the
+      property makes the component start playback from the beginning of the
       specified logical bitstream. This property can be used only during
       actual playback process. *)
     property CurrentBitStream : Integer read GetCurrentBitStream write SetCurrentBitStream;
@@ -344,7 +344,7 @@ implementation
     if Abort or EndOfStream then
     begin
       (* We don't close file here to avoid exceptions
-        if output componenet's Stop method is called *)
+        if output component's Stop method is called *)
       Result := False;
       Exit;
     end;
@@ -692,9 +692,9 @@ implementation
     begin
 (*      {$IFNDEF USE_VORBIS_10}
       if vorbis_encode_init_vbr(@VInfo, FInput.Channels, FInput.SampleRate, FCompression) <> 0 then
-        raise EACSException.Create('Vorbic init failed');
+        raise EACSException.Create('Vorbis init failed');
       if vorbis_encode_setup_init(@VInfo) <> 0 then
-        raise EACSException.Create('Vorbic setup failed');
+        raise EACSException.Create('Vorbis setup failed');
       {$ENDIF} *)
       {$IFDEF USE_VORBIS_11}
       vorbis_encode_setup_vbr(@VInfo, FInput.Channels, FInput.SampleRate, FCompression);
