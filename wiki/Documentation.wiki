@@ -10,4 +10,4 @@ No, not Hooked on Phonics, just a word on the file formats used. The wordy bits 
 
 
 == How to Feel Cool (hint: don't use Internet Exploder) ==
-If you're cool enough to have Opera 9.5b you'll get some nice text shadows (oooh.. ahh...). Firefox users aren't left out, they get a smattering of rounded corners courtesy of the default NaturalDocs CSS. Internet Explorer users will get perfectly working documentation, but no fancy stuff. This is because you suck at life, but you probably already knew that.
+If you're cool enough to have [http://www.opera.com/download/?ver=9.50b Opera 9.5b] you'll get some nice text shadows (oooh.. ahh...). [http://firefox.com Firefox] users aren't left out, they get a smattering of rounded corners courtesy of the default [http://naturaldocs.org NaturalDocs] CSS. Internet Explorer lusers will get perfectly working documentation, but no fancy stuff. This is because you suck at life, but you probably already knew that.
