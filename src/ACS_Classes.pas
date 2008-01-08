@@ -78,7 +78,7 @@ type
     procedure RaiseDoneEvent;
   public
     DoNotify : Boolean; // Flag that determines if OnDone should be raised a the end of output
-                        // default value is True, may be set to Dalse in Stop method.
+                        // default value is True, may be set to False in Stop method.
     Stopped : Boolean;  // Flag that tells when the output is actually stopped.
                         // Used when DoNotify is set to False.
     Parent : TComponent;
@@ -95,7 +95,7 @@ type
   TAuInput = class(TComponent)
   protected
     FPosition : Int64;
-    FSize : Int64; // total _uncompressed_ audio stream size in btes
+    FSize : Int64; // total _uncompressed_ audio stream size in bytes
     FSampleSize : Word; // size of one frame in bytes (fot 16 bps stereo FSampleSize is 4).
     Busy : Boolean;
     BufStart, BufEnd : Integer;
@@ -158,7 +158,7 @@ type
     (* Procedure: Flush
 
     This method closes the current input (opened with <Init>), clearing up all
-    temporary structures alocated during data transfer. Usually this method is
+    temporary structures allocated during data transfer. Usually this method is
     called internally by the output or converter component to which the input
     component is assigned. You can call this method if you want to get direct
     access to the audio stream. In such a case the sequence of calls should
@@ -180,7 +180,7 @@ type
 
     (* Property: Size
         A read only property which returns input data size in bytes.
-        The value of tis property becomes valid after <Init> has been called.
+        The value of this property becomes valid after <Init> has been called.
         For some inputs (like <TDXAudioIn>) the data size may be not known in advance. In this case Size returns -1  *)
     property Size : Int64 read FSize;
 
@@ -246,8 +246,8 @@ type
          method returns at once and OnDone event is raised when output is
          actually finished.
          If this parameter is set to False the Stop method
-         is called in blocking mode. In this moe it returns only after the output
-         is actualy done. No event is raised in this case.*)
+         is called in blocking mode. In this mode it returns only after the output
+         is actually done. No event is raised in this case.*)
     procedure Stop(Async : Boolean = True);
     property Delay : Integer read GetDelay write SetDelay;
     (* Property: ThreadPriority
@@ -290,7 +290,7 @@ type
        OnProgress event is sent asynchronously and you can perform any action on the output component from the event handler.*)
     property OnProgress : TOutputProgressEvent read FOnProgress write FOnProgress;
     (* Property: OnThreadException
-       This event is raised if an exception has occured.*)
+       This event is raised if an exception has occurred.*)
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
   end;
 
@@ -413,7 +413,7 @@ type
     (* Procedure: GetData
         This method retrieves input data. You specify the number of bytes you
         want to get, but you may get less and it should not be considered as
-        an end of input indication. When the end of input is reached Getdata
+        an end of input indication. When the end of input is reached GetData
         sets Buffer to nil and Bytes to 0.
 
 
@@ -1502,12 +1502,12 @@ end;
 
 procedure TAuInput._Pause;
 begin
-// Nothing to do here, may be overridden in descendats.
+// Nothing to do here, may be overridden in descendants.
 end;
 
 procedure TAuInput._Resume;
 begin
-// Nothing to do here, may be overridden in descendats.
+// Nothing to do here, may be overridden in descendants.
 end;
 
 
