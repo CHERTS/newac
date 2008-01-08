@@ -5,12 +5,12 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.12 $ $Date: 2007/11/26 20:56:26 $ *)
+(* $Id$ *)
 
 unit ACS_DXAudio;
 
 (* Title: ACS_DXAudio
-    Classes which deal with audio data from DirectX. *)
+    Components which deal with audio hardware I/O using DirectX API. *)
 
 interface
 
@@ -197,9 +197,11 @@ begin
     Result := False;
     Exit;
   end;
-  Sleep(DS_POLLING_INTERVAL);
-  DSW_QueryOutputSpace(DSW, lb);
-  lb := lb - (lb mod DSW.dsw_BytesPerFrame);
+  repeat
+    Sleep(DS_POLLING_INTERVAL);
+    DSW_QueryOutputSpace(DSW, lb);
+    lb := lb - (lb mod DSW.dsw_BytesPerFrame);
+  until lb <> 0;
   Len := FInput.FillBuffer(Buf, _Min(lb, _BufSize), EndOfInput);
   DSW_WriteBlock(DSW, @Buf[0], Len);
   if EndOfInput then
