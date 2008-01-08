@@ -17,10 +17,10 @@ V:\newac\demos\Editors\AudioCutter\Main.pas	1199560741	0	V:\newac\demos\Editors\
 V:\newac\src\MAD.pas	1199601019	1	MAD.pas
 V:\newac\src\DSWrapper.pas	1199601019	1	DSWrapper
 V:\newac\doc\txt\about documentation.txt	1199650598	1	About the Documentation
-V:\newac\src\ACS_Classes.pas	1199673316	1	ACS_Classes
+V:\newac\src\ACS_Classes.pas	1199753689	1	ACS_Classes
 V:\newac\src\acs_reg.pas	1199601019	1	ACS_Reg
 V:\newac\src\ACS_Filters.pas	1199601019	1	ACS_Filters
-V:\newac\src\libwma1.pas	1199601019	1	libwma1.pas
+V:\newac\src\libwma1.pas	1199753689	1	libwma1.pas
 V:\newac\src\WavPackDLL.pas	1199601019	1	WavPackDLL
 V:\newac\demos\Converters\Wav2WV\Main.pas	1199560747	0	V:\newac\demos\Converters\Wav2WV\Main.pas
 V:\newac\src\lame.pas	1199601019	1	lame.pas
@@ -29,18 +29,18 @@ V:\newac\demos\Converters\Wav2FLAC\Main.pas	1199560744	0	V:\newac\demos\Converte
 V:\newac\demos\Editors\AudioMixer\Main.pas	1199560739	0	V:\newac\demos\Editors\AudioMixer\Main.pas
 V:\newac\src\ACS_FLAC.pas	1199601019	1	ACS_FLAC
 V:\newac\src\ACS_Audio.pas	1199601019	1	ACS_Audio
-V:\newac\src\AuSampleRate.pas	1199601019	1	AuSampleRate
+V:\newac\src\AuSampleRate.pas	1199753689	1	AuSampleRate
 V:\newac\demos\Tutorial\StreamDemo\ReadMe.txt	1199560738	0	V:\newac\demos\Tutorial\StreamDemo\ReadMe.txt
 V:\newac\src\ACS_Procs.pas	1199601019	1	ACS_Procs
 V:\newac\src\ACS_LAME.pas	1199601019	1	ACS_LAME
-V:\newac\src\ACS_WinMedia.pas	1199601019	1	ACS_WinMedia
+V:\newac\src\ACS_WinMedia.pas	1199753689	1	ACS_WinMedia
 V:\newac\demos\Converters\Wav2Ogg-2\Main.pas	1199560746	0	V:\newac\demos\Converters\Wav2Ogg-2\Main.pas
 V:\newac\demos\Editors\SincFilterDemo\Main.pas	1199560740	0	V:\newac\demos\Editors\SincFilterDemo\Main.pas
 V:\newac\src\ACS_Misc.pas	1199601019	1	ACS_Misc
-V:\newac\src\ACS_smpeg.pas	1199601019	1	ACS_SMPEG
-V:\newac\src\ACS_Vorbis.pas	1199601019	1	ACS_Vorbis
+V:\newac\src\ACS_smpeg.pas	1199753690	1	ACS_SMPEG
+V:\newac\src\ACS_Vorbis.pas	1199761919	1	ACS_Vorbis
 V:\newac\demos\Editors\WaveFileConverter\Main.pas	1199560741	0	V:\newac\demos\Editors\WaveFileConverter\Main.pas
-V:\newac\src\ACS_Wave.pas	1199601019	1	ACS_Wave
+V:\newac\src\ACS_Wave.pas	1199753689	1	ACS_Wave
 V:\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas	1199560748	0	V:\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas
 V:\newac\demos\Players\CDPlayer\Main.pas	1199560734	0	V:\newac\demos\Players\CDPlayer\Main.pas
 V:\newac\src\VorbisFile.pas	1199601019	1	VorbisFile.pas
@@ -48,7 +48,7 @@ V:\newac\doc\txt\introduction.txt	1199647723	1	Introduction
 V:\newac\demos\Converters\Wav2Ogg\Main.pas	1199560746	0	V:\newac\demos\Converters\Wav2Ogg\Main.pas
 V:\newac\demos\Tutorial\ComponentsDemo\ComponentsDemo.pas	1199577210	1	Components Demo
 V:\newac\demos\Converters\Wav2WMA\Main.pas	1199560743	0	V:\newac\demos\Converters\Wav2WMA\Main.pas
-V:\newac\src\ACS_Converters.pas	1199601019	1	ACS_Converters
+V:\newac\src\ACS_Converters.pas	1199753690	1	ACS_Converters
 V:\newac\src\wmfintf.pas	1199601019	1	wmfintf.pas
 V:\newac\demos\Converters\MP32WMA\Unit1.pas	1199560744	0	V:\newac\demos\Converters\MP32WMA\Unit1.pas
 V:\newac\src\ACS_DXAudio.pas	1199601019	1	ACS_DXAudio
@@ -69,8 +69,9 @@ V:\newac\demos\Recorders-rippers\CDRipper\Main.pas	1199560747	0	V:\newac\demos\R
 V:\newac\src\ACS_CDROM.pas	1199601019	1	ACS_CDROM
 V:\newac\doc\txt\tips and tricks.txt	1199568315	1	Tips & Tricks
 V:\newac\demos\Players\WVPlayer\Main.pas	1199560735	0	V:\newac\demos\Players\WVPlayer\Main.pas
-V:\newac\src\_DirectSound.pas	1199601019	0	V:\newac\src\_DirectSound.pas
 V:\newac\demos\Players\AudioPlayer\README.txt	1199560737	0	V:\newac\demos\Players\AudioPlayer\README.txt
+V:\newac\src\_DirectSound.pas	1199601019	0	V:\newac\src\_DirectSound.pas
+V:\newac\doc\filelist.txt	1199760862	0	V:\newac\doc\filelist.txt
 V:\newac\demos\Converters\MP3Converter\Main.pas	1199560745	0	V:\newac\demos\Converters\MP3Converter\Main.pas
 V:\newac\demos\Converters\ReadMe.txt	1199560747	0	V:\newac\demos\Converters\ReadMe.txt
 V:\newac\src\ACS_MAD.pas	1199601019	1	ACS_MAD
