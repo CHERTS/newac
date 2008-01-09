@@ -335,7 +335,8 @@ type
   end;
 
   (* Class: TAuFileIn
-      A descendant of <TAuStreamedInput> to deal with files and streams. *)
+      A descendant of <TAuStreamedInput> to deal with files and streams.
+      All the components that read files descend from this class.*)
 
   TAuFileIn = class(TAuStreamedInput)
   private
@@ -365,7 +366,7 @@ type
     (* Note on FSize calculation:
       FSize is calculated in OpenFile method as the FULL file size.
       More precise calculations regarding StartSample/EndSample are done in Init. *)
-     
+
     (* Procedure: OpenFile
         Opens the file or stream if it is not already open. For performance
         reasons the file is opened when any of its data is accessed the first
@@ -461,6 +462,10 @@ type
     property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
+  (* Class: TAuTaggedFileIn
+      Descends from <TAuFileIn>.
+      This class is an ancestor of the file input components that use Id3v* tags.*)
+
   TAuTaggedFileIn = class(TAuFileIn)
   private
     FId3v1Tags: TId3v1Tags;
@@ -517,6 +522,10 @@ type
     property FileName : TFileName read FFileName write SetFileName;
   end;
 
+  (* Class: TAuTaggedFileOut
+      Descends from <TAuFileOut>.
+      This class is an ancestor of the file output components that use Id3v* tags.*)
+
   TAuTaggedFileOut = class(TAuFileOut)
   private
 (* Ross--- *)
@@ -539,8 +548,9 @@ type
 (* ---Ross *)
   end;
 
-   (* Class: TAuConverter
-      The ancestor of all converter components *)
+   (* Class: TAuConverter.
+      Descends from <TAuInput>.
+      The base class for all converter components *)
 
   TAuConverter = class(TAuInput)
   protected
