@@ -138,11 +138,11 @@ type
         Use this property to set the number of channels in the audio stream the component will provide.
         Possible values are 1 (mono), and 2 (stereo).*)
     property InChannels : Integer read GetCh write FChan stored True;
-    (* Property: InChannels
+    (* Property: InSampleRate
         Use this property to set the sample rate of the audio stream the component will provide.
         Possible values range from 4000 to 128000 (depends on the capabilities of your hardware).*)
     property InSampleRate : Integer read GetSR write FFreq stored True;
-    (* Property: BytesToRead
+    (* Property: RecTime
          Use this property to set the recording duration (in seconds).
          If set this property overrides the value of <BytesToRead>.
          If you set this property value to -1 (the default) the component will be recording endlessly until you stop it.*)
