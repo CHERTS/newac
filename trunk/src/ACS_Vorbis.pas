@@ -126,7 +126,7 @@ type
 //    property Vendor : String read FVendor write FVendor;
   end;
 
-  (* Class: TVorbisOut
+  (* Class: TVorbisIn
     The Ogg  Vorbis decoder component.
     Descends from <TAuFileIn>.*)
 
