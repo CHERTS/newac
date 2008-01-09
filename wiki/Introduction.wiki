@@ -1,4 +1,6 @@
+#summary An introduction to NewAC, including how to get started using the components.
 #labels Featured,Phase-Support
+
 = Introduction =
 
 	An introduction to NewAC, Delphi components for manipulating audio data.
