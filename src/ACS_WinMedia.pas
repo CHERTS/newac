@@ -19,6 +19,11 @@ uses
 
 type
 
+   (* Class: TWMIn
+      Windows Media Audio file/stream decoder. This component can read not only WMA files but sound tracks from WMV files as well.
+      It can also read mp3 files.
+      Descends from <TAuTaggedFileIn> .*)
+
   TWMIn = class(TAuTaggedFileIn)
   private
     reader : wma_sync_reader;
@@ -35,13 +40,31 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Property HasAudio
+       Read this property to determine if the input file has an audio stream.
+       The False value indicates that either an audio stream is missing (in WMV file)
+       or the input file is corrupt.
+       Note: Windows Media files can contain several audio streams.
+       In the current version TWMIn reads data only from the first audio stream it finds.*)
     property HasAudio : Boolean read GetHasAudio;
+    (* Property: IsProtected
+       If the value of this property is True, th file is DRM-protected and hence not supported.
+       This property has no meaning for mp3 files.*)
     property IsProtected : Boolean read GetProtected;
-    property Bitrate : LongWord read GetBitrate;
+    (* Property: Bitrate
+       Read this property to get the file's bitrate.
+       Note: for video and multi-streamed files the total bitrate is returned.*)
+     property Bitrate : LongWord read GetBitrate;
+    (* Property: Id3v2Tags
+       This property contains file's tags in Id3v2 format.*)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
   end;
 
   TWMAQuality = (wmqVoice, wmq64K, wmq96K, wmq128K);
+
+   (* Class: TWMAOut
+      Windows Media Audio file/stream encoder.
+      Descends from <TAuTaggedFileOut> .*)
 
   TWMAOut = class(TAuTaggedFileOut)
   private
@@ -59,7 +82,13 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: Id3v2Tags
+       Use this property to set an output file's tags in Id3v2 format.*)
     property Id3v2Tags;
+    (* Property: Id3v2Tags
+       Use this property to set the desied bitrate for an output file.
+       The component will search for the best configuration matching your data parameters,
+       so the actua bitrate may be less than this value.*)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
   end;
 
