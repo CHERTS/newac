@@ -152,10 +152,6 @@ implementation
    begin
      CoInitialize(nil);
      FillChar(sync_reader, SizeOf(sync_reader), 0);
-//     sync_reader.has_audio := False;
-//     sync_reader.offset := 0;
-//     sync_reader.buffer := nil;
-//     sync_reader.HeaderInfo := nil;
      if WMCreateSyncReader(nil, 0, sync_reader.reader) <> S_OK then
      Exit;
      sync_reader.AudioStream := TAudioStream.Create;
@@ -163,14 +159,14 @@ implementation
      sync_reader.AuStream := sync_reader.AudioStream as IStream;
      if sync_reader.reader.OpenStream(sync_reader.AuStream) <> S_OK then
      begin
-//       sync_reader.reader := nil;
-       sync_reader.AudioStream.Free;
+       sync_reader.reader := nil;
+       sync_reader.AudioStream := nil;
        Exit;
      end;
      if sync_reader.reader.GetOutputCount(OutputCount) <> S_OK then
      begin
-//       sync_reader.reader := nil;
-       sync_reader.AudioStream.Free;
+       sync_reader.reader := nil;
+       sync_reader.AudioStream := nil;
        Exit;
      end;
      for i := 0 to OutputCount - 1 do

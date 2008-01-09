@@ -60,8 +60,6 @@ type
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
   end;
 
-  TWMAQuality = (wmqVoice, wmq64K, wmq96K, wmq128K);
-
    (* Class: TWMAOut
       Windows Media Audio file/stream encoder.
       Descends from <TAuTaggedFileOut> .*)
@@ -72,7 +70,6 @@ type
     EndOfStream : Boolean;
     Buf : Pointer;
     BufSize : Integer;
-    FQuality : TWMAQuality;
     FBitrate : LongWord;
   protected
     procedure Done; override;
@@ -220,7 +217,6 @@ implementation
   constructor TWMAOut.Create;
   begin
     inherited Create(AOwner);
-    FQuality := wmq64K;
   end;
 
   destructor TWMAOut.Destroy;
