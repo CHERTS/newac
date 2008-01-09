@@ -104,6 +104,11 @@ type
     property Balance : Single read FBalance write SetBalance;
   end;
 
+  (* Class: TAudioConverter
+     Descends from <TAuConverter>.
+     TAudioConverter component may be used for changing the number of channels and number of bits per sample
+     in an audio stream.*)
+
   TAudioConverter = class(TAuConverter)
   private
     FInPlace : Boolean;
@@ -124,15 +129,27 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: Mode
+      Mode property affects the way the mono stream is converted into stereo.
+      If mode is msmMonoToBoth (which is the default) the data from the mono channel is copied into both stereo channels. If the mode is msmMonoToLeft or msmMonoToRight the data from the mono channel is put to one of the stereo channels while the other channel plays silence.*)
     property Mode : TMSConverterMode read FMode write FMode;
+    (* Property: OutBitsPerSample
+       Use this property to set the number of bits per sample in the resulting audio stream.
+       The valid values are 0, 8, 16, 24. If the property is set to 0 (the default)
+       the converter preserves the original stream's number of bits per sample.*)
     property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
+    (* Property: OutChannles
+       Use this property to set the number of channels in the resulting audio stream.
+       The valid values are 0,  1 (mono), and 2 (stereo). If the property is set to 0 (the default value)
+       the converter preserves the original stream's number of channels.*)
     property OutChannles : Integer read FOutChannles write FOutChannles;
   end;
 
-  TACMDriverInfo = record
-    Name : array[0..32] of WideChar;
-    Id : HACMDRIVERID;
-  end;
+  (* Class: TACMConverter
+     Descends from <TAuConverter>.
+     This component is an ACM-based converter. It may be used for changing the number of channels and number of bits per sample
+     in an audio stream and resampling audio (at low quality).
+     Unlike <TAudioConverter>, TACMConverter doesn't work with 24 bps audio streams.*)
 
   TACMConverter = class(TAuConverter)
   private
@@ -159,8 +176,20 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: OutBitsPerSample
+       Use this property to set the number of bits per sample in the resulting audio stream.
+       The valid values are 0, 8, 16. If the property is set to 0 (the default)
+       the converter preserves the original stream's number of bits per sample.*)
     property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
+    (* Property: OutChannles
+       Use this property to set the number of channels in the resulting audio stream.
+       The valid values are 0,  1 (mono), and 2 (stereo). If the property is set to 0 (the default value)
+       the converter preserves the original stream's number of channels.*)
     property OutChannels : Integer read FOutChannels write FOutChannels;
+    (* Property: OutSampleRate
+       Use this property to set thesample rate of the resulting audio stream.
+       The valid values are 0 and something between 2000-12000. If the property is set to 0 (the default value)
+       the converter preserves the original stream's sample rate.*)
     property OutSampleRate : Integer read FOutSampleRate write FOutSampleRate;
   end;
 
