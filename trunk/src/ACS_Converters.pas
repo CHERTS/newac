@@ -85,23 +85,6 @@ type
     property Mode : TMSConverterMode read FMode write FMode;
   end;
 
-  TSampleConverter = class(TAuConverter)
-  private
-    WantedSize : Integer;
-    EndOfInput : Boolean;
-    InOutBuf : array[1..BUF_SIZE] of Byte;
-  protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
-    procedure InitInternal; override;
-    procedure FlushInternal; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-  end;
-
   TStereoBalance = class(TAuConverter)
   private
     _Buffer : array[0..BUF_SIZE-1] of Byte;
@@ -598,108 +581,6 @@ implementation
  //   Inc(FPosition, Result);
   end;
 
-  constructor TSampleConverter.Create;
-  begin
-    inherited Create(AOwner);
-  end;
-
-  destructor TSampleConverter.Destroy;
-  begin
-    inherited Destroy;
-  end;
-
-  function TSampleConverter.GetBPS;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    if FInput.BitsPerSample = 16 then Result := 8
-    else Result := 16;
-  end;
-
-  function TSampleConverter.GetCh;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    Result:= FInput.Channels;
-  end;
-
-  function TSampleConverter.GetSR;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    Result := FInput.SampleRate;
-  end;
-
-  procedure TSampleConverter.InitInternal;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    FInput.Init;
-    Busy := True;
-    FPosition := 0;
-    BufStart := 1;
-    BufEnd := 0;
-    EndOfInput := False;
-    if FInput.BitsPerSample = 16 then WantedSize := BUF_SIZE else
-    WantedSize := BUF_SIZE shr 1;
-    if FInput.BitsPerSample = 16 then
-    FSize := FInput.Size shr 1
-    else FSize := FInput.Size shl 1;
-  end;
-
-  procedure TSampleConverter.FlushInternal;
-  begin
-    FInput.Flush;
-    Busy := False;
-  end;
-
-  procedure TSampleConverter.GetDataInternal;
-  var
-    l : Integer;
-    InSize : Integer;
-  begin
-    if not Busy then  raise EAuException.Create('The Stream is not opened');
-    if BufStart > BufEnd then
-    begin
-      if EndOfInput then
-      begin
-        Buffer := nil;
-        Bytes := 0;
-        Exit;
-      end;
-      BufStart := 1;
-      l := Finput.CopyData(@InOutBuf[1], WantedSize);
-      if l = 0 then
-      begin
-        Buffer := nil;
-        Bytes := 0;
-        Exit;
-      end;
-      InSize := l;
-      while (l<>0) and (InSize < WantedSize) do
-      begin
-        l := Finput.CopyData(@InOutBuf[InSize+1], WantedSize - InSize);
-        Inc(InSize, l);
-      end;
-      if l = 0 then EndOfInput := True;
-      if FInput.BitsPerSample = 16 then
-      begin
-        Convert16To8(@InOutBuf[1], InSize);
-        BufEnd := InSize shr 1;
-      end else
-      begin
-        Convert8To16(@InOutBuf[1], InSize);
-        BufEnd := InSize shl 1;
-      end;
-    end;
-    if Bytes > (BufEnd - BufStart + 1) then
-      Bytes := BufEnd - BufStart + 1;
-    Buffer := @InOutBuf[BufStart];
-    Inc(BufStart, Bytes);
-    FPosition := Round(FInput.Position*(FSize/FInput.Size));
- //   Inc(FPosition, Result);
-  end;
-
   procedure TRateConverter.SetOutSampleRate(aSR : Integer);
   begin
     if (aSR > 0) and (not Busy) then FOutSampleRate := aSR;
@@ -1154,7 +1035,7 @@ implementation
     GetMem(IBuf, IBufSize);
     GetMem(OBuf, OBufSize);
     EndOfInput := False;
-    GetDataBlock(0);
+    Prepared := False;
   end;
 
   procedure TACMConverter.FlushInternal;
