@@ -8,10 +8,11 @@ Title: Tips & Tricks
 Section: Snippets
 	Bits of code to do things related to NewAC.
 
-Topic: How not to crash or hang when your are exiting an application.
-If you exit a NewAC application while it is playing without stopping it, it may crash or hang. To prevent this, provide an OnClose event's handler for the form where NewAC components reside.
-In this hander call Stop methods for all output components there are.
-The typican OnClose handler could look like this:
+Topic: How not to crash or hang when exiting an application
+If you exit a NewAC application while it is playing without stopping it, it
+may crash or hang. To prevent this, provide an OnClose event handler for the
+form where NewAC components reside. In this hander call Stop methods for all
+output components. A typical OnClose handler might look like this.
 
 (code)
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -20,11 +21,12 @@ begin
 end;
 (end)
 
-You pass Stop a False value because you are closing an application and don't want any events.
-Remember that it is not harmful to cal Stop even when the output component is idle.
+You pass Stop a False value if you are closing an application and don't want
+any events. Remember that it is not harmful to call Stop even when the output
+component is idle.
 
-Topic: Create Classname for File Extension
-	These functions create a TAuFile component of a class given a filename. It determines which class to create based on the file extension of the filename.
+Topic: Create Class Based on Filename
+	These functions create a TAuFile component of a class based on the file extension of a filename.
 	
 (code)
 uses
