@@ -5,11 +5,11 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.15 $ $Date: 2007/11/26 20:56:26 $ *)
+(* $Id$ *)
 
 unit ACS_FLAC;
 
-(* Title: ACS_FLAC 
+(* Title: ACS_FLAC
     NewAC interface to flac.dll *)
 
 interface
@@ -32,8 +32,10 @@ const
 type
 
 (* Class: TFLACOut
-    A descendant of <TAuFileOut> which handles FLAC files. More information
-    about FLAC can be found at http://flac.sourceforge.com. *)
+    FLAC encoder component.
+    Descends from <TAuFileOut>.
+    Requires libFLAC.dll
+    More information about FLAC can be found at http://flac.sourceforge.com. *)
 
   TFLACOut = class(TAuFileOut)
   private
@@ -67,7 +69,7 @@ type
     destructor Destroy; override;
   published
   (* Property: BestModelSearch
-      Similar to America's Next Top Model, except for algorithms. *) 
+      Similar to America's Next Top Model, except for algorithms. *)
     property BestModelSearch : Boolean read FBestModelSearch write SetBestModelSearch;
   (* Property: Blocksize
       The size you want some blocks to be. Has nothing to do with <BestModelSearch> *)
@@ -85,12 +87,19 @@ type
     property QLPCoeffPrecision : Word read FQLPCoeffPrecision write FQLPCoeffPrecision;
     property QLPCoeffPrecisionSearch : Boolean read FQLPCoeffPrecisionSearch write FQLPCoeffPrecisionSearch;
   (* Property: Tags
-      The set of Vorbis-style comments (artist, title, etc.) that  you can add to the output file. *)
+      Use this property to add a set of Vorbis-style comments (artist, title, etc.) to the output file. *)
     property Tags : TVorbisTags read FTags write SetTags;
   (* Property: Verify
       Setting Verify to True forces the FLAC encoder to verify its own output. It slows down encoding process and usually unnecessary. *)
     property Verify : Boolean read FVerify write FVerify;
   end;
+
+
+(* Class: TFLACIn
+    FLAC decoder component.
+    Descends from <TAuFileIn>.
+    Requires libFLAC.dll
+    More information about FLAC can be found at http://flac.sourceforge.com. *)
 
   TFLACIn = class(TAuFileIn)
   private
@@ -113,6 +122,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+  (* Property: VorbisComments
+      Read this property to get tags (artist, title, etc.) that may be attached to the file.*)
     property VorbisComments : TVorbisTags read GetComments;
   end;
 
