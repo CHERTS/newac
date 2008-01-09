@@ -15,7 +15,7 @@ unit ACS_Converters;
 interface
 
 uses
-  Classes, SysUtils, ACS_Types, ACS_Procs, ACS_Classes, Math;
+  Classes, SysUtils, Windows, ACS_Types, ACS_Procs, ACS_Classes, _MSACM, MMSystem, Math;
 
 const
   BUF_SIZE = $8000;
@@ -144,6 +144,41 @@ type
     property Mode : TMSConverterMode read FMode write FMode;
     property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
     property OutChannles : Integer read FOutChannles write FOutChannles;
+  end;
+
+  TACMDriverInfo = record
+    Name : array[0..32] of WideChar;
+    Id : HACMDRIVERID;
+  end;
+
+  TACMConverter = class(TAuConverter)
+  private
+    FOutBitsPerSample : Integer;
+    FOutChannels : Integer;
+    FOutSampleRate : Integer;
+    ICh, IBPS, ISR : Integer;
+    _Stream : HACMStream;
+    IBufSize, OBufSize : LongWord;
+    IBuf, OBuf : PBuffer8;
+    OBufStart, OBufEnd : Integer;
+    EndOfInput, Prepared : Boolean;
+    _Header : ACMSTREAMHEADER;
+    procedure GetDataBlock(StartFrom : Integer);
+    procedure RegetDataBlock;
+  protected
+    function GetBPS : Integer; override;
+    function GetCh : Integer; override;
+    function GetSR : Integer; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
+    property OutChannels : Integer read FOutChannels write FOutChannels;
+    property OutSampleRate : Integer read FOutSampleRate write FOutSampleRate;
   end;
 
 
@@ -1002,5 +1037,159 @@ implementation
     Inc(FPosition, Bytes);
   end;
 
+
+  constructor TACMConverter.Create;
+  begin
+    inherited Create(AOwner);
+    IBufSize := 3145728; // 3 megabytes
+  end;
+
+  destructor TACMConverter.Destroy;
+  begin
+    inherited Destroy;
+  end;
+
+  function TACMConverter.GetBPS;
+  begin
+    if FOutBitsPerSample = 0 then
+      if Assigned(FInput) then
+         FOutBitsPerSample := FInput.BitsPerSample;
+    Result := FOutBitsPerSample;
+  end;
+
+  function TACMConverter.GetCh;
+  begin
+    if FOutChannels = 0 then
+      if Assigned(FInput) then
+         FOutChannels := FInput.Channels;
+    Result := FOutChannels;
+  end;
+
+  function TACMConverter.GetSR;
+  begin
+    if FOutSampleRate = 0 then
+      if Assigned(FInput) then
+         FOutSampleRate := FInput.SampleRate;
+    Result := FOutSampleRate;
+  end;
+
+  procedure TACMConverter.GetDataBlock(StartFrom : Integer);
+  var
+    Len : LongWord;
+  begin
+    _Header.cbStruct := SizeOf(_Header);
+    _Header.fdwStatus := 0;
+    _Header.dwUser := 0;
+    Len := FInput.FillBuffer(@IBuf[StartFrom], IBufSize - StartFrom, EndOfInput);
+    _Header.pbSrc := PByte(IBuf);
+    _Header.cbSrcLength := Len + StartFrom;
+    _Header.cbSrcLengthUsed := 0;
+    _Header.dwSrcUser := 0;
+    _Header.pbDst := PByte(OBuf);
+    _Header.cbDstLength := OBufSize;
+    _Header.cbDstLengthUsed := 0;
+    _Header.dwDstUser := 0;
+    acmStreamPrepareHeader(_Stream, _Header, 0);
+    if EndOfInput = False then
+      acmStreamConvert(_Stream, _Header, ACM_STREAMCONVERTF_BLOCKALIGN)
+    else
+      acmStreamConvert(_Stream, _Header, 0);
+    OBufStart := 0;
+    OBufEnd := _Header.cbDstLengthUsed;
+    Prepared := True;
+  end;
+
+  procedure TACMConverter.RegetDataBlock;
+  var
+    Len, StartFrom : LongWord;
+  begin
+    StartFrom := _Header.cbSrcLength - _Header.cbSrcLengthUsed;
+    Move(IBuf[_Header.cbSrcLengthUsed], IBuf[0], StartFrom);
+    if Prepared then
+    begin
+      acmStreamUnprepareHeader(_Stream, _Header, 0);
+      Prepared := False;
+    end;
+    if (not EndOFInput) or (StartFrom <> 0) then
+    GetDataBlock(StartFrom);
+  end;
+
+  procedure TACMConverter.InitInternal;
+  var
+    IBytesPerSample, OBytesPerSample, ik, ok : Integer;
+    SrcWave, DestWave : TWaveFormatEx;
+    res : Integer;
+  begin
+    if not Assigned(FInput) then
+      raise EAuException.Create('Input not assigned');
+    Busy := True;
+    FInput.Init;
+    FPosition := 0;
+    ICh := FInput.Channels;
+    IBPS := FInput.BitsPerSample;
+    ISR := FInput.SampleRate;
+    IBytesPerSample := ICh*IBPS div 8;
+    OBytesPerSample := BitsPerSample*Channels div 8;
+    ik := IBytesPerSample*ISR;
+    ok := OBytesPerSample*SampleRate;
+    FSize := Round(FInput.Size*ok/ik);
+    SrcWave.wFormatTag := 1;
+    SrcWave.nChannels := ICh;
+    SrcWave.nSamplesPerSec := ISR;
+    SrcWave.nAvgBytesPerSec := ik;
+    SrcWave.nBlockAlign := IBytesPerSample;
+    SrcWave.wBitsPerSample := IBPS;
+    SrcWave.cbSize := 0;
+    DestWave.wFormatTag := 1;
+    DestWave.nChannels := OutChannels;
+    DestWave.nSamplesPerSec := SampleRate;
+    DestWave.nAvgBytesPerSec := ok;
+    DestWave.nBlockAlign := OBytesPerSample;
+    DestWave.wBitsPerSample := OutBitsPerSample;
+    DestWave.cbSize := 0;
+    res := acmStreamOpen(_Stream, 0, SrcWave, DestWave, nil, 0, 0, ACM_STREAMOPENF_NONREALTIME);
+    if res <> 0 then
+      raise EAuException.Create('Failed to set up converter ' + IntTOStr(res));
+    acmStreamSize(_Stream, IBufSize, OBufSize, ACM_STREAMSIZEF_SOURCE);
+    GetMem(IBuf, IBufSize);
+    GetMem(OBuf, OBufSize);
+    EndOfInput := False;
+    GetDataBlock(0);
+  end;
+
+  procedure TACMConverter.FlushInternal;
+  begin
+    FInput.Flush;
+    acmStreamClose(_Stream, 0);
+    FreeMem(IBuf);
+    FreeMem(OBuf);
+    Busy := False;
+  end;
+
+  procedure TACMConverter.GetDataInternal;
+  begin
+    if OBufStart >= OBufEnd then
+    begin
+      RegetDataBlock;
+      if OBufStart >= OBufEnd then
+      begin
+        if FPosition < FSize then
+        begin
+          OBufEnd := FSize - FPosition;
+          FillChar(OBuf[0], OBufEnd, 0);
+          OBufStart := 0;
+        end else
+        begin
+          Buffer := nil;
+          Bytes := 0;
+          Exit;
+        end;
+      end; // if OBufStart >= OBufEnd then
+    end; // if OBufStart >= OBufEnd then
+    if Bytes > OBufEnd - OBufStart then Bytes := OBufEnd - OBufStart;
+    Buffer := @OBuf[OBufStart];
+    Inc(OBufStart, Bytes);
+    Inc(FPosition, Bytes);
+  end;
 
 end.
