@@ -10,8 +10,7 @@
 unit ACS_Vorbis;
 
 (* Title: ACS_Vorbis
-    Delphi interface for Ogg Vorbis (ogg) via vorbis.dll, vorbisenc.dll, and
-    vorbisfile.dll. *)
+    NewAC interface for Ogg Vorbis format. *)
 
 {$DEFINE USE_VORBIS_11} // {$DEFINE USE_VORBIS_10} for old versions
 
@@ -40,7 +39,10 @@ type
   PBuffer = ^TBuffer;
 
   (* Class: TVorbisOut
-      The Ogg Vorbis encoder component, descends from <TAuFileOut>. *)
+      The Ogg Vorbis encoder component.
+      Descends from <TAuFileOut>.
+      Requires: ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll
+      More information on the Ogg Vorbis format may be found at http://xiph.org/vorbis/ *)
 
   TVorbisOut = class(TAuFileOut)
   private
@@ -106,7 +108,7 @@ type
       actual nominal bitrate may be different from that specified with this
       property.
 
-      Note: 
+      Note:
       It is recommended by Ogg Vorbis developers to use the <Compression>
       property rather than specify bitrates directly. *)
     property DesiredNominalBitrate : TVorbisBitRate read FDesiredNominalBitrate write SetDesiredNominalBitrate;
@@ -126,7 +128,10 @@ type
   end;
 
   (* Class: TVorbisIn
-    The Ogg Vorbis decoder component, descends from <TAuFileIn>. *)
+    The Ogg  Vorbis decoder component.
+    Descends from <TAuFileIn>.
+    Requires: ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll
+    More information on the Ogg Vorbis format may be found at http://xiph.org/vorbis/ *)
 
   TVorbisIn = class(TAuFileIn)
   private
