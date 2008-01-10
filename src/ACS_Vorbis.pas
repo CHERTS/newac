@@ -166,7 +166,7 @@ type
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -235,6 +235,7 @@ implementation
       SEEK_SET : Origin := TSeekOrigin(soFromBeginning);
       SEEK_CUR : Origin := TSeekOrigin(soFromCurrent);
       SEEK_END : Origin := TSeekOrigin(soFromEnd);
+      else Origin := TSeekOrigin(soFromBeginning);
     end;
     Result := VI.FStream.Seek(offset, Origin);
   end;
@@ -349,7 +350,8 @@ implementation
 
   function TVorbisOut.DoOutput;
   var
-    Len, i, j, SamplesRead, BytesPerSample : Integer;
+    i, j, SamplesRead, BytesPerSample : LongWord;
+    Len : LongWord;
     out_buf : PPFloat;
     tmpBuf : array[0..16] of PFloat;
     buf_u : PBuffer8;

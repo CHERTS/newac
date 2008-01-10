@@ -42,7 +42,7 @@ type
     procedure OpenFile; override;
     procedure CloseFile; override;
     function SeekInternal(var Sample: Int64): Boolean; override;
-    procedure GetDataInternal(var Buffer: Pointer; var Bytes: Integer); override;
+    procedure GetDataInternal(var Buffer: Pointer; var Bytes: LongWord); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -69,7 +69,7 @@ type
 
     FEncoder: TWavpackEncoder;
     FEOF: Boolean;
-    FBufferInStart: Integer;
+    FBufferInStart: LongWord;
     FBufferIn: array of Byte;
     FBufferOut: array of Byte;
 
@@ -270,7 +270,7 @@ begin
   end;
 end;
 
-procedure TWVIn.GetDataInternal(var Buffer: Pointer; var Bytes: Integer);
+procedure TWVIn.GetDataInternal(var Buffer: Pointer; var Bytes: LongWord);
 type
   t_int24_sample_in_int32 = packed record
     sample: t_int24_sample;
@@ -283,10 +283,11 @@ const
   int24_sample_low: t_int24_sample = (
     lo: Low(int24_sample_low.lo); hi: Low(int24_sample_low.hi));
 var
-  new_bytes, new_buffer_size,
+  new_bytes : LongWord;
+  new_buffer_size,
   in_sample_size, out_sample_size,
   samples, samples_read,
-  i: Integer;
+  i: LongWord;
   p_byte_samples: p_byte_sample_array;
   p_int16_samples: p_int16_sample_array;
   p_int24_samples: p_int24_sample_array;
@@ -313,9 +314,10 @@ begin
       Bytes := samples * out_sample_size;
 
       new_buffer_size := samples * in_sample_size;
+      {$WARNINGS OFF}
       if Length(FBuffer) < new_buffer_size then
         SetLength(FBuffer, new_buffer_size);
-
+      {$WARNINGS ON}
       Buffer := @(FBuffer[0]);
 
       samples_read := FDecoder.UnpackSamples(Buffer, samples);
@@ -547,7 +549,8 @@ type
   p_int24_sample_in_int32 = ^t_int24_sample_in_int32;
 var
   buffer: Pointer;
-  frame_size, bytes, buffer_in_size, buffer_out_size, frames, samples, i: Integer;
+  frame_size, buffer_in_size, buffer_out_size, frames, samples, i: LongWord;
+  bytes : LongWord;
   p_byte_samples: p_byte_sample_array;
   p_int16_samples: p_int16_sample_array;
   p_int24_samples: p_int24_sample_array;
@@ -570,17 +573,20 @@ begin
   Result := (bytes > 0);
   if Result then begin
     buffer_in_size := FBufferInStart + bytes;
+    {$WARNINGS OFF}
     if Length(FBufferIn) < buffer_in_size then
       SetLength(FBufferIn, buffer_in_size);
+    {$WARNINGS ON}
     Move(buffer^, FBufferIn[FBufferInStart], bytes);
 
     frames := buffer_in_size div frame_size;
     samples := frames * FInput.Channels;
 
     buffer_out_size := samples * SizeOf(p_int32_samples[Low(p_int32_samples^)]);
+    {$WARNINGS OFF}
     if Length(FBufferOut) < buffer_out_size then
       SetLength(FBufferOut, buffer_out_size);
-
+    {$WARNINGS ON}
     p_int32_samples := @(FBufferOut[0]);
     case FInput.BitsPerSample shr 3 of
       1: begin // 8 bits per sample

@@ -55,6 +55,7 @@ interface
 
 {$define SUPPORT_AUDIO_CAPTURE}
 
+{$WARNINGS OFF}
 uses
   SysUtils, Windows, MMSystem, _DirectSound;
 
@@ -71,8 +72,8 @@ type
     dsw_pDirectSound : IDIRECTSOUND;
     dsw_OutputBuffer : IDIRECTSOUNDBUFFER;
     dsw_WriteOffset : DWORD;
-    dsw_OutputSize : INT;
-    dsw_BytesPerFrame : INT;
+    dsw_OutputSize : LongWord;
+    dsw_BytesPerFrame : LongWord;
     ///* Try to detect play buffer underflows. */
     dsw_CounterTicksPerBuffer :LARGE_INTEGER; //* counter ticks it should take to play a full buffer */
     dsw_LastPlayTime : LARGE_INTEGER;
@@ -111,11 +112,11 @@ type
   function DSW_Init(var dsw : DSoundWrapper) : HRESULT;
   function DSW_InitOutputDevice(var dsw : DSoundWrapper; lpGUID : PGUID) : HRESULT;
   function DSW_InitOutputBuffer(var dsw  : DSoundWrapper; Wnd : HWND; bps : LongWord;
-        nFrameRate : LongWord; nChannels, bytesPerBuffer : Integer) : HRESULT;
+        nFrameRate : LongWord; nChannels, bytesPerBuffer : LongWord) : HRESULT;
   function DSW_StartOutput(var dsw : DSoundWrapper) : HRESULT;
   function DSW_StopOutput(var dsw : DSoundWrapper): HRESULT;
   function DSW_RestartOutput(var dsw : DSoundWrapper) : HRESULT;
-  function DSW_QueryOutputSpace(var dsw : DSoundWrapper; var bytesEmpty : long) : HRESULT;
+  function DSW_QueryOutputSpace(var dsw : DSoundWrapper; var bytesEmpty : LongWord) : HRESULT;
   function DSW_FillEmptySpace(var dsw : DSoundWrapper; Fill : Byte) : HRESULT;
   function DSW_WriteBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : long) : HRESULT;
   function DSW_GetOutputStatus(var dsw : DSoundWrapper) : DWORD;
@@ -184,7 +185,7 @@ begin
 end;
 
 function DSW_InitOutputBuffer(var dsw  : DSoundWrapper; Wnd : HWND; bps : LongWord;
-        nFrameRate : LongWord; nChannels, bytesPerBuffer : Integer) : HRESULT;
+        nFrameRate : LongWord; nChannels, bytesPerBuffer : LongWord) : HRESULT;
 var
   dwDataLen : DWORD;
   playCursor : DWORD;
@@ -256,7 +257,7 @@ begin
     // Lock the DS buffer
 
   Result := dsw.dsw_OutputBuffer.Lock(0, dsw.dsw_OutputSize, @pDSBuffData,
-            @dwDataLen, nil, 0, 0);
+            @dwDataLen, nil, nil, 0);
   if Result <> DS_OK then Exit;
     // Zero the DS buffer
   ZeroMemory(pDSBuffData, dwDataLen);
@@ -280,7 +281,7 @@ begin
     Result := hr;
     Exit;
   end;
-  dsw.dsw_FramesWritten := dsw.dsw_WriteOffset div dsw.dsw_BytesPerFrame;
+  dsw.dsw_FramesWritten := dsw.dsw_WriteOffset/dsw.dsw_BytesPerFrame;
     ///* printf("DSW_InitOutputBuffer: playCursor = %d, writeCursor = %d\n", playCursor, dsw->dsw_WriteOffset ); */
   Result := DS_OK;
 end;
@@ -329,7 +330,7 @@ begin
   Result := -1;
 end;
 
-function DSW_QueryOutputSpace(var dsw : DSoundWrapper; var bytesEmpty : long) : HRESULT;
+function DSW_QueryOutputSpace(var dsw : DSoundWrapper; var bytesEmpty : LongWord) : HRESULT;
 var
   //hr : HRESULT;
   playCursor :  DWORD;
@@ -407,7 +408,7 @@ var
   lpbuf2 : PBYTE;
   dwsize1 : DWORD;
   dwsize2 : DWORD;
-  bytesEmpty : long;
+  bytesEmpty : LongWord;
 begin
   Result := DSW_QueryOutputSpace(dsw, bytesEmpty); // updates dsw_FramesPlayed
   if Result <> DS_OK then Exit;
@@ -567,7 +568,7 @@ begin
   if Result <> DS_OK  then Exit;
   filled := readPos - dsw.dsw_ReadOffset;
   if filled < 0  then
-     filled := filled + dsw.dsw_InputSize; // unwrap offset
+     Inc(filled, dsw.dsw_InputSize); // unwrap offset
   bytesFilled := filled;
 end;
 
@@ -619,7 +620,8 @@ end;
 
   function DSW_FlushOutputBuffer(var dsw : DSoundWrapper; BytesToLeave : Integer) : HRESULT;
   var
-    PlayCursor, WriteCursor, delta : DWORD;
+    PlayCursor, WriteCursor : DWORD;
+    delta : Integer;
   begin
     dsw.dsw_OutputBuffer.GetCurrentPosition(@PlayCursor, @WriteCursor);
     delta := WriteCursor - PlayCursor;
@@ -627,7 +629,7 @@ end;
     begin
       if delta > BytesToLeave then
       begin
-        PlayCursor := PlayCursor + delta - BytesToLeave;
+        Inc(PlayCursor, delta - BytesToLeave);
         Result := dsw.dsw_OutputBuffer.SetCurrentPosition(PlayCursor);
       end else
       Result := S_OK;
@@ -638,7 +640,7 @@ end;
       begin
         if (dsw.dsw_OutputSize - PlayCursor) > (delta - BytesToLeave) then
         begin
-          PlayCursor := PlayCursor + delta - BytesToLeave;
+          Inc(PlayCursor, delta - BytesToLeave);
           Result := dsw.dsw_OutputBuffer.SetCurrentPosition(PlayCursor);
         end else
         begin
@@ -649,5 +651,5 @@ end;
     end;
   end;
 
-
+{$WARNINGS ON}
 end.

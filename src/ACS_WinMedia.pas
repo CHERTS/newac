@@ -35,7 +35,7 @@ type
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -105,8 +105,6 @@ implementation
 
   procedure TWMIn.OpenFile;
   var
-    Size, res : Integer;
-    SampleSize, Samples : Integer;
 //    Tag : TID3Tag;
     ch, bps : Word;
     sr : LongWord;
@@ -170,7 +168,7 @@ implementation
     end;
   end;
 
-  procedure TWMIn.GetDataInternal(var Buffer : Pointer; var Bytes : Integer);
+  procedure TWMIn.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
   begin
     if FSize - FPosition < Bytes then
       Bytes := FSize - FPosition;

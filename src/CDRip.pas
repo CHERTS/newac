@@ -352,6 +352,7 @@ begin
     VER_PLATFORM_WIN32s : Result := WIN31;
     VER_PLATFORM_WIN32_WINDOWS : Result := WIN9x;
     VER_PLATFORM_WIN32_NT : Result := WINNT;
+    else Result := WINNT;
   end;
   Reg.Free;
 end;

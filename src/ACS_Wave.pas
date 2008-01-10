@@ -14,7 +14,10 @@ unit ACS_Wave;
     Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
     for more details. *)
 
+{$WARNINGS OFF}
+
 interface
+
 
 uses
 
@@ -211,7 +214,7 @@ type
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     property WavType : TWavType read GetWavType;
@@ -225,7 +228,7 @@ type
 //    Buffer : array [0..BUF_SIZE-1] of Byte;
     FWavType : TWavType;
     FEncodeState : TDVI_ADPCM_ENCODE_STATE_STEREO;
-    FPrevSR : Integer;
+    FPrevSR : LongWord;
     FPrevCh : Word;
     FPrevBPS : Word;
     FPrevLen : Integer;
@@ -716,10 +719,9 @@ const
               _MS.Seek(0, soFromBeginning);
               ReadRIFFHeader;
               //WaveConverter.CurrentFormat.Format.wFormatTag;
-              WaveConverter.Free;
               _wavType := wtACM;
             end;
-          except
+          finally
             WaveConverter.Free;
           end;
 {$ENDIF}
@@ -861,7 +863,7 @@ const
         end;
       end;
     end;
-    Bytes := Bytes - (Bytes mod (FChan * FBPS shr 3));
+    Dec(Bytes, Bytes mod (FChan * FBPS shr 3));
     if Bytes > (BufEnd - BufStart + 1) then
       Bytes := BufEnd - BufStart + 1;
     Buffer := @Buf[BufStart];
@@ -1211,7 +1213,7 @@ end;
 
   procedure TWaveOut.Done;
   var
-    Size, i : Integer;
+    Size : Integer;
     Hdr : TDVIADPCMHeader;
     BlockSize : Integer;
     P : Pointer;
@@ -1277,7 +1279,8 @@ end;
 
   function TWaveOut.DoOutput;
   var
-    Len, l, m : Integer;
+    l, m : Integer;
+    Len : LongWord;
     DVIInBuf : PBuffer16;
     DVIOutBuf : PBuffer8;
     P : PBuffer8;
@@ -1719,5 +1722,5 @@ end;
     if BS <> 0 then
     if (BS mod 4) = 0 then FBlockAlign := BS;
   end;
-
+{$WARNINGS ON}
 end.

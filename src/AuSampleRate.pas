@@ -51,22 +51,22 @@ type
     FPassThrough : Boolean;
     _State : Pointer;
     Data : SRC_DATA;
-    FOutSampleRate : Integer;
+    FOutSampleRate : LongWord;
     FQuality : TResamplerQuality;
     InputBuffer : array [0..IOBufSize - 1] of Byte;
     IBufferEnd : Integer; // Points to the position after the last byte of the array
     OutputBuffer : array [0..IOBufSize - 1] of Byte;
     OBufferStart, // Points to the position to read from
-    OBufferEnd : Integer; // Points to the position after the last byte of the array
+    OBufferEnd : LongWord; // Points to the position after the last byte of the array
     IFloatBuffer : array[0..InitialBufferSize - 1] of Single;
     OFloatBuffer : array[0..IOBufSize - 1] of Single;
     EndOfInput : Boolean;
-    procedure SetOutSampleRate(aSR : Integer);
+    procedure SetOutSampleRate(aSR : LongWord);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -80,8 +80,11 @@ type
     property Quality : TResamplerQuality read FQuality write FQuality;
     (* Property: OutSampleRate
       Use this property to set the sample rate for the resulting audio stream.
-      The output sample rate may be 256 times greater or 256 times les than the input stream sample rate.*)
-    property OutSampleRate : Integer read FOutSampleRate write SetOutSampleRate;
+      The output sample rate may be 256 times greater or 256 times les than the input stream sample rate.
+      If you set the output sample rate to the same value as the input sample rate, the componentss will switch
+      to a pass-through mode. In this mode all the input will be passed on unchanged. This help chaining the TResampler component wih others
+      that may not always need resampled data.*)
+    property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
   end;
 
 
@@ -154,6 +157,7 @@ implementation
       rqBest : Quality := SRC_SINC_BEST_QUALITY;
       rqMedium : Quality := SRC_SINC_MEDIUM_QUALITY;
       rqFastest : Quality := SRC_SINC_FASTEST;
+      else Quality := SRC_SINC_MEDIUM_QUALITY;
     end;
     _State := src_new(Quality, FInput.Channels, error);
     if error <> 0 then
@@ -194,11 +198,12 @@ implementation
       _out[i] := _in[i]/$8000;
   end;
 
-  procedure TResampler.GetDataInternal(var Buffer : Pointer; var Bytes : Integer);
+  procedure TResampler.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
   var
-    l, ilen, i : Integer;
+    l, ilen, i : LongWord;
     res : Integer;
   begin
+    l := 0;
     if FPassThrough then
     begin
     // Pass through.
@@ -232,8 +237,10 @@ implementation
       if IBufferEnd = 0 then
       begin
         EndOfInput := True;
-        OBufferEnd := FSize - FPosition;
-        if OBufferEnd < 0 then OBufferEnd := 0;
+        if FSize > FPosition then
+          OBufferEnd := FSize - FPosition
+        else
+          OBufferEnd := 0;
         FillChar(OutputBuffer[0], OBufferEnd, 0);
       end else
       begin
