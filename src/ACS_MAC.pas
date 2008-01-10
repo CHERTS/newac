@@ -89,10 +89,10 @@ type
     function GetLengthMS: Integer;
     function GetTotalBlocks: Integer;
   protected
-    function GetBPS: Integer; override;
-    function GetCh: Integer; override;
-    function GetSR: Integer; override;
-    function GetTotalTime: Integer; override;
+    function GetBPS: LongWord; override;
+    function GetCh: LongWord; override;
+    function GetSR: LongWord; override;
+    function GetTotalTime: LongWord; override;
     procedure OpenFile; override;
     procedure CloseFile; override;
     function SeekInternal(var Sample : Int64) : Boolean; override;
@@ -101,7 +101,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer: Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer: Pointer; var Bytes : LongWord); override;
     (* Property: AverageBitrate
        This property shows the average bitrate for the ape file being played.*)
     property AverageBitrate: Integer read GetAverageBitrate;
@@ -266,9 +266,10 @@ begin
 {Ross---
     APEDecompress := TAPEDecompress.Create(FileName);
  ---Ross}
-{Ross--- *)
+//Ross---
+   // Fixed here broken by Wane.
     APEDecompress := TAPEDecompress.Create(FWideFileName);
-(* ---Ross}
+// ---Ross
     if APEDecompress.Handle <> 0 then
     begin
       FSize := APEDecompress.InfoWavTotalBytes;
@@ -306,8 +307,8 @@ end;
 
 procedure TMACIn.GetDataInternal;
 var
-  l, csize : Integer;
-  blocks, Aligned : Integer;
+  l : Integer;
+  blocks, Aligned : LongWord;
 begin
   if not Busy then raise EAuException.Create('The Stream is not opened');
   if BufStart > BufEnd then
@@ -339,65 +340,83 @@ begin
   Inc(BufStart, Bytes);
 end;
 
-function TMACIn.GetTotalTime: Integer;
+function TMACIn.GetTotalTime: LongWord;
 begin
   OpenFile;
   if Assigned(APEDecompress) then
-    Result := APEDecompress.LengthMS div 1000;
-  //CloseFile;  
+    Result := APEDecompress.LengthMS div 1000
+  else Result := 0;  
+  //CloseFile;
 end;
 
 function TMACIn.GetAverageBitrate: Integer;
 begin
   if Assigned(APEDecompress) then
-    Result := APEDecompress.AverageBitrate;
+    Result := APEDecompress.AverageBitrate
+  else
+  Result := 0;
 end;
 
 function TMACIn.GetCurrentBitrate: Integer;
 begin
   if Assigned(APEDecompress) then
-    Result := APEDecompress.CurrentBitrate;
+    Result := APEDecompress.CurrentBitrate
+   else
+  Result := 0;
+
 end;
 
 function TMACIn.GetCurrentBlock: Integer;
 begin
   if Assigned(APEDecompress) then
-    Result := APEDecompress.CurrentBlock;
+    Result := APEDecompress.CurrentBlock
+   else
+  Result := 0;
+
 end;
 
 function TMACIn.GetCurrentMS: Integer;
 begin
   if Assigned(APEDecompress) then
-    Result := APEDecompress.CurrentMS;
+    Result := APEDecompress.CurrentMS
+   else
+  Result := 0;
+
 end;
 
 function TMACIn.GetLengthMS: Integer;
 begin
   if Assigned(APEDecompress) then
-    Result := APEDecompress.LengthMS;
+    Result := APEDecompress.LengthMS
+   else
+  Result := 0;
+
 end;
 
 function TMACIn.GetTotalBlocks: Integer;
 begin
   if Assigned(APEDecompress) then
-    Result := APEDecompress.TotalBlocks;
+    Result := APEDecompress.TotalBlocks
+   else
+  Result := 0;
+   
 end;
 
-function TMACIn.GetBPS: Integer;
+function TMACIn.GetBPS: LongWord;
 begin
   OpenFile;
   Result := FBPS;
   //CloseFile;
 end;
 
-function TMACIn.GetCh: Integer;
+function TMACIn.GetCh: LongWord;
 begin
   OpenFile;
   Result := FChan;
   //CloseFile;
 end;
 
-function TMACIn.GetSR: Integer;
+function TMACIn.GetSR: LongWord;
 begin
   OpenFile;
   Result := FSR;
