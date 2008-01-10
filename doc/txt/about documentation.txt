@@ -34,6 +34,18 @@ Section: Formatting Comments
 		In some instances, Naturaldocs ignores blank space, in others, it uses it as markup.
 		
 		In general, use blank lines to seperate things. To seperate paragraphs, place an empty line in between them. Headings are made by putting an empty line before some text ending in a colon ":".
+		
+	Topic: Topic Sentences
+		The first sentence for each topic is shown as the description for that entry wherever it appears. Sometimes as a tooltip, sometimes in Summaries. For these situations, use a definition style sentence. So just write as if the sentence started with "Topic is.." ie:
+
+(code)
+Property: Name
+  The property for naming a component. This property contains a definition
+  style sentence for the first sentence, and a full, compound sentence after
+  that.
+(end)
+
+This reads like "Name is the property for naming a component." After that, using full sentences works fine.
 	
 Section: How Not to Type
 	There are some things most people are used to typing that get picked up by NaturalDocs as markup when they are not intended to be.
