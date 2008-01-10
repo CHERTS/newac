@@ -107,6 +107,7 @@ type
     function GetCh : Integer; virtual; abstract;
     function GetSR : Integer; virtual; abstract;
     function GetTotalTime : Integer; virtual;
+    function GetTotalSamples : Int64; virtual;
     procedure InitInternal; virtual; abstract;
     procedure FlushInternal; virtual; abstract;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); virtual; abstract;
@@ -184,6 +185,11 @@ type
         For some inputs (like <TDXAudioIn>) the data size may be not known in advance. In this case Size returns -1  *)
     property Size : Int64 read FSize;
 
+    (* Property: TotalSamples
+        A read only property which returns number of samples (frames) in the input stream.
+        TotalSamples value may be valid only if the <Size> of the input is known.
+    *)
+     property TotalSamples : Int64 read GetTotalSamples;
     (* Property: TotalTime
         A read only property which returns input playback time in seconds.
         TotalTime value may be valid only if the <Size> of the input is known.
@@ -358,9 +364,9 @@ type
     function GetBPS : Integer; override;
     function GetCh : Integer; override;
     function GetSR : Integer; override;
-    function GetTime : Integer;
+//    function GetTime : Integer;
     function GetValid : Boolean;
-    function GetTotalSamples : Int64;
+    function GetTotalSamples : Int64; override;
     procedure SetStream(aStream : TStream); override;
 
     (* Note on FSize calculation:
@@ -431,11 +437,44 @@ type
       Usually you should not call this method directly.
     *)
     procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
+    (* Function: SetStartTime
+      This function is a wrapper around StartSample property, provided for convenience.
+      It allows you to set playback start position in minutes and seconds.
+      Parameters:
+        Minutes
+        Seconds
+    Note: calls
+    >SetStartTime(1, 30);
+    and
+    >SetStartTime(0, 90);
+    are both allowed.
+    *)
     function SetStartTime(Minutes, Seconds : Integer) : Boolean;
+    (* Function: SetEndTime
+      This function is a wrapper around EndSample property, provided for convenience.
+      It allows you to set playback stop position in minutes and seconds.
+      Parameters:
+        Minutes
+        Seconds
+    *)
     function SetEndTime(Minutes, Seconds : Integer) : Boolean;
+    (* Procedure: Jump
+        This method simpifies navigation in the input stream.
+        Calling Jump moves you backward or forward relative to the current position.
+        Jump may be called either before starting playback (in this case the playback will be started from the position specified) or during the playback.
+      Parameters:
+        Offs - the amount of fil contents, in percent, that will be skipped.
+        Positive value skips forward, negative value skips backward.
+        For example calling Jump(-100) always sets the playing position at the beginning of the file.
+        Note: Use <Seek> for more exact positioning.
+    *)
     procedure Jump(Offs : Integer);
-    property Time : Integer read GetTime;
-    property TotalSamples : Int64 read GetTotalSamples;
+//    property Time : Integer read GetTime;
+    (* Property: Valid
+      Read this property to determine if the file is valid.
+      It is a good practice to check this property before performing other operations on audio stream.
+      Note however that True returned by Valid doesn't guarantee the file is fully playable.
+      It indicates only that the fille could be opened successfully. *)
     property Valid : Boolean read GetValid;
     (* Property: WideFileName
         Allows you to handle file names in Unicode. Setting its value
@@ -1035,14 +1074,14 @@ end;
     end else Result := FSR;
   end;
 
-  function TAuFileIn.GetTime;
+(*  function TAuFileIn.GetTime;
   begin
     if FSeekable then
     begin
       OpenFile; // Open the file if it is not already opened
       Result := FTime;
     end else Result := FTime;
-  end;
+  end;*)
 
   function TAuFileIn.GetValid;
   begin
@@ -1579,6 +1618,10 @@ begin
   FInput._Resume;
 end;
 
+function TAuInput.GetTotalSamples;
+begin
+  Result := 0;
+end;  
 
 initialization
 
