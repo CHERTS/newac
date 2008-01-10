@@ -46,7 +46,7 @@ type
        WMV file) or the input file is corrupt.
        
        Note: 
-       Windows Media files can contain several audio streams. In the current
+       Windows Media files may contain several audio streams. In the current
        version TWMIn reads data only from the first audio stream it finds.*)
     property HasAudio : Boolean read GetHasAudio;
     (* Property: IsProtected
