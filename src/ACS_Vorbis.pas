@@ -85,18 +85,18 @@ type
     destructor Destroy; override;
   published
     (* Property: Compression
-      Use this property to set the compression ratio for the file being
+      Set the compression ratio for the file being
       created. The valid values vary from -0.1 (maximum compression, lowest
       quality) to 1.0 (minimum compression, highest quality). If
       <DesiredNominalBitrate> property is assigned a value other than
       brAutoSelect, Compression property is ignored. *)
     property Compression : Single read FCompression write FCompression stored True;
    (* Property: Comments
-      Use this property to add tags (comments) to an Ogg Vorbis file. The
+      Add tags (comments) to an Ogg Vorbis file. The
       standard comments include Artist, Album, Title, Date, Genre, and Track. *)
     property Comments : TVorbisTags read FComments write SetComments;
    (* Property: DesiredMaximumBitrate
-      Use this property to set the desired maximum bitrate limit for the file
+      Set the desired maximum bitrate limit for the file
       being created. The values of this property are brXXX constants,
       indicating bitrates in kbps. Depending on the parameters of the incoming
       audio data the actual maximum bitrate may be higher than that specified
@@ -119,14 +119,14 @@ type
       property rather than specify bitrates directly. *)
     property DesiredNominalBitrate : TVorbisBitRate read FDesiredNominalBitrate write SetDesiredNominalBitrate;
    (* Property: MinimumBitrate
-     Use this property to set the minimum bitrate limit for the file being
+     Set the minimum bitrate limit for the file being
      created. The values of this property are brXXX constants, indicating
      bitrates in kbps. This property has an effect only if
      DesiredNominalBitrate property is assigned a value other than
      brAutoSelect.*)
     property MinimumBitrate : TVorbisBitRate read FMinimumBitrate write SetMinimumBitrate;
    (* Property: Serial
-      Use this property to set the serial number of the logical bitstream in
+      Set the serial number of the logical bitstream in
       the Vorbis file. The value of this property is of concern only if you
       create multi-streamed Vorbis files (in foAppend mode). *)
     property Serial : Integer read FSerial write FSerial;
@@ -180,7 +180,7 @@ type
       navigate between several bitstreams in a multi-streamed file. *)
     property BitStreams : Integer read GetBitStreams;
     (* Property: Comments
-      Use this property to read tags (comments) added to an Ogg Vorbis file.
+      Read tags (comments) added to an Ogg Vorbis file.
       The standard comments include Artist, Album, Title, Date, Genre, and
       Track. *)
     property Comments : TVorbisTags read GetComments;
@@ -192,17 +192,17 @@ type
       actual playback process. *)
     property CurrentBitStream : Integer read GetCurrentBitStream write SetCurrentBitStream;
     (* Property: InstantBitRate
-      Use this property to get current bitrate (in bits per second) of the VBR-encoded Vorbis file. *)
+      Get current bitrate (in bits per second) of the VBR-encoded Vorbis file. *)
     property InstantBitRate : Integer read GetInstantBitRate;
     //property Vendor : String read FVendor;
     (* Property: MaxBitrate
-      Use this property to get the maximum bitrate (in bits per second) of the Vorbis file. *)
+      Get the maximum bitrate (in bits per second) of the Vorbis file. *)
     property MaxBitrate: Integer read GetMaxBitrate;
     (* Property: MinBitrate
-      Use this property to get the minimum bitrate (in bits per second) of the Vorbis file. *)
+      Get the minimum bitrate (in bits per second) of the Vorbis file. *)
     property MinBitrate: Integer read GetMinBitrate;
     (* Property: NominalBitrate
-      Use this property to get the nominal bitrate (in bits per second) of the Vorbis file. *)
+      Get the nominal bitrate (in bits per second) of the Vorbis file. *)
     property NominalBitrate: Integer read GetNominalBitrate;
   end;
 
