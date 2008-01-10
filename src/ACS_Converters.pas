@@ -14,6 +14,8 @@ unit ACS_Converters;
 
 interface
 
+{$WARNINGS OFF}
+
 uses
   Classes, SysUtils, Windows, ACS_Types, ACS_Procs, ACS_Classes, _MSACM, MMSystem, Math;
 
@@ -34,36 +36,36 @@ type
 
   TRateConverter = class(TAuConverter)
   private
-    FOutSampleRate : Integer;
-    WantedSize : Integer;
+    FOutSampleRate : LongWord;
+    WantedSize : LongWord;
     remainder : Integer;
     InBufM, OutBufM : PBuffer16;
     InBufS, OutBufS : PStereoBuffer16;
     DAM : array of Double;
     DAS : array of TStereoSampleD;
     Kernel : array of Double;
-    FKernelWidth : Integer;
+    FKernelWidth : LongWord;
     FFilterWindow : TFilterWindowType;
     Tail : Pointer;
     LBS : TStereoSample16;
     function ConvertFreqs16Mono(InSize : Integer): Integer;
     function ConvertFreqs16Stereo(InSize : Integer): Integer;
-    procedure SetOutSampleRate(aSR : Integer);
-    procedure SetKernelWidth(aKW : Integer);
+    procedure SetOutSampleRate(aSR : LongWord);
+    procedure SetKernelWidth(aKW : LongWord);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   published
     property FilterWindow : TFilterWindowType read FFilterWindow write FFilterWindow;
-    property KernelWidth : Integer read FKernelWidth write SetKernelWidth;
-    property OutSampleRate : Integer read FOutSampleRate write SetOutSampleRate;
+    property KernelWidth : LongWord read FKernelWidth write SetKernelWidth;
+    property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
   end;
 
   TMSConverter = class(TAuConverter)
@@ -72,10 +74,10 @@ type
     InOutBuf : array[1..BUF_SIZE] of Byte;
     FMode : TMSConverterMode;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -91,10 +93,10 @@ type
     FBalance : Single;
     procedure SetBalance(a : Single);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -112,17 +114,17 @@ type
   TAudioConverter = class(TAuConverter)
   private
     FInPlace : Boolean;
-    WantedSize, OutputSize : Integer;
+    WantedSize, OutputSize : LongWord;
     InOutBuf : PBuffer8;
     FMode : TMSConverterMode;
     FOutBitsPerSample : Integer;
     FOutChannels : Integer;
     ICh, IBPS : Integer;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -165,16 +167,16 @@ type
     _Stream : HACMStream;
     IBufSize, OBufSize : LongWord;
     IBuf, OBuf : PBuffer8;
-    OBufStart, OBufEnd : Integer;
+    OBufStart, OBufEnd : LongWord;
     EndOfInput, Prepared : Boolean;
     _Header : ACMSTREAMHEADER;
-    procedure GetDataBlock(StartFrom : Integer);
+    procedure GetDataBlock(StartFrom : LongWord);
     procedure RegetDataBlock;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -615,7 +617,7 @@ implementation
  //   Inc(FPosition, Result);
   end;
 
-  procedure TRateConverter.SetOutSampleRate(aSR : Integer);
+  procedure TRateConverter.SetOutSampleRate(aSR : LongWord);
   begin
     if (aSR > 0) and (not Busy) then FOutSampleRate := aSR;
   end;
@@ -681,7 +683,7 @@ implementation
 
   procedure TStereoBalance.GetDataInternal;
   var
-    WantedSize, i : Integer;
+    WantedSize, i : LongWord;
     P16 : PBuffer16;
     P8 : PBuffer8;
     P24 : PBuffer24;
@@ -799,7 +801,7 @@ implementation
       if Assigned(FInput) then
         Result := FInput.BitsPerSample
       else
-        Result := -1;
+        Result := 0;
   end;
 
   function TAudioConverter.GetCh;
@@ -810,7 +812,7 @@ implementation
       if Assigned(FInput) then
         Result := FInput.Channels
       else
-        Result := -1;
+        Result := 0;
   end;
 
   function TAudioConverter.GetSR;
@@ -818,12 +820,12 @@ implementation
     if Assigned(FInput) then
       Result := FInput.SampleRate
     else
-      Result := -1;
+      Result := 0;
   end;
 
   procedure TAudioConverter.InitInternal;
   var
-    k, k1 : Integer;
+    k, k1 : LongWord;
 //    OutSamples : Integer;
   begin
     if not Assigned(FInput) then
@@ -859,8 +861,8 @@ implementation
 
   procedure TAudioConverter.GetDataInternal;
   var
-    l : Integer;
-    InSize : Integer;
+    l : LongWord;
+    InSize : LongWord;
     Ptr : Pointer;
   begin
     if not Busy then  raise EAuException.Create('The Stream is not opened');
@@ -988,7 +990,7 @@ implementation
     Result := FOutSampleRate;
   end;
 
-  procedure TACMConverter.GetDataBlock(StartFrom : Integer);
+  procedure TACMConverter.GetDataBlock(StartFrom : LongWord);
   var
     Len : LongWord;
   begin
@@ -1016,7 +1018,7 @@ implementation
 
   procedure TACMConverter.RegetDataBlock;
   var
-    Len, StartFrom : LongWord;
+    StartFrom : LongWord;
   begin
     StartFrom := _Header.cbSrcLength - _Header.cbSrcLengthUsed;
     Move(IBuf[_Header.cbSrcLengthUsed], IBuf[0], StartFrom);
@@ -1062,7 +1064,7 @@ implementation
     DestWave.nBlockAlign := OBytesPerSample;
     DestWave.wBitsPerSample := OutBitsPerSample;
     DestWave.cbSize := 0;
-    res := acmStreamOpen(_Stream, 0, SrcWave, DestWave, nil, 0, 0, ACM_STREAMOPENF_NONREALTIME);
+    res := acmStreamOpen(_Stream, nil, SrcWave, DestWave, nil, 0, 0, ACM_STREAMOPENF_NONREALTIME);
     if res <> 0 then
       raise EAuException.Create('Failed to set up converter ' + IntTOStr(res));
     acmStreamSize(_Stream, IBufSize, OBufSize, ACM_STREAMSIZEF_SOURCE);
@@ -1106,5 +1108,7 @@ implementation
     Inc(OBufStart, Bytes);
     Inc(FPosition, Bytes);
   end;
+
+{$WARNINGS ON}
 
 end.

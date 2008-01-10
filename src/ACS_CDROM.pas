@@ -153,13 +153,13 @@ type
     procedure SetCurrentDrive(Value : Integer);
     function GetDriveName : String;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
     procedure Eject;
@@ -780,7 +780,7 @@ implementation
     inherited Destroy;
   end;
 
-  function TCDIn.GetBPS : Integer;
+  function TCDIn.GetBPS : LongWord;
   begin
     Result := 16;
   end;

@@ -98,23 +98,23 @@ type
     FSize : Int64; // total _uncompressed_ audio stream size in bytes
     FSampleSize : Word; // size of one frame in bytes (fot 16 bps stereo FSampleSize is 4).
     Busy : Boolean;
-    BufStart, BufEnd : Integer;
+    BufStart, BufEnd : LongWord;
     DataCS : TCriticalSection;
     _EndOfStream : Boolean;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
-    function GetBPS : Integer; virtual; abstract;
-    function GetCh : Integer; virtual; abstract;
-    function GetSR : Integer; virtual; abstract;
-    function GetTotalTime : Integer; virtual;
+    function GetBPS : LongWord; virtual; abstract;
+    function GetCh : LongWord; virtual; abstract;
+    function GetSR : LongWord; virtual; abstract;
+    function GetTotalTime : LongWord; virtual;
     function GetTotalSamples : Int64; virtual;
     procedure InitInternal; virtual; abstract;
     procedure FlushInternal; virtual; abstract;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); virtual; abstract;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetData(var Buffer : Pointer; var Bytes : Integer); virtual;
+    procedure GetData(var Buffer : Pointer; var Bytes : LongWord); virtual;
     (* Function: CopyData 
         Writes no more than BufferSize data into Buffer 
         
@@ -123,24 +123,24 @@ type
         Buffer: Pointer - the buffer to write to
         BufferSize: Integer - the number of bytes to write
     *)
-    function CopyData(Buffer : Pointer; BufferSize : Integer) : Integer;
+    function CopyData(Buffer : Pointer; BufferSize : Integer) : LongWord;
     (* Function: FillBuffer
-        The same as <CopyData> but tries to fill the Buffer. EOF is set to 
-        True if end of data was reached while filling the buffer, the buffer 
+        The same as <CopyData> but tries to fill the Buffer. EOF is set to
+        True if end of data was reached while filling the buffer, the buffer
         itself may still contain valid data.
-        
+
       Parameters:
-      
+
         Buffer: Pointer - the buffer to write to
-        BufferSize: Integer - the number of bytes to write      
-        var EOF: Boolean - set to True if end of data was reached while filling 
+        BufferSize: Integer - the number of bytes to write
+        var EOF: Boolean - set to True if end of data was reached while filling
           the buffer.
-     
+
       Returns:
-      
+
         Integer - Number of bytes written
     *)
-    function FillBuffer(Buffer : Pointer; BufferSize : Integer; var EOF : Boolean) : Integer;
+    function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
     procedure Reset; virtual;
 
     (* Procedure: Init
@@ -174,10 +174,18 @@ type
     procedure _Unlock;
     procedure _Pause; virtual;
     procedure _Resume; virtual;
-    property BitsPerSample : Integer read GetBPS;
+    (* Property: BitsPerSample
+       The number of bits per sample in the input stream. Possible values are 8, 16, and 24.*)
+    property BitsPerSample : LongWord read GetBPS;
+    (* Property: Position
+       The current reading position in the input stream in bytes.*)
     property Position : Int64 read FPosition;
-    property SampleRate : Integer read GetSR;
-    property Channels : Integer read GetCh;
+    (* Property: SampleRate
+       The input stream sample rate in Herz.*)
+    property SampleRate : LongWord read GetSR;
+    (* Property: Channels
+       The number of channels in the input stream. Possible values are 1 (mono), 2 (stereo)... and may be more.*)
+    property Channels : LongWord read GetCh;
 
     (* Property: Size
         A read only property which returns input data size in bytes.
@@ -194,7 +202,7 @@ type
         A read only property which returns input playback time in seconds.
         TotalTime value may be valid only if the <Size> of the input is known.
     *)
-    property TotalTime : Integer read GetTotalTime;
+    property TotalTime : LongWord read GetTotalTime;
   end;
 
 (* Class: TAuOutput
@@ -354,16 +362,16 @@ type
     FWideFileName : WideString;
     FOpened : Integer;
     FValid : Boolean;
-    FBPS : Integer;  // bits per sample
-    FSR : Integer;   // sample rate
-    FChan : Integer; // Number of channels
-    FTime : Integer;
+    FBPS : LongWord;  // bits per sample
+    FSR : LongWord;   // sample rate
+    FChan : LongWord; // Number of channels
+    FTime : LongWord;
     FLoop : Boolean;
     FStartSample, FEndSample : Int64;
     FTotalSamples : Int64;
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
 //    function GetTime : Integer;
     function GetValid : Boolean;
     function GetTotalSamples : Int64; override;
@@ -392,12 +400,10 @@ type
         This method is called internally by <TAuInput.Flush>, you should never
         call it directly. *)
     procedure CloseFile; virtual; abstract;
-    function GetTotalTime : Integer; override;
-    procedure Reset; override;
+    function GetTotalTime : LongWord; override;
     function SeekInternal(var SampleNum : Int64) : Boolean; virtual; abstract;
     procedure FlushInternal; override;
     procedure InitInternal; override;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -436,7 +442,7 @@ type
       Note:
       Usually you should not call this method directly.
     *)
-    procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     (* Function: SetStartTime
       This function is a wrapper around StartSample property, provided for convenience.
       It allows you to set playback start position in minutes and seconds.
@@ -449,7 +455,7 @@ type
     >SetStartTime(0, 90);
     are both allowed.
     *)
-    function SetStartTime(Minutes, Seconds : Integer) : Boolean;
+    function SetStartTime(Minutes, Seconds : LongWord) : Boolean;
     (* Function: SetEndTime
       This function is a wrapper around EndSample property, provided for convenience.
       It allows you to set playback stop position in minutes and seconds.
@@ -457,7 +463,7 @@ type
         Minutes
         Seconds
     *)
-    function SetEndTime(Minutes, Seconds : Integer) : Boolean;
+    function SetEndTime(Minutes, Seconds : LongWord) : Boolean;
     (* Procedure: Jump
         This method, being a wrapper around <Seek>, simpifies navigation in the input stream.
         Calling Jump moves you backward or forward relative to the current position.
@@ -468,6 +474,7 @@ type
         For example calling Jump(-100) always sets the playing position at the beginning of the file.
         Note: Use <Seek> for more exact positioning.
     *)
+    procedure Reset; override;
     procedure Jump(Offs : Integer);
 //    property Time : Integer read GetTime;
     (* Property: Valid
@@ -595,7 +602,7 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetInput(aInput : TAuInput); virtual;
   public
-    procedure GetData(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
     procedure _Resume; override;
   published
@@ -643,7 +650,7 @@ type
     procedure CallHandler;
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy; override;
     procedure PostOnProgress(Sender : TComponent; Handler :TOutputProgressEvent);
     procedure PostOnDone(Sender : TComponent; Thread : TAuThread; Handler :TOutputProgressEvent);
     procedure Execute; override;
@@ -1139,9 +1146,9 @@ end;
 
   function TAuFileIn.Seek;
   begin
+    Result := False;
     if not FSeekable then
     begin
-      Result := False;
       Exit;
     end;
     DataCS.Enter;
@@ -1185,7 +1192,8 @@ end;
 
   function TAuOutput.GetDelay;
   begin
-    if Assigned(Thread) then Result := Thread.Delay;
+    if Assigned(Thread) then Result := Thread.Delay
+    else Result := 0;
   end;
 
   procedure TAuOutput.SetDelay;
@@ -1201,6 +1209,7 @@ end;
 
   function TAuFileIn.GetTotalTime;
   begin
+    Result := 0;
     OpenFile;
     if (SampleRate = 0) or (Channels = 0) or (BitsPerSample = 0) then Exit;
     Result := Round(Size/(SampleRate*Channels*(BitsPerSample shr 3)));
@@ -1294,7 +1303,7 @@ end;
 
   function TAuFileIn.SetStartTime;
   var
-    Sample : Integer;
+    Sample : LongWord;
   begin
     Result := False;
     if not FSeekable then Exit;
@@ -1367,7 +1376,7 @@ end;
   function TAuInput.FillBuffer;
   var
     P : PByteArray;
-    r : Integer;
+    r : LongWord;
   begin
     P := Buffer;
     r := BufferSize;
