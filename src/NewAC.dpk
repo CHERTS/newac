@@ -12,7 +12,6 @@ package NewAC;
 {$R 'ACS_LAME.dcr'}
 {$R 'ACS_Streams.dcr'}
 {$R 'ACS_MAC.dcr'}
-{$R 'ACS_MAD.dcr'}
 {$R 'ACS_FLAC.dcr'}
 {$R 'ACS_DXAudio.dcr'}
 {$R 'ACS_smpeg.dcr'}
@@ -72,8 +71,6 @@ contains
   ACS_MAC in 'ACS_MAC.pas',
   ACS_Procs in 'ACS_Procs.pas',
   ACS_Types in 'ACS_Types.pas',
-  ACS_MAD in 'ACS_MAD.pas',
-  MAD in 'MAD.pas',
   FLAC in 'FLAC.pas',
   ACS_DXAudio in 'ACS_DXAudio.pas',
   ACS_FLAC in 'ACS_FLAC.pas',
