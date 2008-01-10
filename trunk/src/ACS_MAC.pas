@@ -11,7 +11,7 @@
 
 *)
 
-(* $Id *)
+(* $Id$ *)
 
 unit ACS_MAC;
 
