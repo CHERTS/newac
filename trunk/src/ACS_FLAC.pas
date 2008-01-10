@@ -758,7 +758,6 @@ type
     begin
       if _decoder <> nil then
       begin
-        FLAC__stream_decoder_flush(_decoder);
         FSignatureValid := FLAC__stream_decoder_finish(_decoder);
         FLAC__stream_decoder_delete(_decoder);
         _decoder := nil;
