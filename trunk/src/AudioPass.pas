@@ -39,10 +39,10 @@ type
     function GetDeviceName(Number : Integer) : String;
     procedure SetMute(b : Boolean);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -149,7 +149,7 @@ end;
 
 procedure TAudioPass.GetDataInternal;
 var
-  lb : Integer;
+  lb : LongWord;
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
 begin

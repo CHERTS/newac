@@ -55,7 +55,7 @@ type
      reader : IWMSyncReader;
      buffer : INSSBuffer;
      HeaderInfo : IWMHeaderInfo;
-     offset : Integer;
+     offset : LongWord;
      AuStream : IStream;
      stream : Word;
      output : LongWord;
@@ -101,7 +101,7 @@ type
    procedure lwma_reader_get_copyright(var sync_reader : wma_sync_reader; var result : WideString);
    procedure lwma_reader_get_audio_properties(var sync_reader : wma_sync_reader; var channels, BitsPerSample : Word; var SampleRate : LongWord);
    procedure lwma_reader_seek(var sync_reader : wma_sync_reader; start_from : LongWord);
-   procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : Integer);
+   procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : LongWord);
    procedure lwma_reader_free(var sync_reader : wma_sync_reader);
 
   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
@@ -142,8 +142,8 @@ implementation
 
    procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream);
    var
-     OutputCount, FormatCount : LongWord;
-     i, j, size : LongWord;
+     OutputCount : LongWord;
+     i, size : LongWord;
      MediaProps : IWMOutputMediaProps;
      MediaType : PWMMEDIATYPE;
      format : PWAVEFORMATEX;
@@ -325,11 +325,11 @@ implementation
      sync_reader.reader.SetRange(Round(start_from*0.1e6), 0);
    end;
 
-   procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : Integer);
+   procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : LongWord);
    var
      buf : PByte;
      len : LongWord;
-     copylen : Integer;
+     copylen : LongWord;
      time, duration : Int64;
      flags : LongWord;
      Output : LongWord;
@@ -447,7 +447,6 @@ implementation
 
    procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
    var
-     guid : TGuid;
      pSinkBase : IWMWriterSink;
      pWriterAdvanced : IWMWriterAdvanced;
    begin
@@ -576,21 +575,18 @@ implementation
     pType : PWMMEDIATYPE;
     cbType : LongWord;
     pWave  : PWAVEFORMATEX;
-    index, index2, cEntries, cEntries2, dwBestRate, dwCurRate, PacketsPerSecond, CodecIndex, CurSR : LongWord;
+    index, index2, cEntries, cEntries2, dwBestRate, dwCurRate, CurSR : LongWord;
     const INVALID_INDEX = $FFFFF;
    begin
      dwCurRate := 0;
      CurSR := 0;
      cEntries := 0;
      dwBestRate := 0;
-     PacketsPerSecond := 0;
-     CodecIndex := 0;
      pBestMatch := nil;
 
      WMCreateProfileManager(pProfileMgr);
      pCodecInfo := pProfileMgr as IWMCodecInfo3;
      pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
-     CodecIndex := INVALID_INDEX;
      for index := 0 to  cEntries -1 do
      begin
        pCodecInfo.GetCodecFormat(WMMEDIATYPE_Audio, index, 0, pStreamConfig);
@@ -643,7 +639,6 @@ implementation
    procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; vbr : Boolean; DesiredBitrate : LongWord);
    var
      Size : LongWord;
-     StreamConfig : IWMStreamConfig;
      cInputs, inputIndex : LongWord;
      pProps : IWMInputMediaProps;
      MediaType : PWMMEDIATYPE;
@@ -799,32 +794,33 @@ implementation
 
    function TAudioStream.SetSize;
    begin
-     FStream.Seek(libNewSize, 0)
+     FStream.Seek(libNewSize, 0);
+     Result := S_OK;
    end;
 
    function TAudioStream.CopyTo;
    begin
-     MessageBox(0, nil, nil, 0);
+     Result := -1;
    end;
 
    function TAudioStream.Commit;
    begin
-     MessageBox(0, nil, nil, 0);
+     Result := -1;
    end;
 
    function TAudioStream.Revert;
    begin
-      MessageBox(0, nil, nil, 0);
+     Result := -1;
    end;
 
    function TAudioStream.LockRegion;
    begin
-     MessageBox(0, nil, nil, 0);
+     Result := -1;
    end;
 
    function TAudioStream.UnlockRegion;
    begin
-        MessageBox(0, nil, nil, 0);
+     Result := -1;
    end;
 
 
@@ -832,11 +828,12 @@ implementation
    begin
      statstg.cbSize := FStream.Size;
      statstg.grfLocksSupported := 0;
+     Result := S_OK;
    end;
 
    function TAudioStream.Clone;
    begin
-        MessageBox(0, nil, nil, 0);
+     Result := -1;
    end;
 
 
