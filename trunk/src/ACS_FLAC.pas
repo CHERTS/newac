@@ -106,11 +106,11 @@ type
     FComments : TVorbisTags;
     Residue : Integer;
     Buff : PBuffer8;
-    BuffSize : Integer;
+    BuffSize : LongWord;
     _decoder : P_FLAC__StreamDecoder;
-    FBlockSize: Integer;
-    BytesPerBlock : Integer;
-    MinFrameSize : Integer;
+    FBlockSize: LongWord;
+    BytesPerBlock : LongWord;
+    MinFrameSize : LongWord;
     FCheckMD5Signature : Boolean;
     FSignatureValid : Boolean;
     procedure ReadHeader;
@@ -119,7 +119,7 @@ type
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -257,7 +257,6 @@ type
                                 client_data : Pointer) : Integer; cdecl;
   var
     FLACOut : TFLACOut;
-    t : Byte;
     BI : TBlockInfo;
     Header : array[0..3] of Byte;
     Comm : TVComments;
@@ -634,7 +633,7 @@ type
 
   function TFLACOut.DoOutput;
   var
-    Len, i, l, samples : Integer;
+    Len, i, samples : LongWord;
     FB : PFLACBuf;
     FBU : PFLACUBuf;
     B16 : PBuffer16;
@@ -819,7 +818,6 @@ type
   var
     Aligned : Int64;
   begin
-    Result := False;
     FCheckMD5Signature := False;
     if FBlockSize <> 0 then
     begin

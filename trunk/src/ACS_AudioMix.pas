@@ -27,7 +27,7 @@ type
   TAudioMixer = class(TAuInput)
   private
     FInput1, FInput2 : TAuInput;
-    BufStart, BufEnd : Integer;
+    BufStart, BufEnd : LongWord;
     ByteCount : Cardinal;                // add by leozhang
     FVolume1, FVolume2 : Byte;
     EndOfInput1, EndOfInput2 : Boolean;
@@ -38,14 +38,15 @@ type
     CS : TCriticalSection;
     FFgPlaying : Boolean;
     FNormalize : Boolean;
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
     procedure SetInput1(aInput : TAuInput);
     procedure SetInput2(aInput : TAuInput);
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+  protected
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -213,8 +214,8 @@ end;
 
   procedure TAudioMixer.GetDataInternal;
   var
-    l1, l2 : Integer;
-    InSize, Aligned : Integer;
+    l1, l2 : LongWord;
+    InSize, Aligned : LongWord;
   begin
     Aligned := BUF_SIZE - (BUF_SIZE mod (Channels * (BitsPerSample div 8)));
     if not Busy then  raise EAuException.Create('The Stream is not opened');

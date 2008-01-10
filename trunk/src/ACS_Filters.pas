@@ -14,6 +14,8 @@ unit ACS_Filters;
 
 interface
 
+{$WARNINGS OFF}
+
 uses
   Classes, SysUtils, ACS_Types, ACS_Procs, ACS_Classes,
   {$IFDEF WIN32}
@@ -42,13 +44,13 @@ type
     procedure SetLowFreq(aFreq : Integer);
     procedure SetAmplification(Ampl : Word);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   published
@@ -78,13 +80,13 @@ type
     procedure SetLowFreq(aFreq : Integer);
     procedure CalculateFilter;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
     procedure GetKernel(var K : PDoubleArray);
@@ -109,13 +111,13 @@ type
     FAllPass : Boolean;
     procedure SetKernelWidth(a : Integer);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
     procedure SetKernel(K : PDoubleArray; Inverted : Boolean);
@@ -764,5 +766,6 @@ implementation
     {$ENDIF}
   end;
 
+{$WARNINGS ON}
 
 end.

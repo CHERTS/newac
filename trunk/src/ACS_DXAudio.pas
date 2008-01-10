@@ -41,7 +41,7 @@ type
     _BufSize : Integer;
     FBufferSize : Integer;
     FillByte : Byte;
-    FUnderruns, _TmpUnderruns : Integer;
+    FUnderruns, _TmpUnderruns : LongWord;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
   protected
@@ -64,7 +64,7 @@ type
     (* Property: Underruns
          This read only property returns the number of internal buffer
          underruns that have occured during playback. *)
-    property Underruns : Integer read FUnderruns;
+    property Underruns : LongWord read FUnderruns;
     (* Property: BufferSize
          Use this property to set the component's internal buffer size if the
          defult one doesn't suit you. *)
@@ -89,7 +89,7 @@ type
     Buf : PBuffer8;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
-    FBPS, FChan, FFreq : Integer;
+    FBPS, FChan, FFreq : LongWord;
     FOpened : Integer;
     FBytesToRead : Integer;
     FRecTime : Integer;
@@ -98,13 +98,13 @@ type
     function GetDeviceName(Number : Integer) : String;
     procedure OpenAudio;
     procedure CloseAudio;
-    function GetTotalTime : Integer; override;
     procedure SetRecTime(aRecTime : Integer);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetTotalTime : LongWord; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -142,17 +142,17 @@ type
         Use this property to set the number of bits per sample in the audio
         stream the component will provide. Possible values are 8, 16, and 24
         (the last one depends on the capabilities of your hardware). *)
-    property InBitsPerSample : Integer read GetBPS write FBPS stored True;
+    property InBitsPerSample : LongWord read GetBPS write FBPS stored True;
     (* Property: InChannels
         Use this property to set the number of channels in the audio stream
         the component will provide. Possible values are 1 (mono), and 2
         (stereo). *)
-    property InChannels : Integer read GetCh write FChan stored True;
+    property InChannels : LongWord read GetCh write FChan stored True;
     (* Property: InSampleRate
         Use this property to set the sample rate of the audio stream the
         component will provide. Possible values range from 4000 to 128000
         (depends on the capabilities of your hardware).*)
-    property InSampleRate : Integer read GetSR write FFreq stored True;
+    property InSampleRate : LongWord read GetSR write FFreq stored True;
     (* Property: RecTime
          Use this property to set the recording duration (in seconds). If set
          this property overrides the value of <BytesToRead>. If you set this
@@ -217,8 +217,7 @@ end;
 
 function TDXAudioOut.DoOutput;
 var
-  Len : Integer;
-  lb : Integer;
+  Len, lb : LongWord;
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
 begin
@@ -396,7 +395,9 @@ procedure TDXAudioIn.InitInternal;
 begin
   if Busy then raise EAuException.Create('The component is busy');
   if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid device number');
+{$WARNINGS OFF}
   if FRecTime > 0 then FBytesToRead := FRecTime*FFreq*FChan*(FBPS div 8);
+{$WARNINGS ON}
   BufEnd := 0;
   BufStart := 1;
   FPosition := 0;
@@ -450,7 +451,9 @@ end;
 procedure TDXAudioIn.SetRecTime;
 begin
   FRecTime := aRecTime;
+{$WARNINGS OFF}
   if FRecTime > 0 then FBytesToRead := FRecTime*FFreq*FSampleSize
+{$WARNINGS ON}
   else FBytesToRead := -1;
 end;
 
@@ -465,7 +468,7 @@ begin
   else Result := '';
 end;
 
-function TDXAudioIn.GetTotalTime : Integer;
+function TDXAudioIn.GetTotalTime : LongWord;
 var
   BytesPerSec : Integer;
 begin
@@ -482,5 +485,4 @@ procedure TDXAudioIn._Resume;
 begin
   DSW_StartInput(DSW);
 end;
-
 end.
