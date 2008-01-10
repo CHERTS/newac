@@ -27,6 +27,8 @@ unit ACS_LAME;
 
 interface
 
+{$WARNINGS OFF}
+
 uses
   Classes, SysUtils, ACS_Classes, ACS_Types, lame,
 {Ross--- *)
@@ -307,7 +309,8 @@ implementation
 
   function TMP3Out.DoOutput;
   var
-    Len, res, ns, i : Integer;
+    res, ns, i : Integer;
+    Len : LongWord;
     inBuf : array of SmallInt;
     Ptr : Pointer;
   begin
@@ -355,4 +358,6 @@ implementation
       Exit;
     end;
   end;
+
+ {$WARNINGS ON} 
 end.

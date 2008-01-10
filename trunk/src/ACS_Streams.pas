@@ -43,23 +43,23 @@ type
 
   TStreamIn = class(TAuStreamedInput)
   private
-    FBPS, FChan, FFreq : Integer;
+    FBPS, FChan, FFreq : LongWord;
     _Buffer : Pointer;
-    CurrentBufferSize : Integer;
+    CurrentBufferSize : LongWord;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   published
-    property InBitsPerSample : Integer read FBPS write FBPS;
-    property InChannels : Integer read FChan write FChan;
-    property InSampleRate : Integer read FFreq write FFreq;
+    property InBitsPerSample : LongWord read FBPS write FBPS;
+    property InChannels : LongWord read FChan write FChan;
+    property InSampleRate : LongWord read FFreq write FFreq;
   end;
 
 
@@ -79,7 +79,7 @@ end;
 
 function TStreamOut.DoOutput;
 var
-  Len : Integer;
+  Len : LongWord;
   P : Pointer;
 begin
   // No exceptions Here

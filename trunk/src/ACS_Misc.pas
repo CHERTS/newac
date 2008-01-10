@@ -39,9 +39,9 @@ type
   TAudioProcessorFlushEvent = procedure(Sender : TComponent) of object;
 
   TGetParameterEvent64 = procedure(Sender : TComponent; var Param : Int64) of object;
-  TGetParameterEvent32 = procedure(Sender : TComponent; var Param : Integer) of object;
+  TGetParameterEvent32 = procedure(Sender : TComponent; var Param : LongWord) of object;
 
-  TGetDataEvent = procedure(Sender : TComponent; var Buffer : Pointer; var Bytes : Integer) of object;
+  TGetDataEvent = procedure(Sender : TComponent; var Buffer : Pointer; var Bytes : LongWord) of object;
 
   TMemoryIn = class(TAuInput)
   private
@@ -49,27 +49,27 @@ type
     FDataSize : Integer;
     FOnBufferDone : TOnBufferDone;
     Busy : Boolean;
-    BufStart, BufEnd : Integer;
-    FBPS, FSR, FChan : Integer;
+    BufStart, BufEnd : LongWord;
+    FBPS, FSR, FChan : LongWord;
     function GetBuffer : Pointer;
     procedure SetBuffer(v : Pointer);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
     property DataBuffer : Pointer read GetBuffer write SetBuffer;
     property DataSize : Integer read FDataSize write FDataSize;
   published
     property GlobalSize : Int64 read FSize write FSize;
-    property InBitsPerSample : Integer read GetBPS write FBPS;
-    property InChannels : Integer read GetCh write FChan;
-    property InSampleRate : Integer read GetSR write FSR;
+    property InBitsPerSample : LongWord read GetBPS write FBPS;
+    property InChannels : LongWord read GetCh write FChan;
+    property InSampleRate : LongWord read GetSR write FSR;
     property OnBufferDone : TOnBufferDone read FOnBufferDone write FOnBufferDone;
   end;
 
@@ -84,11 +84,11 @@ type
     FOnGetTotalTime : TGetParameterEvent32;
     FOnGetSize : TGetParameterEvent64;
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
-    function GetTotalTime : Integer; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    function GetTotalTime : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
@@ -176,13 +176,13 @@ type
     procedure SetCurrentInput(aInput : Integer);
     procedure SetInputItems(aItems : TInputItems);
   protected
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
     property CurrentInput : Integer read FCurrentInput write SetCurrentInput;
@@ -631,7 +631,7 @@ end;
 
 function TNULLOut.DoOutput;
 var
-  Res : Integer;
+  Res : LongWord;
   Ptr : Pointer;
 begin
   Result := True;
@@ -713,6 +713,7 @@ function TInputList.GetBPS;
 var
   I : TInputItem;
 begin
+  Result := 0;
   if Busy then
   begin
     I := TInputItem(InputItems.Items[FCurrentInput]);
@@ -729,6 +730,7 @@ function TInputList.GetCh;
 var
   I : TInputItem;
 begin
+  Result := 0;
   if Busy then
   begin
     I := TInputItem(InputItems.Items[FCurrentInput]);
@@ -745,6 +747,7 @@ function TInputList.GetSR;
 var
   I : TInputItem;
 begin
+  Result := 0;
   if Busy then
   begin
     I := TInputItem(InputItems.Items[FCurrentInput]);
