@@ -10,7 +10,7 @@
 unit ACS_WinMedia;
 
 (* Title: ACS_WinMedia
-    Delphi interface for Windows Media Audio (.wma) using the Windows built-in codec *)
+    Delphi interface for Windows Media Audio (WMA) using Windows' built-in codec. *)
 
 interface
 
@@ -20,9 +20,9 @@ uses
 type
 
    (* Class: TWMIn
-      Windows Media Audio file/stream decoder. This component can read not only WMA files but sound tracks from WMV files as well.
-      It can also read mp3 files.
-      Descends from <TAuTaggedFileIn> .*)
+      Windows Media Audio file/stream decoder. This component can read not
+      only WMA files but sound tracks from WMV files as well. It can also read
+      mp3 files. Descends from <TAuTaggedFileIn> .*)
 
   TWMIn = class(TAuTaggedFileIn)
   private
@@ -42,10 +42,12 @@ type
     destructor Destroy; override;
     (* Property HasAudio
        Read this property to determine if the input file has an audio stream.
-       The False value indicates that either an audio stream is missing (in WMV file)
-       or the input file is corrupt.
-       Note: Windows Media files can contain several audio streams.
-       In the current version TWMIn reads data only from the first audio stream it finds.*)
+       The False value indicates that either an audio stream is missing (in
+       WMV file) or the input file is corrupt.
+       
+       Note: 
+       Windows Media files can contain several audio streams. In the current
+       version TWMIn reads data only from the first audio stream it finds.*)
     property HasAudio : Boolean read GetHasAudio;
     (* Property: IsProtected
        If the value of this property is True, th file is DRM-protected and hence not supported.
@@ -61,8 +63,8 @@ type
   end;
 
    (* Class: TWMAOut
-      Windows Media Audio file/stream encoder.
-      Descends from <TAuTaggedFileOut> .*)
+      Windows Media Audio file/stream encoder. Descends from
+      <TAuTaggedFileOut> .*)
 
   TWMAOut = class(TAuTaggedFileOut)
   private
@@ -80,12 +82,12 @@ type
     destructor Destroy; override;
   published
     (* Property: Id3v2Tags
-       Use this property to set an output file's tags in Id3v2 format.*)
+        Set an output file's tags in Id3v2 format.*)
     property Id3v2Tags;
-    (* Property: Id3v2Tags
-       Use this property to set the desied bitrate for an output file.
-       The component will search for the best configuration matching your data parameters,
-       so the actua bitrate may be less than this value.*)
+    (* Property: DesiredBitrate
+       Set the desied bitrate for an output file. The component will search
+       for the best configuration matching your parameters, so the actual
+       bitrate may be less than this value.*)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
   end;
 
