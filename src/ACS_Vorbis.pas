@@ -39,10 +39,16 @@ type
   PBuffer = ^TBuffer;
 
   (* Class: TVorbisOut
-      The Ogg Vorbis encoder component.
-      Descends from <TAuFileOut>.
-      Requires: ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll
-      More information on the Ogg Vorbis format may be found at http://xiph.org/vorbis/ *)
+      The Ogg Vorbis encoder component. Descends from <TAuFileOut>. More
+      information on the Ogg Vorbis format may be found at
+      http://xiph.org/vorbis/. 
+      
+    Requires:
+      - ogg.dll
+      - vorbis.dll
+      - vorbisenc.dll
+      - vorbisfile.dll
+  *)
 
   TVorbisOut = class(TAuFileOut)
   private
@@ -121,17 +127,23 @@ type
     property MinimumBitrate : TVorbisBitRate read FMinimumBitrate write SetMinimumBitrate;
    (* Property: Serial
       Use this property to set the serial number of the logical bitstream in
-      virbis file. The value of this property is of concern only if you
+      the Vorbis file. The value of this property is of concern only if you
       create multi-streamed Vorbis files (in foAppend mode). *)
     property Serial : Integer read FSerial write FSerial;
 //    property Vendor : String read FVendor write FVendor;
   end;
 
   (* Class: TVorbisIn
-    The Ogg  Vorbis decoder component.
-    Descends from <TAuFileIn>.
-    Requires: ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll
-    More information on the Ogg Vorbis format may be found at http://xiph.org/vorbis/ *)
+    The Ogg  Vorbis decoder component. Descends from <TAuFileIn>. More
+      information on the Ogg Vorbis format may be found at
+      http://xiph.org/vorbis/. 
+      
+    Requires:
+      - ogg.dll
+      - vorbis.dll
+      - vorbisenc.dll
+      - vorbisfile.dll
+  *)
 
   TVorbisIn = class(TAuFileIn)
   private

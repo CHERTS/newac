@@ -463,8 +463,7 @@ type
   end;
 
   (* Class: TAuTaggedFileIn
-      Descends from <TAuFileIn>.
-      This class is an ancestor of the file input components that use Id3v* tags.*)
+      Descends from <TAuFileIn>, this class is an ancestor of the file input components that use ID3V* tags. *)
 
   TAuTaggedFileIn = class(TAuFileIn)
   private
@@ -514,7 +513,7 @@ type
        foAppend. In the foRewrite mode the new file overwrites the previous
        one (if it existed). In the foAppend mode the new content is added to
        the existing. Currently only <TWaveOut> and <TVorbisOut> components
-       support this mode.*)
+       support this mode. *)
     property FileMode : TFileOutputMode read FFileMode write SetFileMode;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
@@ -523,8 +522,8 @@ type
   end;
 
   (* Class: TAuTaggedFileOut
-      Descends from <TAuFileOut>.
-      This class is an ancestor of the file output components that use Id3v* tags.*)
+      Descends from <TAuFileOut>, this class is an ancestor of the file output
+      components that use Id3v* tags. *)
 
   TAuTaggedFileOut = class(TAuFileOut)
   private
@@ -548,9 +547,8 @@ type
 (* ---Ross *)
   end;
 
-   (* Class: TAuConverter.
-      Descends from <TAuInput>.
-      The base class for all converter components *)
+   (* Class: TAuConverter
+      Descends from <TAuInput>, the base class for all converter components. *)
 
   TAuConverter = class(TAuInput)
   protected

@@ -23,8 +23,8 @@ type
 // Yeah, folks that's all there is to it.
 
 (* Class: TMP3In
-   The mp3 file/stream decoder that uses the Windows built-in decoder
-   Descends from <TWMIn>*)
+   The mp3 file/stream decoder that uses the Windows built-in decoder,
+   descends from <TWMIn> *)
 
   TMP3In = class (TWMIn)
   end;

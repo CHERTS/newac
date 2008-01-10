@@ -105,9 +105,9 @@ type
   end;
 
   (* Class: TAudioConverter
-     Descends from <TAuConverter>.
-     TAudioConverter component may be used for changing the number of channels and number of bits per sample
-     in an audio stream.*)
+     Descends from <TAuConverter>. TAudioConverter component may be used for
+     changing the number of channels and number of bits per sample in an audio
+     stream.*)
 
   TAudioConverter = class(TAuConverter)
   private
@@ -116,7 +116,7 @@ type
     InOutBuf : PBuffer8;
     FMode : TMSConverterMode;
     FOutBitsPerSample : Integer;
-    FOutChannles : Integer;
+    FOutChannels : Integer;
     ICh, IBPS : Integer;
   protected
     function GetBPS : Integer; override;
@@ -131,25 +131,30 @@ type
   published
     (* Property: Mode
       Mode property affects the way the mono stream is converted into stereo.
-      If mode is msmMonoToBoth (which is the default) the data from the mono channel is copied into both stereo channels. If the mode is msmMonoToLeft or msmMonoToRight the data from the mono channel is put to one of the stereo channels while the other channel plays silence.*)
+      If mode is msmMonoToBoth (which is the default) the data from the mono
+      channel is copied into both stereo channels. If the mode is
+      msmMonoToLeft or msmMonoToRight the data from the mono channel is put to
+      one of the stereo channels while the other channel plays silence.*)
     property Mode : TMSConverterMode read FMode write FMode;
     (* Property: OutBitsPerSample
-       Use this property to set the number of bits per sample in the resulting audio stream.
-       The valid values are 0, 8, 16, 24. If the property is set to 0 (the default)
-       the converter preserves the original stream's number of bits per sample.*)
+       Use this property to set the number of bits per sample in the resulting
+       audio stream. The valid values are 0, 8, 16, 24. If the property is set
+       to 0 (the default) the converter preserves the original stream's number
+       of bits per sample.*)
     property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
-    (* Property: OutChannles
-       Use this property to set the number of channels in the resulting audio stream.
-       The valid values are 0,  1 (mono), and 2 (stereo). If the property is set to 0 (the default value)
-       the converter preserves the original stream's number of channels.*)
-    property OutChannles : Integer read FOutChannles write FOutChannles;
+    (* Property: OutChannels
+       Use this property to set the number of channels in the resulting audio
+       stream. The valid values are 0,  1 (mono), and 2 (stereo). If the
+       property is set to 0 (the default value) the converter preserves the
+       original stream's number of channels. *)
+    property OutChannels : Integer read FOutChannels write FOutChannels;
   end;
 
   (* Class: TACMConverter
-     Descends from <TAuConverter>.
-     This component is an ACM-based converter. It may be used for changing the number of channels and number of bits per sample
-     in an audio stream and resampling audio (at low quality).
-     Unlike <TAudioConverter>, TACMConverter doesn't work with 24 bps audio streams.*)
+     Descends from <TAuConverter>, an ACM-based converter. It may be used for
+     changing the number of channels and number of bits per sample in an audio
+     stream and resampling audio (at low quality). Unlike <TAudioConverter>,
+     TACMConverter doesn't work with 24 bps audio streams. *)
 
   TACMConverter = class(TAuConverter)
   private
@@ -177,19 +182,19 @@ type
     destructor Destroy; override;
   published
     (* Property: OutBitsPerSample
-       Use this property to set the number of bits per sample in the resulting audio stream.
-       The valid values are 0, 8, 16. If the property is set to 0 (the default)
-       the converter preserves the original stream's number of bits per sample.*)
+       Use this property to set the number of bits per sample in the resulting
+       audio stream. The valid values are 0, 8, 16. If the property is set to
+       0 (the default) the converter preserves the original stream's number of
+       bits per sample.*)
     property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
-    (* Property: OutChannles
-       Use this property to set the number of channels in the resulting audio stream.
-       The valid values are 0,  1 (mono), and 2 (stereo). If the property is set to 0 (the default value)
-       the converter preserves the original stream's number of channels.*)
+    (* Property: OutChannels
+       Use this property to set the number of channels in the resulting audio
+       stream. The valid values are 0, 1 (mono), and 2 (stereo). If the
+       property is set to 0 (the default value) the converter preserves the
+       original stream's number of channels.*)
     property OutChannels : Integer read FOutChannels write FOutChannels;
     (* Property: OutSampleRate
-       Use this property to set thesample rate of the resulting audio stream.
-       The valid values are 0 and something between 2000-12000. If the property is set to 0 (the default value)
-       the converter preserves the original stream's sample rate.*)
+       Use this property to set thesample rate of the resulting audio stream. The valid values are 0 and something between 2000-12000. If the property is set to 0 (the default value) the converter preserves the original stream's sample rate. *)
     property OutSampleRate : Integer read FOutSampleRate write FOutSampleRate;
   end;
 
@@ -799,8 +804,8 @@ implementation
 
   function TAudioConverter.GetCh;
   begin
-    if FOutChannles <> 0 then
-      Result := FOutChannles
+    if FOutChannels <> 0 then
+      Result := FOutChannels
     else
       if Assigned(FInput) then
         Result := FInput.Channels
