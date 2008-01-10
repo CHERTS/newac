@@ -18,7 +18,7 @@
 unit AuSampleRate;
 
 (* Title: AuSampleRate
-    Classes which implement resampling of audio data. *)
+    Components which implement resampling of audio data. *)
 
 interface
 
@@ -34,6 +34,17 @@ const
 type
 
   TResamplerQuality = (rqBest, rqMedium, rqFastest);
+
+  (* Class: TResampler
+     A high-quality audio resampler.
+     Descends from <TAuConverter>.
+     Requires libsamplerate.dll.
+     More information on this resampler can be found at http://www.mega-nerd.com/SRC/.
+     Currently TResampler cannot perform resampling at 24 bps.
+     The component can accept 24 bit input but it will produce only 16 bit output.
+     This doesn't apply to the pass through mode (when the input sample rate
+     is the same as the output sample rate) in which the audio data is passed
+     unmodified.*)
 
   TResampler = class(TAuConverter)
   private
@@ -62,7 +73,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: Quality
+       Use this property to set the trade-off between resampling quality and speed.
+       Possible values are rqBest, rqMedium, and rqFastest, of which rqBest sets the best quality but slow resampling time
+       and rqFastest sets the lower (but still very good) quality and the fastest resampling time.*)
     property Quality : TResamplerQuality read FQuality write FQuality;
+    (* Property: OutSampleRate
+      Use this property to set the sample rate for the resulting audio stream.
+      The output sample rate may be 256 times greater or 256 times les than the input stream sample rate.*)
     property OutSampleRate : Integer read FOutSampleRate write SetOutSampleRate;
   end;
 
