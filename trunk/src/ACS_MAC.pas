@@ -1,16 +1,17 @@
 (*
-  The original version of this file is written by Thomas la Cour,
-  http://www.top-house.dk/~nr161/delphi/
-
-  Updated by Sergei Borisov < jr_ross@mail.ru >
-
-  This file is a part of New Audio Components package v 1.2
+  This file is a part of New Audio Components package v 1.4
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
+
+   The original version of this file is written by Thomas la Cour,
+   http://www.top-house.dk/~nr161/delphi/
+
+  Updated by Sergei Borisov < jr_ross@mail.ru >
+
 *)
 
-(* $Revision: 1.15 $ $Date: 2007/11/26 20:56:47 $ *)
+(* $Id *)
 
 unit ACS_MAC;
 
@@ -23,12 +24,23 @@ uses
   Classes, SysUtils, Windows, ACS_Classes, MACDll;
 
 const
+
+  mclFast = 1000;
+  mclNormal = 2000;
+  mclHigh = 3000;
+  mclExtraHigh = 4000;
+
   OUT_BUF_SIZE = $10000;
   IN_BUF_SIZE = $2000;
 
 type
 
   // Note by A.B.: It seems that APE compressor supports file output only.
+
+  (* Class: TMACOut
+     Monkey's Audio (APE) encoder.
+     Descends from <TAuFileOut>.
+     Requires MACDll.dll. *)
 
   TMACOut = class(TAuFileOut)
   private
@@ -47,12 +59,23 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: CompressionLevel
+       Use this property to set the compression level for the APE file being created.
+       The pssible values are 1000 (fastest time, lowest compression rate), 2000 (the default), 3000, 4000 (slowest comression time, maximum compression rate). *)
     property CompressionLevel: LongInt read FCompressionLevel write SetCompressionLevel stored True;
+    (* Property: MaxAudioBytes
+       Use this property to set the absolute maximum audio bytes that will be encoded.
+       If this number is unknown, set it to -1 (the default value).*)
     property MaxAudioBytes: Integer read FMaxAudioBytes write FMaxAudioBytes;
   end;
 
   (* Note by A.B.: Due to the reasons described above this component
      ignores streamed input *)
+
+  (* Class: TMACIn
+     Monkey's Audio (APE) decoder.
+     Descends from <TAuFileIn>.
+     Requires MACDll.dll. *)
 
   TMACIn = class(TAuFileIn)
   private
@@ -79,12 +102,23 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GetDataInternal(var Buffer: Pointer; var Bytes : Integer); override;
-
+    (* Property: AverageBitrate
+       This property shows the average bitrate for the ape file being played.*)
     property AverageBitrate: Integer read GetAverageBitrate;
+    (* Property: CurrentBitrate
+       This property shows the current bitrate for the ape file being played.*)
     property CurrentBitrate: Integer read GetCurrentBitrate;
+    (* Property: CurrentBlock
+       Read this property to get the number of block being read from file.*)
     property CurrentBlock: Integer read GetCurrentBlock;
+    (* Property: CurrentMS
+       This property shows how many milliseconds have passed since the beginning of the file.*)
     property CurrentMS: Integer read GetCurrentMS;
+    (* Property: LengthMS
+       Read this property to get the length of the file in milliseconds.*)
     property LengthMS: Integer read GetLengthMS;
+    (* Property: TotalBlocks
+       The total number of blocks in the file.*)
     property TotalBlocks: Integer read GetTotalBlocks;
   end;
 
