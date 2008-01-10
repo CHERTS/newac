@@ -111,6 +111,8 @@ type
     FBlockSize: Integer;
     BytesPerBlock : Integer;
     MinFrameSize : Integer;
+    FCheckMD5Signature : Boolean;
+    FSignatureValid : Boolean;
     procedure ReadHeader;
     function GetComments : TVorbisTags;
     procedure ReadComments;
@@ -122,9 +124,22 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+  (* Property: IsMD5SignatureValid
+      If MD5 signature checking is turned on, this property returns True if the signature is correct (i.e. file contents is not broken).
+      This property value becomes meaningful only after the file has finished playing.
+      Note that if FLAC codec cannot check the signature for some internal reason, this property still returns True.*)
+    property IsMD5SignatureValid : Boolean read FSignatureValid;
   (* Property: VorbisComments
       Read this property to get tags (artist, title, etc.) that may be attached to the file.*)
     property VorbisComments : TVorbisTags read GetComments;
+  published
+  (* Property:  CheckMD5Signature
+      This property specifies whether the input file's MD5 signature should be checked.
+      The MD5 signature checking should be turned on before the file starts playing.
+      If you set this property to True, you can use <IsMD5SignatureValid> value to check the signature after file has finished playing.
+      Note, that seeking in the input file turns the signature checking off (the value of CheckMD5Signature becomes False).
+      In this case <IsMD5SignatureValid> will aalways return True.*)
+    property CheckMD5Signature : Boolean read FCheckMD5Signature write FCheckMD5Signature;
   end;
 
 
@@ -718,6 +733,8 @@ type
       if _decoder = nil then
       raise EAuException.Create('Failed to initialize the FLAC decoder.');
 //      FLAC__seekable_stream_decoder_set_metadata_ignore_all(_decoder);
+      if not FLAC__stream_decoder_set_md5_checking(_decoder, LongBool(FCheckMD5Signature)) then
+        raise EAuException.Create('Internal error 113, please report to NewAC developers');
       if FLAC__stream_decoder_init_stream(_decoder, DecReadCBFunc, DecSeekCBFunc,
                                        DecTellCBFunc, DecLengthCBFunc, DecEOFCBFunc,
                                        DecWriteCBFunc, DecMetadataCBProc,
@@ -742,7 +759,7 @@ type
       if _decoder <> nil then
       begin
         FLAC__stream_decoder_flush(_decoder);
-        FLAC__stream_decoder_finish(_decoder);
+        FSignatureValid := FLAC__stream_decoder_finish(_decoder);
         FLAC__stream_decoder_delete(_decoder);
         _decoder := nil;
       end;
@@ -804,6 +821,7 @@ type
     Aligned : Int64;
   begin
     Result := False;
+    FCheckMD5Signature := False;
     if FBlockSize <> 0 then
     begin
       Residue := SampleNum mod FBlockSize;
