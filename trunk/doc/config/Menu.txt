@@ -56,6 +56,8 @@ Group: Units  {
 
    Group: I/O  {
 
+      File: ACS_Audio  (src\ACS_Audio.pas)
+      File: ACS_AudioMix  (src\ACS_AudioMix.pas)
       File: ACS_CDROM  (src\ACS_CDROM.pas)
       File: ACS_Classes  (src\ACS_Classes.pas)
       File: ACS_DXAudio  (src\ACS_DXAudio.pas)
@@ -69,8 +71,6 @@ Group: Units  {
       File: ACS_WavPack  (src\ACS_WavPack.pas)
       File: ACS_Wave  (src\ACS_Wave.pas)
       File: ACS_WinMedia  (src\ACS_WinMedia.pas)
-      File: ACS_Audio  (src\ACS_Audio.pas)
-      File: ACS_AudioMix  (src\ACS_AudioMix.pas)
       }  # Group: I/O
 
    Group: Conversion  {
@@ -95,17 +95,17 @@ Group: Units  {
       File: Codec  (src\Codec.pas)
       File: DSWrapper  (src\DSWrapper.pas)
       File: FLAC  (src\FLAC.pas)
+      File: MACDll.pas  (src\MACDll.pas)
+      File: MAD.pas  (src\MAD.pas)
+      File: VorbisEnc.pas  (src\VorbisEnc.pas)
+      File: VorbisFile.pas  (src\VorbisFile.pas)
+      File: WavPackDLL  (src\WavPackDLL.pas)
+      File: WaveConverter.pas  (src\WaveConverter.pas)
       File: lame.pas  (src\lame.pas)
       File: libsamplerate.pas  (src\libsamplerate.pas)
       File: libwma1.pas  (src\libwma1.pas)
-      File: MACDll.pas  (src\MACDll.pas)
-      File: MAD.pas  (src\MAD.pas)
       File: ogg.pas  (src\ogg.pas)
       File: ovencode  (src\ovencode.pas)
-      File: VorbisEnc.pas  (src\VorbisEnc.pas)
-      File: VorbisFile.pas  (src\VorbisFile.pas)
-      File: WaveConverter.pas  (src\WaveConverter.pas)
-      File: WavPackDLL  (src\WavPackDLL.pas)
       File: wmfintf.pas  (src\wmfintf.pas)
       }  # Group: Headers
 
