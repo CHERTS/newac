@@ -4,7 +4,7 @@ object Form1: TForm1
   Width = 290
   Height = 375
   Caption = 'FLAC Player'
-  Color = 95
+  Color = clNavy
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -14,32 +14,6 @@ object Form1: TForm1
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 48
-    Top = 56
-    Width = 50
-    Height = 13
-    AutoSize = False
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-  end
-  object Label2: TLabel
-    Left = 16
-    Top = 56
-    Width = 25
-    Height = 13
-    Caption = 'BPS'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
   object Label3: TLabel
     Left = 0
     Top = 328
@@ -250,6 +224,20 @@ object Form1: TForm1
     TickMarks = tmBottomRight
     TickStyle = tsAuto
     OnChange = TrackBar1Change
+  end
+  object CheckBox1: TCheckBox
+    Left = 16
+    Top = 56
+    Width = 153
+    Height = 17
+    Caption = 'Chek MD5 Signature'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clAqua
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 6
   end
   object OpenDialog1: TOpenDialog
     Filter = 'FLAC Files|*.flac'
