@@ -40,7 +40,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (* Property HasAudio
+    (* Property: HasAudio
        Read this property to determine if the input file has an audio stream.
        The False value indicates that either an audio stream is missing (in
        WMV file) or the input file is corrupt.
