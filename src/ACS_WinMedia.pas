@@ -116,13 +116,11 @@ implementation
     try
     if FOpened = 0 then
     begin
-      FValid := True;
       if (not FStreamAssigned) and (FWideFileName = '') then
       raise EAuException.Create('File name is not assigned');
       if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead, fmShareDenyNone);
       lwma_reader_init(reader, FStream);
-      if not reader.has_audio then
-        raise EAuException.Create('File has no audio');
+      FValid := reader.has_audio;
       if reader._protected then
         raise EAuException.Create('File is protected');
       FValid := True;

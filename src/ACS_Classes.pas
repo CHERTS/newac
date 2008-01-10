@@ -459,11 +459,11 @@ type
     *)
     function SetEndTime(Minutes, Seconds : Integer) : Boolean;
     (* Procedure: Jump
-        This method simpifies navigation in the input stream.
+        This method, being a wrapper around <Seek>, simpifies navigation in the input stream.
         Calling Jump moves you backward or forward relative to the current position.
         Jump may be called either before starting playback (in this case the playback will be started from the position specified) or during the playback.
       Parameters:
-        Offs - the amount of fil contents, in percent, that will be skipped.
+        Offs - the amount of file contents, in percent, that will be skipped.
         Positive value skips forward, negative value skips backward.
         For example calling Jump(-100) always sets the playing position at the beginning of the file.
         Note: Use <Seek> for more exact positioning.
@@ -474,7 +474,7 @@ type
       Read this property to determine if the file is valid.
       It is a good practice to check this property before performing other operations on audio stream.
       Note however that True returned by Valid doesn't guarantee the file is fully playable.
-      It indicates only that the fille could be opened successfully. *)
+      It indicates only that the fille could be opened successfully and the file headers were correct. *)
     property Valid : Boolean read GetValid;
     (* Property: WideFileName
         Allows you to handle file names in Unicode. Setting its value
