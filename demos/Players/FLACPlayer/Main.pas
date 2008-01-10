@@ -17,8 +17,6 @@ uses
 type
   TForm1 = class(TForm)
     OpenDialog1: TOpenDialog;
-    Label1: TLabel;
-    Label2: TLabel;
     Label3: TLabel;
     ScrollBar1: TScrollBar;
     Label5: TLabel;
@@ -36,6 +34,7 @@ type
     Label10: TLabel;
     FLACIn1: TFLACIn;
     DXAudioOut1: TDXAudioOut;
+    CheckBox1: TCheckBox;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
@@ -72,6 +71,7 @@ begin
       Exit;
     end;
     BitBtn1.Enabled := False;
+    FLACIn1.CheckMD5Signature := CheckBox1.Checked;
     Label3.Caption := FLACIn1.FileName;
     DXAudioOut1.Run;
     Label4.Caption := IntToStr(FLACIn1.SampleRate);
@@ -104,8 +104,13 @@ end;
 
 procedure TForm1.AudioOut1Done(Sender: TComponent);
 begin
-   BitBtn1.Enabled := True;
-   ScrollBar1.Enabled := False;
+  BitBtn1.Enabled := True;
+  ScrollBar1.Enabled := False;
+  if FLACIn1.CheckMD5Signature then
+    if FLACIn1.IsMD5SignatureValid then
+      Label3.Caption := 'File''s MD5 Signature is valid'
+    else
+      Label3.Caption := 'File''s MD5 Signature is not valid'
 end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
