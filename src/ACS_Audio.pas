@@ -17,7 +17,10 @@ unit ACS_Audio;
 (* Title: ACS_Audio
     Classes dealing with audio data via MMSystem. *)
 
+
 interface
+
+{$WARNINGS OFF}
 
 uses
   Classes, SysUtils, ACS_Types, ACS_Classes, Windows, MMSystem;
@@ -104,33 +107,34 @@ type
     BlocksCount : Integer;
     FBaseChannel : Integer;
     _audio_fd : Integer;
-    FBPS, FChan, FFreq : Integer;
+    FBPS, FChan, FFreq : LongWord;
     buf : array[1..INBUF_SIZE] of Byte;
     FOpened : Integer;
     FRecTime : Integer;
     FRecBytes : Integer;
     procedure OpenAudio;
     procedure CloseAudio;
-    function GetBPS : Integer; override;
-    function GetCh : Integer; override;
-    function GetSR : Integer; override;
     procedure SetChannel(Ch : Integer);
     function GetDeviceInfo : TDeviceInfo;
     procedure NewBlock;
-    function GetTotalTime : Integer; override;
     procedure AddBlockToChain(WH : PWaveHdr);
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    function GetTotalTime : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
     property DeviceInfo : TDeviceInfo read GetDeviceInfo;
   published
     property BaseChannel : Integer read FBaseChannel write SetChannel stored True;
-    property InBitsPerSample : Integer read GetBPS write FBPS stored True;
-    property InChannels : Integer read GetCh write FChan stored True;
-    property InSampleRate : Integer read GetSR write FFreq stored True;
+    property InBitsPerSample : LongWord read GetBPS write FBPS stored True;
+    property InChannels : LongWord read GetCh write FChan stored True;
+    property InSampleRate : LongWord read GetSR write FFreq stored True;
     property RecTime : Integer read FRecTime write FRecTime stored True;
   end;
 
@@ -508,6 +512,7 @@ function CountChannels : Integer;
 begin
   OutputChannelsCount := waveOutGetNumDevs;
   InputChannelsCount := waveInGetNumDevs;
+  Result := OutputChannelsCount;
 end;
 
 function TAudioOut.GetDeviceInfo;
@@ -543,5 +548,7 @@ finalization
 
   DeleteCriticalSection(CrSecI);
   DeleteCriticalSection(CrSecO);
+
+ {$WARNINGS ON}
 
 end.
