@@ -258,14 +258,6 @@ object Form1: TForm1
     Left = 256
     Top = 224
   end
-  object AudioConverter1: TAudioConverter
-    Input = Resampler1
-    Mode = msmMonoToBoth
-    OutBitsPerSample = 0
-    OutChannles = 0
-    Left = 352
-    Top = 224
-  end
   object Resampler1: TResampler
     Input = WaveIn1
     Quality = rqBest
@@ -290,6 +282,14 @@ object Form1: TForm1
     FileMode = foRewrite
     DesiredBitrate = 256
     Left = 416
+    Top = 224
+  end
+  object AudioConverter1: TAudioConverter
+    Input = Resampler1
+    Mode = msmMonoToBoth
+    OutBitsPerSample = 0
+    OutChannels = 0
+    Left = 352
     Top = 224
   end
 end
