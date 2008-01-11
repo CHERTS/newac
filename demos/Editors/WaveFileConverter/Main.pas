@@ -48,12 +48,12 @@ type
     Edit1: TEdit;
     ComboBox1: TComboBox;
     Label17: TLabel;
-    AudioConverter1: TAudioConverter;
     Resampler1: TResampler;
     Button4: TButton;
     ProgressBar1: TProgressBar;
     WaveOut1: TWaveOut;
     WMAOut1: TWMAOut;
+    AudioConverter1: TAudioConverter;
     procedure Button3Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
     procedure Button1Click(Sender: TObject);
@@ -84,7 +84,7 @@ begin
   if Output.FileName = '' then
     raise EAuException.Create('The output file name is not set!');
   AudioConverter1.OutBitsPerSample := 0;
-  AudioConverter1.OutChannles := 0;
+  AudioConverter1.OutChannels := 0;
   Ch := SpinEdit1.Value;
   SR := StrToInt(Edit1.Text);
   BPS := SpinEdit3.Value;
@@ -93,7 +93,7 @@ begin
     if WaveIn1.BitsPerSample <> BPS then
       AudioConverter1.OutBitsPerSample := BPS;
     if WaveIn1.Channels <> Ch then
-      AudioConverter1.OutChannles := Ch;
+      AudioConverter1.OutChannels := Ch;
     Resampler1.OutSampleRate := StrToInt(Edit1.Text);
     case ComboBox1.ItemIndex of
       0 : WaveOut1.WavType := wtPCM;
