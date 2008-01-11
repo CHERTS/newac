@@ -1609,6 +1609,7 @@ begin
     end else
     begin
       GetDataInternal(Buffer, Bytes);
+      Inc(FPosition, Bytes);
       if Bytes = 0 then
         _EndOfStream := True
     end;
