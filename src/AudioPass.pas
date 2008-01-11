@@ -27,14 +27,14 @@ type
     Freed : Boolean;
     DSW : DSoundWrapper;
     Devices : DSW_Devices;
-    Chan, SR, BPS : Integer;
+    Chan, SR, BPS : LongWord;
     StartInput : Boolean;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
-    _BufSize : Integer;
-    FBufferSize : Integer;
+    _BufSize : LongWord;
+    FBufferSize : LongWord;
     FillByte : Byte;
-    FUnderruns, _TmpUnderruns : Integer;
+    FUnderruns, _TmpUnderruns : LongWord;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure SetMute(b : Boolean);
@@ -52,8 +52,8 @@ type
     procedure _Resume; override;
     property DeviceCount : Integer read FDeviceCount;
     property DeviceName[Number : Integer] : String read GetDeviceName;
-    property Underruns : Integer read FUnderruns;
-    property BufferSize : Integer read FBufferSize write FBufferSize;
+    property Underruns : LongWord read FUnderruns;
+    property BufferSize : LongWord read FBufferSize write FBufferSize;
   published
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     property Mute : Boolean read FMute write SetMute;
