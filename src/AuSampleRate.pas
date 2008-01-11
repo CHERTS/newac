@@ -288,7 +288,6 @@ implementation
       Bytes := OBufferEnd - OBufferStart;
     Buffer := @OutputBuffer[OBufferStart];
     Inc(OBufferStart, Bytes);
-    Inc(FPosition, Bytes);
   end;
 
   procedure TResampler.FlushInternal;

@@ -950,8 +950,6 @@ implementation
       Bytes := BufEnd - BufStart;
     Buffer := @InOutBuf[BufStart];
     Inc(BufStart, Bytes);
-    //FPosition := Round(FInput.Position*(FSize/FInput.Size));
-    Inc(FPosition, Bytes);
   end;
 
 
@@ -1106,7 +1104,6 @@ implementation
     if Bytes > OBufEnd - OBufStart then Bytes := OBufEnd - OBufStart;
     Buffer := @OBuf[OBufStart];
     Inc(OBufStart, Bytes);
-    Inc(FPosition, Bytes);
   end;
 
 {$WARNINGS ON}

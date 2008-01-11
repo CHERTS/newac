@@ -156,23 +156,23 @@ begin
   if FMute then
   begin
     FInput.GetData(Buffer, Bytes);
-    Inc(FPosition, Bytes);
     Exit;
   end;
   if StartInput then
   begin
-    if _BufSize - FPosition < Bytes then Bytes := _BufSize - FPosition;
-    FInput.GetData(Buffer, Bytes);
-    if Bytes = 0 then
-      Exit;
-    DSW_WriteBlock(DSW, Buffer, Bytes);
-    Inc(FPosition, Bytes);
     if FPosition = _BufSize then
     begin
       DSW_StartOutput(DSW);
       StartInput := False;
-    end;
-    Exit;
+    end else
+    begin
+      if _BufSize - FPosition < Bytes then Bytes := _BufSize - FPosition;
+      FInput.GetData(Buffer, Bytes);
+      if Bytes = 0 then
+        Exit;
+      DSW_WriteBlock(DSW, Buffer, Bytes);
+      Exit;
+    end;  
   end;
   repeat
     Sleep(DS_POLLING_INTERVAL);
@@ -200,7 +200,6 @@ begin
     FUnderruns := DSW.dsw_OutputUnderflows - _TmpUnderruns;
     _TmpUnderruns := DSW.dsw_OutputUnderflows;
   end;
-  Inc(FPosition, Bytes);
 end;
 
 procedure TAudioPass.SetMute;
