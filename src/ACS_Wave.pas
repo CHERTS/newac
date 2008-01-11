@@ -14,7 +14,7 @@ unit ACS_Wave;
     Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
     for more details. *)
 
-{$WARNINGS OFF}
+
 
 interface
 
@@ -165,7 +165,7 @@ type
   TMS_ADPCM_INFO = record
     BlockLength : Word;
     SamplesPerBlock : Word;
-    DataSize : Integer;
+    DataSize : LongWord;
     NumCoeff : Word;
     CoefSets : array[0..31] of TMS_ADPCM_COEF_SET; // Is that enough?
   end;
@@ -685,8 +685,9 @@ const
           (* Checking if the file is ACM encoded and if it is, decoding it.
              Thanks to Jan Henrik Ejme, <jan.h.ejme@xhlp.com> for the
              provided converter units. *)
-          try
             WaveConverter := TWaveConverter.Create;
+          try
+
             FStream.Position := 0;
             WaveConverter.LoadStream(FStream);
             with WaveConverter.NewFormat.Format do
@@ -1722,5 +1723,5 @@ end;
     if BS <> 0 then
     if (BS mod 4) = 0 then FBlockAlign := BS;
   end;
-{$WARNINGS ON}
+
 end.
