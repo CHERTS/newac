@@ -153,6 +153,8 @@ type
     procedure SetCurrentDrive(Value : Integer);
     function GetDriveName : String;
   protected
+    function GetTotalSamples : Int64; override;
+    function GetTotalTime : LongWord; override;
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
@@ -917,5 +919,16 @@ implementation
   begin
     CR_EjectCD(False);
   end;
+
+  function TCDIn.GetTotalSamples;
+  begin
+    Result := GetSize div 4;
+  end;
+
+  function TCDIn.GetTotalTime;
+  begin
+    Result := Round(GetTotalSamples/44100);
+  end;
+
 
 end.
