@@ -184,6 +184,10 @@ type
     Samp2 : array[0..1] of SmallInt;
   end;
 
+  (* Class: TWaveIn
+     Wave file decoder.
+     Descends from <TAuFileIn>.*)
+
   TWaveIn = class(TAuFileIn)
   private
     buf : array[1..BUF_SIZE] of Byte;
@@ -217,10 +221,17 @@ type
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
+    (* Property: WavType
+      This property indicates the current .wav file encoding. Possible values are: wtUnsupported (unsupported encoding) wtPCM (raw PCM encoding) wtACM (MS ACM encoding),
+      wtDVIADPCM (MS DVI IMA ADPCM 4:1 encoding), wtMSADPCM (MS ADPCM encoding).*)
     property WavType : TWavType read GetWavType;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
+
+  (* Class: TWaveOut
+     Wave file encoder.
+     Descends from <TAuFileOut>.*)
 
   TWaveOut = class(TAuFileOut)
   private
@@ -254,7 +265,16 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: WavType
+      Use this property to specify output .wav file encoding.
+      Supported encodings are wtPCM (raw PCM encoding) and wtDVIADPCM (MS DVI IMA ADPCM 4:1 encoding).
+      When you append data to already existing file (with data in either raw PCM or MS DVI IMA ADPCM encoding)
+      this property will be automatically set to the file encoding. *)
     property WavType : TWavType read FWavType write SetWavType;
+    (*Property: BlockSize
+      Use this property to set the size of the DVI IMA ADPCM block in bytes (when using DVI IMA ADPCM encoding).
+      The size of the block must be a multiple of four.
+      Since all the blocks in the file must be the same size, the size of the block will be set automatically when appending data to the existing MS DVI IMA ADPCM encoded file.*)
     property BlockSize : Word read FBlockAlign write SetBlockSize;
   end;
 
