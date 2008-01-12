@@ -25,16 +25,16 @@ type
   TTrackType = (ttAudio, ttData);
   TCDInfo = (cdiNoDisc, cdiDiscAudio, cdiDiscData, cdiDiscMixed, cdiUnknown);
 
-  {$IFNDEF _BCPLUSPLUS}
+
   TMCN = array[0..13] of Char;
-  {$ENDIF}
 
-  {$IFDEF _BCPLUSPLUS}
-  TMCN = record
-    MCN : array[0..13] of Char;
-  end;
-  {$ENDIF}
-
+  (* Record: TCDMSF
+     The standrt measure of time duration (and byte length) when dealing wwith CD-DA.
+     Properties:
+       Minute - the number of full minutes in a track.
+       Second - the number of full seconds in a track.
+       Frame - the number of frames. One frame constitutes 1/75 of a second and 2352 bytes.
+  *)
 
   TCDMSF = record
     Minute : Byte;
@@ -42,10 +42,23 @@ type
     Frame : Byte;
   end;
 
+  (* Record: TCDTrackInfo
+     Carries information about a CD_DA track.
+     Properties:
+     TrackLength : TCDMSF - length of the track in MSF format.
+     TrackType : TTrackType - type of the track (posible values are ttAudio - for audio tracks and ttData for data tracks).
+   *)
   TCDTrackInfo = record
     TrackLength : TCDMSF;
     TrackType : TTrackType;
   end;
+
+  (* Record: TCDPosition
+     Represents the current reader position on disc.
+     Properties:
+     Track - the track number (valid values vary from 1 to 99).
+     MSF - the position within a track in a MSF format.
+   *)
 
   TCDPosition = record
     Track : Integer;
@@ -54,6 +67,8 @@ type
 
 const
 
+  (* Constant : EndOFDisc
+    This is a constant representing the logical position beyond the end of disc (very much like EOF for files).*)
   EndOfDisc : TCDPosition = (Track : 100; MSF : (Minute : 0; Second : 0; Frame : 0));
   CD_FRAMESIZE_RAW = 2352;
   BUF_SIZE = 75 * CD_FRAMESIZE_RAW;  // 75 frames - 1 sec
@@ -62,7 +77,7 @@ var
   AppPath : String;
   WinPath : String;
 
-type  
+type
 
   TCDPlayer = class(TComponent)
   private
@@ -88,9 +103,7 @@ type
     procedure SetRVolume(aVolume : Word);
     function  GetLVolume : Word;
     function  GetRVolume : Word;
-   {$IFNDEF _BCPLUSPLUS}
     function GetDriveLetter(anIndex : Integer) : Char;
-   {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -101,17 +114,8 @@ type
     procedure Play(PlayFrom, PlayTo : TCDPosition); overload;
     procedure Resume;
     procedure Stop;
-
-   {$IFDEF _BCPLUSPLUS}
-    function GetDriveLetter(anIndex : Integer) : Char;
-   {$ENDIF}
-
     property DiscInfo : TCDInfo read GetDiscInfo;
-
-   {$IFNDEF _BCPLUSPLUS}
     property DriveLetter[anIndex : Integer] : Char read GetDriveLetter;
-   {$ENDIF}
-
     property MCN : TMCN read GetMCN;
     property MediaChanged : Boolean read GetMediaChanged;
     property Position : TCDPosition read GetPosition;
@@ -124,6 +128,11 @@ type
     property LVolume : Word read GetLVolume write SetLVolume;
     property RVolume : Word read GetRVolume write SetRVolume;
   end;
+
+  (* Class: TCDIn
+     This component reads data from CD-DA direclty. I is suitable for creating CD-rippers.
+     Descends from <TAuInput>.
+     Requires CDRip.dll. *)
 
   TCDIn = class(TAuInput)
   private
@@ -138,11 +147,7 @@ type
     procedure CloseCD;
     function GetStatus : TCDStatus;
     function GetNumTracks : Integer;
-
-   {$IFNDEF _BCPLUSPLUS}
     function GetTrackInfo(const vIndex : Integer) : TCDTrackInfo;
-   {$ENDIF}
-
     procedure SetST(Track : Integer);
     procedure SetET(Track : Integer);
     procedure SetSP(Pos : TCDPosition);
@@ -158,33 +163,69 @@ type
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    (* Procedure: Eject
+      Ejects CD-ROM drive's tray.*)
     procedure Eject;
+    (* Procedure: CloseTray
+      Closes CD-ROM drive's tray. *)
     procedure CloseTray;
-
-   {$IFDEF _BCPLUSPLUS}
-    function GetTrackInfo(const vIndex : Integer) : TCDTrackInfo;
-   {$ENDIF}
-
+    (* Property: DiscInfo
+      Read this property to get informtion about a disc in the drive.
+      Possibe values:
+        cdiNoDisc - no disc in the drive.
+        cdiDiscAudio - an audio disc.
+        cdiDiscData - a data disc.
+        cdiDiscMixed - a mixed audio-data disc.
+        cdiUnknown - a disc in unknown format. *)
     property DiscInfo: TCDInfo read GetInfo;
+    (* Property: Status
+    Read Status to get an information about the disc/drive status.
+    The possible values of this property are:
+      cdsNotReady - Drive is not ready.
+      cdsReady - Drive is ready to play.
+      cdsPlaying - Drive is already playing a disc.
+      cdsPaused - Drive is paused.
+    *)
     property Status: TCDStatus read GetStatus;
-
-   {$IFNDEF _BCPLUSPLUS}
+    (*Property: Tracks[const vIndex : Integer]
+        This array property returns information about a track specified by its number.
+        The possible values of indexes range from 1 to <TracksCount>.
+        The information about a track is returned as <TCDTrackInfo> record. *)
     property Tracks[const vIndex : Integer] : TCDTrackInfo read GetTrackInfo;
-   {$ENDIF}
-
+    (*Property: TracksCount
+      The number of tracks on the disc/*)
     property TracksCount : Integer read GetNumTracks;
+    (*Property: DriveName
+      The name of the current CD-ROM drive as returned by the drive unit.*)
     property DriveName : String read GetDriveName;
+    (*Property: DrivesCount
+      The total number of the CD-ROM drives detected in the system.*)
     property DrivesCount : Integer read GetDrivesCount;
+    (*Property: StartPos
+      Set this property to specify the starting position for data transfer in a <TCDPosition> format.*)
     property StartPos : TCDPosition read FStartPos write SetSP;
+    (*Property: EndPos
+      Set this property to specify the end position for data transfer in a <TCDPosition> format.
+      There is a special constant EndOfDisc of type <TCDPosition>
+      If you want to record from a certain point to the end of disc, set this property value to EndOfDisc.*)
     property EndPos : TCDPosition read FEndPos write SetEP;
+    (*Property: CurrentDrive
+      Use this property to set or get the number of the current CD-ROM drive.
+      Possible values range from 0 to <DrivesCount> - 1.*)
     property CurrentDrive : Integer read FCurrentDrive write SetCurrentDrive;
+    (*Property: StartTrack
+      Set StartTrack to specify the starting position for data transfer at the beginning of the track identified by number.
+      The tracks are numbered starting from 1.*)
     property StartTrack: Integer read FStartTrack write SetSt;
+    (*Property: EndTrack
+      Set EndTrack to specify the ending position for data transfer at the end of the track identified by number. If you want to get data from a single track,
+      the end track number should be the same as the start track number.*)
     property EndTrack: Integer read FEndTrack write SetET;
   end;
 
@@ -258,7 +299,7 @@ implementation
       begin
         CDDrives[CDDNum] := Ch;
         Inc(CDDNum);
-      end;  
+      end;
     end;
     FCurrentDrive := 0;
   end;
@@ -683,7 +724,7 @@ implementation
         end;
       end;
       CloseCD;
-    end;  
+    end;
   end;
 
   function TCDIn.GetStatus;
@@ -719,7 +760,6 @@ implementation
     TE1, TE2 : TTOCENTRY;
     Frames : Integer;
   begin
-//    if Buisy then raise EACSException.Create('The component is buisy');
     if (vIndex in [1..GetNumTracks]) = False then
     raise EAuException.Create('Track out of range.');
     OpenCD;
@@ -735,7 +775,7 @@ implementation
 
   procedure TCDIn.SetST;
   begin
-    if Self.Busy then raise EAuException.Create('The component is buisy');
+    if Self.Busy then raise EAuException.Create('The component is busy');
     FStartTrack := Track;
     FStartPos.Track := FStartTrack;
     FillChar(FStartPos.MSF, SizeOf(FStartPos.MSF), 0);
@@ -806,7 +846,7 @@ implementation
     begin
       Result := FRipSize;
       Exit;
-    end;  
+    end;
     OpenCD;
     CR_ReadToc;
     TE := GetTocEntry(FStartPos.Track-1);
