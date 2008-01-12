@@ -1213,7 +1213,6 @@ end;
     OpenFile;
     if (SampleRate = 0) or (Channels = 0) or (BitsPerSample = 0) then Exit;
     Result := Round(Size/(SampleRate*Channels*(BitsPerSample shr 3)));
-//    CloseFile;
   end;
 
   procedure TAuStreamedInput.SetStream;
@@ -1536,8 +1535,10 @@ end;
   function TAuFileIn.GetTotalSamples;
   begin
     OpenFile;
+    if FSize > 0 then
+    FTotalSamples := FSize div (FChan*FBPS div 8)
+    else FTotalSamples := -1;
     Result := FTotalSamples;
-//    CloseFile;
   end;
 
 procedure TAuFileIn.SetStream;
