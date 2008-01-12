@@ -317,6 +317,8 @@ begin
   FChan := 1;
   FFreq := 8000;
   FSize := -1;
+  FRecTime := -1;
+  FSamplesToRead := -1;
 //  if not (csDesigning in ComponentState) then
 //  begin
 //    if not LibdswLoaded then
@@ -356,7 +358,7 @@ begin
         else S := 'Unknown';
       end;
       raise EAuException.Create('Failed to create DirectSound device: ' + S);
-    end;  
+    end;
     _BufSize := DS_BUFFER_SIZE*(FBPS shr 3)*FChan;
     GetMem(Buf, _BufSize);
     Res := DSW_InitInputBuffer(DSW, FBPS, FFreq, FChan, _BufSize);
@@ -395,9 +397,7 @@ begin
   if Busy then raise EAuException.Create('The component is busy');
   if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid device number');
 {$WARNINGS OFF}
-  if FRecTime > 0 then FSamplesToRead := FRecTime*FFreq
-  else
-    FSamplesToRead := -1;
+  if FRecTime > 0 then FSamplesToRead := FRecTime*FFreq;
 {$WARNINGS ON}
   BufEnd := 0;
   BufStart := 1;
@@ -424,7 +424,7 @@ var
   l : INteger;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
-  if  (FSamplesToRead >=0) and (FPosition > FSize) then
+  if  (FSamplesToRead >=0) and (FPosition >= FSize) then
   begin
     Buffer := nil;
     Bytes := 0;
@@ -447,6 +447,8 @@ begin
   end;
   if Bytes > (BufEnd - BufStart) then
     Bytes := BufEnd - BufStart;
+  if Bytes > FSize - FPosition then
+    Bytes := FSize - FPosition;
   Buffer := @Buf[BufStart];
   Inc(BufStart, Bytes);
   Inc(FPosition, Bytes);
