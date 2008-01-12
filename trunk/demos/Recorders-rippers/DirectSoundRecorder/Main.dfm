@@ -169,16 +169,6 @@ object Form1: TForm1
     Left = 160
     Top = 176
   end
-  object DXAudioIn1: TDXAudioIn
-    BytesToRead = -1
-    DeviceNumber = 0
-    InBitsPerSample = 16
-    InChannels = 2
-    InSampleRate = 44100
-    RecTime = 0
-    Left = 16
-    Top = 176
-  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
     Left = 192
@@ -198,6 +188,7 @@ object Form1: TForm1
     MinResidualPartitionOrder = 0
     QLPCoeffPrecision = 0
     QLPCoeffPrecisionSearch = False
+    Tags.Track = 0
     Verify = False
     Left = 128
     Top = 176
@@ -222,6 +213,15 @@ object Form1: TForm1
     WavType = wtPCM
     BlockSize = 512
     Left = 64
+    Top = 176
+  end
+  object DXAudioIn1: TDXAudioIn
+    DeviceNumber = 0
+    InBitsPerSample = 8
+    InChannels = 1
+    InSampleRate = 8000
+    RecTime = 0
+    Left = 32
     Top = 176
   end
 end

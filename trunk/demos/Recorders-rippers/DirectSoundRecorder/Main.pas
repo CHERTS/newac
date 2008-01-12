@@ -20,7 +20,6 @@ type
     SaveDialog1: TSaveDialog;
     Label1: TLabel;
     StatusBar1: TStatusBar;
-    DXAudioIn1: TDXAudioIn;
     StopButton: TButton;
     Timer1: TTimer;
     SpinEdit1: TSpinEdit;
@@ -38,6 +37,7 @@ type
     FLACOut1: TFLACOut;
     VorbisOut1: TVorbisOut;
     WaveOut1: TWaveOut;
+    DXAudioIn1: TDXAudioIn;
     procedure RecordButtonClick(Sender: TObject);
     procedure SaveDialog1TypeChange(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
