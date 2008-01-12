@@ -101,6 +101,7 @@ type
     procedure SetRecTime(aRecTime : Integer);
   protected
     function GetTotalTime : LongWord; override;
+    function GetTotalSampls : Int64; override;
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
@@ -455,7 +456,7 @@ procedure TDXAudioIn.SetRecTime;
 begin
   FRecTime := aRecTime;
 {$WARNINGS OFF}
-  if FRecTime > 0 then FSamplesToRead := FRecTime*FFreq
+  if FRecTime >= 0 then FSamplesToRead := FRecTime*FFreq
 {$WARNINGS ON}
   else FSamplesToRead := -1;
 end;
@@ -480,6 +481,12 @@ begin
   else
   Result := Round(FSamplesToRead/BytesPerSec);
 end;
+
+function TDXAudioIn.GetTotalSampls : LongWord;
+begin
+  Result := FSamplesToRead;
+end;
+
 
 procedure TDXAudioIn._Pause;
 begin
