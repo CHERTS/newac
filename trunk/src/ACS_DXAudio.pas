@@ -91,7 +91,7 @@ type
     FDeviceCount : Integer;
     FBPS, FChan, FFreq : LongWord;
     FOpened : Integer;
-    FBytesToRead : Integer;
+    FSamplesToRead : Int64;
     FRecTime : Integer;
     FUnderruns : Integer;
     procedure SetDeviceNumber(i : Integer);
@@ -125,13 +125,11 @@ type
          This read only property returns the number of internal buffer underruns that have occured during recording. *)
     property Underruns : Integer read FUnderruns;
   published
-    (* Property: BytesToRead
-         Use this property to set the number of bytes the component should
-         record. Be careful as the number of bytes you request should
-         constitute the integer number of frames. If you set this property
-         value to -1 the component will be endlessly recording until you stop
+    (* Property: SamplesToRead
+         Use this property to set the number of samples (frames) the component should
+         record. If you set this property value to -1 the component will be endlessly recording until you stop
          it. *)
-    property BytesToRead : Integer read FBytesToRead write FBytesToRead;
+    property SamplesToRead : Int64 read FSamplesToRead write FSamplesToRead;
     (* Property: DeviceNumber
          Use this property to select the recording device by number. The
          property default value is 0 which corresponds to the default audio
@@ -396,14 +394,19 @@ begin
   if Busy then raise EAuException.Create('The component is busy');
   if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid device number');
 {$WARNINGS OFF}
-  if FRecTime > 0 then FBytesToRead := FRecTime*FFreq*FChan*(FBPS div 8);
+  if FRecTime > 0 then FSamplesToRead := FRecTime*FFreq
+  else
+    FSamplesToRead := -1;
 {$WARNINGS ON}
   BufEnd := 0;
   BufStart := 1;
   FPosition := 0;
   Busy := True;
-  FSize := FBytesToRead;
   FSampleSize := FChan*FBPS div 8;
+  if FSamplesToRead > 0 then
+    FSize := FSamplesToRead*FSampleSize
+  else
+    FSize := -1;
   OpenAudio;
   DSW_StartInput(DSW);
 end;
@@ -420,7 +423,7 @@ var
   l : INteger;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
-  if  (FBytesToRead >=0) and (FPosition >= FBytesToRead) then
+  if  (FSamplesToRead >=0) and (FPosition > FSize) then
   begin
     Buffer := nil;
     Bytes := 0;
@@ -452,9 +455,9 @@ procedure TDXAudioIn.SetRecTime;
 begin
   FRecTime := aRecTime;
 {$WARNINGS OFF}
-  if FRecTime > 0 then FBytesToRead := FRecTime*FFreq*FSampleSize
+  if FRecTime > 0 then FSamplesToRead := FRecTime*FFreq
 {$WARNINGS ON}
-  else FBytesToRead := -1;
+  else FSamplesToRead := -1;
 end;
 
 procedure TDXAudioIn.SetDeviceNumber(i : Integer);
@@ -473,7 +476,9 @@ var
   BytesPerSec : Integer;
 begin
   BytesPerSec := FFreq*FSampleSize;
-  Result := Round(FBytesToRead/BytesPerSec);
+  if FSamplesToRead < 0 then Result := 0
+  else
+  Result := Round(FSamplesToRead/BytesPerSec);
 end;
 
 procedure TDXAudioIn._Pause;
