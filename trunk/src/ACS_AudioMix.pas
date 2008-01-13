@@ -1,11 +1,11 @@
 (*
-  This file is a part of New Audio Components package 1.2
+  This file is a part of New Audio Components package 1.4
   Copyright (c) 2002-2007 Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.8 $ $Date: 2007/11/26 20:56:26 $ *)
+(* $Id$ *)
 
 unit ACS_AudioMix;
 
@@ -23,6 +23,14 @@ const
 type
 
   TAudioMixerMode = (amMix, amConcatenate, amRTMix, amCustomMix);
+
+  (* Class: TAudioMixer
+     This component can mix or concatenate twoinput audio streams.
+     Unlike other stream converter components, TAudioMixer component has two input properties: Input1 and Input2.
+     The input streams should have the same number of channels, bits per sample and sample rates.
+     Note that input streams may be of different size. In amMix mode the streams start at the same time, but the longer stream will play alone after the shorter stream has ended.
+     In amRTMix mode you can add second stream to the first stream at any time, but the whole playback will end when the first stream ends.
+     Decends from <TAuInput>.*)
 
   TAudioMixer = class(TAuInput)
   private
@@ -50,14 +58,48 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Property: FgPlaying
+      Use this property in amRTMix mode to check if the forground sound is currently playing.*)
     property FgPlaying : Boolean read FFgPlaying;
     property Normalize : Boolean read FNormalize write FNormalize;
   published
+    (*Property: Input1
+    Use this property to set the first input stream to be mixed or concatenated.*)
     property Input1 : TAuInput read FInput1 write SetInput1;
+    (*Property: Input1
+    Use this property to set the second input stream to be mixed or concatenated.*)
     property Input2 : TAuInput read FInput2 write SetInput2;
+    (*Property: Mode
+     This property sets the mode for the TAudioMixer.
+     The possible values for this property are amMix, amConcatenate, amRTMix.
+     If it is set to amMix (default) the mixer mixes input streams and the size of the resulting stream is equal to the size of longest input stream.
+     If this property is set to amConcatenate, the two streams are concatenated together and the size of the resulting stream is the sum of the sizes of the input streams.
+     When the mode is amConcatenate the stream from the Input1 is put before the stream from the Input2.
+     In amRTMix mode you can add Input2 (forground) to Input1 (background) at any time while the mixer is playing. To add forground sound to the background just assign an input to Input2 property.
+     Note the following: after forground sound is done with the Input2 pointer becomes nil.
+     The total length of the playback is equal to the background sound length, with any forground sound still playing being aborted.
+     You can assign new forground sound while another forground sound is playing (in which case the new sound will replace the old one) but you cannot use the same input component in this case.
+     When the AudioMixer is playing you can tell if the forground sound is playing by checking the value of FgPlaying property.
+     The following code illustrates this:
+> var
+>   InputVar1 : TACSInput;
+>   InputVar2 : TACSInput;
+> begin
+>   AudioMixer1.Input2 := InputVar1;
+>   ...
+>   if AudioMixer1.FgPlaying then
+>   AudioMixer1.Input2 := InputVar2; // Cannot assign InputVar1 here
+>   ...
+>   if not AudioMixer1.FgPlaying then
+>   AudioMixer1.Input2 := InputVar2; // Can assign the same input component again
+*)
     property Mode : TAudioMixerMode read FMode write FMode;
     property Input2Start :Cardinal read FInput2Start write FInput2Start;
+    (*Property: Volume1
+      Use Volume1 to set the volume of the first stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
     property Volume1 : Byte read FVolume1 write FVolume1;
+    (*Property: Volume1
+      Use Volume1 to set the volume of the second stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
     property Volume2 : Byte read FVolume2 write FVolume2;
   end;
 
