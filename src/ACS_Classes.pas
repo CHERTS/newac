@@ -674,7 +674,10 @@ var
 procedure CreateEventHandler;
 begin
   if RCount = 0 then
+  begin
     EventHandler := TEventHandler.Create;
+    EventHandler.FreeOnTerminate := False;
+  end;
   Inc(RCount);
 end;
 
@@ -682,8 +685,12 @@ procedure ReleaseEventHandler;
 begin
   Dec(RCount);
   if RCount = 0 then
+  begin
+    EventHandler.Terminate;
+    EventHandler._Evt.Release;
+    EventHandler.WaitFor;
     EventHandler.Free;
-
+  end;
 end;
 
   constructor TEventHandler.Create;
@@ -907,7 +914,7 @@ end;
     Thread := TAuThread.Create(True);
     Thread.Parent := Self;
     Thread.DoNotify := True;
-    Thread.FreeOnTerminate := True;
+    Thread.FreeOnTerminate := False;
     Thread.HandleException := HandleException;
      CreateEventHandler;
     end;
@@ -918,6 +925,11 @@ end;
       if not (csDesigning in ComponentState) then
       begin
         Stop(False);
+        Thread.Terminate;
+        while Thread.Suspended do
+          Thread.Resume;
+        Thread.WaitFor;
+        Thread.Free;
         ReleaseEventHandler;
       end;
     inherited Destroy;
