@@ -1297,19 +1297,18 @@ end;
   procedure TAuConverter.SetInput;
   begin
     if aInput = Self then Exit;
-    if Busy then
-    begin
-      raise EAuException.Create('Converter components cannot change input on the fly.');
-  (*    NewInput := aInput;
-      NewInput.Init;
-      OldInput := FInput;
-      while InputLock do;
-      InputLock := True;
-      FInput := NewInput;
-      InputLock := False;
-      OldInput.Flush; *)
-    end else
-    FInput := aInput;
+    _Lock;
+    try
+      if Busy then
+      begin
+        FInput.Flush;
+        aInput.Init;
+        FInput := aInput;
+      end else
+      FInput := aInput;
+    finally
+      _Unlock;
+    end;  
   end;
 
   function TAuFileIn.SetStartTime;
@@ -1319,7 +1318,6 @@ end;
     Result := False;
     if not FSeekable then Exit;
     OpenFile;
-//    CloseFile;
     Sample := (Minutes*60+Seconds)*FSR;
     if Sample > FTotalSamples then Exit;
     FStartSample := Sample;
@@ -1333,7 +1331,6 @@ end;
     Result := False;
     if not FSeekable then Exit;
     OpenFile;
-//    CloseFile;
     Sample := (Minutes*60+Seconds)*FSR;
     if Sample > FTotalSamples then Exit;
     FEndSample := Sample;
