@@ -1398,7 +1398,6 @@ end;
   begin
     OpenFile;
     Result := _WavType;
-//    CloseFile;
   end;
 
   procedure TWaveOut.SetFileMode;
