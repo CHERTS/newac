@@ -80,7 +80,7 @@ type
     property Quality : TResamplerQuality read FQuality write FQuality;
     (* Property: OutSampleRate
       Use this property to set the sample rate for the resulting audio stream.
-      The output sample rate may be 256 times greater or 256 times les than the input stream sample rate.
+      The output sample rate may be 256 times greater or 256 times less than the input stream sample rate.
       If you set the output sample rate to the same value as the input sample rate, the componentss will switch
       to a pass-through mode. In this mode all the input will be passed on unchanged. This help chaining the TResampler component wih others
       that may not always need resampled data.*)
