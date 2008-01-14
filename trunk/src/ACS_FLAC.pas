@@ -103,6 +103,7 @@ type
 
   TFLACIn = class(TAuFileIn)
   private
+    EndOfMetadata : Boolean;
     FComments : TVorbisTags;
     Residue : Integer;
     Buff : PBuffer8;
@@ -113,9 +114,7 @@ type
     MinFrameSize : LongWord;
     FCheckMD5Signature : Boolean;
     FSignatureValid : Boolean;
-    procedure ReadHeader;
     function GetComments : TVorbisTags;
-    procedure ReadComments;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -518,11 +517,15 @@ type
   var
     FLACIn : TFLACIn;
     FI : FLAC__StreamMetadata_StreamInfo;
+    i : Integer;
+    S : String;
+    Entry : PFLAC__StreamMetadata_VorbisComment_Entry;
+    SL : TStringList;
   begin
+    FLACIn := TFLACIn(client_data);
     if metadata._type = FLAC__METADATA_TYPE_STREAMINFO then
     begin
       FI := metadata.stream_info;
-      FLACIn := TFLACIn(client_data);
       FLACIn.FSR := FI.sample_rate;
       FLACIn.FChan := FI.channels;
       if FLACIn.FChan > 2 then FLACIn.FValid := False;
@@ -533,8 +536,32 @@ type
     end;
     if metadata._type = FLAC__METADATA_TYPE_VORBIS_COMMENT then
     begin
-      raise exception.Create('ggg');
+      SL := TStringList.Create;
+      Entry := metadata.vorbis_comment.comments;
+      for i := 0 to  metadata.vorbis_comment.num_comments - 1 do
+      begin
+        SetLength(S, Entry.length);
+        Move(Entry.entry^, S[1], Length(S));
+        SL.Add(S);
+        Inc(LongWord(Entry), SizeOf(FLAC__StreamMetadata_VorbisComment_Entry));
+      end;
+      S := SL.Values['TITLE'];
+      FLACIn.FComments.Title := Utf8Decode(S);
+      S := SL.Values['ARTIST'];
+      FLACIn.FComments.Artist := Utf8Decode(S);
+      S := SL.Values['ALBUM'];
+      FLACIn.FComments.Album := Utf8Decode(S);
+      S := SL.Values['DATE'];
+      FLACIn.FComments.Date := Utf8Decode(S);
+      S := SL.Values['GENRE'];
+      FLACIn.FComments.Genre := Utf8Decode(S);
+      S := SL.Values['TRACK'];
+      if S <> '' then
+        FLACIn.FComments.Track := StrToInt(S)
+      else  FLACIn.FComments.Track := 0;
+      SL.Free; 
     end;
+    FLacIn.EndOfMetadata := metadata.is_last;
   end;
 
   procedure DecErrorCBProc(decoder : P_FLAC__StreamDecoder;
@@ -727,20 +754,27 @@ type
       raise EAuException.Create('File name is not assigned');
       if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead, fmShareDenyNone);
       FValid := True;
-      ReadHeader;
       _decoder := FLAC__stream_decoder_new;
       if _decoder = nil then
       raise EAuException.Create('Failed to initialize the FLAC decoder.');
-//      FLAC__seekable_stream_decoder_set_metadata_ignore_all(_decoder);
       if not FLAC__stream_decoder_set_md5_checking(_decoder, LongBool(FCheckMD5Signature)) then
         raise EAuException.Create('Internal error 113, please report to NewAC developers');
+      FLAC__stream_decoder_set_metadata_respond_all(_decoder);
       if FLAC__stream_decoder_init_stream(_decoder, DecReadCBFunc, DecSeekCBFunc,
                                        DecTellCBFunc, DecLengthCBFunc, DecEOFCBFunc,
                                        DecWriteCBFunc, DecMetadataCBProc,
                                        DecErrorCBProc, Self) <> FLAC__STREAM_DECODER_INIT_STATUS_OK then
       raise EAuException.Create('Failed to set up the FLAC decoder.');
-      if not FLAC__stream_decoder_process_until_end_of_metadata(_decoder) then
-      FValid := False;
+      FComments.Clear;
+      EndOfMetadata := False;
+      while not EndOfMetadata do
+      begin
+        if not FLAC__stream_decoder_process_single(_decoder) then
+        begin
+          FValid := False;
+          Break;
+        end;
+      end;
       BuffSize := 0;
       Buff := nil;
     end;
@@ -854,69 +888,6 @@ type
     Header[1] := Header[3];
     Header[3] := t;
     Move(Header[1], BI.BlockLength, 3);
-  end;
-
-  procedure TFlacIn.ReadHeader;
-  var
-    Signature : array [0..3] of Char;
-    BI : TBlockInfo;
-  begin
-    FComments.Clear;
-    FStream.Read(Signature, 4);
-    if Signature = 'fLaC' then
-    begin
-      FValid := True;
-      repeat
-        GetBlockInfo(FStream, BI);
-        if BI.BlockType = FLAC__METADATA_TYPE_VORBIS_COMMENT then
-        begin
-          ReadComments;
-          FStream.Seek(0, soFromBeginning);
-          Break;
-        end;
-        FStream.Seek(BI.BlockLength, soFromCurrent);
-      until not BI.HasNext;
-    end else
-      FValid := False;
-  end;
-
-  procedure TFLACIn.ReadComments;
-  var
-    i : integer;
-    l, ul : LongWord;
-    S : String;
-    WS : WideString;
-    SL : TStringList;
-  begin
-    // Reading Vendor
-    FStream.Read(l, 4);
-    SetLength(S, l);
-    FStream.Read(S[1], l);
-    WS := Utf8Decode(S);
-    FStream.Read(ul, 4);
-    SL := TStringList.Create;
-    for i := 1 to ul do
-    begin
-      FStream.Read(l, 4);
-      SetLength(S, l);
-      FStream.Read(S[1], l);
-      SL.Add(S);
-    end;
-    S := SL.Values['TITLE'];
-    FComments.Title := Utf8Decode(S);
-    S := SL.Values['ARTIST'];
-    FComments.Artist := Utf8Decode(S);
-    S := SL.Values['ALBUM'];
-    FComments.Album := Utf8Decode(S);
-    S := SL.Values['DATE'];
-    FComments.Date := Utf8Decode(S);
-    S := SL.Values['GENRE'];
-    FComments.Genre := Utf8Decode(S);
-    S := SL.Values['TRACK'];
-    if S <> '' then
-      FComments.Track := StrToInt(S)
-    else  FComments.Track := 0;
-    SL.Free;
   end;
 
   function TFLACIn.GetComments;
