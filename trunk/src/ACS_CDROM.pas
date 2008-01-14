@@ -67,7 +67,7 @@ type
 
 const
 
-  (* Constant : EndOFDisc
+  (* Constant: EndOfDisc
     This is a constant representing the logical position beyond the end of disc (very much like EOF for files).*)
   EndOfDisc : TCDPosition = (Track : 100; MSF : (Minute : 0; Second : 0; Frame : 0));
   CD_FRAMESIZE_RAW = 2352;
