@@ -41,7 +41,6 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    FS : TFileStream;
     WaveIn : TDemoWaveIn;
   public
     { Public declarations }
@@ -57,7 +56,6 @@ implementation
 procedure TForm1.BitBtn1Click(Sender: TObject);
 var
   Secs : String;
-  FN : String;
 begin
   if OpenDialog1.Execute then
   begin
