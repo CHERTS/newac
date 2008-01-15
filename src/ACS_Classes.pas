@@ -1147,9 +1147,10 @@ end;
     FTotalSamples := FSize div FSampleSize;
     FTime := FTotalSamples div FSR;
 
-    if StartSample <> 0 then Seek(StartSample);
-    if (StartSample <> 0) or (FEndSample <> -1) then
+    if FStartSample > 0 then Seek(FStartSample);
+    if (FStartSample > 0) or (FEndSample <> -1) then
     begin
+      if FEndSample > FTotalSamples then FEndSample := -1;
       if FEndSample = -1 then
         FTotalSamples :=  FTotalSamples - FStartSample + 1
       else
@@ -1594,6 +1595,8 @@ end;
 
 
 procedure TAuStreamedInput.GetData;
+var
+  SampleSize : Word;
 begin
   DataCS.Enter;
   try
@@ -1609,7 +1612,8 @@ begin
       else
       begin
         Inc(FPosition, Bytes);
-        if (FSize > 0) and (FPosition >= FSize) then
+        SampleSize :=  Channels*BitsPerSample div 8;
+        if (FSize > 0) and ((FPosition - FStartSample*SampleSize) >= FSize) then
           _EndOfStream := True;
       end;
       if _EndOfStream and FLoop then
