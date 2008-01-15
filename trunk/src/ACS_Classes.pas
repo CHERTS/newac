@@ -114,6 +114,25 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Procedure: GetData
+        This method retrieves input data. You specify the number of bytes you
+        want to get, but you may get less and it should not be considered as
+        an end of input indication. When the end of input is reached GetData
+        sets Buffer to nil and Bytes to 0.
+
+
+      Parameters:
+
+        Buffer - This is the variable where GetData will put a pointer to a
+          data buffer. Unlike many other data reading functions GetData
+          doesn't take our buffer pointer but provides you with its own.
+        Bytes - When you call GetData you pass to Bytes the number of bytes
+          you want to get. When the method returns the Bytes variable holds
+          the number of bytes in the Buffer.
+
+      Note:
+      Usually you should not call this method directly.
+    *)
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); virtual;
     (* Function: CopyData 
         Writes no more than BufferSize data into Buffer 
@@ -316,12 +335,23 @@ type
     FStream : TStream;
     FStreamAssigned : Boolean;
     FSeekable : Boolean;
+    FStartSample, FEndSample : Int64;
+    FLoop : Boolean;
     procedure SetStream(aStream : TStream); virtual;
+    (* You have to override the SeekInternal method whether your input component is seekable or not.
+      if your component is  not seekable then you can write a method like this:
+      function TMyComponent.SeekInternal(var SampleNum : Int64) : Boolean;
+      begin
+        Result := False;
+      end;
+      If you want to make your component seekable you have to implement a real seeking in this function. *)
+    function SeekInternal(var SampleNum : Int64) : Boolean; virtual; abstract;
   public
+
+
     (* Property: Seekable
       This read only property indicates when the input is seekable. *)
-    // The description says read only, but it has read and write
-    property Seekable : Boolean read FSeekable write FSeekable;
+    property Seekable : Boolean read FSeekable;
     (* Property: Stream
       Use this property to set the input data stream for the input component.
       Any TStream descendant may be used as a data source. Note that if you
@@ -333,7 +363,39 @@ type
       the stream is seekable it will be reset to the beginning at the end of
       the playback. *)
     property Stream : TStream read FStream write SetStream;
+    procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
+    (* Function: Seek
+        This method allows you to change the current playing position in the
+        the input component. If the input component is stopped or paused,
+        calling Seek sets the sample from which the playback will begin. Note
+        that not all inputs are seekable.
+
+      Parameters:
+        SampleNum - The number of sample (frame) to play from. This number is
+          set relative to the beginning of the stream.
+
+      Returns:
+        Boolean - A False value indicates that either a seek failed (you are
+          seeking beyond the end of file) or that input stream is not
+          seekable.
+    *)
+    function Seek(SampleNum : Int64) : Boolean;
     constructor Create(AOwner: TComponent); override;
+  published
+     (* Property: EndSample
+        Set this property's value to the sample (frame) you want the input to
+        stop playing at. By default it is set to -1 which indicates "play to
+        the end of input." Changing this property value has an effect only
+        when the component is idle. *)
+    property EndSample : Int64 read FEndSample write FEndSample;
+    (* Property: Loop
+        If set to True, the input loops (i.e. starts again from the beginning
+        after it is finished). *)
+    property Loop : Boolean read FLoop write FLoop;
+    (* Property: StartSample
+        Set this property's value to the sample (frame) you want the input to
+        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect. *)
+    property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
 (* Class: TAuStreamedOutput
@@ -366,8 +428,6 @@ type
     FSR : LongWord;   // sample rate
     FChan : LongWord; // Number of channels
     FTime : LongWord;
-    FLoop : Boolean;
-    FStartSample, FEndSample : Int64;
     FTotalSamples : Int64;
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
@@ -401,48 +461,11 @@ type
         call it directly. *)
     procedure CloseFile; virtual; abstract;
     function GetTotalTime : LongWord; override;
-    function SeekInternal(var SampleNum : Int64) : Boolean; virtual; abstract;
     procedure FlushInternal; override;
     procedure InitInternal; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (* Function: Seek
-        This method allows you to change the current playing position in the
-        the input component. If the input component is stopped or paused,
-        calling Seek sets the sample from which the playback will begin. Note
-        that not all inputs are seekable.
-
-      Parameters:
-        SampleNum - The number of sample (frame) to play from. This number is
-          set relative to the beginning of the stream.
-
-      Returns:
-        Boolean - A False value indicates that either a seek failed (you are
-          seeking beyond the end of file) or that input stream is not
-          seekable.
-    *)
-    function Seek(SampleNum : Int64) : Boolean;
-    (* Procedure: GetData
-        This method retrieves input data. You specify the number of bytes you
-        want to get, but you may get less and it should not be considered as
-        an end of input indication. When the end of input is reached GetData
-        sets Buffer to nil and Bytes to 0.
-
-
-      Parameters:
-
-        Buffer - This is the variable where GetData will put a pointer to a
-          data buffer. Unlike many other data reading functions GetData
-          doesn't take our buffer pointer but provides you with its own.
-        Bytes - When you call GetData you pass to Bytes the number of bytes
-          you want to get. When the method returns the Bytes variable holds
-          the number of bytes in the Buffer.
-
-      Note:
-      Usually you should not call this method directly.
-    *)
-    procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     (* Function: SetStartTime
       This function is a wrapper around StartSample property, provided for convenience.
       It allows you to set playback start position in minutes and seconds.
@@ -488,24 +511,10 @@ type
         overrides the value set to FileName. *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
-    (* Property: EndSample
-        Set this property's value to the sample (frame) you want the input to
-        stop playing at. By default it is set to -1 which indicates "play to
-        the end of input." Changing this property value has an effect only
-        when the component is idle. *)
-    property EndSample : Int64 read FEndSample write FEndSample;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName stored True;
-    (* Property: Loop
-        If set to True, the input loops (i.e. starts again from the beginning
-        after it is finished). *)
-    property Loop : Boolean read FLoop write FLoop;
-    (* Property: StartSample
-        Set this property's value to the sample (frame) you want the input to
-        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect. *)
-    property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
   (* Class: TAuTaggedFileIn
@@ -1156,7 +1165,7 @@ end;
     Busy := False;
   end;
 
-  function TAuFileIn.Seek;
+  function TAuStreamedInput.Seek;
   begin
     Result := False;
     if not FSeekable then
@@ -1577,7 +1586,7 @@ begin
 end;
 
 
-procedure TAuFileIn.GetData;
+procedure TAuStreamedInput.GetData;
 begin
   DataCS.Enter;
   try
@@ -1596,13 +1605,20 @@ begin
         if (FSize > 0) and (FPosition >= FSize) then
           _EndOfStream := True;
       end;
-      if _EndOfStream and FLoop and FSeekable then
+      if _EndOfStream and FLoop then
       begin
-        _EndOfStream := False;
-        SeekInternal(FStartSample);
+        if FSeekable then
+        begin
+          _EndOfStream := False;
+          SeekInternal(FStartSample);
+        end else
+        begin
+          Flush;
+          Init;
+        end;
         FPosition := 0;
-      end;
-    end;
+      end;  // if _EndOfStream and FLoop then
+    end; // if _EndOfStream then ... else
   finally
     DataCS.Leave;
   end;
