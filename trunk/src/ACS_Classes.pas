@@ -1155,7 +1155,8 @@ end;
       else
          FTotalSamples := FEndSample - FStartSample + 1;
     end;
-
+    FSize := FTotalSamples*FSampleSize;
+    
     BufStart := 1;
     BufEnd := 0;
   end;
