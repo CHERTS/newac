@@ -50,16 +50,22 @@ type
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+    function SeekInternal(var SampleNum : Int64) : Boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   published
     property InBitsPerSample : LongWord read FBPS write FBPS;
     property InChannels : LongWord read FChan write FChan;
     property InSampleRate : LongWord read FFreq write FFreq;
+    (* Property: Seekable
+       By default the TSreamIn component treats the stream it works with as non-seekable.
+       Set this property to true if the stream is actually seekable.
+    *)
+    property Seekable : Boolean read FSeekable write FSeekable;
   end;
 
 
@@ -119,6 +125,7 @@ begin
   FChan := 1;
   FFreq := 8000;
   FSize := -1;
+  FSeekable := False;
   if not (csDesigning	in ComponentState) then
   begin
     CurrentBufferSize := INBUF_SIZE;
@@ -160,13 +167,12 @@ begin
   end;
   Bytes := FStream.Read(_Buffer^, Bytes);
   Buffer := _Buffer;
-  FPosition := FStream.Position;
-  //  Inc(FPosition, Result);
-  if FPosition >= FSize then
-  begin
-    Bytes := 0;
-    Buffer := nil;
-  end;  
+end;
+
+function TStreamIn.SeekInternal;
+begin
+  FStream.Seek(SampleNum*FChan*FBPS div 8, soFromBeginning);
+  Result := True;
 end;
 
 function TStreamOut.GetSR;

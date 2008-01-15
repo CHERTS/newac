@@ -337,6 +337,7 @@ type
     FSeekable : Boolean;
     FStartSample, FEndSample : Int64;
     FLoop : Boolean;
+    FTotalSamples : Int64;
     procedure SetStream(aStream : TStream); virtual;
     (* You have to override the SeekInternal method whether your input component is seekable or not.
       if your component is  not seekable then you can write a method like this:
@@ -428,7 +429,6 @@ type
     FSR : LongWord;   // sample rate
     FChan : LongWord; // Number of channels
     FTime : LongWord;
-    FTotalSamples : Int64;
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
@@ -1073,6 +1073,7 @@ end;
   begin
     inherited Create(AOwner);
     FSeekable := True;
+    FTotalSamples := 0;
   end;
 
   function TAuFileIn.GetBPS;
@@ -1170,6 +1171,11 @@ end;
     Result := False;
     if not FSeekable then
     begin
+      Exit;
+    end;
+    if (FTotalSamples <> 0) and (SampleNum > FTotalSamples)  then
+    begin
+      Result := False;
       Exit;
     end;
     DataCS.Enter;
