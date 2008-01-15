@@ -1072,6 +1072,8 @@ end;
   constructor TAuStreamedInput.Create;
   begin
     inherited Create(AOwner);
+    FStartSample := 0;
+    FEndSample := -1;
     FSeekable := True;
     FTotalSamples := 0;
   end;
@@ -1355,8 +1357,6 @@ end;
   constructor TAuFileIn.Create;
   begin
     inherited Create(AOwner);
-    FStartSample := 0;
-    FEndSample := -1;
     OpenCS := TCriticalSection.Create;
   end;
 
