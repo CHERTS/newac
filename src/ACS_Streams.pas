@@ -164,7 +164,11 @@ begin
   FSize := FStream.Size;
   FSampleSize := FChan*FBPS div 8;
   FTotalSamples := FSize div FSampleSize;
-  if FStartSample > 0 then Seek(StartSample);
+  if FStartSample > 0 then
+  begin
+    Seek(StartSample);
+    FPosition := 0;
+  end;  
   if (FStartSample > 0) or (FEndSample <> -1) then
   begin
     if FEndSample > FTotalSamples then FEndSample := -1;

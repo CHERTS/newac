@@ -373,11 +373,11 @@ type
 
       Parameters:
         SampleNum - The number of sample (frame) to play from. This number is
-          set relative to the beginning of the stream.
+          set relative to the value of <StartSample>.
 
       Returns:
         Boolean - A False value indicates that either a seek failed (you are
-          seeking beyond the end of file) or that input stream is not
+          seeking beyond the end of file or the <EndSample> value) or that input stream is not
           seekable.
     *)
     function Seek(SampleNum : Int64) : Boolean;
@@ -395,7 +395,10 @@ type
     property Loop : Boolean read FLoop write FLoop;
     (* Property: StartSample
         Set this property's value to the sample (frame) you want the input to
-        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect. *)
+        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect.
+        Note that when you set StartSample and <EndSample> properties you define a subrange of the input data.
+        All further operations, such as playback and <Seek>ing will be performed within this subrange.
+        The StartSample and <EndSample> values also affect the <TotalSamples> and <Size> values, returned by the component.*)
     property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
@@ -1147,7 +1150,11 @@ end;
     FTotalSamples := FSize div FSampleSize;
     FTime := FTotalSamples div FSR;
 
-    if FStartSample > 0 then Seek(FStartSample);
+    if FStartSample > 0 then
+    begin
+     Seek(FStartSample);
+     FPosition := 0;
+    end; 
     if (FStartSample > 0) or (FEndSample <> -1) then
     begin
       if FEndSample > FTotalSamples then FEndSample := -1;
@@ -1192,8 +1199,9 @@ end;
     end else
     begin
       try
+        Inc(SampleNum, FStartSample);
         Result := SeekInternal(SampleNum);
-        FPosition := SampleNum*FSampleSize;
+        FPosition := (SampleNum - FStartSample)*FSampleSize;
       except
       end;
     end;
@@ -1613,7 +1621,7 @@ begin
       begin
         Inc(FPosition, Bytes);
         SampleSize :=  Channels*BitsPerSample div 8;
-        if (FSize > 0) and ((FPosition - FStartSample*SampleSize) >= FSize) then
+        if (FSize > 0) and (FPosition >= FSize) then
           _EndOfStream := True;
       end;
       if _EndOfStream and FLoop then
