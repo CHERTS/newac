@@ -1,4 +1,4 @@
-(* Title: Components Demo
+(*
   This unit is a demo showing how to build new input and output components for NewAC.
 *)
 
@@ -14,93 +14,94 @@ uses
 
 const
 
-(* Const: InitialBufferSize
-  The InitialBufferSize constant holds the initial size of the input buffer,
-  $1000 bytes (that's 4096 if you don't speak hex). This way we can change the
-  default buffer size easily, without delving into the code. *)
-
+(*
+  The InitialBufferSize constant holds the initial size of the input buffer.
+  This way we can change the default buffer size easily, without delving into the code.
+*)
   InitialBufferSize : Integer = $1000;
 
 type
 
-(* Class: TDemoWaveIn 
-  A demo input component capable of reading data from raw PCM wav files. Like
-  most input components, it descends from the TAuFileIn class. *)
+(*
+  TDemoWaveIn is a demo input component capable of reading data from raw PCM
+  wav files. Like most input components, it descends from the TAuFileIn class.
+*)
 
   TDemoWaveIn = class(TAuFileIn)
   private
-
     (* These are internal fields specific to the component implementation.
        See the comments below. *)
-
     _Buffer : Pointer;
     CurrentBufSize : Integer;
   protected
 
-    (* Procedure: OpenFile
-        Called by the base methods of TAuFileIn class to open the file. It
-        should prepare the component for reading data. This method also sets
-        values for several interna; and inherited fields. *)
-
+    (*
+      The OpenFile method is called by the base methods of TAuFileIn class to open the file.
+      It should prepare the component for reading data.
+      This method also sets values for several interna; and inherited fields.
+    *)
     procedure OpenFile; override;
 
-    (* Procedure: CloseFile 
-        Called by the base methods of TAuFileIn class to close the file. It
-        should clear all resources assosiated with input. *)
-        
+    (*
+      The CloseFile method is called by the base methods of TAuFileIn class to close the file.
+      It should clear all resources assosiated with input.
+    *)
     procedure CloseFile; override;
   public
 
-    (* Constructor: Create
-        Reimplementing constructor and destructor is optional. It depends on
-        the requirements of your component. *)
-
+    (*
+      Reimplementing constructor and destructor is optional.
+      It depends on the requirements of your component.
+    *)
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    (* Procedure: GetDataInternal 
-      Used by NewAC to retrieve decoded data. You should pass the number of
-      bytes you want to read in the  Bytes parameter. This method returns the
-      pointer to the data buffre in the Buffer variable parameter and the
-      number of bytes actually read in the buffer in the Bytes paramter. The
-      buffer pointer must be provided by THIS method and not by the caller.
+    (*
+      The GetDataInternal method is used by NewAC to retrieve decoded data.
+      You should pass the number of bytes you want to read in the  Bytes parameter.
+      This method returns the pointer to the data buffre in the Buffer
+      variable parameter and the number of bytes actually read
+      in the buffer in the Bytes paramter.
+      The buffer pointer must be provided by THIS method and not by the caller.
       The pointer returned by GetData should be valid until the next call to
-      the method. When the method cannot return any more data it should return
-      nil in the Buffer and 0 in the Bytes parameter. The GetDataInternal
-      method can return less bytes than it is asked to and it should not be
-      considered as an end of file indication. *)
+      the method.
+      When the method cannot return any more data it should return nil in the Buffer
+      and 0 in the Bytes parameter.
+      The GetDataInternal method can return less bytes than it is asked to
+      and it should not be considered as an end of file indication.
+    *)
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
 
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : Integer); override;
+    (*
+      The SeekInternal method performs the file seeking. The new position is set in samples,
+      not in bytes, relatively to the beginning of the file. Seek should return True
+      if the input is seekable and False otherwise.
+      This method implementation is optional. If your input component doesn't support
+      seeking You can implement in like this:
 
-    (* Procedure: SeekInternal 
-      Performs the file seeking. The new position is set in samples, not in
-      bytes, relatively to the beginning of the file. Seek should return True
-      if the input is seekable and False otherwise. This method implementation
-      is optional. If your input component doesn't support seeking,
-      implement in like this.
+      function TSomeInputComponent.SeekInternal(var SampleNum : Int64) : Boolean;
+      begin
+        Result := False;
+      end;
 
-  > function TSomeInputComponent.SeekInternal(var SampleNum : Int64):  Boolean;
-  > begin
-  > Result := False;
-  > end;
-
-      As you can see the argument of SeekInternal is passed by reference. If
-      the caller requests to move to a sample that doesn't exists, (that's
-      beyond the end of file) you can set her to the correct sample number.
+      As you can see the argument of SeekInternal is passed by reference.
+      If the caller requests to move to a sample that doesn't exists,
+      (that's beyond the end of file) you can set her to the correct sample number.
       This behavoir s optional, as you can simply return False.
 
 
       In the SampleNum parameter we pass the new position in the input stream
-      in frames (which are called samples ;-) relative to the beginning of the
-      stream. *)
-
+      in frames (which are called samples ;-) relative to the beginning
+      of the stream.
+    *)
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   end;
 
-(* Class: TDemoWaveOut 
-  A demo output component capable of storing data on disk or in a stream in
-  the raw PCM wav format. Like most output components, it descends from the
-  TAuFileOut class. *)
+(*
+  TDemoWaveOut is a demo output component capable of storing data on disk or in a stream
+  in the raw PCM wav format. Like most output components, it descends
+  from the TAuFileOut class.
+*)
 
   TDemoWaveOut = class(TAuFileOut)
   private
@@ -108,26 +109,28 @@ type
 
   protected
 
-    (* Procedure: Prepare
-      Performs all the steps required to initialize output. *)
+    (*
+      The prepare procedure performs all the steps required to initialize output.
+    *)
 
     procedure Prepare; override;
 
-    (* Procedure: DoOutput
-      Called in a loop to perform actual output. If the Abort parameter is set
-      to True the function must do whatever is needed to stop the output. The
-      function may be called several times with the Abort value set to True.
-      The return value indicartes wheter an output operation should continue.
-      If the function has done its job (because of an end of input file
-      condition, or because the Abort parameter is set to True, or because of
-      some failure, it should return False as a result. Otherwise it returns
-      True. *)
+    (*
+      The DoOutput function is called in a loop to perform actual output.
+      If the Abort parameter is set to True the function must do whatever is needed
+      to stop the output. The function may be called several times with the Abort value
+      set to True. The return value indicartes wheter an output operation should continue.
+      If the function has done its job (because of an end of input file condition,
+      or because the Abort parameter is set to True, or because of some failure,
+      it should return False as a result. Otherwise it returns True.
+    *)
 
     function DoOutput(Abort : Boolean):Boolean; override;
 
-    (* Procedure: Done
-      The following method is called to do whatever is needed to close the
-      output, and to free any associated resources. *)
+    (*
+      The following method is called to do whatever is needed to close the output,
+      and to free any associated resources.
+    *)
 
     procedure Done; override;
   public
@@ -137,13 +140,12 @@ type
 
 implementation
 
+(*
+  The data structure for the ReadRIFFHeader helper function.
+  See the comments below.
+*)
 
 type
-
-(* Record: TAudioInfo
-  The data structure for the <ReadRIFFHeader> helper function. See the
-  comments below. *)
-
 
   TAudioInfo = record
     BitsPerSample : Integer;
@@ -152,8 +154,10 @@ type
     TotalSamples : Integer;
   end;
 
-(* Constants: Constants For ReadRiffHeader
-  Constants for the <ReadRIFFHeader> helper function. See the comments below. *)
+(*
+  Constants for the ReadRIFFHeader helper function.
+  See the comments below.
+*)
 
 const
 
@@ -165,8 +169,9 @@ const
   LookingForFACT = 3;
   LookingForDATA = 4;
 
-  (* Function: Compare4
-    Used internally by <ReadRIFFHeader>. *)
+  (*
+    The following function is used internally by ReadRIFFHeader.
+  *)
 
   function Compare4(S1, S2 : PChar) : Boolean;
   var
@@ -182,10 +187,11 @@ const
   end;
 
 
-(* Function: ReadRIFFHeader 
-  A helper function that parses wav file header and gets audio data
-  parameters. This is relevant only to wave file readers, so I don't comment
-  on it. *)
+(*
+  ReadRIFFHeader is a helper function that parses wav file header and gets
+  audio data parameters. This is relevant only to wave file readers, so
+  I don't comment on it.
+*)
 
   function ReadRIFFHeader(Stream : TStream; var AudioInfo : TAudioInfo) : Boolean;
   var
@@ -349,7 +355,7 @@ const
   // That's all folks. Now the stream is ready for reading data.
   end;
 
-  procedure TDemoWaveIn.GetDataInternal(var Buffer: Pointer; var Bytes: Integer);
+  procedure TDemoWaveIn.GetDataInternal(var Buffer: Pointer; var Bytes: LongWord);
   begin
     // The data buffer is implemented as simply as it gets.
     // If more data is asked than the buffer can hold, we resize the buffer.
@@ -486,7 +492,7 @@ const
   function TDemoWaveOut.DoOutput(Abort: Boolean) : Boolean;
   var
     P : Pointer;
-    Bytes : Integer;
+    Bytes : LongWord;
   begin
     if Abort then
       EndOfInput := True;
