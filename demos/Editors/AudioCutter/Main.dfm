@@ -608,14 +608,6 @@ object Form1: TForm1
     Left = 120
     Top = 152
   end
-  object AudioConverter1: TAudioConverter
-    Input = WaveIn1
-    Mode = msmMonoToBoth
-    OutBitsPerSample = 8
-    OutChannles = 1
-    Left = 200
-    Top = 152
-  end
   object DXAudioOut1: TDXAudioOut
     Input = WaveIn1
     OnDone = Done
@@ -632,6 +624,14 @@ object Form1: TForm1
     WavType = wtPCM
     BlockSize = 512
     Left = 40
+    Top = 152
+  end
+  object AudioConverter1: TAudioConverter
+    Input = WaveIn1
+    Mode = msmMonoToBoth
+    OutBitsPerSample = 8
+    OutChannels = 1
+    Left = 192
     Top = 152
   end
 end

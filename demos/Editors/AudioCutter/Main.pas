@@ -24,13 +24,13 @@ type
     TrackBar1: TTrackBar;
     TrackBar2: TTrackBar;
     Panel3: TPanel;
-    AudioConverter1: TAudioConverter;
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     SpeedButton4: TSpeedButton;
     DXAudioOut1: TDXAudioOut;
     WaveOut1: TWaveOut;
+    AudioConverter1: TAudioConverter;
     procedure TrackBarChange(Sender: TObject);
     procedure Progress(Sender: TComponent);
     procedure Done(Sender: TComponent);
@@ -111,8 +111,8 @@ begin
       SpeedButton1.Enabled := False;
       SpeedButton2.Enabled := False;
       SpeedButton3.Enabled := False;
-      WaveIn1.StartSample := Round(WaveIn1.TotalSamples * TrackBar1.Position / 100);
-      WaveIn1.EndSample := Round(WaveIn1.TotalSamples * TrackBar2.Position / 100);
+      WaveIn1.StartSample := Round(WaveIn1.TotalSamples * TrackBar1.Position / TrackBar1.Max);
+      WaveIn1.EndSample := Round(WaveIn1.TotalSamples * TrackBar2.Position / TrackBar2.Max);
       WaveOut1.Run;
     end;
   end;
