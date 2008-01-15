@@ -1603,8 +1603,6 @@ end;
 
 
 procedure TAuStreamedInput.GetData;
-var
-  SampleSize : Word;
 begin
   DataCS.Enter;
   try
@@ -1620,7 +1618,6 @@ begin
       else
       begin
         Inc(FPosition, Bytes);
-        SampleSize :=  Channels*BitsPerSample div 8;
         if (FSize > 0) and (FPosition >= FSize) then
           _EndOfStream := True;
       end;
