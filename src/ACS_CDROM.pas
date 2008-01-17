@@ -20,16 +20,40 @@ uses
   Windows, MMSystem, Classes, SysUtils, ACS_Classes, CDRip;
 
 type
-
+  (* Enum: TCDStatus
+      The status of the CD-ROM drive.
+      
+    cdsNotReady - Drive is not ready.
+    cdsReady - Drive is ready to play.
+    cdsPlaying - Drive is already playing a disc.
+    cdsPaused - Drive is paused.
+  *)
   TCDStatus = (cdsNotReady, cdsReady, cdsPlaying, cdsPaused);
+  (* Enum: TTrackType
+      The type of the current track.
+      
+    ttAudio - Audio track
+    ttData - Data track
+  *)
   TTrackType = (ttAudio, ttData);
+  (* Enum: TCDInfo
+      General information about the disc in the drive.
+      
+    cdiNoDisc - No disc in the drive.
+    cdiDiscAudio - An audio disc.
+    cdiDiscData - A data disc.
+    cdiDiscMixed - A mixed audio-data disc.
+    cdiUnknown - A disc of unknown format.
+  *)
   TCDInfo = (cdiNoDisc, cdiDiscAudio, cdiDiscData, cdiDiscMixed, cdiUnknown);
 
 
   TMCN = array[0..13] of Char;
 
   (* Record: TCDMSF
-     The standrt measure of time duration (and byte length) when dealing wwith CD-DA.
+     The standard measure of time duration (and byte length) when dealing
+     with CD-DA.
+     
      Properties:
        Minute - the number of full minutes in a track.
        Second - the number of full seconds in a track.
@@ -44,9 +68,10 @@ type
 
   (* Record: TCDTrackInfo
      Carries information about a CD_DA track.
+     
      Properties:
      TrackLength : TCDMSF - length of the track in MSF format.
-     TrackType : TTrackType - type of the track (posible values are ttAudio - for audio tracks and ttData for data tracks).
+     TrackType : TTrackType - type of the track (possible values are ttAudio - for audio tracks and ttData for data tracks).
    *)
   TCDTrackInfo = record
     TrackLength : TCDMSF;
@@ -55,6 +80,7 @@ type
 
   (* Record: TCDPosition
      Represents the current reader position on disc.
+     
      Properties:
      Track - the track number (valid values vary from 1 to 99).
      MSF - the position within a track in a MSF format.
@@ -68,7 +94,7 @@ type
 const
 
   (* Constant: EndOfDisc
-    This is a constant representing the logical position beyond the end of disc (very much like EOF for files).*)
+    This is a constant representing the logical position beyond the end of disc (very much like EOF for files). *)
   EndOfDisc : TCDPosition = (Track : 100; MSF : (Minute : 0; Second : 0; Frame : 0));
   CD_FRAMESIZE_RAW = 2352;
   BUF_SIZE = 75 * CD_FRAMESIZE_RAW;  // 75 frames - 1 sec
@@ -130,9 +156,8 @@ type
   end;
 
   (* Class: TCDIn
-     This component reads data from CD-DA direclty. I is suitable for creating CD-rippers.
-     Descends from <TAuInput>.
-     Requires CDRip.dll. *)
+     This component reads data from CD-DA directly. It is suitable for
+     creating CD-rippers. Descends from <TAuInput>. Requires CDRip.dll. *)
 
   TCDIn = class(TAuInput)
   private
@@ -170,62 +195,60 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Procedure: Eject
-      Ejects CD-ROM drive's tray.*)
+      Ejects CD-ROM drive's tray. *)
     procedure Eject;
     (* Procedure: CloseTray
       Closes CD-ROM drive's tray. *)
     procedure CloseTray;
     (* Property: DiscInfo
-      Read this property to get informtion about a disc in the drive.
-      Possibe values:
-        cdiNoDisc - no disc in the drive.
-        cdiDiscAudio - an audio disc.
-        cdiDiscData - a data disc.
-        cdiDiscMixed - a mixed audio-data disc.
-        cdiUnknown - a disc in unknown format. *)
+      Read this property to get a <TCDInfo> about a disc in the drive. See how
+      I can link to both the name of the enum and a member, such as
+      <cdiNoDisc> or <cdiUnknown>. That's a function of the Enum keyword.
+    *)
     property DiscInfo: TCDInfo read GetInfo;
     (* Property: Status
-    Read Status to get an information about the disc/drive status.
-    The possible values of this property are:
-      cdsNotReady - Drive is not ready.
-      cdsReady - Drive is ready to play.
-      cdsPlaying - Drive is already playing a disc.
-      cdsPaused - Drive is paused.
+    Read Status to get a <TCDStatus> about the drive.
     *)
     property Status: TCDStatus read GetStatus;
-    (*Property: Tracks[const vIndex : Integer]
-        This array property returns information about a track specified by its number.
-        The possible values of indexes range from 1 to <TracksCount>.
-        The information about a track is returned as <TCDTrackInfo> record. *)
+    (* Property: Tracks
+      Returns information about a track specified by its number. The possible
+      values of indexes range from 1 to <TracksCount>. The information about a
+      track is returned as <TCDTrackInfo> record.
+    *)
     property Tracks[const vIndex : Integer] : TCDTrackInfo read GetTrackInfo;
-    (*Property: TracksCount
-      The number of tracks on the disc/*)
+    (* Property: TracksCount
+      The number of tracks on the disc. *)
     property TracksCount : Integer read GetNumTracks;
-    (*Property: DriveName
-      The name of the current CD-ROM drive as returned by the drive unit.*)
+    (* Property: DriveName
+      The name of the current CD-ROM drive as returned by the drive unit. *)
     property DriveName : String read GetDriveName;
-    (*Property: DrivesCount
-      The total number of the CD-ROM drives detected in the system.*)
+    (* Property: DrivesCount
+      The total number of the CD-ROM drives detected in the system. *)
     property DrivesCount : Integer read GetDrivesCount;
-    (*Property: StartPos
-      Set this property to specify the starting position for data transfer in a <TCDPosition> format.*)
+    (* Property: StartPos
+      Set this property to specify the starting position for data transfer in
+      a <TCDPosition> format. *)
     property StartPos : TCDPosition read FStartPos write SetSP;
-    (*Property: EndPos
-      Set this property to specify the end position for data transfer in a <TCDPosition> format.
-      There is a special constant EndOfDisc of type <TCDPosition>
-      If you want to record from a certain point to the end of disc, set this property value to EndOfDisc.*)
+    (* Property: EndPos
+      Set this property to specify the end position for data transfer in a
+      <TCDPosition> format. There is a special constant <EndOfDisc> of type
+      <TCDPosition> If you want to record from a certain point to the end of
+      disc, set this property value to <EndOfDisc>. *)
     property EndPos : TCDPosition read FEndPos write SetEP;
-    (*Property: CurrentDrive
+    (* Property: CurrentDrive
       Use this property to set or get the number of the current CD-ROM drive.
-      Possible values range from 0 to <DrivesCount> - 1.*)
+      Possible values range from 0 to <DrivesCount> - 1. *)
     property CurrentDrive : Integer read FCurrentDrive write SetCurrentDrive;
     (*Property: StartTrack
-      Set StartTrack to specify the starting position for data transfer at the beginning of the track identified by number.
-      The tracks are numbered starting from 1.*)
+      Set StartTrack to specify the starting position for data transfer at the
+      beginning of the track identified by number. The tracks are numbered
+      starting from 1. *)
     property StartTrack: Integer read FStartTrack write SetSt;
     (*Property: EndTrack
-      Set EndTrack to specify the ending position for data transfer at the end of the track identified by number. If you want to get data from a single track,
-      the end track number should be the same as the start track number.*)
+      Set EndTrack to specify the ending position for data transfer at the end
+      of the track identified by number. If you want to get data from a single
+      track, the end track number should be the same as the start track
+      number. *)
     property EndTrack: Integer read FEndTrack write SetET;
   end;
 

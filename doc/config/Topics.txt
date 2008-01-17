@@ -91,6 +91,11 @@ Alter Topic Type: File
       unit, units
 
 
+Alter Topic Type: Constant
+
+   Scope: Always global
+
+
 Topic Type: Idea
 
    Plural: Ideas

@@ -116,3 +116,4 @@ Format: Development Release 12-07-2007 (1.35 base)
 Alter Language: Pascal
 
    Add Ignored Class Prefix in Index: T
+   Property Prototype Ender: ;
