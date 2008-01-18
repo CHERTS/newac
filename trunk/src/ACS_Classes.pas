@@ -1083,29 +1083,20 @@ end;
 
   function TAuFileIn.GetBPS;
   begin
-    if FSeekable then
-    begin
-      OpenFile; // Open the file if it is not already opened
-      Result := FBPS;
-    end else Result := FBPS;
+    OpenFile; // Open the file if it is not already opened
+    Result := FBPS;
   end;
 
   function TAuFileIn.GetCh;
   begin
-    if FSeekable then
-    begin
-      OpenFile; // Open the file if it is not already opened
-      Result := FChan;
-    end else Result := FChan;
+    OpenFile; // Open the file if it is not already opened
+    Result := FChan;
   end;
 
   function TAuFileIn.GetSR;
   begin
-    if FSeekable then
-    begin
-      OpenFile; // Open the file if it is not already opened
-      Result := FSR;
-    end else Result := FSR;
+    OpenFile; // Open the file if it is not already opened
+    Result := FSR;
   end;
 
 (*  function TAuFileIn.GetTime;
