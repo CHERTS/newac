@@ -194,7 +194,7 @@ NewAC does its best to recover from any error that might occur. If an exception 
 
 Section: Input Switching
 
-Starting from the ACS version 2.2 most of the output components allow assigning new input on the fly (i.e. while the component is doing playback). It is important to remember that when changing input on the fly, new input audio stream parameters must be the same as the old ones. Note that TAudioProcessor Component doesn't allow modifying Input property while it is playing. InputList component allows modifying all input items at anytime except the item, currently being played. You can switch to other InputList's item on the fly by changing the components CurrentInput property.
+Most of the output components allow assigning new input on the fly (i.e. while the component is doing playback). It is important to remember that when changing input on the fly, new input audio stream parameters must be the same as the old ones. Note that TAudioProcessor Component doesn't allow modifying Input property while it is playing. InputList component allows modifying all input items at anytime except the item, currently being played. You can switch to other InputList's item on the fly by changing the components CurrentInput property.
 
 
 Section: Avoiding Common Errors
@@ -214,27 +214,28 @@ Some NewAC components are now considered legacy. They are kept for backward comp
 
 	-	TAudioIn (should be replaced with TDXAudioIn in new programs).
 	-	TAudioOut (should be replaced with TDXAudioOut in new programs).
-	-	TSampleConverter (TSampleConverter's functionality is duplicated in TAudioConverter, which additionally supports 24 bit sound conversion).
 	-	TRateConverter (should be replaced with TResampler in new programs).
 	-	TMSConverter (TMSConverter's functionality is duplicated in TAudioConverter, which additionally supports 24 bit sound conversion).
 
 Section: The Third-party Libraries
 
-Some of NewAC components require certain shared libraries, which are not included in the package but are publicly available and may be found on many sites. In order to use VorbisIn and VorbisOut components you will need Ogg Vorbis shared libraries. The original libraries are available at www.xiph.org Important note: the alternative versions of Ogg Vorbis libraries specially adapted for use in Delphi applications are available. It is recommended to use the adapted libraries with NewAC. You can download these libraries either in binary or in the source code form from the NewAC Site.
+Some of NewAC components require certain shared libraries, which are not included in the package but are publicly available and may be found on many sites both in source and binary forms. You can download these libraries in binary form from the NewAC Site. If you want to compile yourself, below are the links to the libraries' sources on the Net.
 
-	Binaries - http://symmetrica.net/uploads/newac/windlls.zip
-	Sources - http://symmetrica.net/index.php?page=libsources
+	Libraries, require by some NewAC components in a precompiled binary form are available at http://symmetrica.net/uploads/newac/windlls.zip
 
 It is important to note that since all libraries required by NewAC components are loaded dynamically at run-time, you can use NewAC as a whole without these libraries. Of course, those components requiring certain library will only work if the library is found.
 
-	-	TFLACIn and TFLACOut components depend on libFLAC.dll library under Windows and libFLAC.so library under Linux.
-	-	TMP3ToWav component requires MADLib.dll library.
-	-	Monkey Audio components require MacDLL.dll library. This library is included into windlls.zip archive (see below). You can also download it with Monkey Audio SDK available on the Net.
-	- Under Windows TCDIn component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
-	-	TResampler component requires the libsamplerate library.
-	- TMP3Out component requires lame_enc.dll (under Windows) or libmp3lame.so (under Linux).
+	-	TVorbisIn and TVorbisOut components require Ogg Vorbis libraries (ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll). See the additional note below.
+	-	TFLACIn and TFLACOut components depend on libFLAC.dll. You can find FALC sources at http://flac.sourceforge.net.
+	-	Monkey Audio components require MacDLL.dll library. This library is included into windlls.zip archive (see below). You can also download it with Monkey Audio SDK available on the at http://www.monkeysaudio.com.
+	- 	TCDIn component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
+	- 	TResampler component requires the libsamplerate.dll library. You can get the sources at http://www.mega-nerd.com/SRC/win32.html.
+	- 	TMP3Out component requires lame_enc.dll (under Windows). Sources are available at http://lame.sourceforge.net
 Note:
 	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your Country. Check this out.
+
+Note on Ogg Vorbis libraries:
+	The original libraries available at www.xiph.org are not fully compatible with Delphi. You should use alternative aoTuV Ogg Vorbis suite instead. You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
 
 Section: Installation
 
