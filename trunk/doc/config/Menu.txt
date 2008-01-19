@@ -2,7 +2,7 @@ Format: Development Release 12-07-2007 (1.35 base)
 
 
 Title: NewAC
-SubTitle: v1.3.2
+SubTitle: v1.4
 
 Footer: Copyright © 2002-2007 Andrei Borovsky. All rights reserved.
 Timestamp: Generated on month day, year
@@ -42,14 +42,14 @@ Link: NewAC Project Page  (http://www.symmetrica.net/newac)
 Link: NewAC Users Google Group  (http://groups.google.com/group/newac-users)
 Link: NewAC Source Google Code  (http://code.google.com/p/newac/)
 
-Group: Doc  {
+Group: Docs  {
 
    File: Introduction  (doc\txt\introduction.txt)
    File: License  (doc\txt\license.txt)
    File: Component Writer's Guide  (doc\txt\cwguide.txt)
    File: About the Documentation  (doc\txt\about documentation.txt)
    File: Tips &amp; Tricks  (doc\txt\tips and tricks.txt)
-   }  # Group: Doc
+   }  # Group: Docs
 
 Group: Demos  {
 
@@ -113,11 +113,6 @@ Group: Units  {
       }  # Group: Headers
 
    }  # Group: Units
-
-File: uCompression  (dunit\uCompression.pas)
-File: uLog v1.0  (dunit\uLog.pas)
-File: uTests  (dunit\uTests.pas)
-File: uUtility  (dunit\uUtility.pas)
 
 Group: Index  {
 
