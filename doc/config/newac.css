@@ -62,10 +62,10 @@ p {
 
 /*  Blockquotes are used as containers for things that may need to scroll.  */
 blockquote {
-    padding: 5px;
+    padding: 0px;
     margin: 0;
     overflow: auto;
-    background: #202020;
+/*    background: #202020; */
     }
 
 
