@@ -2,8 +2,8 @@
 unit ComponentsDemo;
 
 (* Title: Components Demo
-    This unit is a demo showing how to build new input and output components for 
-  NewAC. *)
+    This unit is a demo showing how to build new input and output components
+    for NewAC. *)
 
 interface
 
@@ -16,17 +16,17 @@ uses
 const
 
 (* Const: InitialBufferSize
-    An Integer equal to $1000 (that's 4096 bytes, if you don't speak hex). The 
-    InitialBufferSize constant holds the initial size of the input buffer. 
-    This way we can change the default buffer size easily, without delving into 
-    the code. *)
+    An Integer equal to $1000 (that's 4096 bytes, if you don't speak hex). The
+    InitialBufferSize constant holds the initial size of the input buffer.
+    This way we can change the default buffer size easily, without delving
+    into the code. *)
   InitialBufferSize : Integer = $1000;
 
 type
 
 (* Class: TDemoWaveIn 
-    A demo input component capable of reading data from raw PCM wav files. Like 
-    most input components, it descends from the TAuFileIn class. *)
+    A demo input component capable of reading data from raw PCM wav files.
+    Like most input components, it descends from the TAuFileIn class. *)
 
   TDemoWaveIn = class(TAuFileIn)
   private
@@ -37,22 +37,22 @@ type
   protected
 
     (* Procedure: OpenFile
-        Called by the base methods of TAuFileIn class to open the file. It 
-        should prepare the component for reading data. This method also sets 
+        Called by the base methods of TAuFileIn class to open the file. It
+        should prepare the component for reading data. This method also sets
         values for several internal and inherited fields. *)
       
     procedure OpenFile; override;
 
     (* Procedure: CloseFile
-      Called by the base methods of TAuFileIn class to close the file. It 
+      Called by the base methods of TAuFileIn class to close the file. It
       should clear all resources assosiated with input. *)
 
     procedure CloseFile; override;
   public
 
     (* Constructor: Create
-      Reimplementing constructor and destructor is optional.
-      It depends on the requirements of your component. *)
+      Reimplementing constructor and destructor is optional. It depends on the
+      requirements of your component. *)
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -73,7 +73,7 @@ type
     Parameters:
 
       Buffer: Pointer - an *unassigned* pointer to use for the results,
-      GetData initializes the pointer itself. 
+        GetData initializes the pointer itself. 
 
       Bytes: Integer - the number of bytes to read, returns bytes read. *)
 
@@ -98,10 +98,10 @@ type
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   end;
 
-(* Class: TDemoWaveOut 
-    A demo output component capable of storing data on disk or in a stream in
-    the raw PCM wav format. Like most output components, it descends from the
-    <TAuFileOut> class. *)
+  (* Class: TDemoWaveOut 
+      A demo output component capable of storing data on disk or in a stream
+      in the raw PCM wav format. Like most output components, it descends from
+      the <TAuFileOut> class. *)
 
   TDemoWaveOut = class(TAuFileOut)
   private
@@ -115,23 +115,23 @@ type
     procedure Prepare; override;
 
 
-      (* Function: DoOutput 
-          Called in a loop to perform actual output. If the Abort parameter is
-          set to True the function must do whatever is needed to stop the
-          output. The function may be called several times with the Abort
-          value set to True. The return value indicartes wheter an output
-          operation should continue. If the function has done its job (because
-          of an end of input file condition, or because the Abort parameter is
-          set to True, or because of some failure, it should return False as a
-          result. Otherwise it returns True.
+    (* Function: DoOutput 
+        Called in a loop to perform actual output. If the Abort parameter is
+        set to True the function must do whatever is needed to stop the
+        output. The function may be called several times with the Abort
+        value set to True. The return value indicartes wheter an output
+        operation should continue. If the function has done its job (because
+        of an end of input file condition, or because the Abort parameter is
+        set to True, or because of some failure, it should return False as a
+        result. Otherwise it returns True.
 
-      Parameters:
+    Parameters:
 
-        Abort: Boolean - set to True in order to stop the output operation
+      Abort: Boolean - set to True in order to stop the output operation
 
-      Returns:
+    Returns:
 
-        Success - Boolean *)
+      Success - Boolean *)
 
     function DoOutput(Abort : Boolean):Boolean; override;
 
