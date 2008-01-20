@@ -149,6 +149,7 @@ implementation
      format : PWAVEFORMATEX;
      datatype : WMT_ATTR_DATATYPE;
      len, astream : Word;
+     NP : Int64;
    begin
      CoInitialize(nil);
      FillChar(sync_reader, SizeOf(sync_reader), 0);
@@ -159,10 +160,14 @@ implementation
      sync_reader.AuStream := sync_reader.AudioStream as IStream;
      if sync_reader.reader.OpenStream(sync_reader.AuStream) <> S_OK then
      begin
-       sync_reader.reader := nil;
-       sync_reader.AudioStream := nil;
-       Exit;
-     end;
+       sync_reader.AudioStream.Seek(30, 0, NP);
+       if sync_reader.reader.OpenStream(sync_reader.AuStream) <> S_OK then
+       begin
+         sync_reader.reader := nil;
+         sync_reader.AudioStream := nil;
+         Exit;
+       end;
+     end;  
      if sync_reader.reader.GetOutputCount(OutputCount) <> S_OK then
      begin
        sync_reader.reader := nil;
