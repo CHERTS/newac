@@ -119,9 +119,9 @@ implementation
       if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead, fmShareDenyNone);
       lwma_reader_init(reader, FStream);
       FValid := reader.has_audio;
+      if reader.reader = nil then Exit;
       if reader._protected then
         raise EAuException.Create('File is protected');
-      FValid := True;
       FDuration := lwma_reader_get_duration(reader);
       lwma_reader_get_audio_properties(reader, ch, bps, sr);
       FChan := ch;
