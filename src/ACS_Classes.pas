@@ -1594,8 +1594,11 @@ end;
 
 
 procedure TAuStreamedInput.GetData;
+var
+  tmpBytes : LongWord;
 begin
   DataCS.Enter;
+  tmpBytes := Bytes;
   try
     if _EndOfStream then
     begin
@@ -1614,16 +1617,25 @@ begin
       end;
       if _EndOfStream and FLoop then
       begin
+        _EndOfStream := False;
         if FSeekable then
-        begin
-          _EndOfStream := False;
-          SeekInternal(FStartSample);
-        end else
+          SeekInternal(FStartSample)
+        else
         begin
           Flush;
           Init;
         end;
         FPosition := 0;
+        Bytes := tmpBytes;
+        GetDataInternal(Buffer, Bytes);
+        if Bytes = 0 then
+          _EndOfStream := True
+          else
+          begin
+            Inc(FPosition, Bytes);
+              if (FSize > 0) and (FPosition >= FSize) then
+            _EndOfStream := True;
+         end;
       end;  // if _EndOfStream and FLoop then
     end; // if _EndOfStream then ... else
   finally
