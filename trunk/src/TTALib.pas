@@ -1,5 +1,7 @@
 unit TTALib;
 
+(* $Id$ *)
+
 interface
 
 uses
@@ -659,9 +661,22 @@ begin
   inherited Create();
 end;
 
+type
+_tid3v2 = packed record
+	id : array [0..2] of Char;
+	version : Word;
+	flags : byte;
+	size : array [0..3] of byte;
+end;
+
+
+
 constructor TTTADecoder.Create(AHandle: THandle);
 var
   tmp: Pointer;
+  id3v2 : _tid3v2;
+  result : LongWord;
+  len : LongWord;
 begin
   if AHandle = 0 then
     raise ETTAException.Create('AHandle is zero!');
@@ -669,6 +684,30 @@ begin
   CheckFunc(@TTADecoder_CreateFromHandle, 'TTADecoder::TTADecoder');
 
   FHandle := AHandle;
+
+  // Skipping Id3V2 tags if they exist.
+  // Added By Andrei Borovsky
+
+  if not ReadFile (FHandle, id3v2, sizeof(id3v2), result, nil) then
+  begin
+    CloseHandle (FHandle);
+    raise ETTAException.Create('Cannot play this file!');
+  end;
+  if (id3v2.id[0] = 'I') and (id3v2.id[1] = 'D') and (id3v2.id[2] = '3')  then
+  begin
+    if (id3v2.size[0] and $80) <> 0 then
+				raise ETTAException.Create('Cannot play this file 2!');
+
+    len := id3v2.size[0] and $7f;
+    len := (len shl 7) or (id3v2.size[1] and $7f);
+    len := (len shl 7) or (id3v2.size[2] and $7f);
+    len := (len shl 7) or (id3v2.size[3] and $7f);
+    Inc(len, 10);
+    if (id3v2.flags and (1 shl 4)) <> 0 then Inc(len, 10);
+    SetFilePointer (FHandle, len, nil, FILE_BEGIN);
+  end
+  else SetFilePointer (FHandle, 0, nil, FILE_BEGIN);
+  // End skipping Id3V2 tags if they exist.
 
   tmp := @FThis;
   try
