@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.2
+  This file is a part of New Audio Components package v 1.4
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -9,10 +9,12 @@
   TWVIn and TWVOut components are written by Sergei Borisov, <jr_ross@mail.ru>
 *)
 
-unit ACS_WavPack;
+(* $Id$ *)
 
-(* Title: ACS_WavPack
-    Delphi interface for WavPack (.wv) files via wavpackdll.dll *)
+(* Title: ACS_WavPack this unit contains components for decoding/encoding Wavpack format.
+   For more detail see http://www.wavpack.com/. You will need wavpackdll.dll shared library to use these components.*)
+
+unit ACS_WavPack;
 
 interface
 
@@ -26,13 +28,18 @@ type
 
   (* class TWVIn *)
 
+
+    (* Class: TWVIn
+        WavPack decoder.
+        Descends from <TAuTaggedFileIn>.
+        Requires wavpackdll.dll*)
+
   TWVIn = class(TAuTaggedFileIn)
   private
     FCorrectionsStreamAssigned: Boolean;
     FCorrectionsStream: TStream;
 
     FDecoder: TWavpackDecoder;
-//    FEOF: Boolean;
     FBuffer: array of Byte;
 
     procedure SetCorrectionsStream(Value: TStream);
@@ -45,10 +52,25 @@ type
     procedure GetDataInternal(var Buffer: Pointer; var Bytes: LongWord); override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+
+    (* Property: CorrectionsStream
+       WavPack can use two separate files for encoded content - the main file (*.wv) and the file stream (*.wvc).
+       If you set a file name, the codec searches for additional file by itself, but if you provide a TStream as a source
+       of data you have to set up the correction stream yourself (if you have one).
+    *)
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
+
+    (* Property: Id3v1Tags
+       Read this property to get Id3v1Tags attached to the wavpack file.
+    *)
+
     property Id3v1Tags : TId3v1Tags read GetId3v1Tags;
+
+    (* Property: APEv2Tags
+       Read this property to get APEv2Tags attached to the wavpack file.
+    *)
+
     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
   published
   end;
@@ -56,6 +78,11 @@ type
   (* class TWVOut *)
 
   TWVCompressionLevel = (wvclFast, wvclHigh, wvclVeryHigh);
+
+    (* Class: TWVOut
+        WavPack encoder.
+        Descends from <TAuTaggedFileOut>.
+        Requires wavpackdll.dll. *)
 
   TWVOut = class(TAuTaggedFileOut)
   private
@@ -81,15 +108,49 @@ type
     function DoOutput(Abort: Boolean): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+
+
+    (* Property: CorrectionsStream
+       WavPack can use two separate files for encoded content - the main file (*.wv) and the file stream (*.wvc).
+       If you set a file name, the codec creates an additional file by itself depending on <HybridMode> value, but if you provide a TStream as a source
+       of data you have to set up the correction stream yourself (if you nned one).
+       See also <HybridMode>.
+    *)
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
-
   published
+
+    (* Property: JointStereo
+       Set this property to True to increase compression a little.
+    *)
+
     property JointStereo: Boolean read FJointStereo write FJointStereo default False;
+
+    (* Property: CompressionLevel
+       Sets the level of compression for a file/stream being created.
+       The possible values are: wvclFast, wvclHigh, and wvclVeryHigh.
+       Higher compression takes longer time to encdoe.
+    *)
+
     property CompressionLevel: TWVCompressionLevel read FCompressionLevel write FCompressionLevel default wvclFast;
+
+    (* Property: HybridMode
+       WavPack can work in two modes. In hybrid mode it uses a single file to store all the content.
+       In two file mode there are to files - the main and the correctoion file (see the wavpack site for mor explanation.
+       If this property is set to True the input content will be packed into a single file or stream.
+    *)
+
     property HybridMode: Boolean read FHybridMode write FHybridMode default False;
+
+    (* Property: Bitrate
+       Use this property to set bitrate - an additional qualit parameter for the encoder.
+    *)
+
     property Bitrate: Single read FBitrate write FBitrate;
+
+     (* Property: APEv2Tags
+       Use this property to attach APEv2 tags to the file being created.
+     *)
 
     property APEv2Tags;
   end;
@@ -127,7 +188,7 @@ type
 const
   byte_sample_base = t_byte_sample((High(t_byte_sample) shr 1) + 1);
 
-(* class TWVIn *)
+{ class TWVIn }
 
 constructor TWVIn.Create(AOwner: TComponent);
 begin
@@ -135,17 +196,6 @@ begin
 
   if not (csDesigning in ComponentState) and not WavpackDLL_Loaded then
     raise EAuException.Create(WavpackDLL_Name + ' library could not be loaded.');
-end;
-
-destructor TWVIn.Destroy;
-begin
-  FDecoder.Free();
-  if not FStreamAssigned then
-    FStream.Free();
-  if not FCorrectionsStreamAssigned then
-    FCorrectionsStream.Free();
-
-  inherited;
 end;
 
 procedure TWVIn.SetCorrectionsStream(Value: TStream);
@@ -198,15 +248,18 @@ begin
 
     FValid := True;
     FSeekable := True;
-//    FEOF := False;
 
     FBPS := FDecoder.BitsPerSample;
     FSR := FDecoder.SampleRate;
     FChan := FDecoder.NumChannels;
+    FTotalSamples := FDecoder.NumSamples;
 
     FPosition := 0;
-    FSize := FDecoder.NumSamples * (FBPS div 8) * FChan;
-
+    if FTotalSamples >= 0 then begin
+      FSize := FTotalSamples * (FBPS div 8) * FChan;
+    end
+    else
+     FSize := -1;
     if [wvmfValidTag] * FDecoder.Mode = [wvmfValidTag] then
       if [wvmfAPETag] * FDecoder.Mode = [] then begin // id3v1 tags
         _Id3v1Tags.Artist := FDecoder.Tags['artist'];
@@ -244,14 +297,15 @@ begin
   OpenCS.Enter;
   try
   if FOpened > 0 then begin
-    FOpened := 0;
+    Dec(FOpened);
 
     if FOpened = 0 then begin
       FreeAndNil(FDecoder);
-      if (not FStreamAssigned) and (FStream <> nil) then begin
+
+      if not FStreamAssigned then
         FreeAndNil(FStream);
+      if not FCorrectionsStreamAssigned then
         FreeAndNil(FCorrectionsStream);
-      end;
 
       SetLength(FBuffer, 0);
     end;
@@ -263,11 +317,7 @@ end;
 
 function TWVIn.SeekInternal(var Sample: Int64): Boolean;
 begin
-  OpenFile();
-  try
-    Result := FDecoder.SeekSample(Sample);
-  finally
-  end;
+  Result := FDecoder.SeekSample(Sample);
 end;
 
 procedure TWVIn.GetDataInternal(var Buffer: Pointer; var Bytes: LongWord);
@@ -283,8 +333,7 @@ const
   int24_sample_low: t_int24_sample = (
     lo: Low(int24_sample_low.lo); hi: Low(int24_sample_low.hi));
 var
-  new_bytes : LongWord;
-  new_buffer_size,
+  new_bytes, new_buffer_size,
   in_sample_size, out_sample_size,
   samples, samples_read,
   i: LongWord;
@@ -300,7 +349,6 @@ begin
 
   if Bytes > 0 then
   begin
-
     try
       if FSize >= 0 then begin
         new_bytes := FSize - FPosition;
@@ -314,10 +362,9 @@ begin
       Bytes := samples * out_sample_size;
 
       new_buffer_size := samples * in_sample_size;
-      {$WARNINGS OFF}
-      if Length(FBuffer) < new_buffer_size then
+      if LongWord(Length(FBuffer)) < new_buffer_size then
         SetLength(FBuffer, new_buffer_size);
-      {$WARNINGS ON}
+
       Buffer := @(FBuffer[0]);
 
       samples_read := FDecoder.UnpackSamples(Buffer, samples);
@@ -412,14 +459,13 @@ begin
           end;}
         end;
       end;
-
     finally
     end;
   end;
 end;
 
 
-(* class TWVOut *)
+{ class TWVOut }
 
 constructor TWVOut.Create(AOwner: TComponent);
 begin
@@ -427,17 +473,6 @@ begin
 
   if not (csDesigning in ComponentState) and not WavpackDLL_Loaded then
     raise EAuException.Create(WavpackDLL_Name + ' library could not be loaded.');
-end;
-
-destructor TWVOut.Destroy;
-begin
-  FEncoder.Free();
-  if not FStreamAssigned then
-    FStream.Free();
-  if not FCorrectionsStreamAssigned then
-    FCorrectionsStream.Free();
-
-  inherited;
 end;
 
 procedure TWVOut.SetCorrectionsStream(Value: TStream);
@@ -549,8 +584,7 @@ type
   p_int24_sample_in_int32 = ^t_int24_sample_in_int32;
 var
   buffer: Pointer;
-  frame_size, buffer_in_size, buffer_out_size, frames, samples, i: LongWord;
-  bytes : LongWord;
+  frame_size, bytes, buffer_in_size, buffer_out_size, frames, samples, i: LongWord;
   p_byte_samples: p_byte_sample_array;
   p_int16_samples: p_int16_sample_array;
   p_int24_samples: p_int24_sample_array;
@@ -573,43 +607,46 @@ begin
   Result := (bytes > 0);
   if Result then begin
     buffer_in_size := FBufferInStart + bytes;
-    {$WARNINGS OFF}
-    if Length(FBufferIn) < buffer_in_size then
+    if LongWord(Length(FBufferIn)) < buffer_in_size then
       SetLength(FBufferIn, buffer_in_size);
-    {$WARNINGS ON}
     Move(buffer^, FBufferIn[FBufferInStart], bytes);
 
     frames := buffer_in_size div frame_size;
     samples := frames * FInput.Channels;
 
     buffer_out_size := samples * SizeOf(p_int32_samples[Low(p_int32_samples^)]);
-    {$WARNINGS OFF}
-    if Length(FBufferOut) < buffer_out_size then
+    if LongWord(Length(FBufferOut)) < buffer_out_size then
       SetLength(FBufferOut, buffer_out_size);
-    {$WARNINGS ON}
-    p_int32_samples := @(FBufferOut[0]);
+
     case FInput.BitsPerSample shr 3 of
       1: begin // 8 bits per sample
+        p_int32_samples := @(FBufferOut[0]);
         p_byte_samples := @(FBufferIn[0]);
         for i := 0 to samples - 1 do
           p_int32_samples[i] :=
             (t_int32_sample(p_byte_samples[i]) - t_int32_sample(byte_sample_base)) and $FF;
       end;
       2: begin // 16 bits per sample
+        p_int32_samples := @(FBufferOut[0]);
         p_int16_samples := @(FBufferIn[0]);
         for i := 0 to samples - 1 do
           p_int32_samples[i] := p_int16_samples[i]; 
       end;
       3: begin // 24 bits per sample
+        p_int32_samples := @(FBufferOut[0]);
         p_int24_samples := @(FBufferIn[0]);
         for i := 0 to samples - 1 do begin
           t_int24_sample_in_int32(p_int32_samples[i]).lo := p_int24_samples[i].lo;
           t_int24_sample_in_int32(p_int32_samples[i]).hi := p_int24_samples[i].hi;
         end;
       end;
-      {4: begin // 32 bits per sample
-        // nothing to do
-      end;}
+      4: // 32 bits per sample
+        p_int32_samples := @(FBufferIn[0]);
+      else begin
+        Result := False;
+
+        Exit;
+      end;
     end;
 
     Result :=
