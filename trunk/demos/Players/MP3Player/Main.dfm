@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 244
-  Top = 189
+  Left = 246
+  Top = 190
   Width = 357
   Height = 217
   Caption = 'MP3 Player'

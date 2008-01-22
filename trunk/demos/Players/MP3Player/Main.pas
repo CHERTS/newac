@@ -72,14 +72,13 @@ begin
   if OpenDialog1.Execute then
   begin
     MP3In1.FileName := OpenDialog1.FileName;
-//    if not MP3In1.Valid then
-//    begin
-//      StatusBar1.Panels[0].Text := 'MP3 file is not valid.';
-//      Exit;
-//    end;
+    if not MP3In1.Valid then
+    begin
+      StatusBar1.Panels[0].Text := 'MP3 file is not valid.';
+      Exit;
+    end;
     BitBtn1.Enabled := False;
     StatusBar1.Panels[0].Text := MP3In1.FileName;
-    DXAudioOut1.Run;
     Label3.Caption :=  MP3In1.Id3v2Tags.Artist;
     Label9.Caption :=  MP3In1.Id3v2Tags.Album;
     Label11.Caption :=  MP3In1.Id3v2Tags.Title;
@@ -92,6 +91,7 @@ begin
     if MP3In1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label7.Caption := Format('%d:%s', [MP3In1.TotalTime div 60, Secs]);
     MP3In1.Loop := CheckBox1.Checked;
+    DXAudioOut1.Run;
   end;
 end;
 
