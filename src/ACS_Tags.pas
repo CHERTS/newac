@@ -1,21 +1,18 @@
 (*
-  This file is a part of New Audio Components package 1.3
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 1.4
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.3 $ $Date: 2007/11/26 20:56:47 $ *)
+(* $Id$ *)
 
 unit ACS_Tags;
-
-(* Title: ACS_Tags
-    Utility classes for Tags. *)
 
 interface
 
 uses
-  Classes;
+  Windows, Classes;
 
 type
 
@@ -24,7 +21,7 @@ type
   end;
   PTagValueInfo = ^TTagValueInfo;
 
-  (* class TAuTags *)
+  { class TAuTags }
 
   TAuTags = class(TPersistent)
   private
@@ -50,6 +47,9 @@ type
 
     procedure Clear;
 
+    function ReadFromFile(InFile: HFILE): Boolean; virtual;
+    function WriteToFile(OutFile: HFILE): Boolean; virtual;
+
     property Empty: Boolean read FEmpty;
     property Changed: Boolean read FChanged;
     property IdCount: Integer read GetIdCount;
@@ -60,42 +60,50 @@ type
     property AsWideString[const Id: String]: WideString read GetAsWideString;
   end;
 
-  (* class TId3Tags *)
+  { class TId3Tags }
 
   TId3Tags = class(TAuTags)
   public
     constructor Create; override;
   end;
 
-  (* class TId3v1Tags *)
+  { class TId3v1Tags }
+
+  TId3v1TagsGenreId = 0 .. 147;
 
   TId3v1Tags = class(TId3Tags)
   private
+    function GetTitle: String;
+    procedure SetTitle(const Value: String);
     function GetArtist: String;
     procedure SetArtist(const Value: String);
     function GetAlbum: String;
     procedure SetAlbum(const Value: String);
-    function GetGenre: String;
-    procedure SetGenre(const Value: String);
     function GetYear: Word;
     procedure SetYear(Value: Word);
-    function GetTrack: Word;
-    procedure SetTrack(Value: Word);
-    function GetTitle: String;
-    procedure SetTitle(const Value: String);
     function GetComment: String;
     procedure SetComment(const Value: String);
+    function GetTrack: Byte;
+    procedure SetTrack(Value: Byte);
+    function GetGenre: String;
+    procedure SetGenre(const Value: String);
+    function GetGenreId: TId3v1TagsGenreId;
+    procedure SetGenreId(Value: TId3v1TagsGenreId);
+  public
+    function ReadFromFile(InFile: HFILE): Boolean; override;
+    function WriteToFile(OutFile: HFILE): Boolean; override;
   published
+    property Title: String read GetTitle write SetTitle;
     property Artist: String read GetArtist write SetArtist;
     property Album: String read GetAlbum write SetAlbum;
-    property Genre: String read GetGenre write SetGenre;
     property Year: Word read GetYear write SetYear;
-    property Track: Word read GetTrack write SetTrack;
-    property Title: String read GetTitle write SetTitle;
     property Comment: String read GetComment write SetComment;
+    property Track: Byte read GetTrack write SetTrack;
+    property Genre: String read GetGenre write SetGenre;
+    property GenreId: TId3v1TagsGenreId read GetGenreId write SetGenreId;
   end;
 
-  (* class TId3v2Tags *)
+  { class TId3v2Tags }
 
   TId3v2Tags = class(TId3Tags)
   private
@@ -123,7 +131,7 @@ type
     property Comment: WideString read GetComment write SetComment;
   end;
 
-  (* class TAPEv2Tags *)
+  { class TAPEv2Tags }
 
   TAPEv2Tags = class(TAuTags)
   private
@@ -208,6 +216,157 @@ type
   end;
 
 const
+  Id3v1Genres: array [TId3v1TagsGenreId] of String = (
+    'Blues',
+    'Classic Rock',
+    'Country',
+    'Dance',
+    'Disco',
+    'Funk',
+    'Grunge',
+    'Hip-Hop',
+    'Jazz',
+    'Metal',
+    'New Age',
+    'Oldies',
+    'Other',
+    'Pop',
+    'R&B',
+    'Rap',
+    'Reggae',
+    'Rock',
+    'Techno',
+    'Industrial',
+    'Alternative',
+    'Ska',
+    'Death metal',
+    'Pranks',
+    'Soundtrack',
+    'Euro-Techno',
+    'Ambient',
+    'Trip-Hop',
+    'Vocal',
+    'Jazz+Funk',
+    'Fusion',
+    'Trance',
+    'Classical',
+    'Instrumental',
+    'Acid',
+    'House',
+    'Game',
+    'Sound Clip',
+    'Gospel',
+    'Noise',
+    'Alt. Rock',
+    'Bass',
+    'Soul',
+    'Punk',
+    'Space',
+    'Meditative',
+    'Instrumental pop',
+    'Instrumental rock',
+    'Ethnic',
+    'Gothic',
+    'Darkwave',
+    'Techno-Industrial',
+    'Electronic',
+    'Pop-Folk',
+    'Eurodance',
+    'Dream',
+    'Southern Rock',
+    'Comedy',
+    'Cult',
+    'Gangsta',
+    'Top 40',
+    'Christian Rap',
+    'Pop/Funk',
+    'Jungle',
+    'Native American',
+    'Cabaret',
+    'New Wave',
+    'Psychedelic',
+    'Rave',
+    'Showtunes',
+    'Trailer',
+    'Lo-Fi',
+    'Tribal',
+    'Acid Punk',
+    'Acid Jazz',
+    'Polka',
+    'Retro',
+    'Musical',
+    'Rock & Roll',
+    'Hard Rock',
+    'Folk',
+    'Folk-Rock',
+    'National Folk',
+    'Swing',
+    'Fast Fusion',
+    'Bebob',
+    'Latin',
+    'Revival',
+    'Celtic',
+    'Bluegrass',
+    'Avantgarde',
+    'Gothic Rock',
+    'Progressive Rock',
+    'Psychedelic Rock',
+    'Symphonic Rock',
+    'Slow Rock',
+    'Big Band',
+    'Chorus',
+    'Easy Listening',
+    'Acoustic',
+    'Humour',
+    'Speech',
+    'Chanson',
+    'Opera',
+    'Chamber music',
+    'Sonata',
+    'Symphony',
+    'Booty Bass',
+    'Primus',
+    'Porn Groove',
+    'Satire',
+    'Slow Jam',
+    'Club',
+    'Tango',
+    'Samba',
+    'Folklore',
+    'Ballad',
+    'Power Ballad',
+    'Rhythmic soul',
+    'Freestyle',
+    'Duet',
+    'Punk Rock',
+    'Drum Solo',
+    'A Cappella',
+    'Euro-House',
+    'Dance Hall',
+    'Goa',
+    'Drum & Bass',
+    'Club-House',
+    'Hardcore',
+    'Terror',
+    'Indie',
+    'BritPop',
+    'Negerpunk',
+    'Polsk Punk',
+    'Beat',
+    'Christian Gangsta Rap',
+    'Heavy Metal',
+    'Black Metal',
+    'Crossover',
+    'Contemporary Christian',
+    'Christian Rock',
+    'Merengue',
+    'Salsa',
+    'Thrash Metal',
+    'Anime',
+    'JPop',
+    'Synthpop'
+  );
+
   _id3_Artist  = 'TPE1';
   _id3_Album   = 'TALB';
   _id3_Genre   = 'TCON';
@@ -242,6 +401,13 @@ const
   _ape_SubTitle       = 'Subtitle';
   _ape_Comment        = 'Comment';
 
+  _vorbis_Album = 'album';
+  _vorbis_Artist = 'artist';
+  _vorbis_Date = 'date';
+  _vorbis_Genre = 'genre';
+  _vorbis_Title = 'title';
+  _vorbis_Track = 'track';
+
 type
 
   TVorbisTags = class(TAuTags)
@@ -274,7 +440,7 @@ implementation
 
 uses Variants, SysUtils, Math;
 
-(* class TAuTags *)
+{ class TAuTags }
 
 constructor TAuTags.Create;
 begin
@@ -459,8 +625,18 @@ begin
   FChanged := True;
 end;
 
+function TAuTags.ReadFromFile(InFile: HFILE): Boolean;
+begin
+  Result := False;
+end;
 
-(* class TId3Tags *)
+function TAuTags.WriteToFile(OutFile: HFILE): Boolean;
+begin
+  Result := False;
+end;
+
+
+{ class TId3Tags }
 
 constructor TId3Tags.Create;
 begin
@@ -476,7 +652,17 @@ begin
 end;
 
 
-(* class TId3v1Tags *)
+{ class TId3v1Tags }
+
+function TId3v1Tags.GetTitle: String;
+begin
+  Result := AsString[_id3_Title];
+end;
+
+procedure TId3v1Tags.SetTitle(const Value: String);
+begin
+  Values[_id3_Title] := Value;
+end;
 
 function TId3v1Tags.GetArtist: String;
 var
@@ -502,16 +688,6 @@ begin
   Values[_id3_Album] := Value;
 end;
 
-function TId3v1Tags.GetGenre: String;
-begin
-  Result := AsString[_id3_Genre];
-end;
-
-procedure TId3v1Tags.SetGenre(const Value: String);
-begin
-  Values[_id3_Genre] := Value;
-end;
-
 function TId3v1Tags.GetYear: Word;
 begin
   Result := AsInteger[_id3_Year];
@@ -520,26 +696,6 @@ end;
 procedure TId3v1Tags.SetYear(Value: Word);
 begin
   Values[_id3_Year] := Value;
-end;
-
-function TId3v1Tags.GetTrack: Word;
-begin
-  Result := AsInteger[_id3_Track];
-end;
-
-procedure TId3v1Tags.SetTrack(Value: Word);
-begin
-  Values[_id3_Track] := Value;
-end;
-
-function TId3v1Tags.GetTitle: String;
-begin
-  Result := AsString[_id3_Title];
-end;
-
-procedure TId3v1Tags.SetTitle(const Value: String);
-begin
-  Values[_id3_Title] := Value;
 end;
 
 function TId3v1Tags.GetComment: String;
@@ -552,8 +708,152 @@ begin
   Values[_id3_Comment] := Value;
 end;
 
+function TId3v1Tags.GetTrack: Byte;
+begin
+  Result := AsInteger[_id3_Track];
+end;
 
-(* class TId3v2Tags *)
+procedure TId3v1Tags.SetTrack(Value: Byte);
+begin
+  Values[_id3_Track] := Value;
+end;
+
+function TId3v1Tags.GetGenre: String;
+begin
+{  Result := AsString[_id3_Genre];}
+
+  Result := Id3v1Genres[GenreId];
+end;
+
+procedure TId3v1Tags.SetGenre(const Value: String);
+var
+  i: TId3v1TagsGenreId;
+  buf: String;
+begin
+{  Values[_id3_Genre] := Value;}
+
+  buf := Trim(Value);
+  for i := Low(i) to High(i) do
+    if SameText(buf, Id3v1Genres[i]) then begin
+      Values[_id3_Genre] := i;
+
+      Break;
+    end;
+end;
+
+function TId3v1Tags.GetGenreId: TId3v1TagsGenreId;
+var
+  n: Integer;
+begin
+  n := AsInteger[_id3_Genre];
+  if n in [Low(Result) .. High(Result)] then
+    Result := n
+  else
+    Result := 12; // other 
+end;
+
+procedure TId3v1Tags.SetGenreId(Value: TId3v1TagsGenreId);
+begin
+  Values[_id3_Genre] := Value;
+end;
+
+type
+  TId3v1TagsRec = packed record
+    Header : array [1 ..  3] of Char; // tag header - must be "TAG"
+    Title  : array [1 .. 30] of Char; // title
+    Artist : array [1 .. 30] of Char; // artist data
+    Album  : array [1 .. 30] of Char; // album data
+    Year   : array [1 ..  4] of Char; // year
+    Comment: array [1 .. 30] of Char; // comment
+    GenreId: Byte;                    // genre
+  end;
+
+function TId3v1Tags.ReadFromFile(InFile: HFILE): Boolean;
+var
+  tags_rec: TId3v1TagsRec;
+  bytes_read: Cardinal;
+begin
+  Result :=
+    (InFile <> INVALID_HANDLE_VALUE) and
+    (SetFilePointer(InFile, - SizeOf(tags_rec), nil, FILE_END) <> $FFFFFFFF) and
+    ReadFile(InFile, tags_rec, SizeOf(tags_rec), bytes_read, nil) and
+    (bytes_read = SizeOf(tags_rec)) and
+    (tags_rec.Header = 'TAG');
+  if Result then begin
+    Title  := Trim(tags_rec.Title);
+    Artist := Trim(tags_rec.Artist);
+    Album  := Trim(tags_rec.Album);
+    Year   := StrToIntDef(Trim(tags_rec.Year), 0);
+
+    if ((tags_rec.Comment[High(tags_rec.Comment) - 1] = #0) and
+        (tags_rec.Comment[High(tags_rec.Comment)] <> #0)) or
+       ((tags_rec.Comment[High(tags_rec.Comment) - 1] = #32) and
+        (tags_rec.Comment[High(tags_rec.Comment)] <> #32))
+    then begin
+      Comment := Trim(Copy(tags_rec.Comment,
+        Low(tags_rec.Comment), High(tags_rec.Comment) - 2));
+      Track := Byte(tags_rec.Comment[High(tags_rec.Comment)]);
+    end
+    else begin
+      Comment := Trim(tags_rec.Comment);
+      Track := 0;
+    end;
+    GenreId := tags_rec.GenreId;
+  end;
+end;
+
+function TId3v1Tags.WriteToFile(OutFile: HFILE): Boolean;
+
+  function min(n1, n2: Integer): Integer;
+  begin
+    if n1 < n2 then
+      Result := n1
+    else
+      Result := n2;
+  end;
+
+var
+  tags_rec: TId3v1TagsRec;
+  buf: String;
+  bytes_written: Cardinal;
+begin
+  Result :=
+    (OutFile <> INVALID_HANDLE_VALUE) and
+    (SetFilePointer(OutFile, 0, nil, FILE_END) <> $FFFFFFFF);
+  if Result then begin
+    FillChar(tags_rec, SizeOf(tags_rec), 0);
+
+    tags_rec.Header := 'TAG';
+    Move(Title[1], tags_rec.Title[1],
+      min(Length(Title), SizeOf(tags_rec.Title)));
+    Move(Artist[1], tags_rec.Artist[1],
+      min(Length(Artist), SizeOf(tags_rec.Artist)));
+    Move(Album[1], tags_rec.Album[1],
+      min(Length(Album), SizeOf(tags_rec.Album)));
+    buf := IntToStr(Year);
+    Move(buf[1], tags_rec.Year[1],
+      min(Length(buf), SizeOf(tags_rec.Year)));
+
+    if Track <> 0 then begin
+      Move(Comment[1], tags_rec.Comment[1],
+        min(Length(Comment), SizeOf(tags_rec.Comment) - 2));
+      tags_rec.Comment[High(tags_rec.Comment) - 1] := #0;
+      tags_rec.Comment[High(tags_rec.Comment)] := Char(Track);
+    end
+    else
+      Move(Comment[1], tags_rec.Comment[1],
+        min(Length(Comment), SizeOf(tags_rec.Comment)));
+
+    tags_rec.GenreId := GenreId;
+
+    Result :=
+      WriteFile(OutFile, tags_rec, SizeOf(tags_rec), bytes_written, nil) and
+      (bytes_written = SizeOf(tags_rec));
+  end;
+end;
+
+
+{ class TId3v2Tags }
 
 function TId3v2Tags.GetArtist: WideString;
 begin
@@ -626,7 +926,7 @@ begin
 end;
 
 
-(* class TAPEv2Tags *)
+{ class TAPEv2Tags }
 
 constructor TAPEv2Tags.Create;
 begin
@@ -912,72 +1212,72 @@ end;
   constructor TVorbisTags.Create;
   begin
     inherited Create;
-    AddId('album');
-    AddId('artist');
-    AddId('date');
-    AddId('genre');
-    AddId('title');
-    AddId('track');
+    AddId(_vorbis_Album);
+    AddId(_vorbis_Artist);
+    AddId(_vorbis_Date);
+    AddId(_vorbis_Genre);
+    AddId(_vorbis_Title);
+    AddId(_vorbis_Track);
   end;
 
   function TVorbisTags.GetAlbum;
   begin
-    Result := AsWideString['album'];
+    Result := AsWideString[_vorbis_Album];
   end;
 
   procedure TVorbisTags.SetAlbum;
   begin
-    Values['album'] := Value;
+    Values[_vorbis_Album] := Value;
   end;
 
   function TVorbisTags.GetArtist;
   begin
-    Result := AsWideString['artist'];
+    Result := AsWideString[_vorbis_Artist];
   end;
 
   procedure TVorbisTags.SetArtist;
   begin
-    Values['artist'] := Value;
+    Values[_vorbis_Artist] := Value;
   end;
 
   function TVorbisTags.GetDate;
   begin
-    Result := AsWideString['date'];
+    Result := AsWideString[_vorbis_Date];
   end;
 
   procedure TVorbisTags.SetDate;
   begin
-    Values['date'] := Value;
+    Values[_vorbis_Date] := Value;
   end;
 
   function TVorbisTags.GetGenre;
   begin
-    Result := AsWideString['genre'];
+    Result := AsWideString[_vorbis_Genre];
   end;
 
   procedure TVorbisTags.SetGenre;
   begin
-    Values['genre'] := Value;
+    Values[_vorbis_Genre] := Value;
   end;
 
   function TVorbisTags.GetTitle;
   begin
-    Result := AsWideString['title'];
+    Result := AsWideString[_vorbis_Title];
   end;
 
   procedure TVorbisTags.SetTitle;
   begin
-    Values['title'] := Value;
+    Values[_vorbis_Title] := Value;
   end;
 
   function TVorbisTags.GetTrack;
   begin
-    Result := AsInteger['track'];
+    Result := AsInteger[_vorbis_Track];
   end;
 
   procedure TVorbisTags.SetTrack;
   begin
-    Values['track'] := Value;
+    Values[_vorbis_Track] := Value;
   end;
 
 end.
