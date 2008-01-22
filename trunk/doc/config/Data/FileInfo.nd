@@ -29,15 +29,15 @@ D:\projects\newac\demos\Players\AudioPlayer\Main.pas	1199560737	0	D:\projects\ne
 D:\projects\newac\demos\Tutorial\ComponentsDemo\Main.pas	1200758750	0	D:\projects\newac\demos\Tutorial\ComponentsDemo\Main.pas
 D:\projects\newac\doc\txt\about documentation.txt	1199926661	1	About the Documentation
 D:\projects\newac\src\_DirectSound.pas	1199601019	0	D:\projects\newac\src\_DirectSound.pas
-D:\projects\newac\doc\filelist.txt	1200539571	0	D:\projects\newac\doc\filelist.txt
+D:\projects\newac\doc\filelist.txt	1200767249	0	D:\projects\newac\doc\filelist.txt
 D:\projects\newac\doc\txt\cwguide.txt	1200258660	1	Component Writer's Guide
-D:\projects\newac\src\libwma1.pas	1200010347	1	libwma1.pas
+D:\projects\newac\src\libwma1.pas	1200967327	1	libwma1.pas
 D:\projects\newac\demos\Editors\SincFilterDemo\Main.pas	1199560740	0	D:\projects\newac\demos\Editors\SincFilterDemo\Main.pas
 D:\projects\newac\src\libsamplerate.pas	1199601019	1	libsamplerate.pas
 D:\projects\newac\demos\Converters\MP3Converter\Unit1.pas	1200010348	0	D:\projects\newac\demos\Converters\MP3Converter\Unit1.pas
 D:\projects\newac\demos\Converters\Wav2Ogg-2\Main.pas	1199560746	0	D:\projects\newac\demos\Converters\Wav2Ogg-2\Main.pas
 D:\projects\newac\src\ACS_Filters.pas	1200010347	1	ACS_Filters
-D:\projects\newac\src\ACS_WinMedia.pas	1200010319	1	ACS_WinMedia
+D:\projects\newac\src\ACS_WinMedia.pas	1200967327	1	ACS_WinMedia
 D:\projects\newac\src\AudioPass.pas	1200109599	0	D:\projects\newac\src\AudioPass.pas
 D:\projects\newac\demos\Players\OggPlayer\Main.pas	1199560735	0	D:\projects\newac\demos\Players\OggPlayer\Main.pas
 D:\projects\newac\demos\Tutorial\ReadMe.txt	1199560739	0	D:\projects\newac\demos\Tutorial\ReadMe.txt
@@ -47,7 +47,7 @@ D:\projects\newac\demos\Converters\ReadMe.txt	1200010348	0	D:\projects\newac\dem
 D:\projects\newac\src\ACS_MAC.pas	1200010347	1	ACS_MAC
 D:\projects\newac\demos\Editors\AudioCutter\Main.pas	1200758750	0	D:\projects\newac\demos\Editors\AudioCutter\Main.pas
 D:\projects\newac\src\WaveConverter.pas	1199601019	1	WaveConverter.pas
-D:\projects\newac\doc\txt\introduction.txt	1199845668	1	Introduction
+D:\projects\newac\doc\txt\introduction.txt	1200967784	1	Introduction
 D:\projects\newac\demos\Editors\ReadMe.txt	1199560742	0	D:\projects\newac\demos\Editors\ReadMe.txt
 D:\projects\newac\src\ACS_WavPack.pas	1200010347	1	ACS_WavPack
 D:\projects\newac\src\DSWrapper.pas	1200010347	1	DSWrapper
@@ -57,7 +57,7 @@ D:\projects\newac\doc\txt\license.txt	1199511455	1	License
 D:\projects\newac\demos\Players\WMPlayer\Main.pas	1199560732	0	D:\projects\newac\demos\Players\WMPlayer\Main.pas
 D:\projects\newac\src\ACS_Audio.pas	1200010347	1	ACS_Audio
 D:\projects\newac\demos\Tutorial\ComponentsDemo\ComponentsDemo.pas	1200767176	1	Components Demo
-D:\projects\newac\demos\Converters\Wav2Ogg\Main.pas	1199560746	0	D:\projects\newac\demos\Converters\Wav2Ogg\Main.pas
+D:\projects\newac\demos\Converters\Wav2Ogg\Main.pas	1200767850	0	D:\projects\newac\demos\Converters\Wav2Ogg\Main.pas
 D:\projects\newac\src\MACDll.pas	1199601019	1	MACDll.pas
 D:\projects\newac\src\ogg.pas	1199601019	1	ogg.pas
 D:\projects\newac\src\FLAC.pas	1199601019	1	FLAC
@@ -78,7 +78,7 @@ D:\projects\newac\src\VorbisEnc.pas	1199601019	1	VorbisEnc.pas
 D:\projects\newac\src\ACS_Vorbis.pas	1200010319	1	ACS_Vorbis
 D:\projects\newac\src\CDRip.pas	1200010347	1	CDRip
 D:\projects\newac\src\ACS_Procs.pas	1199601019	1	ACS_Procs
-D:\projects\newac\src\ACS_Classes.pas	1200758753	1	ACS_Classes
+D:\projects\newac\src\ACS_Classes.pas	1200967327	1	ACS_Classes
 D:\projects\newac\demos\Converters\Wav2APE\Main.pas	1199560743	0	D:\projects\newac\demos\Converters\Wav2APE\Main.pas
 D:\projects\newac\src\ACS_FLAC.pas	1200534833	1	ACS_FLAC
 D:\projects\newac\demos\Tutorial\StreamDemo\ServerMain.pas	1199560738	0	D:\projects\newac\demos\Tutorial\StreamDemo\ServerMain.pas
