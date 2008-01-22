@@ -81,7 +81,7 @@ The input components acquire audio input from some source (device, disk file, et
 
 (see diagram.png)
 
-All components are linked via their Input properties. Arrows show connections between components (from WaveOut1 to AudioIn1). Audio data flows through the chain in the opposite direction, from AudioIn1 to WaveOut1. In this example we read audio data from the soundcard input component AudioIn1 (input component), pass it through the RateConverter1 component (converter component) and store in a *.wav file via WaveOut1 component (output component). 
+All components are linked via their Input properties. Arrows show connections between components (from WaveOut1 to AudioIn1). Audio data flows through the chain in the opposite direction, from AudioIn1 to WaveOut1. In this example we read audio data from the sound card input component AudioIn1 (input component), pass it through the RateConverter1 component (converter component) and store in a *.wav file via WaveOut1 component (output component). 
 
 The converter component is not a necessary element in this chain. In many cases you will just connect input and output components together to convert data from one format to the other or to perform I/O with some particular device. As you can see NewAC isn't just a collection of components implementing interfaces to some hardware or file formats. It is rather a set of building blocks with which you can construct a complete sound-processing application.
 
@@ -114,7 +114,7 @@ Believe it or not, you have now set up everything for the data conversion. In or
 
 The actual compression process runs in its own thread, while your main thread can do something else. You can control how conversion goes on by checking VorbisOut1's Progress property. When the conversion is finished, the VorbisOut1.OnDone property will be called.
 
-If you disable some application's controls while NewAC components perform their action and enable them back in the OnDone event handler (like it is done in most of the demos), make sure you disable the controls before calling the Run method. Otherwise these controls may be not automatically reenabled if an error occurs during NewAC operation.
+If you disable some application's controls while NewAC components perform their action and enable them back in the OnDone event handler (like it is done in most of the demos), make sure you disable the controls before calling the Run method. Otherwise these controls may be not automatically re-enabled if an error occurs during NewAC operation.
 
 You get access to an input component's data directly in a non-threaded way. The following example shows how data can be obtained from an audio CD with the TCDIn component.
 
@@ -226,16 +226,16 @@ Some of NewAC components require certain shared libraries, which are not include
 It is important to note that since all libraries required by NewAC components are loaded dynamically at run-time, you can use NewAC as a whole without these libraries. Of course, those components requiring certain library will only work if the library is found.
 
 	-	TVorbisIn and TVorbisOut components require Ogg Vorbis libraries (ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll). See the additional note below.
-	-	TFLACIn and TFLACOut components depend on libFLAC.dll. You can find FALC sources at http://flac.sourceforge.net.
-	-	Monkey Audio components require MacDLL.dll library. This library is included into windlls.zip archive (see below). You can also download it with Monkey Audio SDK available on the at http://www.monkeysaudio.com.
-	- 	TCDIn component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
-	- 	TResampler component requires the libsamplerate.dll library. You can get the sources at http://www.mega-nerd.com/SRC/win32.html.
-	- 	TMP3Out component requires lame_enc.dll (under Windows). Sources are available at http://lame.sourceforge.net
+	-	TFLACIn and TFLACOut components depend on libFLAC.dll. You can find FLAC sources at http://flac.sourceforge.net.
+	-	Monkey Audio components require MacDLL.dll library. The Monkey Audio SDK is available at http://www.monkeysaudio.com.
+	- TCDIn component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
+	- TResampler component requires the libsamplerate.dll library. You can get the sources at http://www.mega-nerd.com/SRC/win32.html.
+	- TMP3Out component requires lame_enc.dll (under Windows). Sources are available at http://lame.sourceforge.net
 Note:
-	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your Country. Check this out.
+	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your Country.
 
 Note on Ogg Vorbis libraries:
-	The original libraries available at www.xiph.org are not fully compatible with Delphi. You should use alternative aoTuV Ogg Vorbis suite instead. You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
+	The original libraries available at http://www.xiph.org are not fully compatible with Delphi. You should use alternative aoTuV Ogg Vorbis suite instead. You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
 
 Section: Installation
 
@@ -251,10 +251,10 @@ Eventually you may want to extend NewAC with your own components. It will be gre
 
 Section: Licenses
 
-The NewAC code itself is distributed free of charge, under a simple license that allows an unrestricted use (both non-commercial and commercial). See the license.txt for more detail.The third-party libraries required by different NewAC components are distributed under different licenses. 
+The NewAC code itself is distributed free of charge, under a simple license that allows an unrestricted use (both non-commercial and commercial). See the license.txt for more detail. The third-party libraries required by different NewAC components are distributed under different licenses. 
 
 	- The ogg.dll, vorbis.dll, vorbisfile.dll, and vorbisenc.dll libraries are distributed under the GPLv2. 
 	- The libFLAC.dll library is distributed under the GPLv2. 
 	- The libsamplerate.dll library is distributed under the GPLv2.
-	- The MACDll.dll library is distributed under the custom license (http://www.monkeysaudio.com for more details). 
+	- The MACDll.dll library is distributed under a custom license (http://www.monkeysaudio.com for more details). 
 	- The CDRip.dll library is distributed under the GPLv2.
