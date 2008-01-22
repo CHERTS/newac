@@ -12,7 +12,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, ACS_Classes,
-  Buttons, ACS_WavPack, ACS_DXAudio, ACS_TTA;
+  Buttons, ACS_DXAudio, ACS_TTA;
 
 type
   TForm1 = class(TForm)
@@ -35,8 +35,6 @@ type
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
-    SpeedButton4: TSpeedButton;
-    SpeedButton5: TSpeedButton;
     DXAudioOut1: TDXAudioOut;
     TTAIn1: TTTAIn;
     Label4: TLabel;
@@ -49,8 +47,6 @@ type
     procedure SpeedButton1Click(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton3Click(Sender: TObject);
-    procedure SpeedButton4Click(Sender: TObject);
-    procedure SpeedButton5Click(Sender: TObject);
   private
     { Private declarations }
     FS : TFileStream;
@@ -128,16 +124,6 @@ end;
 procedure TForm1.SpeedButton3Click(Sender: TObject);
 begin
   DXAudioOut1.Stop;
-end;
-
-procedure TForm1.SpeedButton4Click(Sender: TObject);
-begin
-  TTAIn1.Jump(10);
-end;
-
-procedure TForm1.SpeedButton5Click(Sender: TObject);
-begin
-  TTAIn1.Jump(-10);
 end;
 
 end.
