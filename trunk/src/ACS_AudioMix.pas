@@ -66,7 +66,7 @@ type
     (*Property: Input1
     Use this property to set the first input stream to be mixed or concatenated.*)
     property Input1 : TAuInput read FInput1 write SetInput1;
-    (*Property: Input1
+    (*Property: Input2
     Use this property to set the second input stream to be mixed or concatenated.*)
     property Input2 : TAuInput read FInput2 write SetInput2;
     (*Property: Mode
@@ -98,8 +98,8 @@ type
     (*Property: Volume1
       Use Volume1 to set the volume of the first stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
     property Volume1 : Byte read FVolume1 write FVolume1;
-    (*Property: Volume1
-      Use Volume1 to set the volume of the second stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
+    (*Property: Volume2
+      Use Volume2 to set the volume of the second stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
     property Volume2 : Byte read FVolume2 write FVolume2;
   end;
 
