@@ -11,8 +11,10 @@
 
 (* $Id$ *)
 
-(* Title: ACS_WavPack this unit contains components for decoding/encoding Wavpack format.
-   For more detail see http://www.wavpack.com/. You will need wavpackdll.dll shared library to use these components.*)
+(* Title: ACS_WavPack
+    This unit contains components for decoding/encoding WavPack format. For
+    more detail see http://www.wavpack.com/. You will need the wavpackdll.dll
+    shared library to use these components. *)
 
 unit ACS_WavPack;
 
@@ -26,13 +28,9 @@ uses
 
 type
 
-  (* class TWVIn *)
-
-
-    (* Class: TWVIn
-        WavPack decoder.
-        Descends from <TAuTaggedFileIn>.
-        Requires wavpackdll.dll*)
+  (* Class: TWVIn
+      WavPack decoder, descends from <TAuTaggedFileIn>. Requires
+      wavpackdll.dll. *)
 
   TWVIn = class(TAuTaggedFileIn)
   private
@@ -54,21 +52,23 @@ type
     constructor Create(AOwner: TComponent); override;
 
     (* Property: CorrectionsStream
-       WavPack can use two separate files for encoded content - the main file (*.wv) and the file stream (*.wvc).
-       If you set a file name, the codec searches for additional file by itself, but if you provide a TStream as a source
-       of data you have to set up the correction stream yourself (if you have one).
+       WavPack can use two separate files for encoded content: the main file
+       (*.wv) and the file stream (*.wvc). If you set a file name, the codec
+       searches for additional file by itself, but if you provide a TStream as
+       a source of data you have to set up the correction stream yourself (if
+       you have one).
     *)
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
 
     (* Property: Id3v1Tags
-       Read this property to get Id3v1Tags attached to the wavpack file.
+       Read this property to get Id3v1Tags attached to the WavPack file.
     *)
 
     property Id3v1Tags : TId3v1Tags read GetId3v1Tags;
 
     (* Property: APEv2Tags
-       Read this property to get APEv2Tags attached to the wavpack file.
+       Read this property to get APEv2Tags attached to the WavPack file.
     *)
 
     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
@@ -80,9 +80,8 @@ type
   TWVCompressionLevel = (wvclFast, wvclHigh, wvclVeryHigh);
 
     (* Class: TWVOut
-        WavPack encoder.
-        Descends from <TAuTaggedFileOut>.
-        Requires wavpackdll.dll. *)
+        WavPack encoder, descends from <TAuTaggedFileOut>. Requires
+        wavpackdll.dll. *)
 
   TWVOut = class(TAuTaggedFileOut)
   private
@@ -111,45 +110,44 @@ type
 
 
     (* Property: CorrectionsStream
-       WavPack can use two separate files for encoded content - the main file (*.wv) and the file stream (*.wvc).
-       If you set a file name, the codec creates an additional file by itself depending on <HybridMode> value, but if you provide a TStream as a source
-       of data you have to set up the correction stream yourself (if you nned one).
-       See also <HybridMode>.
+       WavPack can use two separate files for encoded content: the main file
+       (*.wv) and the file stream (*.wvc). If you set a file name, the codec
+       creates an additional file by itself depending on <HybridMode> value,
+       but if you provide a TStream as a source of data you have to set up the
+       correction stream yourself (if you need one). See also <HybridMode>.
     *)
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
   published
 
     (* Property: JointStereo
-       Set this property to True to increase compression a little.
-    *)
+       Set this property to True to increase compression a little. *)
 
     property JointStereo: Boolean read FJointStereo write FJointStereo default False;
 
     (* Property: CompressionLevel
-       Sets the level of compression for a file/stream being created.
-       The possible values are: wvclFast, wvclHigh, and wvclVeryHigh.
-       Higher compression takes longer time to encdoe.
-    *)
+       Sets the level of compression for a file/stream being created. The
+       possible values are: wvclFast, wvclHigh, and wvclVeryHigh. Higher
+       compression takes longer time to encode. *)
 
     property CompressionLevel: TWVCompressionLevel read FCompressionLevel write FCompressionLevel default wvclFast;
 
     (* Property: HybridMode
-       WavPack can work in two modes. In hybrid mode it uses a single file to store all the content.
-       In two file mode there are to files - the main and the correctoion file (see the wavpack site for mor explanation.
-       If this property is set to True the input content will be packed into a single file or stream.
+       WavPack can work in two modes: in hybrid mode it uses a single file to
+       store all the content. In two file mode there is a small, lossy file (similar to an MP3) and a correction file. The small file can play on its own, and sounds just fine. Optionally, the correction file, which is much larger, can be combined with the smaller one for completely lossless playback. See http://wavpack.com for more info. If this property is set to True the input content will be packed into a
+       single file or stream.
     *)
 
     property HybridMode: Boolean read FHybridMode write FHybridMode default False;
 
     (* Property: Bitrate
-       Use this property to set bitrate - an additional qualit parameter for the encoder.
+       Set the bitrate, an additional quality parameter for the encoder.
     *)
 
     property Bitrate: Single read FBitrate write FBitrate;
 
      (* Property: APEv2Tags
-       Use this property to attach APEv2 tags to the file being created.
+       Attach APEv2 tags to the file being created.
      *)
 
     property APEv2Tags;

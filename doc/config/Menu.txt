@@ -70,7 +70,6 @@ Group: Units  {
       File: ACS_LAME  (src\ACS_LAME.pas)
       File: ACS_MAC  (src\ACS_MAC.pas)
       File: ACS_SMPEG  (src\ACS_smpeg.pas)
-      File: ACS_Tags  (src\ACS_Tags.pas)
       File: ACS_Vorbis  (src\ACS_Vorbis.pas)
       File: ACS_WavPack  (src\ACS_WavPack.pas)
       File: ACS_Wave  (src\ACS_Wave.pas)
@@ -110,6 +109,7 @@ Group: Units  {
       File: ogg.pas  (src\ogg.pas)
       File: ovencode  (src\ovencode.pas)
       File: wmfintf.pas  (src\wmfintf.pas)
+      File: ACS_Tags  (src\ACS_Tags.pas)
       }  # Group: Headers
 
    }  # Group: Units

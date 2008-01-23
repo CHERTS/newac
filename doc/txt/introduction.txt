@@ -29,7 +29,8 @@ Section: On the Web
 		The source code for NewAC is now hosted on Google Code http://code.google.com/p/newac/.
 
 Section: Version History
-
+	Past versions of NewAC and their major changes and bugfixes. 
+	
 Version: NewAC 1.3.2
 	- Improved WMA encoder
 	- Object Model has changed: SuspendWhenIdle property and WaitForStop method are now obsolete.
@@ -68,6 +69,11 @@ Version: ACS v2.3
 	- Changes in the object model: Event and thread handling improved.
 	- DirectX input/output has been added (TDXAudiIn and TDXAudiOut components). 
 	- TMP3Out component has been improved.
+
+A Note to the Reader:
+	It is only fair to warn you that the version of this documentation is only guaranteed to match up with your source code if you downloaded both of them at the same time from the same place. On the website, the very latest version of the documentation is readily available. It reflects the latest changes with the idea that more documentation is always a good thing. 
+	
+	If you read something in this documentation that disagrees with the source code you have, odds are you have outdated source. Unless you have production code, there is no reason not to pull directly from the Subversion repository. If for some reason there is instability in this code you would be doing everyone a favor by at least discovering and reporting it.
 
 Section: Introduction to NewAC Programming
 
@@ -247,7 +253,16 @@ To install New Audio Components package, first compile the package. Create or se
 
 Section: Writing Your Own Components
 
-Eventually you may want to extend NewAC with your own components. It will be great if you make these components available for the entire community (although you are not required to do so). How to write a new component for NewAC? You have the sources of all the components, and they all can be your guides. But most component's sources contain lots of component-specific stuff. It is not easy to tell from the first site, what is required, and what is arbitrary. Understanding this I have provided a special input/output components' writer guide. You can find it in the file called cwguide.htm. Two demo components, TDemoWaveIn and TDemoWaveOut, are written specially for this tutorial. These two components are not the part of the main NewAC package, you can find them in the file ComponentsDemo.pas in the Demos\ComponentsDemo folder. These demo components handle simple input and output tasks, and the sources are extensively commented (unlike other components' sources, I must admit).
+Eventually you may want to extend NewAC with your own components. It will be great if you make these components available for the entire community (although you are not required to do so). How to write a new component for NewAC? You have the sources of all the components, and they all can be your guides. But most component's sources contain lots of component-specific stuff. It is not easy to tell from the first site, what is required, and what is arbitrary. 
+
+Understanding this I have provided a special input/output <Component Writer’s
+Guide>. You can find a text version of it in .\doc\txt\cwguide.txt.
+Additionally, two demo components, <TDemoWaveIn> and <TDemoWaveOut>, are
+written specially for this tutorial. These two components are not the part of
+the main NewAC package, you can find them in the <Components Demo>, found in
+the .\Demos\ComponentsDemo folder. These demo components handle simple input
+and output tasks, and the sources are extensively commented (unlike other
+components' sources, I must admit).
 
 Section: Licenses
 
