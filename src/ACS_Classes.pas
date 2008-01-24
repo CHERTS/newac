@@ -229,6 +229,9 @@ type
 
   TAuOutput = class(TComponent)
   protected
+    FStopped : Boolean; // indicates that the output is terminated by calling Stop
+                        // So that Done could know the output is stopped forcibly. Currently only TWaveOut usese this.
+                        // Set to True by Stop and to False in WhenDone.
     FExceptionMessage : String;
     CanOutput : Boolean;
     CurProgr : Integer;
@@ -238,13 +241,10 @@ type
     FOnProgress : TOutputProgressEvent;
     Busy : Boolean;  // Set to true by Run and to False by WhenDone.
     FOnThreadException : TThreadExceptionEvent;
-   // InputLock : Boolean;
     function GetPriority : {$IFDEF LINUX} Integer; {$ENDIF} {$IFDEF WIN32} TThreadPriority; {$ENDIF}
-//    function GetSuspend : Boolean;
     function GetProgress : Integer;
     procedure SetInput(vInput : TAuInput); virtual;
     procedure SetPriority(Priority : {$IFDEF LINUX} Integer {$ENDIF} {$IFDEF WIN32} TThreadPriority {$ENDIF});
-//    procedure SetSuspend(v : Boolean);
     procedure WhenDone; // Calls descendant's Done method
     function GetTE : Integer;
     function GetStatus : TOutputStatus;
@@ -923,11 +923,12 @@ end;
     inherited Create(AOwner);
     if not (csDesigning in ComponentState) then
     begin
-    Thread := TAuThread.Create(True);
-    Thread.Parent := Self;
-    Thread.DoNotify := True;
-    Thread.FreeOnTerminate := False;
-    Thread.HandleException := HandleException;
+      FStopped := False;
+      Thread := TAuThread.Create(True);
+      Thread.Parent := Self;
+      Thread.DoNotify := True;
+      Thread.FreeOnTerminate := False;
+      Thread.HandleException := HandleException;
      CreateEventHandler;
     end;
   end;
@@ -952,6 +953,7 @@ end;
     if not Busy then Exit;
     CanOutput := False;
     Done;
+    FStopped := False;
     Busy := False;
   end;
 
@@ -988,6 +990,7 @@ end;
 
   procedure TAuOutput.Stop;
   begin
+    FStopped := True;
     Thread.DoNotify := Async;
     Thread.Stopped := False;
     Thread.Stop := True;

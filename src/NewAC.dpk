@@ -18,6 +18,8 @@ package NewAC;
 {$R 'AuSampleRate.dcr'}
 {$R 'ACS_WavPack.dcr'}
 {$R 'ACS_WinMedia.dcr'}
+{$R 'ACS_TTA.dcr'}
+{$R 'AudioPass.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -85,6 +87,9 @@ contains
   _DXTypes in '_DXTypes.pas',
   ACS_WinMedia in 'ACS_WinMedia.pas',
   libwma1 in 'libwma1.pas',
-  wmfintf in 'wmfintf.pas';
+  wmfintf in 'wmfintf.pas',
+  ACS_TTA in 'ACS_TTA.pas',
+  TTALib in 'TTALib.pas',
+  AudioPass in 'AudioPass.pas';
 
 end.
