@@ -3,4 +3,7 @@ Following is the short description of each demo:
 
 • CDRipper - the name stays for itself. This demo can store rips in wav, ogg, and flac formats.
 
+• CDRipper that allows you listen to the track you are ripping. This ripper can store rips in wav, ogg, flac, and wma formats.
+
+
 • DirectSoundRecorder - this demo shows how to record sound from a sound card. Can store records in several formats.
