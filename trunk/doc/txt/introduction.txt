@@ -31,6 +31,12 @@ Section: On the Web
 Section: Version History
 	Past versions of NewAC and their major changes and bugfixes. 
 	
+Version: NewAC 1.4
+	- FLAC tags support (reading/writing).
+	- TTA lossless audio format support.
+	- New converter components: TACMConverter and TAudioPass.
+	- Numerous smaller fixes and improvements.  
+
 Version: NewAC 1.3.2
 	- Improved WMA encoder
 	- Object Model has changed: SuspendWhenIdle property and WaitForStop method are now obsolete.
