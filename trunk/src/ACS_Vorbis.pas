@@ -307,7 +307,6 @@ implementation
 
   destructor TVorbisOut.Destroy;
   begin
-//    Thread.bSuspend := True;
     FComments.Free;
     inherited Destroy;
   end;
@@ -514,7 +513,7 @@ implementation
         if CN = 'genre' then
           FComments.Genre := UTF8Decode(CV)
         else
-        if CN = 'track' then
+        if CN = 'tracknumber' then
           FComments.Track := StrToInt(UTF8Decode(CV));
         Inc(LongWord(PComment), 4);
         Comment := PComment^;
