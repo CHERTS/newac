@@ -284,7 +284,7 @@ type
           if FlacOut.FTags.Genre <> '' then
             Comm.Genre := Utf8Encode(WideString('GENRE=') + FlacOut.FTags.Genre);
           if FlacOut.FTags.Track <> 0 then
-            Comm.Track := Utf8Encode(WideString('TRACK=') + IntToStr(FlacOut.FTags.Track));
+            Comm.Track := Utf8Encode(WideString('TRACKNUM=') + IntToStr(FlacOut.FTags.Track));
           BL := BuildCommentsBlock(Comm, Block, BI.HasNext);
           FLACOut.FStream.Write(Block^, BL);
           FreeMem(Block);
@@ -555,7 +555,7 @@ type
       FLACIn.FComments.Date := Utf8Decode(S);
       S := SL.Values['GENRE'];
       FLACIn.FComments.Genre := Utf8Decode(S);
-      S := SL.Values['TRACK'];
+      S := SL.Values['TRACKNUM'];
       if S <> '' then
         FLACIn.FComments.Track := StrToInt(S)
       else  FLACIn.FComments.Track := 0;
