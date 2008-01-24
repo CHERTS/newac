@@ -1239,7 +1239,7 @@ end;
     BlockSize : Integer;
     P : Pointer;
   begin
-    if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
+    if ((FInput.Size < 0) or (FFileMode = foAppend) or (FStopped = True)) then
 //    if FStream <> nil then
     begin
       case FWavType of
@@ -1282,17 +1282,19 @@ end;
       Size := FStream.Size;
       FStream.Seek(4, soFromBeginning);
       FStream.Write(Size, 4);
-    end;  // if ((FInput.Size < 0) or (FFileMode = foAppend)) and (FStream <> nil) then
-    if FWavType = wtPCM then
+    end else  // if ((FInput.Size < 0) or (FFileMode = foAppend) or (FStopped = True)) then
     begin
-      BlockSize := FInput.Size + 44 - FStream.Position;
-      if BlockSize > 0 then
+      if FWavType = wtPCM then
       begin
-        GetMem(P, BlockSize);
-        FillChar(P^, BlockSize, 0);
-        FStream.Write(P^, BlockSize);
-        FreeMem(P);
-      end;
+        BlockSize := FInput.Size + 44 - FStream.Position;
+        if BlockSize > 0 then
+        begin
+          GetMem(P, BlockSize);
+          FillChar(P^, BlockSize, 0);
+          FStream.Write(P^, BlockSize);
+          FreeMem(P);
+        end;
+      end;  
     end;
     if (not FStreamAssigned) and (FStream <> nil) then FStream.Free;
     FInput.Flush;

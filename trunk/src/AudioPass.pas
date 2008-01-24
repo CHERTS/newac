@@ -12,12 +12,12 @@ unit AudioPass;
 interface
 
 uses
-  Classes, SysUtils, Forms, ACS_Types, ACS_Procs, ACS_Classes, Windows, DSWrapper, _DirectSound;
+  Classes, SysUtils, Forms, ACS_Types, ACS_Procs, ACS_Classes, Windows, DSWrapper, _DirectSound, Math;
 
 const
 
   DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
-  DS_POLLING_INTERVAL = 50; //milliseconds
+  DS_POLLING_INTERVAL = 30; //milliseconds
 
 type
 
@@ -54,6 +54,7 @@ type
     property DeviceName[Number : Integer] : String read GetDeviceName;
     property Underruns : LongWord read FUnderruns;
     property BufferSize : LongWord read FBufferSize write FBufferSize;
+    property BufSize : LongWord read _BufSize;
   published
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     property Mute : Boolean read FMute write SetMute;
@@ -153,16 +154,13 @@ var
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
 begin
-  if FMute then
-  begin
-    FInput.GetData(Buffer, Bytes);
-    Exit;
-  end;
   if StartInput then
   begin
     if FPosition = _BufSize then
     begin
       DSW_StartOutput(DSW);
+      if FMute then
+         DSW_StopOutput(DSW);
       StartInput := False;
     end else
     begin
@@ -172,14 +170,19 @@ begin
         Exit;
       DSW_WriteBlock(DSW, Buffer, Bytes);
       Exit;
-    end;  
+    end;
+  end;
+  if FMute then
+  begin
+    FInput.GetData(Buffer, Bytes);
+    Exit;
   end;
   repeat
     Sleep(DS_POLLING_INTERVAL);
     DSW_QueryOutputSpace(DSW, lb);
     lb := lb - (lb mod DSW.dsw_BytesPerFrame);
   until lb > 0;
-  Bytes := lb;
+  if lb < Bytes then Bytes := lb;
   FInput.GetData(Buffer, Bytes);
   if Bytes > 0 then
     DSW_WriteBlock(DSW, Buffer, Bytes)
@@ -206,8 +209,10 @@ procedure TAudioPass.SetMute;
 begin
   if StartInput then
   begin
+    _Lock;
     FMute := b;
     Exit;
+    _Unlock;
   end;
   _Lock;
   if (FMute = False) and (b = True) then
@@ -215,7 +220,7 @@ begin
     DSW_StopOutput(DSW);
   end else
   if FMute <> b then
-    DSW_RestartOutput(DSW);
+      DSW_RestartOutput(DSW);
   FMute := b;
   _Unlock;
 end;
@@ -231,6 +236,5 @@ begin
   DSW_RestartOutput(DSW);
   FInput._Resume;
 end;
-
 
 end.
