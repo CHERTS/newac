@@ -44,6 +44,8 @@ type
     constructor Create; reintroduce; virtual;
     destructor Destroy; override;
 
+    class function Presents(InFile: HFILE): Boolean; virtual;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignTo(Dest: TPersistent); override;
 
@@ -62,19 +64,24 @@ type
     property AsWideString[const Id: String]: WideString read GetAsWideString;
   end;
 
-  { class TId3Tags }
-
-  TId3Tags = class(TAuTags)
-  public
-    constructor Create; override;
-  end;
-
   { class TId3v1Tags }
+
+  TId3v1TagsInfo = packed record
+    ID     : packed array [1 ..  3] of Char; // must be "TAG"
+    Title  : packed array [1 .. 30] of Char; // title
+    Artist : packed array [1 .. 30] of Char; // artist
+    Album  : packed array [1 .. 30] of Char; // album
+    Year   : packed array [1 ..  4] of Char; // year
+    Comment: packed array [1 .. 30] of Char; // comment
+    GenreId: Byte;                           // genre ID
+  end;
 
   TId3v1TagsGenreId = 0 .. 147;
 
-  TId3v1Tags = class(TId3Tags)
+  TId3v1Tags = class(TAuTags)
   private
+    class function ReadTagsInfo(InFile: HFILE; var TagsInfo: TId3v1TagsInfo): Boolean;
+
     function GetTitle: String;
     procedure SetTitle(const Value: String);
     function GetArtist: String;
@@ -92,6 +99,10 @@ type
     function GetGenreId: TId3v1TagsGenreId;
     procedure SetGenreId(Value: TId3v1TagsGenreId);
   public
+    constructor Create; override;
+
+    class function Presents(InFile: HFILE): Boolean; override;
+
     function ReadFromFile(InFile: HFILE): Boolean; override;
     function WriteToFile(OutFile: HFILE): Boolean; override;
   published
@@ -107,8 +118,20 @@ type
 
   { class TId3v2Tags }
 
-  TId3v2Tags = class(TId3Tags)
+  TId3v2TagsInfo = packed record
+    ID: packed array [1 .. 3] of Char;   // must be "ID3"
+    Version: Byte;                       // version: 2 - 2.2.x, 3 - 2.3.x, 4 - 2.4.x
+    Revision: Byte;                      // revision
+    Flags: Byte;                         // flags
+    Size: packed array [1 .. 4] of Byte; // tags info size excluding size of TId3v2TagsInfo structure
+  end;
+
+  TId3v2Tags = class(TAuTags)
   private
+    FNew: Boolean;
+
+    class function ReadTagsInfo(InFile: HFILE; var TagsInfo: TId3v2TagsInfo): Boolean;
+
     function GetArtist: WideString;
     procedure SetArtist(const Value: WideString);
     function GetAlbum: WideString;
@@ -123,6 +146,22 @@ type
     procedure SetTitle(const Value: WideString);
     function GetComment: WideString;
     procedure SetComment(const Value: WideString);
+    function GetComposer: WideString;
+    procedure SetComposer(const Value: WideString);
+    function GetEncoder: WideString;
+    procedure SetEncoder(const Value: WideString);
+    function GetCopyright: WideString;
+    procedure SetCopyright(const Value: WideString);
+    function GetLanguage: WideString;
+    procedure SetLanguage(const Value: WideString);
+    function GetLink: WideString;
+    procedure SetLink(const Value: WideString);
+  public
+    constructor Create; override;
+
+    class function Presents(InFile: HFILE): Boolean; override;
+
+    function ReadFromFile(InFile: HFILE): Boolean; override;
   published
     property Artist: WideString read GetArtist write SetArtist;
     property Album: WideString read GetAlbum write SetAlbum;
@@ -131,6 +170,11 @@ type
     property Track: WideString read GetTrack write SetTrack;
     property Title: WideString read GetTitle write SetTitle;
     property Comment: WideString read GetComment write SetComment;
+    property Composer: WideString read GetComposer write SetComposer;
+    property Encoder: WideString read GetEncoder write SetEncoder;
+    property Copyright: WideString read GetCopyright write SetCopyright;
+    property Language: WideString read GetLanguage write SetLanguage;
+    property Link: WideString read GetLink write SetLink;
   end;
 
   { class TAPEv2Tags }
@@ -369,13 +413,81 @@ const
     'Synthpop'
   );
 
-  _id3_Artist  = 'TPE1';
-  _id3_Album   = 'TALB';
-  _id3_Genre   = 'TCON';
-  _id3_Year    = 'TYER';
-  _id3_Track   = 'TRCK';
-  _id3_Title   = 'TIT2';
-  _id3_Comment = 'COMM';
+  _id3v1_Artist  = 'Artist';
+  _id3v1_Album   = 'Album';
+  _id3v1_Genre   = 'Genre';
+  _id3v1_Year    = 'Year';
+  _id3v1_Track   = 'Track';
+  _id3v1_Title   = 'Title';
+  _id3v1_Comment = 'Comment';
+
+  _id3v2old_Artist    = 'TP1';
+  _id3v2old_Album     = 'TAL';
+  _id3v2old_Genre     = 'TCO';
+  _id3v2old_Year      = 'TYE';
+  _id3v2old_Track     = 'TRK';
+  _id3v2old_Title     = 'TT2';
+  _id3v2old_Comment   = 'COM';
+  _id3v2old_Composer  = 'TCM';
+  _id3v2old_Encoder   = 'TEN';
+  _id3v2old_Copyright = 'TCR';
+  _id3v2old_Language  = 'TLA';
+  _id3v2old_Link      = 'WXX';
+
+  _id3v2new_Artist    = 'TPE1';
+  _id3v2new_Album     = 'TALB';
+  _id3v2new_Genre     = 'TCON';
+  _id3v2new_Year      = 'TYER';
+  _id3v2new_Track     = 'TRCK';
+  _id3v2new_Title     = 'TIT2';
+  _id3v2new_Comment   = 'COMM';
+  _id3v2new_Composer  = 'TCOM';
+  _id3v2new_Encoder   = 'TENC';
+  _id3v2new_Copyright = 'TCOP';
+  _id3v2new_Language  = 'TLAN';
+  _id3v2new_Link      = 'WXXX';
+
+  _id3v2_Title_Id     =  0;
+  _id3v2_Artist_Id    =  1;
+  _id3v2_Album_Id     =  2;
+  _id3v2_Track_Id     =  3;
+  _id3v2_Year_Id      =  4;
+  _id3v2_Genre_Id     =  5;
+  _id3v2_Comment_Id   =  6;
+  _id3v2_Composer_Id  =  7;
+  _id3v2_Encoder_Id   =  8;
+  _id3v2_Copyright_Id =  9;
+  _id3v2_Language_Id  = 10;
+  _id3v2_Link_Id      = 11;
+
+  // frames ID for v2.2.x (when first index is False) and v2.3.x & v2.4.x (when first index is True)
+  _id3v2_tags: array [Boolean, 0 .. 16] of String =
+    ((_id3v2old_Title,
+      _id3v2old_Artist,
+      _id3v2old_Album,
+      _id3v2old_Track,
+      _id3v2old_Year,
+      _id3v2old_Genre,
+      _id3v2old_Comment,
+      _id3v2old_Composer,
+      _id3v2old_Encoder,
+      _id3v2old_Copyright,
+      _id3v2old_Language,
+      _id3v2old_Link,
+      'TOR', 'TOA', 'TT1', 'TOT', 'TSI'),
+     (_id3v2new_Title,
+      _id3v2new_Artist,
+      _id3v2new_Album,
+      _id3v2new_Track,
+      _id3v2new_Year,
+      _id3v2new_Genre,
+      _id3v2new_Comment,
+      _id3v2new_Composer,
+      _id3v2new_Encoder,
+      _id3v2new_Copyright,
+      _id3v2new_Language,
+      _id3v2new_Link,
+      'TDRC', 'TOPE', 'TIT1', 'TOAL', 'TSIZ'));
 
   _ape_Artist         = 'Artist';
   _ape_Composer       = 'Composer';
@@ -403,12 +515,12 @@ const
   _ape_SubTitle       = 'Subtitle';
   _ape_Comment        = 'Comment';
 
-  _vorbis_Album = 'album';
+  _vorbis_Album  = 'album';
   _vorbis_Artist = 'artist';
-  _vorbis_Date = 'date';
-  _vorbis_Genre = 'genre';
-  _vorbis_Title = 'title';
-  _vorbis_Track = 'track';
+  _vorbis_Date   = 'date';
+  _vorbis_Genre  = 'genre';
+  _vorbis_Title  = 'title';
+  _vorbis_Track  = 'tracknumber';
 
 type
 
@@ -440,7 +552,18 @@ type
 
 implementation
 
-uses Variants, SysUtils, Math;
+uses
+  SysUtils, Variants;
+
+
+function _min(n1, n2: Integer): Integer;
+begin
+  if n1 < n2 then
+    Result := n1
+  else
+    Result := n2;
+end;
+
 
 { class TAuTags }
 
@@ -463,6 +586,11 @@ begin
   FValues.Free();
 
   inherited;
+end;
+
+class function TAuTags.Presents(InFile: HFILE): Boolean;
+begin
+  Result := False;
 end;
 
 function TAuTags.GetIdCount: Integer;
@@ -629,6 +757,8 @@ end;
 
 function TAuTags.ReadFromFile(InFile: HFILE): Boolean;
 begin
+  Clear();
+
   Result := False;
 end;
 
@@ -638,92 +768,119 @@ begin
 end;
 
 
-{ class TId3Tags }
+{ class TId3v1Tags }
 
-constructor TId3Tags.Create;
+constructor TId3v1Tags.Create;
 begin
   inherited;
 
-  AddId(_id3_Artist);
-  AddId(_id3_Album);
-  AddId(_id3_Genre);
-  AddId(_id3_Year);
-  AddId(_id3_Track);
-  AddId(_id3_Title);
-  AddId(_id3_Comment);
+  AddId(_id3v1_Artist);
+  AddId(_id3v1_Album);
+  AddId(_id3v1_Genre);
+  AddId(_id3v1_Year);
+  AddId(_id3v1_Track);
+  AddId(_id3v1_Title);
+  AddId(_id3v1_Comment);
 end;
 
+class function TId3v1Tags.Presents(InFile: HFILE): Boolean;
+var
+  file_pos: Cardinal;
+  tags_info: TId3v1TagsInfo;
+begin
+  Result := (InFile <> INVALID_HANDLE_VALUE);
+  if Result then begin
+    file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
+    Result := (file_pos <> $FFFFFFFF);
+    if Result then
+      try
+        Result := ReadTagsInfo(InFile, tags_info);
+      finally
+        SetFilePointer(InFile, file_pos, nil, FILE_BEGIN);
+      end;
+  end;
+end;
 
-{ class TId3v1Tags }
+const
+  ID3V1_ID = 'TAG';
+
+class function TId3v1Tags.ReadTagsInfo(InFile: HFILE; var TagsInfo: TId3v1TagsInfo): Boolean;
+var
+  bytes_read: Cardinal;
+begin
+  Result :=
+    (SetFilePointer(InFile, - SizeOf(TagsInfo), nil, FILE_END) <> $FFFFFFFF) and
+    ReadFile(InFile, TagsInfo, SizeOf(TagsInfo), bytes_read, nil) and
+    (bytes_read = SizeOf(TagsInfo)) and
+    (TagsInfo.ID = ID3V1_ID);
+end;
 
 function TId3v1Tags.GetTitle: String;
 begin
-  Result := AsString[_id3_Title];
+  Result := AsString[_id3v1_Title];
 end;
 
 procedure TId3v1Tags.SetTitle(const Value: String);
 begin
-  Values[_id3_Title] := Value;
+  Values[_id3v1_Title] := Value;
 end;
 
 function TId3v1Tags.GetArtist: String;
 var
   tag_value: Variant;
 begin
-  tag_value := Values[_id3_Artist];
+  tag_value := Values[_id3v1_Artist];
   if VarIsType(tag_value, [varString, varOleStr]) then
     Result := tag_value;
 end;
 
 procedure TId3v1Tags.SetArtist(const Value: String);
 begin
-  Values[_id3_Artist] := Value;
+  Values[_id3v1_Artist] := Value;
 end;
 
 function TId3v1Tags.GetAlbum: String;
 begin
-  Result := AsString[_id3_Album];
+  Result := AsString[_id3v1_Album];
 end;
 
 procedure TId3v1Tags.SetAlbum(const Value: String);
 begin
-  Values[_id3_Album] := Value;
+  Values[_id3v1_Album] := Value;
 end;
 
 function TId3v1Tags.GetYear: Word;
 begin
-  Result := AsInteger[_id3_Year];
+  Result := AsInteger[_id3v1_Year];
 end;
 
 procedure TId3v1Tags.SetYear(Value: Word);
 begin
-  Values[_id3_Year] := Value;
+  Values[_id3v1_Year] := Value;
 end;
 
 function TId3v1Tags.GetComment: String;
 begin
-  Result := AsString[_id3_Comment];
+  Result := AsString[_id3v1_Comment];
 end;
 
 procedure TId3v1Tags.SetComment(const Value: String);
 begin
-  Values[_id3_Comment] := Value;
+  Values[_id3v1_Comment] := Value;
 end;
 
 function TId3v1Tags.GetTrack: Byte;
 begin
-  Result := AsInteger[_id3_Track];
+  Result := AsInteger[_id3v1_Track];
 end;
 
 procedure TId3v1Tags.SetTrack(Value: Byte);
 begin
-  Values[_id3_Track] := Value;
+  Values[_id3v1_Track] := Value;
 end;
 
 function TId3v1Tags.GetGenre: String;
 begin
-{  Result := AsString[_id3_Genre];}
-
   Result := Id3v1Genres[GenreId];
 end;
 
@@ -732,12 +889,10 @@ var
   i: TId3v1TagsGenreId;
   buf: String;
 begin
-{  Values[_id3_Genre] := Value;}
-
   buf := Trim(Value);
   for i := Low(i) to High(i) do
     if SameText(buf, Id3v1Genres[i]) then begin
-      Values[_id3_Genre] := i;
+      Values[_id3v1_Genre] := i;
 
       Break;
     end;
@@ -747,7 +902,7 @@ function TId3v1Tags.GetGenreId: TId3v1TagsGenreId;
 var
   n: Integer;
 begin
-  n := AsInteger[_id3_Genre];
+  n := AsInteger[_id3v1_Genre];
   if n in [Low(Result) .. High(Result)] then
     Result := n
   else
@@ -756,66 +911,44 @@ end;
 
 procedure TId3v1Tags.SetGenreId(Value: TId3v1TagsGenreId);
 begin
-  Values[_id3_Genre] := Value;
+  Values[_id3v1_Genre] := Value;
 end;
-
-type
-  TId3v1TagsRec = packed record
-    Header : array [1 ..  3] of Char; // tag header - must be "TAG"
-    Title  : array [1 .. 30] of Char; // title
-    Artist : array [1 .. 30] of Char; // artist data
-    Album  : array [1 .. 30] of Char; // album data
-    Year   : array [1 ..  4] of Char; // year
-    Comment: array [1 .. 30] of Char; // comment
-    GenreId: Byte;                    // genre
-  end;
 
 function TId3v1Tags.ReadFromFile(InFile: HFILE): Boolean;
 var
-  tags_rec: TId3v1TagsRec;
-  bytes_read: Cardinal;
+  tags_info: TId3v1TagsInfo;
 begin
+  inherited ReadFromFile(InFile);
+
   Result :=
     (InFile <> INVALID_HANDLE_VALUE) and
-    (SetFilePointer(InFile, - SizeOf(tags_rec), nil, FILE_END) <> $FFFFFFFF) and
-    ReadFile(InFile, tags_rec, SizeOf(tags_rec), bytes_read, nil) and
-    (bytes_read = SizeOf(tags_rec)) and
-    (tags_rec.Header = 'TAG');
+    ReadTagsInfo(InFile, tags_info);
   if Result then begin
-    Title  := Trim(tags_rec.Title);
-    Artist := Trim(tags_rec.Artist);
-    Album  := Trim(tags_rec.Album);
-    Year   := StrToIntDef(Trim(tags_rec.Year), 0);
+    Title  := Trim(tags_info.Title);
+    Artist := Trim(tags_info.Artist);
+    Album  := Trim(tags_info.Album);
+    Year   := StrToIntDef(Trim(tags_info.Year), 0);
 
-    if ((tags_rec.Comment[High(tags_rec.Comment) - 1] = #0) and
-        (tags_rec.Comment[High(tags_rec.Comment)] <> #0)) or
-       ((tags_rec.Comment[High(tags_rec.Comment) - 1] = #32) and
-        (tags_rec.Comment[High(tags_rec.Comment)] <> #32))
+    if ((tags_info.Comment[Pred(High(tags_info.Comment))] = #0) and
+        (tags_info.Comment[High(tags_info.Comment)] <> #0)) or
+       ((tags_info.Comment[Pred(High(tags_info.Comment))] = #32) and
+        (tags_info.Comment[High(tags_info.Comment)] <> #32))
     then begin
-      Comment := Trim(Copy(tags_rec.Comment,
-        Low(tags_rec.Comment), High(tags_rec.Comment) - 2));
-      Track := Byte(tags_rec.Comment[High(tags_rec.Comment)]);
+      Comment := Trim(Copy(tags_info.Comment,
+        Low(tags_info.Comment), High(tags_info.Comment) - 2));
+      Track := Byte(tags_info.Comment[High(tags_info.Comment)]);
     end
     else begin
-      Comment := Trim(tags_rec.Comment);
+      Comment := Trim(tags_info.Comment);
       Track := 0;
     end;
-    GenreId := tags_rec.GenreId;
+    GenreId := tags_info.GenreId;
   end;
 end;
 
 function TId3v1Tags.WriteToFile(OutFile: HFILE): Boolean;
-
-  function min(n1, n2: Integer): Integer;
-  begin
-    if n1 < n2 then
-      Result := n1
-    else
-      Result := n2;
-  end;
-
 var
-  tags_rec: TId3v1TagsRec;
+  tags_info: TId3v1TagsInfo;
   buf: String;
   bytes_written: Cardinal;
 begin
@@ -823,108 +956,385 @@ begin
     (OutFile <> INVALID_HANDLE_VALUE) and
     (SetFilePointer(OutFile, 0, nil, FILE_END) <> $FFFFFFFF);
   if Result then begin
-    FillChar(tags_rec, SizeOf(tags_rec), 0);
+    FillChar(tags_info, SizeOf(tags_info), 0);
 
-    tags_rec.Header := 'TAG';
-    Move(Title[1], tags_rec.Title[1],
-      min(Length(Title), SizeOf(tags_rec.Title)));
-    Move(Artist[1], tags_rec.Artist[1],
-      min(Length(Artist), SizeOf(tags_rec.Artist)));
-    Move(Album[1], tags_rec.Album[1],
-      min(Length(Album), SizeOf(tags_rec.Album)));
+    tags_info.ID := ID3V1_ID;
+    Move(Title[1], tags_info.Title[1],
+      _min(Length(Title), SizeOf(tags_info.Title)));
+    Move(Artist[1], tags_info.Artist[1],
+      _min(Length(Artist), SizeOf(tags_info.Artist)));
+    Move(Album[1], tags_info.Album[1],
+      _min(Length(Album), SizeOf(tags_info.Album)));
     buf := IntToStr(Year);
-    Move(buf[1], tags_rec.Year[1],
-      min(Length(buf), SizeOf(tags_rec.Year)));
+    Move(buf[1], tags_info.Year[1],
+      _min(Length(buf), SizeOf(tags_info.Year)));
 
     if Track <> 0 then begin
-      Move(Comment[1], tags_rec.Comment[1],
-        min(Length(Comment), SizeOf(tags_rec.Comment) - 2));
-      tags_rec.Comment[High(tags_rec.Comment) - 1] := #0;
-      tags_rec.Comment[High(tags_rec.Comment)] := Char(Track);
+      Move(Comment[1], tags_info.Comment[1],
+        _min(Length(Comment), SizeOf(tags_info.Comment) - 2));
+      tags_info.Comment[Pred(High(tags_info.Comment))] := #0;
+      tags_info.Comment[High(tags_info.Comment)] := Char(Track);
     end
     else
-      Move(Comment[1], tags_rec.Comment[1],
-        min(Length(Comment), SizeOf(tags_rec.Comment)));
+      Move(Comment[1], tags_info.Comment[1],
+        _min(Length(Comment), SizeOf(tags_info.Comment)));
 
-    tags_rec.GenreId := GenreId;
+    tags_info.GenreId := GenreId;
 
     Result :=
-      WriteFile(OutFile, tags_rec, SizeOf(tags_rec), bytes_written, nil) and
-      (bytes_written = SizeOf(tags_rec));
+      WriteFile(OutFile, tags_info, SizeOf(tags_info), bytes_written, nil) and
+      (bytes_written = SizeOf(tags_info));
   end;
 end;
 
 
 { class TId3v2Tags }
 
+constructor TId3v2Tags.Create;
+var
+  i: Integer;
+begin
+  inherited;
+
+  FNew := True;
+
+  for i := Low(_id3v2_tags[False]) to High(_id3v2_tags[False]) do begin
+    AddId(_id3v2_tags[False, i]);
+    AddId(_id3v2_tags[True, i]);
+  end;
+end;
+
+const
+  ID3V2_ID = 'ID3';
+
+class function TId3v2Tags.Presents(InFile: HFILE): Boolean;
+var
+  file_pos: Cardinal;
+  tags_info: TId3v2TagsInfo;
+begin
+  Result := (InFile <> INVALID_HANDLE_VALUE);
+  if Result then begin
+    file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
+    Result := (file_pos <> $FFFFFFFF);
+    if Result then
+      try
+        Result := ReadTagsInfo(InFile, tags_info);
+      finally
+        SetFilePointer(InFile, file_pos, nil, FILE_BEGIN);
+      end;
+  end;
+end;
+
+class function TId3v2Tags.ReadTagsInfo(InFile: HFILE; var TagsInfo: TId3v2TagsInfo): Boolean;
+var
+  bytes_read: Cardinal;
+begin
+  Result :=
+    ReadFile(InFile, TagsInfo, SizeOf(TagsInfo), bytes_read, nil) and
+    (bytes_read = SizeOf(TagsInfo)) and
+    (TagsInfo.ID = ID3V2_ID);
+end;
+
 function TId3v2Tags.GetArtist: WideString;
 begin
-  Result := AsWideString[_id3_Artist];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Artist_Id]];
 end;
 
 procedure TId3v2Tags.SetArtist(const Value: WideString);
 begin
-  Values[_id3_Artist] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Artist_Id]] := Value;
 end;
 
 function TId3v2Tags.GetAlbum: WideString;
 begin
-  Result := AsWideString[_id3_Album];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Album_Id]];
 end;
 
 procedure TId3v2Tags.SetAlbum(const Value: WideString);
 begin
-  Values[_id3_Album] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Album_Id]] := Value;
 end;
 
 function TId3v2Tags.GetGenre: WideString;
 begin
-  Result := AsWideString[_id3_Genre];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Genre_Id]];
 end;
 
 procedure TId3v2Tags.SetGenre(const Value: WideString);
 begin
-  Values[_id3_Genre] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Genre_Id]] := Value;
 end;
 
 function TId3v2Tags.GetYear: WideString;
 begin
-  Result := AsWideString[_id3_Year];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Year_Id]];
 end;
 
 procedure TId3v2Tags.SetYear(const Value: WideString);
 begin
-  Values[_id3_Year] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Year_Id]] := Value;
 end;
 
 function TId3v2Tags.GetTrack: WideString;
 begin
-  Result := AsWideString[_id3_Track];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Track_Id]];
 end;
 
 procedure TId3v2Tags.SetTrack(const Value: WideString);
 begin
-  Values[_id3_Track] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Track_Id]] := Value;
 end;
 
 function TId3v2Tags.GetTitle: WideString;
 begin
-  Result := AsWideString[_id3_Title];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Title_Id]];
 end;
 
 procedure TId3v2Tags.SetTitle(const Value: WideString);
 begin
-  Values[_id3_Title] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Title_Id]] := Value;
 end;
 
 function TId3v2Tags.GetComment: WideString;
 begin
-  Result := AsWideString[_id3_Comment];
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Comment_Id]];
 end;
 
 procedure TId3v2Tags.SetComment(const Value: WideString);
 begin
-  Values[_id3_Comment] := Value;
+  Values[_id3v2_tags[FNew, _id3v2_Comment_Id]] := Value;
+end;
+
+function TId3v2Tags.GetComposer: WideString;
+begin
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Composer_Id]];
+end;
+
+procedure TId3v2Tags.SetComposer(const Value: WideString);
+begin
+  Values[_id3v2_tags[FNew, _id3v2_Composer_Id]] := Value;
+end;
+
+function TId3v2Tags.GetEncoder: WideString;
+begin
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Encoder_Id]];
+end;
+
+procedure TId3v2Tags.SetEncoder(const Value: WideString);
+begin
+  Values[_id3v2_tags[FNew, _id3v2_Encoder_Id]] := Value;
+end;
+
+function TId3v2Tags.GetCopyright: WideString;
+begin
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Copyright_Id]];
+end;
+
+procedure TId3v2Tags.SetCopyright(const Value: WideString);
+begin
+  Values[_id3v2_tags[FNew, _id3v2_Copyright_Id]] := Value;
+end;
+
+function TId3v2Tags.GetLanguage: WideString;
+begin
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Language_Id]];
+end;
+
+procedure TId3v2Tags.SetLanguage(const Value: WideString);
+begin
+  Values[_id3v2_tags[FNew, _id3v2_Language_Id]] := Value;
+end;
+
+function TId3v2Tags.GetLink: WideString;
+begin
+  Result := AsWideString[_id3v2_tags[FNew, _id3v2_Link_Id]];
+end;
+
+procedure TId3v2Tags.SetLink(const Value: WideString);
+begin
+  Values[_id3v2_tags[FNew, _id3v2_Link_Id]] := Value;
+end;
+
+const
+  ID3V2_VERSION_2_2 = 2;
+  ID3V2_VERSION_2_3 = 3;
+  ID3V2_VERSION_2_4 = 4;
+
+  ID3V2_FRAME_ANSI_ID    = #0;
+  ID3V2_FRAME_UNICODE_ID = #1;
+
+type
+  TId3v2FrameHeaderOld = record          // frame header for v2.2.x
+    ID: packed array [1 .. 3] of Char;   // frame ID
+    Size: packed array [1 .. 3] of Byte; // frame size excluding size of TId3v2FrameHeaderOld structure
+  end;
+
+  TId3v2FrameHeaderNew = packed record   // frame header for v2.3.x & v2.4.x
+    ID: packed array [1 .. 4] of Char;   // frame ID
+    Size: packed array [1 .. 4] of Byte; // frame size excluding size of TId3v2FrameHeaderNew structure
+    Flags: Word;                         // frame flags
+  end;
+
+function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
+
+  function get_tags_size(const tags_info: TId3v2TagsInfo): Cardinal;
+  begin
+    Result :=
+      tags_info.Size[1] * $200000 + // 10 0000 0000 0000 0000 0000
+      tags_info.Size[2] * $4000 +   // 100 0000 0000 0000
+      tags_info.Size[3] * $80 +     // 1000 0000
+      tags_info.Size[4] +
+      SizeOf(tags_info);
+    if tags_info.Flags and $10 = $10 then
+      Inc(Result, SizeOf(tags_info));
+  end;
+
+  function set_tag_item(const id, data: String; const tags_info: TId3v2TagsInfo): Boolean;
+  var
+    i: Integer;
+  begin
+    for i := Low(_id3v2_tags[False]) to High(_id3v2_tags[False]) do begin
+      Result := (_id3v2_tags[FNew, i] = id);
+      if Result then begin
+        case data[1] of
+          ID3V2_FRAME_ANSI_ID   : SetValue(id, Copy(data, 2, Length(Data) - 1));
+          ID3V2_FRAME_UNICODE_ID: { TODO };
+          else
+            Result := False;
+        end;
+
+        Break;
+      end;
+    end;
+  end;
+
+  function read_frames_old(var tags_info: TId3v2TagsInfo): Boolean;
+  var
+    start_file_pos, end_tag_pos, file_size, file_pos, bytes_read: Cardinal;
+    frame: TId3v2FrameHeaderOld;
+    data_size: Integer;
+    data: String;
+  begin
+    start_file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
+    Result := (start_file_pos <> $FFFFFFFF);
+    if Result then begin
+      end_tag_pos := start_file_pos + get_tags_size(tags_info) - SizeOf(tags_info);
+      file_size := GetFileSize(InFile, nil);
+      Result := (end_tag_pos <= file_size);
+      if Result then
+        try
+          file_pos := start_file_pos;
+          repeat
+            Result :=
+              ReadFile(InFile, frame, SizeOf(frame), bytes_read, nil) and
+              (bytes_read = SizeOf(frame)) and
+              (frame.ID[1] in ['A' .. 'Z']);
+            Inc(file_pos, bytes_read);
+            Result := (file_pos < end_tag_pos) and Result;
+
+            if not Result then
+              Break;
+
+            data_size :=
+              Integer(frame.Size[1]) shl 16 +
+              Integer(frame.Size[2]) shl 8 +
+              Integer(frame.Size[3]);
+            if data_size > 0 then begin
+              SetLength(data, data_size);
+              FillChar(data[1], Length(data), 0);
+
+              Result :=
+                ReadFile(InFile, data[1], Length(data), bytes_read, nil) and
+                (bytes_read = Cardinal(Length(data)));
+              Inc(file_pos, bytes_read);
+              Result := (file_pos <= end_tag_pos) and Result;
+
+              if not Result then
+                Break;
+
+              set_tag_item(frame.ID, data, tags_info);
+            end;
+          until file_pos >= end_tag_pos;
+        finally
+          if not Result then
+            SetFilePointer(InFile, start_file_pos, nil, FILE_BEGIN);
+        end;
+    end;
+  end;
+
+  function read_frames_new(var tags_info: TId3v2TagsInfo): Boolean;
+  var
+    start_file_pos, end_tag_pos, file_size, file_pos, bytes_read: Cardinal;
+    frame: TId3v2FrameHeaderNew;
+    data_size: Integer;
+    data: String;
+  begin
+    start_file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
+    Result := (start_file_pos <> $FFFFFFFF);
+    if Result then begin
+      end_tag_pos := start_file_pos + get_tags_size(tags_info) - SizeOf(tags_info);
+      file_size := GetFileSize(InFile, nil);
+      Result := (end_tag_pos <= file_size);
+      if Result then
+        try
+          file_pos := start_file_pos;
+          repeat
+            Result :=
+              ReadFile(InFile, frame, SizeOf(frame), bytes_read, nil) and
+              (bytes_read = SizeOf(frame)) and
+              (frame.ID[1] in ['A' .. 'Z']);
+            Inc(file_pos, bytes_read);
+            Result := (file_pos < end_tag_pos) and Result;
+
+            if not Result then
+              Break;
+
+            data_size :=
+              Integer(frame.Size[1]) shl 24 +
+              Integer(frame.Size[2]) shl 16 +
+              Integer(frame.Size[3]) shl 8 +
+              Integer(frame.Size[4]);
+            if data_size > 0 then begin
+              SetLength(data, data_size);
+              FillChar(data[1], Length(data), 0);
+
+              Result :=
+                ReadFile(InFile, data[1], Length(data), bytes_read, nil) and
+                (bytes_read = Cardinal(Length(data)));
+              Inc(file_pos, bytes_read);
+              Result := (file_pos <= end_tag_pos) and Result;
+
+              if not Result then
+                Break;
+
+              if frame.Flags and $8000 = 0 then
+                set_tag_item(frame.ID, data, tags_info);
+            end;
+          until file_pos >= end_tag_pos;
+        finally
+          if not Result then
+            SetFilePointer(InFile, start_file_pos, nil, FILE_BEGIN);
+        end;
+    end;
+  end;
+
+var
+  tags_info: TId3v2TagsInfo;
+begin
+  inherited ReadFromFile(InFile);
+
+  Result :=
+    (InFile <> INVALID_HANDLE_VALUE) and
+    ReadTagsInfo(InFile, tags_info) and
+    (tags_info.Version in [ID3V2_VERSION_2_2 .. ID3V2_VERSION_2_4]);
+  if Result then begin
+    FNew := (tags_info.Version <> ID3V2_VERSION_2_2);
+
+    if FNew then
+      read_frames_new(tags_info)
+    else
+      read_frames_old(tags_info);
+  end;
 end;
 
 
