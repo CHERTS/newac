@@ -9,7 +9,7 @@ Contributors:
 	Several people have made contributions to the NewAC code.
 
 	- Lev Amelin: improved and extended TMP3Out component.
-	-	Thomas la Cour (http://www.top-house.dk/~nr161/delphi/): Monkey Audio input/output components.
+	-	Thomas la Cour: Monkey Audio input/output components.
 	-	Jan Henrik Ejme: adding ACM-playing support.
 	-	Thomas Grelle: improving CDRip support.
 	-	Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany): some useful corrections and suggestions.
