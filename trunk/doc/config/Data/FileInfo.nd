@@ -1,5 +1,95 @@
-Development Release 12-07-2007 (1.35 base)
+Development Release 01-12-2008 (1.35 base)
 Pascal
+<<<<<<< .mine
+E:\All\src\ACS_MAC.pas	1201316773	1	ACS_MAC
+E:\All\src\DSWrapper.pas	1201316773	1	DSWrapper
+E:\All\src\lame.pas	1201316773	0	E:\All\src\lame.pas
+E:\All\src\ACS_WavPack.pas	1201316773	1	ACS_WavPack
+E:\All\demos\Players\OggPlayer\Main.pas	1201316778	0	E:\All\demos\Players\OggPlayer\Main.pas
+E:\All\demos\Tutorial\StreamDemo\ReadMe.txt	1201316782	0	E:\All\demos\Tutorial\StreamDemo\ReadMe.txt
+E:\All\src\CDRip.pas	1201316773	1	CDRip
+E:\All\src\ACS_Audio.pas	1201316773	1	ACS_Audio
+E:\All\demos\Players\ReadMe.txt	1201316781	0	E:\All\demos\Players\ReadMe.txt
+E:\All\demos\Converters\Wav2WMA\Main.pas	1201316790	0	E:\All\demos\Converters\Wav2WMA\Main.pas
+E:\All\doc\txt\cwguide.txt	1201324149	1	Component Writer's Guide
+E:\All\src\TTALib.pas	1201316773	0	E:\All\src\TTALib.pas
+E:\All\doc\txt\introduction.txt	1201325106	1	Introduction
+E:\All\src\ACS_TTA.pas	1201318341	1	ACS_TTA
+E:\All\demos\Editors\SincFilterDemo\Main.pas	1201316787	0	E:\All\demos\Editors\SincFilterDemo\Main.pas
+E:\All\demos\Players\FLACPlayer\Main.pas	1201316775	0	E:\All\demos\Players\FLACPlayer\Main.pas
+E:\All\demos\Recorders-rippers\DirectSoundRecorder\Main.pas	1201316800	0	E:\All\demos\Recorders-rippers\DirectSoundRecorder\Main.pas
+E:\All\license.txt	1201322928	1	License
+E:\All\src\ACS_Filters.pas	1201316773	1	ACS_Filters
+E:\All\src\FLAC.pas	1201316773	1	FLAC
+E:\All\src\ovencode.pas	1201316773	0	E:\All\src\ovencode.pas
+E:\All\demos\Tutorial\ComponentsDemo\ComponentsDemo.pas	1201316785	1	Components Demo
+E:\All\demos\Editors\WaveFileConverter\Main.pas	1201316789	0	E:\All\demos\Editors\WaveFileConverter\Main.pas
+E:\All\doc\txt\tips and tricks.txt	1201316750	1	Tips & Tricks
+E:\All\src\_DirectSound.pas	1201316773	1	dsound.h
+E:\All\src\AudioPass.pas	1201316773	1	TAudioPass
+E:\All\src\libsamplerate.pas	1201316773	0	E:\All\src\libsamplerate.pas
+E:\All\src\ACS_DXAudio.pas	1201316773	1	ACS_DXAudio
+E:\All\demos\Converters\Wav2MP3\Main.pas	1201316790	0	E:\All\demos\Converters\Wav2MP3\Main.pas
+E:\All\src\ACS_Types.pas	1201316773	1	ACS_Types
+E:\All\src\acs_reg.pas	1201316773	1	ACS_Reg
+E:\All\demos\Editors\AudioCutter\Main.pas	1201316788	0	E:\All\demos\Editors\AudioCutter\Main.pas
+E:\All\src\ACS_Converters.pas	1201316773	1	ACS_Converters
+E:\All\doc\txt\newac.txt	1201324452	1	New Audio Components
+E:\All\demos\Players\AudioPlayer\README.txt	1201316781	0	E:\All\demos\Players\AudioPlayer\README.txt
+E:\All\demos\Players\TTAPlayer\Main.pas	1201316777	0	E:\All\demos\Players\TTAPlayer\Main.pas
+E:\All\demos\Recorders-rippers\CDRipper\Main.pas	1201316800	0	E:\All\demos\Recorders-rippers\CDRipper\Main.pas
+E:\All\src\Codec.pas	1201316773	1	Codec
+E:\All\src\VorbisEnc.pas	1201316773	0	E:\All\src\VorbisEnc.pas
+E:\All\demos\Players\MP3Player\Main.pas	1201316779	0	E:\All\demos\Players\MP3Player\Main.pas
+E:\All\demos\Converters\Wav2APE\Main.pas	1201316792	0	E:\All\demos\Converters\Wav2APE\Main.pas
+E:\All\src\wmfintf.pas	1201316773	0	E:\All\src\wmfintf.pas
+E:\All\demos\Recorders-rippers\Rip'n'listen\Main.pas	1201316798	0	E:\All\demos\Recorders-rippers\Rip'n'listen\Main.pas
+E:\All\src\WaveConverter.pas	1201316773	0	E:\All\src\WaveConverter.pas
+E:\All\demos\Tutorial\StreamDemo\ClientMain.pas	1201316782	0	E:\All\demos\Tutorial\StreamDemo\ClientMain.pas
+E:\All\src\ACS_LAME.pas	1201316773	1	ACS_LAME
+E:\All\demos\Tutorial\StreamDemo\ServerMain.pas	1201316782	0	E:\All\demos\Tutorial\StreamDemo\ServerMain.pas
+E:\All\src\_MSAcm.pas	1201316773	0	E:\All\src\_MSAcm.pas
+E:\All\src\ACS_smpeg.pas	1201316773	1	ACS_SMPEG
+E:\All\doc\txt\about documentation.txt	1201316750	1	About the Documentation
+E:\All\src\ACS_Misc.pas	1201316773	1	ACS_Misc
+E:\All\src\_DXTypes.pas	1201316773	1	dxsdkver.h, extracts from various DirectX SDK include files
+E:\All\demos\Tutorial\ComponentsDemo\Main.pas	1201316785	0	E:\All\demos\Tutorial\ComponentsDemo\Main.pas
+E:\All\demos\Converters\MP3Converter\Unit1.pas	1201316794	0	E:\All\demos\Converters\MP3Converter\Unit1.pas
+E:\All\src\ACS_CDROM.pas	1201316773	1	ACS_CDROM
+E:\All\demos\Players\WMPlayer\Main.pas	1201316774	0	E:\All\demos\Players\WMPlayer\Main.pas
+E:\All\demos\Editors\AudioMixer\Main.pas	1201316786	0	E:\All\demos\Editors\AudioMixer\Main.pas
+E:\All\demos\Players\WVPlayer\Main.pas	1201316779	0	E:\All\demos\Players\WVPlayer\Main.pas
+E:\All\demos\Converters\Wav2TTA\Main.pas	1201316794	0	E:\All\demos\Converters\Wav2TTA\Main.pas
+E:\All\src\ogg.pas	1201316773	0	E:\All\src\ogg.pas
+E:\All\src\ACS_AudioMix.pas	1201316773	1	ACS_AudioMix
+E:\All\src\libwma1.pas	1201316773	1	libwma1.pas
+E:\All\doc\txt\license.txt	1201322928	1	License
+E:\All\demos\Players\CDPlayer\Main.pas	1201316776	0	E:\All\demos\Players\CDPlayer\Main.pas
+E:\All\demos\Converters\Wav2WV\Main.pas	1201316797	0	E:\All\demos\Converters\Wav2WV\Main.pas
+E:\All\demos\Converters\Wav2FLAC\Main.pas	1201316793	0	E:\All\demos\Converters\Wav2FLAC\Main.pas
+E:\All\src\ACS_Tags.pas	1201316773	1	ACS_Tags
+E:\All\demos\Converters\Wav2Ogg\Main.pas	1201316796	0	E:\All\demos\Converters\Wav2Ogg\Main.pas
+E:\All\src\ACS_Procs.pas	1201316773	1	ACS_Procs
+E:\All\demos\Recorders-rippers\ReadMe.txt	1201316800	0	E:\All\demos\Recorders-rippers\ReadMe.txt
+E:\All\demos\Tutorial\AudioProcessor\Main.pas	1201316784	1	Audio Processor
+E:\All\src\VorbisFile.pas	1201316773	0	E:\All\src\VorbisFile.pas
+E:\All\src\AuSampleRate.pas	1201316773	1	AuSampleRate
+E:\All\src\MACDll.pas	1201316773	0	E:\All\src\MACDll.pas
+E:\All\demos\Players\AudioPlayer\Main.pas	1201316781	0	E:\All\demos\Players\AudioPlayer\Main.pas
+E:\All\src\ACS_Vorbis.pas	1201316773	1	ACS_Vorbis
+E:\All\demos\Converters\Wav2Ogg-2\Main.pas	1201316796	0	E:\All\demos\Converters\Wav2Ogg-2\Main.pas
+E:\All\src\WavPackDLL.pas	1201316773	0	E:\All\src\WavPackDLL.pas
+E:\All\src\ACS_Streams.pas	1201316773	1	ACS_Streams
+E:\All\demos\Tutorial\ReadMe.txt	1201316785	0	E:\All\demos\Tutorial\ReadMe.txt
+E:\All\demos\Converters\MP32WMA\Unit1.pas	1201316793	0	E:\All\demos\Converters\MP32WMA\Unit1.pas
+E:\All\demos\Editors\ReadMe.txt	1201316789	0	E:\All\demos\Editors\ReadMe.txt
+E:\All\src\ACS_Wave.pas	1201316773	1	ACS_Wave
+E:\All\demos\Players\APEPlayer\Main.pas	1201316775	0	E:\All\demos\Players\APEPlayer\Main.pas
+E:\All\src\ACS_Classes.pas	1201316773	1	ACS_Classes
+E:\All\src\ACS_FLAC.pas	1201316773	1	ACS_FLAC
+E:\All\demos\Converters\ReadMe.txt	1201316797	0	E:\All\demos\Converters\ReadMe.txt
+E:\All\src\ACS_WinMedia.pas	1201316773	1	ACS_WinMedia
+=======
 D:\projects\newac\src\ACS_Misc.pas	1200010347	1	ACS_Misc
 D:\projects\newac\src\lame.pas	1199601019	1	lame.pas
 D:\projects\newac\src\ACS_AudioMix.pas	1201060303	1	ACS_AudioMix
@@ -87,3 +177,4 @@ D:\projects\newac\demos\Players\TTAPlayer\Main.pas	1201060304	0	D:\projects\newa
 D:\projects\newac\src\ACS_FLAC.pas	1201316505	1	ACS_FLAC
 D:\projects\newac\demos\Recorders-rippers\Rip'n'listen\Main.pas	1201317602	1	Rip'n'Listen Demo
 D:\projects\newac\demos\Tutorial\StreamDemo\ServerMain.pas	1199560738	0	D:\projects\newac\demos\Tutorial\StreamDemo\ServerMain.pas
+>>>>>>> .r227
