@@ -1,18 +1,19 @@
 (*
- NewAC CD ripper demo  main unit.
+ NewAC CD Rip'n'Listen Demo main unit.
  (c) Andrei Borovsky, anb@symmetrica.net
- You will need CDRip.dll to run this demo.
- This demo ripper can save ripped data into several formats:
- wav files, Ogg Vorbis, Monkey Audio, and FLACs. For all these
- formats, except wav format, you will need special encoder DLL libraries.
- See the NewAC documentation on where to find these libraries.
- If you don't have some encoder for some particular format in your system,
- remove a corresponding output component and all the references to it from the project.
 *)
 
-(* CVS: $Date: 2007/07/07 04:40:12 $ $Revision: 1.3 $*)
+(* $Id$ *)
 
 unit Main;
+
+(* Title: Rip'n'Listen Demo
+ This demo ripper can save ripped data into several formats and provides the option to listen to the audio as it is being ripped. This of course slows processing down to 1x. For all the different formats, except wav, you will need <Third Party Libraries>. See the <Introduction> for more information.
+ If you don't have some encoder for some particular format on your system,
+ remove the corresponding output component and all references to it from the project.
+
+ This demo requires CDRip.dll.
+*)
 
 interface
 

@@ -229,7 +229,7 @@ Some NewAC components are now considered legacy. They are kept for backward comp
 	-	TRateConverter (should be replaced with TResampler in new programs).
 	-	TMSConverter (TMSConverter's functionality is duplicated in TAudioConverter, which additionally supports 24 bit sound conversion).
 
-Section: The Third-party Libraries
+Section: Third Party Libraries
 
 Some of NewAC components require certain shared libraries, which are not included in the package but are publicly available and may be found on many sites both in source and binary forms. You can download these libraries in binary form from the NewAC Site. If you want to compile yourself, below are the links to the libraries' sources on the Net.
 
@@ -272,7 +272,7 @@ components' sources, I must admit).
 
 Section: Licenses
 
-The NewAC code itself is distributed free of charge, under a simple license that allows an unrestricted use (both non-commercial and commercial). See the license.txt for more detail. The third-party libraries required by different NewAC components are distributed under different licenses. 
+The NewAC code itself is distributed free of charge, under a simple license that allows an unrestricted use (both non-commercial and commercial). See the license.txt for more detail. The third party libraries required by different NewAC components are distributed under different licenses. 
 
 	- The ogg.dll, vorbis.dll, vorbisfile.dll, and vorbisenc.dll libraries are distributed under the GPLv2. 
 	- The libFLAC.dll library is distributed under the GPLv2. 

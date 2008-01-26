@@ -55,6 +55,7 @@ Group: Demos  {
 
    File: Audio Processor  (demos\Tutorial\AudioProcessor\Main.pas)
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
+   File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Demos
 
 Group: Units  {
@@ -74,6 +75,8 @@ Group: Units  {
       File: ACS_WavPack  (src\ACS_WavPack.pas)
       File: ACS_Wave  (src\ACS_Wave.pas)
       File: ACS_WinMedia  (src\ACS_WinMedia.pas)
+      File: ACS_TTA  (src\ACS_TTA.pas)
+      File: TAudioPass  (src\AudioPass.pas)
       }  # Group: I/O
 
    Group: Conversion  {
@@ -89,6 +92,7 @@ Group: Units  {
       File: ACS_Procs  (src\ACS_Procs.pas)
       File: ACS_Reg  (src\acs_reg.pas)
       File: ACS_Streams  (src\ACS_Streams.pas)
+      File: ACS_Tags  (src\ACS_Tags.pas)
       }  # Group: Utility
 
    Group: Headers  {
@@ -109,7 +113,6 @@ Group: Units  {
       File: ogg.pas  (src\ogg.pas)
       File: ovencode  (src\ovencode.pas)
       File: wmfintf.pas  (src\wmfintf.pas)
-      File: ACS_Tags  (src\ACS_Tags.pas)
       }  # Group: Headers
 
    }  # Group: Units
