@@ -75,7 +75,8 @@ Version: ACS v2.3
 	- DirectX input/output has been added (TDXAudiIn and TDXAudiOut components). 
 	- TMP3Out component has been improved.
 
-A Note to the Reader:
+Section: A Note to the Reader
+
 	It is only fair to warn you that this documentation is not complete. Like all the programmers in the World we prefer to write code, not the documentation. Some components and features are not covered just because we think they are insignificant to the user or are going to obsolescense. At the same time we try as mush as possible to make this documenation to reflect the latest state of NewAC package. It is important to note that the documentation will match up with your source code if you downloaded both of them at the same time from the same place. On the website, the very latest version of the documentation is readily available. It reflects the latest changes with the idea that more documentation is always a good thing. 
 	
 	If you read something in this documentation that disagrees with the source code you have, odds are you have outdated source. Unless you have production code, there is no reason not to pull directly from the Subversion repository. If for some reason there is instability in this code you would be doing everyone a favor by at least discovering and reporting it.
