@@ -240,6 +240,7 @@ It is important to note that since all libraries required by NewAC components ar
 	-	TVorbisIn and TVorbisOut components require Ogg Vorbis libraries (ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll). See the additional note below.
 	-	TFLACIn and TFLACOut components depend on libFLAC.dll. You can find FLAC sources at http://flac.sourceforge.net.
 	-	Monkey Audio components require MacDLL.dll library. The Monkey Audio SDK is available at http://www.monkeysaudio.com.
+	-	TTTAIn and TTTAOt components require TTALib.dll. ou can download it alon with other dlls from the NewAC site.
 	- TCDIn component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
 	- TResampler component requires the libsamplerate.dll library. You can get the sources at http://www.mega-nerd.com/SRC/win32.html.
 	- TMP3Out component requires lame_enc.dll (under Windows). Sources are available at http://lame.sourceforge.net
@@ -279,3 +280,4 @@ The NewAC code itself is distributed free of charge, under a simple license that
 	- The libsamplerate.dll library is distributed under the GPLv2.
 	- The MACDll.dll library is distributed under a custom license (http://www.monkeysaudio.com for more details). 
 	- The CDRip.dll library is distributed under the GPLv2.
+	- The TTALib.dll library is distributed under the GPLv2.
