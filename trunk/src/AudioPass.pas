@@ -7,6 +7,10 @@
 
 (* $Id$ *)
 
+(* Title: AudioPass
+   This unit contains the <TAudioPass> component. *)
+
+
 unit AudioPass;
 
 interface
