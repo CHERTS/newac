@@ -64,7 +64,7 @@ type
 
   { class TTTAOut }
 
-    (* Class: TTTAIn
+    (* Class: TTTAOut
       The TTA encoder component.
       Descends from <TAuTaggedFileOut>.
       Requires TTALib.dll. *)
