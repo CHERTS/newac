@@ -1,11 +1,17 @@
-Format: Development Release 12-07-2007 (1.35 base)
+Format: Development Release 01-12-2008 (1.35 base)
 
 
-Title: NewAC
-SubTitle: v1.4
+# You can add a title and sub-title to your menu like this:
+# Title: [project name]
+# SubTitle: [subtitle]
 
-Footer: Copyright © 2002-2007 Andrei Borovsky. All rights reserved.
-Timestamp: Generated on month day, year
+Footer: Content (c) 2008 Andrei Borovsky, Design (c) 2008 Wayne Thursby
+
+# You can add a timestamp to your documentation like one of these:
+# Timestamp: Generated on month day, year
+# Timestamp: Updated mm/dd/yyyy
+# Timestamp: Last updated mon day
+#
 #   m     - One or two digit month.  January is "1"
 #   mm    - Always two digit month.  January is "01"
 #   mon   - Short month word.  January is "Jan"
@@ -38,94 +44,118 @@ Timestamp: Generated on month day, year
 # --------------------------------------------------------------------------
 
 
-Link: NewAC Project Page  (http://www.symmetrica.net/newac)
-Link: NewAC Users Google Group  (http://groups.google.com/group/newac-users)
-Link: NewAC Source Google Code  (http://code.google.com/p/newac/)
+File: About NewAc  (no auto-title, doc\txt\newac.txt)
 
-Group: Docs  {
+Group: Documentation  {
 
-   File: Introduction  (doc\txt\introduction.txt)
-   File: License  (doc\txt\license.txt)
-   File: Component Writer's Guide  (doc\txt\cwguide.txt)
    File: About the Documentation  (doc\txt\about documentation.txt)
+   File: Quick Introduction to NewAC  (no auto-title, doc\txt\introduction.txt)
+   File: Component Writer's Guide  (doc\txt\cwguide.txt)
+   File: License  (doc\txt\license.txt)
    File: Tips &amp; Tricks  (doc\txt\tips and tricks.txt)
-   }  # Group: Docs
+   }  # Group: Documentation
 
-Group: Demos  {
+Group: I/O Components  {
+
+   File: TDXAudioIn  (no auto-title, src\ACS_DXAudio.pas)
+   File: TDXAudioOut  (no auto-title, src\ACS_DXAudio.pas)
+   File: TFLACIn  (no auto-title, src\ACS_FLAC.pas)
+   File: TFLACOut  (no auto-title, src\ACS_FLAC.pas)
+   File: TMACIn  (no auto-title, src\ACS_MAC.pas)
+   File: TMACOut  (no auto-title, src\ACS_MAC.pas)
+   File: TMP3In  (no auto-title, src\ACS_smpeg.pas)
+   File: TStreamIn  (no auto-title, src\ACS_Streams.pas)
+   File: TTTAIn  (no auto-title, src\ACS_TTA.pas)
+   File: TTTAOut  (no auto-title, src\ACS_TTA.pas)
+   File: TVorbisIn  (no auto-title, src\ACS_Vorbis.pas)
+   File: TVorbisOut  (no auto-title, src\ACS_Vorbis.pas)
+   File: TWaveIn  (no auto-title, src\ACS_Wave.pas)
+   File: TWaveOut  (no auto-title, src\ACS_Wave.pas)
+   File: TWMAOut  (no auto-title, src\ACS_WinMedia.pas)
+   File: TWMIn  (no auto-title, src\ACS_WinMedia.pas)
+   File: TWVIn  (no auto-title, src\ACS_WavPack.pas)
+   File: TWVOut  (no auto-title, src\ACS_WavPack.pas)
+   }  # Group: I/O Components
+
+Group: Audio Processing Components  {
+
+   File: TACMConverter  (no auto-title, src\ACS_Converters.pas)
+   File: TAudioConverter  (no auto-title, src\ACS_Converters.pas)
+   File: TAudioMixer  (no auto-title, src\ACS_AudioMix.pas)
+   File: TAudioPass  (no auto-title, src\AudioPass.pas)
+   File: TResampler  (no auto-title, src\AuSampleRate.pas)
+   }  # Group: Audio Processing Components
+
+Group: Main Units  {
+
+   File: ACS_Audio  (src\ACS_Audio.pas)
+   File: ACS_AudioMix  (src\ACS_AudioMix.pas)
+   File: ACS_CDROM  (src\ACS_CDROM.pas)
+   File: ACS_Classes  (src\ACS_Classes.pas)
+   File: ACS_Converters  (src\ACS_Converters.pas)
+   File: ACS_DXAudio  (src\ACS_DXAudio.pas)
+   File: ACS_Filters  (src\ACS_Filters.pas)
+   File: ACS_FLAC  (src\ACS_FLAC.pas)
+   File: ACS_LAME  (src\ACS_LAME.pas)
+   File: ACS_MAC  (src\ACS_MAC.pas)
+   File: ACS_Misc  (src\ACS_Misc.pas)
+   File: ACS_Procs  (src\ACS_Procs.pas)
+   File: ACS_Reg  (src\acs_reg.pas)
+   File: ACS_SMPEG  (src\ACS_smpeg.pas)
+   File: ACS_Streams  (src\ACS_Streams.pas)
+   File: ACS_Tags  (src\ACS_Tags.pas)
+   File: ACS_TTA  (src\ACS_TTA.pas)
+   File: ACS_Types  (src\ACS_Types.pas)
+   File: ACS_Vorbis  (src\ACS_Vorbis.pas)
+   File: ACS_Wave  (src\ACS_Wave.pas)
+   File: ACS_WavPack  (src\ACS_WavPack.pas)
+   File: ACS_WinMedia  (src\ACS_WinMedia.pas)
+   File: AuSampleRate  (src\AuSampleRate.pas)
+   File: CDRip  (src\CDRip.pas)
+   File: Codec  (src\Codec.pas)
+   File: dsound.h  (src\_DirectSound.pas)
+   File: DSWrapper  (src\DSWrapper.pas)
+   File: dxsdkver.h, extracts from various DirectX SDK include files  (src\_DXTypes.pas)
+   File: FLAC  (src\FLAC.pas)
+   File: libwma1.pas  (src\libwma1.pas)
+   File: TAudioPass  (src\AudioPass.pas)
+   }  # Group: Main Units
+
+Group: Converted C/C++ Headers  {
+
+   File: ACS_Types  (src\ACS_Types.pas)
+   File: CDRip  (src\CDRip.pas)
+   File: Codec  (src\Codec.pas)
+   File: DSWrapper  (src\DSWrapper.pas)
+   File: FLAC  (src\FLAC.pas)
+   File: libwma1.pas  (src\libwma1.pas)
+   }  # Group: Converted C/C++ Headers
+
+Group: Utility Units  {
+
+   File: ACS_Misc  (src\ACS_Misc.pas)
+   File: ACS_Procs  (src\ACS_Procs.pas)
+   File: ACS_Reg  (src\acs_reg.pas)
+   File: ACS_Streams  (src\ACS_Streams.pas)
+   }  # Group: Utility Units
+
+Group: Tutorials  {
 
    File: Audio Processor  (demos\Tutorial\AudioProcessor\Main.pas)
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
-   File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
-   }  # Group: Demos
+   }  # Group: Tutorials
 
-Group: Units  {
-
-   Group: I/O  {
-
-      File: ACS_Audio  (src\ACS_Audio.pas)
-      File: ACS_AudioMix  (src\ACS_AudioMix.pas)
-      File: ACS_CDROM  (src\ACS_CDROM.pas)
-      File: ACS_Classes  (src\ACS_Classes.pas)
-      File: ACS_DXAudio  (src\ACS_DXAudio.pas)
-      File: ACS_FLAC  (src\ACS_FLAC.pas)
-      File: ACS_LAME  (src\ACS_LAME.pas)
-      File: ACS_MAC  (src\ACS_MAC.pas)
-      File: ACS_SMPEG  (src\ACS_smpeg.pas)
-      File: ACS_Vorbis  (src\ACS_Vorbis.pas)
-      File: ACS_WavPack  (src\ACS_WavPack.pas)
-      File: ACS_Wave  (src\ACS_Wave.pas)
-      File: ACS_WinMedia  (src\ACS_WinMedia.pas)
-      File: ACS_TTA  (src\ACS_TTA.pas)
-      File: TAudioPass  (src\AudioPass.pas)
-      }  # Group: I/O
-
-   Group: Conversion  {
-
-      File: ACS_Converters  (src\ACS_Converters.pas)
-      File: ACS_Filters  (src\ACS_Filters.pas)
-      File: AuSampleRate  (src\AuSampleRate.pas)
-      }  # Group: Conversion
-
-   Group: Utility  {
-
-      File: ACS_Misc  (src\ACS_Misc.pas)
-      File: ACS_Procs  (src\ACS_Procs.pas)
-      File: ACS_Reg  (src\acs_reg.pas)
-      File: ACS_Streams  (src\ACS_Streams.pas)
-      File: ACS_Tags  (src\ACS_Tags.pas)
-      }  # Group: Utility
-
-   Group: Headers  {
-
-      File: ACS_Types  (src\ACS_Types.pas)
-      File: CDRip  (src\CDRip.pas)
-      File: Codec  (src\Codec.pas)
-      File: DSWrapper  (src\DSWrapper.pas)
-      File: FLAC  (src\FLAC.pas)
-      File: MACDll.pas  (src\MACDll.pas)
-      File: VorbisEnc.pas  (src\VorbisEnc.pas)
-      File: VorbisFile.pas  (src\VorbisFile.pas)
-      File: WavPackDLL  (src\WavPackDLL.pas)
-      File: WaveConverter.pas  (src\WaveConverter.pas)
-      File: lame.pas  (src\lame.pas)
-      File: libsamplerate.pas  (src\libsamplerate.pas)
-      File: libwma1.pas  (src\libwma1.pas)
-      File: ogg.pas  (src\ogg.pas)
-      File: ovencode  (src\ovencode.pas)
-      File: wmfintf.pas  (src\wmfintf.pas)
-      }  # Group: Headers
-
-   }  # Group: Units
+File: License  (license.txt)
 
 Group: Index  {
 
    Index: Everything
    Class Index: Classes
-   Property Index: Properties
-   Function Index: Functions
    Constant Index: Constants
-   Type Index: Types
    File Index: Files
+   Function Index: Functions
+   Property Index: Properties
+   Type Index: Types
    Variable Index: Variables
    }  # Group: Index
 
