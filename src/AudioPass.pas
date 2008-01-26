@@ -14,21 +14,15 @@ interface
 uses
   Classes, SysUtils, Forms, ACS_Types, ACS_Procs, ACS_Classes, Windows, DSWrapper, _DirectSound, Math;
 
-const
-
-  DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
-  DS_POLLING_INTERVAL = 30; //milliseconds
-
 type
 
   (* Class: TAudioPass
-    This is a component that plays soud passing throug it.
-    Technically is a converter as it stends between input and output components in the audio chain,
-    but since its purpose is just to play sound, it passes the sound stream unchanged.
-    You can usse this component if you want to listen to the sound being processed.
-    For example look at Rip'n'Listen demo.
-    Descends from <TAuConverter>. *)
-
+      A <TAuConverter> descendant which plays sound passing through it.
+      Technically, it's a converter, as it sits between input and output
+      components in the audio chain. But since its purpose is simply to play
+      sound, it passes the sound stream unchanged. You can use this component
+      if you want to listen to the sound being processed. For an example look
+      at the <Rip'n'Listen Demo>. *)
   TAudioPass = class(TAuConverter)
   private
     FMute : Boolean;
@@ -59,12 +53,16 @@ type
     procedure _Pause; override;
     procedure _Resume; override;
    (* Property: DeviceCount
-         This read only property returns the number of logical output DirectSound devices. *)
+         This read only property returns the number of logical DirectSound
+         output devices. *)
     property DeviceCount : Integer read FDeviceCount;
     (* Property: DeviceName
          This read only array property returns the name of the device
-         specified by its number. Valid numbers range from 0 to
-         <DeviceCount> - 1. *)
+         specified by Number.
+       
+       Number:
+        An integer ranging from 0 to <DeviceCount> -1.
+    *)
     property DeviceName[Number : Integer] : String read GetDeviceName;
     (* Property: Underruns
          This read only property returns the number of internal buffer
@@ -77,17 +75,26 @@ type
     property BufSize : LongWord read _BufSize;
   published
     (* Property: DeviceNumber
-         Use this property to select the playback device by number.
-         The default value is 0 which corresponds to the default audio output device in your system.
-         Valid numbers range from 0 to <DeviceCount> - 1. *)
+         Use this property to select the playback device by number. The
+         default value is 0 which corresponds to the default audio output
+         device in your system.        
+         Values range from 0 to <DeviceCount> - 1
+    *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     (* Property: Mute
-         If this property is set to True the component doesn't play audio, but just lets it pass through.
-         Target audio operations usually go faster in Mute mode, since when the component play the sound
-         audio data is passed along the chain at playback speed.
-         You can switch Mute value while the component is processing audio.*)
+         If this property is set to True the component doesn't play audio, but just lets it pass through. Target audio operations usually go faster in Mute mode, since when the component plays sound, audio data is passed along the chain at playback speed. You can change the value of Mute while the component is processing audio.
+    *)
     property Mute : Boolean read FMute write SetMute;
   end;
+
+const
+
+  (* Constants:
+      DS_BUFFER_SIZE = $10000 - Size in frames, not bytes
+      DS_POLLING_INTERVAL = 30 - milliseconds   
+  *)
+  DS_BUFFER_SIZE = $10000; 
+  DS_POLLING_INTERVAL = 30;
 
 implementation
 
