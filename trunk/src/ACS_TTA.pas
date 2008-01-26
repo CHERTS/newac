@@ -15,7 +15,7 @@ unit ACS_TTA;
 
 (* Title: ACS_TTA
     TTA (True Audio codec) encoder and decoder components.
-    Reauire TTALib.dll. *)
+    Requires TTALib.dll. *)
 
 
 interface
@@ -30,12 +30,10 @@ type
 
   { class TTTAIn }
 
-    (* Class: TTTAIn
-      The TTA decoder component.
-      Descends from <TAuTaggedFileIn>.
-      Requires TTALib.dll.
-      Note that TTA files are not seekable. *)
-
+  (* Class: TTTAIn
+    The TTA decoder component, descends from <TAuTaggedFileIn>. Note that
+    TTA files are not seekable. Requires TTALib.dll.
+  *)
   TTTAIn = class(TAuTaggedFileIn)
   private
     FFile: HFILE;
@@ -57,16 +55,15 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    (* Property: Id3v1Tags
-         This property returns the file tags in Id3v1Tags  format. *)
+  (* Property: Id3v1Tags
+       This property returns the file tags in Id3v1Tags format. *)
     property Id3v1Tags: TId3v1Tags read GetId3v1Tags;
   end;
 
   { class TTTAOut }
 
     (* Class: TTTAOut
-      The TTA encoder component.
-      Descends from <TAuTaggedFileOut>.
+      The TTA encoder component, descends from <TAuTaggedFileOut>. 
       Requires TTALib.dll. *)
 
   TTTAOut = class(TAuTaggedFileOut)
@@ -86,7 +83,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     (* Property: Id3v1Tags
-         This property allows you to set the file tags in Id3v1Tags  format. *)
+         This property allows you to set the file tags in Id3v1Tags format. *)
     property Id3v1Tags;
   end;
 
