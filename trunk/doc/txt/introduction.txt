@@ -29,6 +29,7 @@ Section: On the Web
 		The source code for NewAC is now hosted on Google Code http://code.google.com/p/newac/.
 
 Section: Version History
+	Past versions of NewAC and their major changes and bugfixes. 
 	
 Version: NewAC 1.4
 	- FLAC tags support (reading/writing).
@@ -81,8 +82,7 @@ Section: A Note to the Reader
 	
 	If you read something in this documentation that disagrees with the source code you have, odds are you have outdated source. Unless you have production code, there is no reason not to pull directly from the Subversion repository. If for some reason there is instability in this code you would be doing everyone a favor by at least discovering and reporting it.
 
-Note from Andrei Borovsky: being not a native English speaker I especially apologise for any grammatical and orphographical mistakes and clumsiness you can find in this documentation. If you find such a thing it is most probably my fault and not Wayn's.
-
+Note from Andrei Borovsky: not being a native English speaker I especially apologise for any grammatical and orphographical mistakes and clumsiness you can find in this documentation. If you find such a thing it is most probably my fault and not Wayne's. 
 
 Section: Introduction to NewAC Programming
 
@@ -198,7 +198,7 @@ Section: Editing Sound
 
 Several sound-editing operations can be performed with NewAC. Converter components allow you to change the number of channels, bits per sample, and the sample rate of an audio stream. With the TAudioMixer component you can mix together two audio streams, selecting volume level values for each stream, and concatenate two streams into a single stream. See the AudioMixer demo for streams mixing and concatenation example.
 
-TWaveOut and TVorbisOut components allow you to append audio data to the already existing files. Set the component's FileMode property to foAppend to append data to an existing file rather than rewriting it.
+<TWaveOut> and <TVorbisOut> components allow you to append audio data to the already existing files. Set the component's FileMode property to foAppend to append data to an existing file rather than rewriting it.
 
 
 All input components that descend from TAuFileIn allow you to specify StartSample and EndSample properties. If you set these properties' values, the actual data reading will start from the StartSample and will stop at EndSample value (the total number of samples in the input stream is returned via TotalSamples property, and since it is read from the file, you should check the Valid property value before reading TotalSamples). This way you can select a fragment of an input audio file, rather than a whole file, for further processing. AudioCutter demo shows how to play back and save selected fragments of audio files. The StartSample and EndSample properties allow to select audio file fragments with the maximum possible precision. If you don't need that precision you can use SetStartTime and SetEndTime methods that specify start and end time for the selection in minutes:seconds format.
@@ -220,6 +220,7 @@ This section explains how to avoid some errors that are most often encountered b
 	-	With the TCDIn component it is a good practice to check if the right kind of media is in the drive before calling any disc-concerning method. You can check the CD in the drive by means of DiscInfo and Status properties.
 	-	When using file input components always check if the assigned file is valid with Valid property before reading any file description properties or calling Run method.
 	-	Some of NewAC components require external DLLs. When you start a NewAC application and it cannot find a required DLL it shows a message "foobar.dll could not be found"... but not under Vista. Vista hides this message (just like many other important technical messages) from a user and tells you instead that your "application suddenly stopped working". This may give you a false impression that the NewAC application is screwed up under Vista. That’s not so. If you get this "the application suddenly stopped working" dialog right when the app starts, check, first of all, if all the required DLLs are accessible to the application.
+
 Keep in mind that all the demos provided with NewAC work under Vista (at least under 32-bit version).
 
 
@@ -230,7 +231,7 @@ Some NewAC components are now considered legacy. They are kept for backward comp
 	-	TAudioIn (should be replaced with TDXAudioIn in new programs).
 	-	TAudioOut (should be replaced with TDXAudioOut in new programs).
 	-	TRateConverter (should be replaced with TResampler in new programs).
-	-	TMSConverter (TMSConverter's functionality is duplicated in TAudioConverter, which additionally supports 24 bit sound conversion).
+	-	TMSConverter (TMSConverter's functionality is duplicated in <TAudioConverter>, which additionally supports 24 bit sound conversion).
 
 Section: Third Party Libraries
 
@@ -240,15 +241,14 @@ Some of NewAC components require certain shared libraries, which are not include
 
 It is important to note that since all libraries required by NewAC components are loaded dynamically at run-time, you can use NewAC as a whole without these libraries. Of course, those components requiring certain library will only work if the library is found.
 
-	-	TVorbisIn and TVorbisOut components require Ogg Vorbis libraries (ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll). See the additional note below.
-	-	TFLACIn and TFLACOut components depend on libFLAC.dll. You can find FLAC sources at http://flac.sourceforge.net.
+	-	<TVorbisIn> and <TVorbisOut> components require Ogg Vorbis libraries (ogg.dll, vorbis.dll, vorbisenc.dll, vorbisfile.dll). See the additional note below.
+	-	<TFLACIn> and <TFLACOut> components depend on libFLAC.dll. You can find FLAC sources at http://flac.sourceforge.net.
 	-	Monkey Audio components require MacDLL.dll library. The Monkey Audio SDK is available at http://www.monkeysaudio.com.
-	-	TTTAIn and TTTAOt components require TTALib.dll. ou can download it alon with other dlls from the NewAC site.
-	- TCDIn component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
-	- TResampler component requires the libsamplerate.dll library. You can get the sources at http://www.mega-nerd.com/SRC/win32.html.
-	- TMP3Out component requires lame_enc.dll (under Windows). Sources are available at http://lame.sourceforge.net
+	- <TCDIn> component requires CDRip.dll library distributed under GPL (I use the variant of the library distributed with NeoAudio). 
+	- <TResampler> component requires the libsamplerate.dll library. You can get the sources at http://www.mega-nerd.com/SRC/win32.html.
+	- <TMP3Out> component requires lame_enc.dll (under Windows). Sources are available at http://lame.sourceforge.net
 Note:
-	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your Country.
+	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your country.
 
 Note on Ogg Vorbis libraries:
 	The original libraries available at http://www.xiph.org are not fully compatible with Delphi. You should use alternative aoTuV Ogg Vorbis suite instead. You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
