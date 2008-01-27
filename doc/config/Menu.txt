@@ -4,7 +4,7 @@ Format: Development Release 01-12-2008 (1.35 base)
 Title: NewAC
 SubTitle: v1.4
 
-Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project main page</a></u></b>
+Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
 # You can add a timestamp to your documentation like one of these:
 # Timestamp: Generated on month day, year
@@ -45,11 +45,12 @@ Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><
 
 Group: Documentation  {
 
-   File: About the Documentation  (doc\txt\about documentation.txt)
    File: Quick Introduction to NewAC  (no auto-title, doc\txt\introduction.txt)
+   File: About the Documentation  (doc\txt\about documentation.txt)
    File: Component Writer's Guide  (doc\txt\cwguide.txt)
    File: License  (doc\txt\license.txt)
    File: Tips &amp; Tricks  (doc\txt\tips and tricks.txt)
+   File: New Audio Components  (doc\txt\newac.txt)
    }  # Group: Documentation
 
 Group: Audio I/O Components  {
@@ -106,7 +107,7 @@ Group: Main Units  {
    File: ACS_WinMedia  (src\ACS_WinMedia.pas)
    File: AuSampleRate  (src\AuSampleRate.pas)
    File: MACDll.pas  (src\MACDll.pas)
-   File: TAudioPass  (src\AudioPass.pas)
+   File: AudioPass  (src\AudioPass.pas)
    File: VorbisEnc.pas  (src\VorbisEnc.pas)
    File: VorbisFile.pas  (src\VorbisFile.pas)
    File: WavPackDLL  (src\WavPackDLL.pas)

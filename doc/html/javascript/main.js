@@ -1,4 +1,4 @@
-// This file is part of Natural Docs, which is Copyright (C) 2003-2005 Greg Valure
+// This file is part of Natural Docs, which is Copyright (C) 2003-2008 Greg Valure
 // Natural Docs is licensed under the GPL
 
 
@@ -564,7 +564,8 @@ function SearchPanel(name, mode, resultsPath)
             // reason.  It counts the right number of results, and you can even read the display as "block" after setting it, but it
             // just doesn't work in IE 6 or IE 7.  So if we're on the right page but the previous search had no results, reload the
             // page anyway to get around the bug.
-            (browserType == "IE" && hasResultsPage && resultsFrame.searchResults.lastMatchCount == 0) )
+            (browserType == "IE" && hasResultsPage &&
+            	(!resultsFrame.searchResults || resultsFrame.searchResults.lastMatchCount == 0)) )
 
             {
             resultsFrame.location.href = resultsPageWithSearch;
