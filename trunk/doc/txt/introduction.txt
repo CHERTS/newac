@@ -82,7 +82,8 @@ Section: A Note to the Reader
 	
 	If you read something in this documentation that disagrees with the source code you have, odds are you have outdated source. Unless you have production code, there is no reason not to pull directly from the Subversion repository. If for some reason there is instability in this code you would be doing everyone a favor by at least discovering and reporting it.
 
-Note from Andrei Borovsky: not being a native English speaker I especially apologise for any grammatical and orphographical mistakes and clumsiness you can find in this documentation. If you find such a thing it is most probably my fault and not Wayne's. 
+Note from Andrei Borovsky:
+	Not being a native English speaker, I especially apologise for any grammatical and orthographical mistakes and clumsiness you may find in this documentation. If you find such a thing it is most probably my fault and not Wayne's. 
 
 Section: Introduction to NewAC Programming
 
