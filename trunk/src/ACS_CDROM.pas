@@ -7,7 +7,7 @@
   Special thanks to Thomas Grelle <grelle@online.de> for improving this unit.
 *)
 
-(* $Revision: 1.11 $ $Date: 2007/11/26 20:56:26 $ *)
+(* $Id$ *)
 
 unit ACS_CDROM;
 
@@ -22,7 +22,7 @@ uses
 type
   (* Enum: TCDStatus
       The status of the CD-ROM drive.
-      
+
     cdsNotReady - Drive is not ready.
     cdsReady - Drive is ready to play.
     cdsPlaying - Drive is already playing a disc.
@@ -31,14 +31,14 @@ type
   TCDStatus = (cdsNotReady, cdsReady, cdsPlaying, cdsPaused);
   (* Enum: TTrackType
       The type of the current track.
-      
+
     ttAudio - Audio track
     ttData - Data track
   *)
   TTrackType = (ttAudio, ttData);
   (* Enum: TCDInfo
       General information about the disc in the drive.
-      
+
     cdiNoDisc - No disc in the drive.
     cdiDiscAudio - An audio disc.
     cdiDiscData - A data disc.
@@ -50,10 +50,10 @@ type
 
   TMCN = array[0..13] of Char;
 
-  (* Record: TCDMSF
+  (* Structure: TCDMSF
      The standard measure of time duration (and byte length) when dealing
      with CD-DA.
-     
+
      Properties:
        Minute - the number of full minutes in a track.
        Second - the number of full seconds in a track.
@@ -66,9 +66,9 @@ type
     Frame : Byte;
   end;
 
-  (* Record: TCDTrackInfo
+  (* Structure: TCDTrackInfo
      Carries information about a CD_DA track.
-     
+
      Properties:
      TrackLength : TCDMSF - length of the track in MSF format.
      TrackType : TTrackType - type of the track (possible values are ttAudio - for audio tracks and ttData for data tracks).
@@ -78,7 +78,7 @@ type
     TrackType : TTrackType;
   end;
 
-  (* Record: TCDPosition
+  (* Structure: TCDPosition
      Represents the current reader position on disc.
      
      Properties:
