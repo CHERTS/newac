@@ -447,7 +447,7 @@ begin
   end;
   if Bytes > (BufEnd - BufStart) then
     Bytes := BufEnd - BufStart;
-  if Bytes > FSize - FPosition then
+  if (FSize > 0) and (Bytes > FSize - FPosition) then
     Bytes := FSize - FPosition;
   Buffer := @Buf[BufStart];
   Inc(BufStart, Bytes);
