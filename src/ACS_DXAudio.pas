@@ -287,9 +287,9 @@ end;
 
 procedure TDXAudioOut.Pause;
 begin
+  inherited Pause;
   if EndOfInput then Exit;
   DSW_StopOutput(DSW);
-  inherited Pause;
 end;
 
 procedure TDXAudioOut.Resume;
