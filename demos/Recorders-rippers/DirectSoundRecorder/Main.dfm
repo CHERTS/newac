@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 298
-  Top = 174
+  Left = 150
+  Top = 88
   Width = 339
   Height = 244
   Caption = 'Sound Recorder'
@@ -216,11 +216,12 @@ object Form1: TForm1
     Top = 176
   end
   object DXAudioIn1: TDXAudioIn
+    SamplesToRead = -1
     DeviceNumber = 0
     InBitsPerSample = 8
     InChannels = 1
     InSampleRate = 8000
-    RecTime = 0
+    RecTime = -1
     Left = 32
     Top = 176
   end
