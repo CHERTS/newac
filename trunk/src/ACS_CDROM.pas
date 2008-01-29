@@ -50,7 +50,7 @@ type
 
   TMCN = array[0..13] of Char;
 
-  (* Structure: TCDMSF
+  (* Struct: TCDMSF
      The standard measure of time duration (and byte length) when dealing
      with CD-DA.
 
@@ -66,7 +66,7 @@ type
     Frame : Byte;
   end;
 
-  (* Structure: TCDTrackInfo
+  (* Struct: TCDTrackInfo
      Carries information about a CD_DA track.
 
      Properties:
@@ -78,7 +78,7 @@ type
     TrackType : TTrackType;
   end;
 
-  (* Structure: TCDPosition
+  (* Struct: TCDPosition
      Represents the current reader position on disc.
      
      Properties:
