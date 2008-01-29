@@ -201,9 +201,7 @@ type
       Closes CD-ROM drive's tray. *)
     procedure CloseTray;
     (* Property: DiscInfo
-      Read this property to get a <TCDInfo> about a disc in the drive. See how
-      I can link to both the name of the enum and a member, such as
-      <cdiNoDisc> or <cdiUnknown>. That's a function of the Enum keyword.
+      Read this property to get a <TCDInfo> about a disc in the drive.
     *)
     property DiscInfo: TCDInfo read GetInfo;
     (* Property: Status
