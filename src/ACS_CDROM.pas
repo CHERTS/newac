@@ -66,6 +66,8 @@ type
     Frame : Byte;
   end;
 
+  (* Structures *)
+
   (* Struct: TCDTrackInfo
      Carries information about a CD_DA track.
 
