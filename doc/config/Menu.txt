@@ -55,6 +55,7 @@ Group: Documentation  {
 
 Group: Audio I/O Components  {
 
+   File: TÑDIn  (no auto-title, src\ACS_CDROM.pas)
    File: TDXAudioIn  (no auto-title, src\ACS_DXAudio.pas)
    File: TDXAudioOut  (no auto-title, src\ACS_DXAudio.pas)
    File: TFLACIn  (no auto-title, src\ACS_FLAC.pas)
