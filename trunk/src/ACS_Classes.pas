@@ -74,6 +74,7 @@ type
   TAuThread = class(TThread)
   private
     ErrorMsg : String;
+    PauseEvent : TEvent;
     procedure CallOnException;
     procedure RaiseDoneEvent;
   public
@@ -84,8 +85,12 @@ type
     Parent : TComponent;
 //    bSuspend : Boolean;
     Stop : Boolean;
+    SetPause, Paused : Boolean;
     HandleException : THandleException;
     Delay : Integer;
+    constructor Create;
+    destructor Destroy; override;
+    procedure WaitForPause;
     procedure Execute; override;
   end;
 
@@ -868,7 +873,22 @@ end;
     end;
   end;
 
+  constructor TAuThread.Create;
+  begin
+    inherited Create(True);
+    PauseEvent := TEvent.Create(nil, False, False, 'pause_event');
+  end;
 
+  destructor TAuThread.Destroy;
+  begin
+    PauseEvent.Free;
+    inherited Destroy;
+  end;
+
+  procedure TAuThread.WaitForPause;
+  begin
+    PauseEvent.WaitFor(10000);
+  end;
 
   procedure TAuThread.RaiseDoneEvent;
   begin
@@ -893,7 +913,20 @@ end;
           if Assigned(ParentComponent.FOnProgress)
             then EventHandler.PostOnProgress(ParentComponent, ParentComponent.FOnProgress);
         end;
-        Res := ParentComponent.DoOutput(Stop);
+        if SetPause then
+        begin
+          if (not Paused) and (not Stop) then
+            PauseEvent.SetEvent;
+          Paused := True;
+          Res := True;
+          Sleep(50);
+        end else
+        begin
+          if Paused and (not Stop) then
+            PauseEvent.SetEvent;
+          Paused := False;
+          Res := ParentComponent.DoOutput(Stop);
+        end;  
         if Stop or (not Res) then
         begin
           Stop := False;
@@ -924,7 +957,7 @@ end;
     if not (csDesigning in ComponentState) then
     begin
       FStopped := False;
-      Thread := TAuThread.Create(True);
+      Thread := TAuThread.Create;
       Thread.Parent := Self;
       Thread.DoNotify := True;
       Thread.FreeOnTerminate := False;
@@ -967,7 +1000,13 @@ end;
       Prepare;
       Thread.Stop := False;
       CanOutput := True;
-      if Thread.Suspended then Thread.Resume;
+      if Thread.Suspended then
+      begin
+        Thread.SetPause := False;
+        Thread.Paused := False;
+        Thread.Resume;
+        Thread.PauseEvent.ResetEvent;
+      end;
     except
       on E : Exception do
       begin
@@ -994,6 +1033,8 @@ end;
     Thread.DoNotify := Async;
     Thread.Stopped := False;
     Thread.Stop := True;
+    if Thread.Paused then
+      Thread.SetPause := False;
     if not Async then
     begin
       EventHandler.BlockEvents(Self);
@@ -1012,7 +1053,7 @@ end;
   begin
     if Busy then
     begin
-      if Self.Thread.Suspended then Result := tosPaused
+      if Self.Thread.Paused then Result := tosPaused
       else Result := tosPlaying;
     end else Result := tosIdle;
   end;
@@ -1056,22 +1097,22 @@ end;
   begin
     if FInput = nil then
       raise EAuException.Create('Input is not assigned.');
-    FInput._Lock;
-    try
+    If Busy then
+    begin
+      Thread.SetPause := True;
+      Thread.WaitForPause;
       FInput._Pause;
-      If not Thread.Suspended then Thread.Suspend;
-    finally
-      FInput._Unlock;
     end;
   end;
 
   procedure TAuOutput.Resume;
   begin
-    If Thread.Suspended and Busy then
+    If Busy then
     begin
       FInput._Resume;
-      Thread.Resume;
-    end;  
+      Thread.SetPause := False;
+      Thread.WaitForPause;
+    end;
   end;
 
 
