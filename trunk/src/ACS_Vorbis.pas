@@ -498,22 +498,22 @@ implementation
         CN := GetLeftOf('=', String(Comment));
         CV := GetRightOf('=', String(Comment));
         CN := AnsiLowerCase(CN);
-        if CN = 'artist' then
+        if CN = _vorbis_Artist then
           FComments.Artist := UTF8Decode(CV)
         else
-        if CN = 'album' then
+        if CN = _vorbis_Album then
           FComments.Album := UTF8Decode(CV)
         else
-        if CN = 'title' then
+        if CN = _vorbis_Title then
           FComments.Title := UTF8Decode(CV)
         else
-        if CN = 'date' then
+        if CN = _vorbis_Date then
           FComments.Date := UTF8Decode(CV)
         else
-        if CN = 'genre' then
+        if CN = _vorbis_Genre then
           FComments.Genre := UTF8Decode(CV)
         else
-        if CN = 'tracknumber' then
+        if CN = _vorbis_Track then
           FComments.Track := StrToInt(UTF8Decode(CV));
         Inc(LongWord(PComment), 4);
         Comment := PComment^;
