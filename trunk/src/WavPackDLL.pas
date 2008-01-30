@@ -66,7 +66,7 @@ type
     function GetBitsPerSample: Integer;
     function GetBytesPerSample: Integer;
     function GetVersion: Integer;
-    function GetNumSamples: LongWord;
+    function GetNumSamples: Cardinal;
     function GetFileSize: Cardinal;
     function GetRatio: Double;
     function GetAverageBitrate(CountWVC: Integer): Double;
@@ -103,7 +103,7 @@ type
     property BitsPerSample: Integer read GetBitsPerSample;
     property BytesPerSample: Integer read GetBytesPerSample;
     property Version: Integer read GetVersion;
-    property NumSamples: LongWord read GetNumSamples;
+    property NumSamples: Cardinal read GetNumSamples;
     property FileSize: Cardinal read GetFileSize;
     property Ratio: Double read GetRatio;
     property AverageBitrate[CountWVC: Integer]: Double read GetAverageBitrate;
@@ -309,7 +309,8 @@ const
   WavpackGetLibraryVersionString_name = 'WavpackGetLibraryVersionString';
 
 type
-  t_WavpackOpenFileInputEx_func = function(reader: PWavpackStreamReader; wv_id, wvc_id: Pointer;
+  t_WavpackOpenFileInputEx_func = function(reader: PWavpackStreamReader;
+    wv_id, wvc_id: Pointer;
     error: PChar; flags, norm_offset: Integer): PWavpackContext; cdecl;
   t_WavpackOpenFileInput_func = function(infilename: PChar;
     error: PChar; flags, norm_offset: Integer): PWavpackContext; cdecl;
@@ -320,7 +321,7 @@ type
   t_WavpackGetVersion_func = function(wpc: PWavpackContext): Integer; cdecl;
   t_WavpackUnpackSamples_func = function(wpc: PWavpackContext; sample_buffer: PInteger; sample_count: Cardinal): Cardinal; cdecl;
   // Modified by A.B.
-  t_WavpackGetNumSamples_func = function(wpc: PWavpackContext): LongWord; cdecl;
+  t_WavpackGetNumSamples_func = function(wpc: PWavpackContext): Cardinal; cdecl;
   // End modified
   t_WavpackGetSampleIndex_func = function(wpc: PWavpackContext): Cardinal; cdecl;
   t_WavpackGetNumErrors_func = function(wpc: PWavpackContext): Integer; cdecl;
@@ -430,6 +431,7 @@ var
   WavpackGetLibraryVersion: t_WavpackGetLibraryVersion_func = nil;
   WavpackGetLibraryVersionString: t_WavpackGetLibraryVersionString_func = nil;
 
+  stream_reader: TWavpackStreamReader;
 
 procedure CheckFunc(Func: Pointer; FuncName: String);
 begin
@@ -444,9 +446,6 @@ end;
 
 (* class TWavpackDecoder *)
 
-var
-  stream_reader: TWavpackStreamReader;
-  
 constructor TWavpackDecoder.Create(const AFilename: String;
   Flags: TwvOpenFlags; NormOffset: Integer = 0);
 var
@@ -555,7 +554,7 @@ begin
   Result := WavpackGetVersion(FContext);
 end;
 
-function TWavpackDecoder.GetNumSamples: LongWord;
+function TWavpackDecoder.GetNumSamples: Cardinal;
 begin
   CheckFunc(@WavpackGetNumSamples, WavpackGetNumSamples_name);
 
@@ -675,7 +674,7 @@ end;
 
 function blockout(Stream: TStream; Buffer: Pointer; Count: Integer): LongBool; cdecl;
 begin
-  Result := (Stream.Write(Buffer^, Count) = Count);
+  Result := (Stream <> nil) and (Stream.Write(Buffer^, Count) = Count);
 end;
 
 constructor TWavpackEncoder.Create(const AStream, ACorrectionsStream: TStream);
