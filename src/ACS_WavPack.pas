@@ -41,13 +41,14 @@ type
     FBuffer: array of Byte;
 
     procedure SetCorrectionsStream(Value: TStream);
+
     function GetId3v1Tags : TId3v1Tags;
     function GetAPEv2Tags : TAPEv2Tags;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
     function SeekInternal(var Sample: Int64): Boolean; override;
-    procedure GetDataInternal(var Buffer: Pointer; var Bytes: LongWord); override;
+    procedure GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -95,7 +96,7 @@ type
 
     FEncoder: TWavpackEncoder;
     FEOF: Boolean;
-    FBufferInStart: LongWord;
+    FBufferInStart: Cardinal;
     FBufferIn: array of Byte;
     FBufferOut: array of Byte;
 
@@ -207,109 +208,126 @@ begin
   end;
 end;
 
+function TWVIn.GetId3v1Tags;
+begin
+  OpenFile();
+
+  Result := _Id3v1Tags;
+end;
+
+function TWVIn.GetAPEv2Tags;
+begin
+  OpenFile();
+
+  Result := _APEv2Tags;
+end;
+
 procedure TWVIn.OpenFile;
 var
-  i, n: Integer;
+  i{, n}: Integer;
   tag_id: String;
 begin
-  OpenCS.Enter;
+  OpenCS.Enter();
   try
-  if FOpened = 0 then
-  begin
-    FValid := False;
+    if FOpened = 0 then begin
+      FValid := False;
 
-    if not FStreamAssigned then
-      if FWideFileName = '' then
-        raise EAuException.Create('File name is not assigned')
+      if not FStreamAssigned then
+        if FWideFileName = '' then
+          raise EAuException.Create('File name is not assigned')
+        else
+          FStream := TAuFileStream.Create(
+            FWideFileName, fmOpenRead or fmShareDenyWrite);
+
+      if not FCorrectionsStreamAssigned then
+        try
+          FCorrectionsStream := TAuFileStream.Create(
+            ChangeFileExt(FWideFileName, '.wvc'), fmOpenRead or fmShareDenyWrite);
+        except
+          FCorrectionsStream := nil;
+        end;
+
+      if FCorrectionsStream = nil then
+        FDecoder := TWavpackDecoder.Create(FStream,
+          nil,
+          [wvofTags])
       else
-        FStream := TAuFileStream.Create(
-          FWideFileName, fmOpenRead or fmShareDenyWrite);
+        FDecoder := TWavpackDecoder.Create(FStream,
+          FCorrectionsStream,
+          [wvofWVC, wvofTags]);
 
-    if not FCorrectionsStreamAssigned then
-      try
-        FCorrectionsStream := TAuFileStream.Create(
-          ChangeFileExt(FWideFileName, '.wvc'), fmOpenRead or fmShareDenyWrite);
-      except
-        FCorrectionsStream := nil;
-      end;
+      FValid := True;
+      FSeekable := True;
 
-    if FCorrectionsStream = nil then
-      FDecoder := TWavpackDecoder.Create(FStream,
-        nil,
-        [wvofTags])
-    else
-      FDecoder := TWavpackDecoder.Create(FStream,
-        FCorrectionsStream,
-        [wvofWVC, wvofTags]);
-    if FDecoder = nil then
-      raise EAuException.Create('Failed to initialize WavPack decoder.');
+      FBPS := FDecoder.BitsPerSample;
+      FSR := FDecoder.SampleRate;
+      FChan := FDecoder.NumChannels;
+      FTotalSamples := FDecoder.NumSamples;
 
-    FValid := True;
-    FSeekable := True;
+      FPosition := 0;
+      if FTotalSamples >= 0 then
+        FSize := FTotalSamples * ((FBPS + 7) div 8) * FChan
+      else
+        FSize := - 1;
 
-    FBPS := FDecoder.BitsPerSample;
-    FSR := FDecoder.SampleRate;
-    FChan := FDecoder.NumChannels;
-    FTotalSamples := FDecoder.NumSamples;
+      if [wvmfValidTag] * FDecoder.Mode = [wvmfValidTag] then
+        if [wvmfAPETag] * FDecoder.Mode = [] then begin // id3v1 tags
+{          _Id3v1Tags.Artist := FDecoder.Tags['artist'];
+          _Id3v1Tags.Album := FDecoder.Tags['album'];
+          if TryStrToInt(FDecoder.Tags['year'], n) then
+            _Id3v1Tags.Year := n;
+          if TryStrToInt(FDecoder.Tags['track'], n) then
+            _Id3v1Tags.Track := n;
+          _Id3v1Tags.Title := FDecoder.Tags['title'];
+          _Id3v1Tags.Comment := FDecoder.Tags['comment'];}
 
-    FPosition := 0;
-    if FTotalSamples >= 0 then begin
-      FSize := FTotalSamples * (FBPS div 8) * FChan;
-    end
-    else
-     FSize := -1;
-    if [wvmfValidTag] * FDecoder.Mode = [wvmfValidTag] then
-      if [wvmfAPETag] * FDecoder.Mode = [] then begin // id3v1 tags
-        _Id3v1Tags.Artist := FDecoder.Tags['artist'];
-        _Id3v1Tags.Album := FDecoder.Tags['album'];
-        if TryStrToInt(FDecoder.Tags['year'], n) then
-          _Id3v1Tags.Year := n;
-        if TryStrToInt(FDecoder.Tags['track'], n) then
-          _Id3v1Tags.Track := n;
-        _Id3v1Tags.Title := FDecoder.Tags['title'];
-        _Id3v1Tags.Comment := FDecoder.Tags['comment'];
+          for i := 0 to _Id3v1Tags.IdCount - 1 do begin
+            tag_id := _Id3v1Tags.Ids[i];
+            _Id3v1Tags[tag_id] := FDecoder.Tags[tag_id];
+          end;
 
-        _APEv2Tags.Clear();
-      end
+          _APEv2Tags.Clear();
+        end
+        else begin
+          _Id3v1Tags.Clear();
+
+          for i := 0 to _APEv2Tags.IdCount - 1 do begin
+            tag_id := _APEv2Tags.Ids[i];
+            _APEv2Tags[tag_id] := FDecoder.Tags[tag_id];
+          end;
+        end
       else begin
         _Id3v1Tags.Clear();
+        _APEv2Tags.Clear();
+      end;
 
-        for i := 0 to _APEv2Tags.IdCount - 1 do begin
-          tag_id := _APEv2Tags.Ids[i];
-          _APEv2Tags[tag_id] := FDecoder.Tags[tag_id];
-        end;
-      end
-    else begin
-      _Id3v1Tags.Clear();
-      _APEv2Tags.Clear();
+      Inc(FOpened);
     end;
-    Inc(FOpened);
-  end;
   finally
-    OpenCS.Leave;
+    OpenCS.Leave();
   end;
 end;
 
 procedure TWVIn.CloseFile;
 begin
-  OpenCS.Enter;
+  OpenCS.Enter();
   try
-  if FOpened > 0 then begin
-    Dec(FOpened);
+    if FOpened > 0 then begin
+      Dec(FOpened);
 
-    if FOpened = 0 then begin
-      FreeAndNil(FDecoder);
+      if FOpened = 0 then begin
+        FreeAndNil(FDecoder);
 
-      if not FStreamAssigned then
-        FreeAndNil(FStream);
-      if not FCorrectionsStreamAssigned then
-        FreeAndNil(FCorrectionsStream);
+        if not FStreamAssigned then
+          FreeAndNil(FStream);
+        if not FCorrectionsStreamAssigned then
+          FreeAndNil(FCorrectionsStream);
 
-      SetLength(FBuffer, 0);
+        SetLength(FBuffer, 0);
+      end;
     end;
-  end;
   finally
-    OpenCS.Leave;
+    OpenCS.Leave();
   end;
 end;
 
@@ -318,7 +336,7 @@ begin
   Result := FDecoder.SeekSample(Sample);
 end;
 
-procedure TWVIn.GetDataInternal(var Buffer: Pointer; var Bytes: LongWord);
+procedure TWVIn.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
 type
   t_int24_sample_in_int32 = packed record
     sample: t_int24_sample;
@@ -334,7 +352,7 @@ var
   new_bytes, new_buffer_size,
   in_sample_size, out_sample_size,
   samples, samples_read,
-  i: LongWord;
+  i: Cardinal;
   p_byte_samples: p_byte_sample_array;
   p_int16_samples: p_int16_sample_array;
   p_int24_samples: p_int24_sample_array;
@@ -345,119 +363,115 @@ begin
   if not Busy then
     raise EAuException.Create('The Stream is not opened');
 
-  if Bytes > 0 then
-  begin
-    try
-      if FSize >= 0 then begin
-        new_bytes := FSize - FPosition;
-        if Bytes > new_bytes then
-          Bytes := new_bytes;
-      end;
+  if Bytes > 0 then begin
+    if FSize >= 0 then begin
+      new_bytes := FSize - FPosition;
+      if Bytes > new_bytes then
+        Bytes := new_bytes;
+    end;
 
-      in_sample_size := SizeOf(p_int32_samples[Low(p_int32_samples^)]) * FChan;
-      out_sample_size := (FBPS shr 3) * FChan;
-      samples := Bytes div out_sample_size;
-      Bytes := samples * out_sample_size;
+    in_sample_size := SizeOf(p_int32_samples[Low(p_int32_samples^)]) * FChan;
+    out_sample_size := ((FBPS + 7) shr 3) * FChan;
+    samples := Bytes div out_sample_size;
+    Bytes := samples * out_sample_size;
 
-      new_buffer_size := samples * in_sample_size;
-      if LongWord(Length(FBuffer)) < new_buffer_size then
-        SetLength(FBuffer, new_buffer_size);
+    new_buffer_size := samples * in_sample_size;
+    if Cardinal(Length(FBuffer)) < new_buffer_size then
+      SetLength(FBuffer, new_buffer_size);
 
-      Buffer := @(FBuffer[0]);
+    Buffer := @(FBuffer[0]);
 
-      samples_read := FDecoder.UnpackSamples(Buffer, samples);
+    samples_read := FDecoder.UnpackSamples(Buffer, samples);
 
-      if samples_read < samples then begin
-        if samples_read > 0 then begin
-          samples := samples_read;
-          Bytes := samples * out_sample_size;
-        end
-        else begin
-          Buffer := nil;
-          Bytes := 0;
-
-          Exit;
-        end;
-      end;
-
-      if [wvmfFloat] * FDecoder.Mode = [wvmfFloat] then begin
-        p_float_samples := Buffer;
-        case FBPS shr 3 of
-          1: begin // 8 bits per sample
-            p_byte_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
-              if p_float_samples[i] >= 1 then
-                p_byte_samples[i] := High(p_byte_samples[i])
-              else
-              if p_float_samples[i] <= - 1 then
-                p_byte_samples[i] := Low(p_byte_samples[i])
-              else
-                p_byte_samples[i] := byte_sample_base +
-                  Floor(p_float_samples[i] * byte_sample_base);
-          end;
-          2: begin // 16 bits per sample
-            p_int16_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
-              if p_float_samples[i] >= 1 then
-                p_int16_samples[i] := High(p_int16_samples[i])
-              else
-              if p_float_samples[i] <= - 1 then
-                p_int16_samples[i] := Low(p_int16_samples[i])
-              else
-                p_int16_samples[i] := Floor(p_float_samples[i] * High(p_int16_samples[i]));
-          end;
-          3: begin // 24 bits per sample
-            p_int24_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
-              if p_float_samples[i] >= 1 then
-                p_int24_samples[i] := int24_sample_high
-              else
-              if p_float_samples[i] <= - 1 then
-                p_int24_samples[i] := int24_sample_low
-              else begin
-                temp := Floor(p_float_samples[i] * High(temp)) shr 8;
-
-                p_int24_samples[i] := t_int24_sample_in_int32(temp).sample;
-              end;
-          end;
-          4: begin // 32 bits per sample
-            p_int32_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
-              if p_float_samples[i] >= 1 then
-                p_int32_samples[i] := High(p_int32_samples[i])
-              else
-              if p_float_samples[i] <= - 1 then
-                p_int32_samples[i] := Low(p_int32_samples[i])
-              else
-                p_int32_samples[i] := Floor(p_float_samples[i] * High(p_int32_samples[i]));
-          end;
-        end;
+    if samples_read < samples then begin
+      if samples_read > 0 then begin
+        samples := samples_read;
+        Bytes := samples * out_sample_size;
       end
       else begin
-        p_int32_samples := Buffer;
-        case FBPS shr 3 of
-          1: begin // 8 bits per sample
-            p_byte_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
+        Buffer := nil;
+        Bytes := 0;
+
+        Exit;
+      end;
+    end;
+
+    if [wvmfFloat] * FDecoder.Mode = [wvmfFloat] then begin
+      p_float_samples := Buffer;
+      case (FBPS + 7) shr 3 of
+        1: begin // 8 bits per sample
+          p_byte_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            if p_float_samples[i] >= 1 then
+              p_byte_samples[i] := High(p_byte_samples[i])
+            else
+            if p_float_samples[i] <= - 1 then
+              p_byte_samples[i] := Low(p_byte_samples[i])
+            else
               p_byte_samples[i] := byte_sample_base +
-                t_byte_sample(p_int32_samples[i]);
-          end;
-          2: begin // 16 bits per sample
-            p_int16_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
-              p_int16_samples[i] := p_int32_samples[i];
-          end;
-          3: begin // 24 bits per sample
-            p_int24_samples := Buffer;
-            for i := 0 to (samples_read * FChan) - 1 do
-              p_int24_samples[i] := t_int24_sample_in_int32(p_int32_samples[i]).sample;
-          end;
-          {4: begin // 32 bits per sample
-            // nothing to do
-          end;}
+                Floor(p_float_samples[i] * byte_sample_base);
+        end;
+        2: begin // 16 bits per sample
+          p_int16_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            if p_float_samples[i] >= 1 then
+              p_int16_samples[i] := High(p_int16_samples[i])
+            else
+            if p_float_samples[i] <= - 1 then
+              p_int16_samples[i] := Low(p_int16_samples[i])
+            else
+              p_int16_samples[i] := Floor(p_float_samples[i] * High(p_int16_samples[i]));
+        end;
+        3: begin // 24 bits per sample
+          p_int24_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            if p_float_samples[i] >= 1 then
+              p_int24_samples[i] := int24_sample_high
+            else
+            if p_float_samples[i] <= - 1 then
+              p_int24_samples[i] := int24_sample_low
+            else begin
+              temp := Floor(p_float_samples[i] * High(temp)) shr 8;
+
+              p_int24_samples[i] := t_int24_sample_in_int32(temp).sample;
+            end;
+        end;
+        4: begin // 32 bits per sample
+          p_int32_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            if p_float_samples[i] >= 1 then
+              p_int32_samples[i] := High(p_int32_samples[i])
+            else
+            if p_float_samples[i] <= - 1 then
+              p_int32_samples[i] := Low(p_int32_samples[i])
+            else
+              p_int32_samples[i] := Floor(p_float_samples[i] * High(p_int32_samples[i]));
         end;
       end;
-    finally
+    end
+    else begin
+      p_int32_samples := Buffer;
+      case (FBPS + 7) shr 3 of
+        1: begin // 8 bits per sample
+          p_byte_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            p_byte_samples[i] := byte_sample_base +
+              t_byte_sample(p_int32_samples[i]);
+        end;
+        2: begin // 16 bits per sample
+          p_int16_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            p_int16_samples[i] := p_int32_samples[i];
+        end;
+        3: begin // 24 bits per sample
+          p_int24_samples := Buffer;
+          for i := 0 to (samples_read * FChan) - 1 do
+            p_int24_samples[i] := t_int24_sample_in_int32(p_int32_samples[i]).sample;
+        end;
+        {4: begin // 32 bits per sample
+          // nothing to do
+        end;}
+      end;
     end;
   end;
 end;
@@ -528,7 +542,7 @@ begin
   end;
   FEncoder.Flags := flags;
 
-  bytes_per_sample := FInput.BitsPerSample shr 3;
+  bytes_per_sample := (FInput.BitsPerSample + 7) shr 3;
   if FInput.BitsPerSample and $7 > 0 then
     Inc(bytes_per_sample);
   FEncoder.BytesPerSample := bytes_per_sample;
@@ -540,7 +554,9 @@ begin
       FEncoder.ChannelMask := 0;
   end;
 
-  if not FEncoder.Init(FInput.Size div (FInput.Channels * (FInput.BitsPerSample shr 3))) then
+  if not FEncoder.Init(
+           FInput.Size div (FInput.Channels * ((FInput.BitsPerSample + 7) shr 3)))
+  then
     raise EAuException.CreateFmt(
       'Wavpack file Init failed! (error: "%s")', [FEncoder.LastError]);
 end;
@@ -582,7 +598,9 @@ type
   p_int24_sample_in_int32 = ^t_int24_sample_in_int32;
 var
   buffer: Pointer;
-  frame_size, bytes, buffer_in_size, buffer_out_size, frames, samples, i: LongWord;
+  frame_size, buffer_in_size, buffer_out_size,
+  bytes, frames, samples,
+  i: Cardinal;
   p_byte_samples: p_byte_sample_array;
   p_int16_samples: p_int16_sample_array;
   p_int24_samples: p_int24_sample_array;
@@ -599,13 +617,13 @@ begin
     Exit;
   end;
 
-  frame_size := FInput.Channels * (FInput.BitsPerSample shr 3);
+  frame_size := FInput.Channels * ((FInput.BitsPerSample + 7) shr 3);
   bytes := 1024 * frame_size;
   FInput.GetData(buffer, bytes);
   Result := (bytes > 0);
   if Result then begin
     buffer_in_size := FBufferInStart + bytes;
-    if LongWord(Length(FBufferIn)) < buffer_in_size then
+    if Cardinal(Length(FBufferIn)) < buffer_in_size then
       SetLength(FBufferIn, buffer_in_size);
     Move(buffer^, FBufferIn[FBufferInStart], bytes);
 
@@ -613,10 +631,10 @@ begin
     samples := frames * FInput.Channels;
 
     buffer_out_size := samples * SizeOf(p_int32_samples[Low(p_int32_samples^)]);
-    if LongWord(Length(FBufferOut)) < buffer_out_size then
+    if Cardinal(Length(FBufferOut)) < buffer_out_size then
       SetLength(FBufferOut, buffer_out_size);
 
-    case FInput.BitsPerSample shr 3 of
+    case (FInput.BitsPerSample + 7) shr 3 of
       1: begin // 8 bits per sample
         p_int32_samples := @(FBufferOut[0]);
         p_byte_samples := @(FBufferIn[0]);
@@ -661,20 +679,6 @@ begin
   end;
 
   FEOF := not Result;
-end;
-
-function TWVIn.GetId3v1Tags;
-begin
-  OpenFile;
-  Result := _Id3v1Tags;
-//  CloseFile;
-end;
-
-function TWVIn.GetAPEv2Tags;
-begin
-  OpenFile;
-  Result := _APEv2Tags;
-//  CloseFile;
 end;
 
 end.
