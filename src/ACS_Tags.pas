@@ -52,7 +52,7 @@ type
     procedure Clear;
 
     function ReadFromFile(InFile: HFILE): Boolean; virtual;
-    function WriteToFile(OutFile: HFILE): Boolean; virtual;
+    function WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean; virtual;
 
     property Empty: Boolean read FEmpty;
     property Changed: Boolean read FChanged;
@@ -104,7 +104,7 @@ type
     class function Presents(InFile: HFILE): Boolean; override;
 
     function ReadFromFile(InFile: HFILE): Boolean; override;
-    function WriteToFile(OutFile: HFILE): Boolean; override;
+    function WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean; override;
   published
     property Title: String read GetTitle write SetTitle;
     property Artist: String read GetArtist write SetArtist;
@@ -123,7 +123,7 @@ type
     Version: Byte;                       // version: 2 - 2.2.x, 3 - 2.3.x, 4 - 2.4.x
     Revision: Byte;                      // revision
     Flags: Byte;                         // flags
-    Size: packed array [1 .. 4] of Byte; // tags info size excluding size of TId3v2TagsInfo structure
+    Size: packed array [0 .. 3] of Byte; // tags info size excluding size of TId3v2TagsInfo structure
   end;
 
   TId3v2Tags = class(TAuTags)
@@ -162,6 +162,7 @@ type
     class function Presents(InFile: HFILE): Boolean; override;
 
     function ReadFromFile(InFile: HFILE): Boolean; override;
+    function WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean; override;
   published
     property Artist: WideString read GetArtist write SetArtist;
     property Album: WideString read GetAlbum write SetAlbum;
@@ -413,13 +414,13 @@ const
     'Synthpop'
   );
 
-  _id3v1_Artist  = 'Artist';
-  _id3v1_Album   = 'Album';
-  _id3v1_Genre   = 'Genre';
-  _id3v1_Year    = 'Year';
-  _id3v1_Track   = 'Track';
-  _id3v1_Title   = 'Title';
-  _id3v1_Comment = 'Comment';
+  _id3v1_Artist  = 'artist';
+  _id3v1_Album   = 'album';
+  _id3v1_Genre   = 'genre';
+  _id3v1_Year    = 'year';
+  _id3v1_Track   = 'track';
+  _id3v1_Title   = 'title';
+  _id3v1_Comment = 'comment';
 
   _id3v2old_Artist    = 'TP1';
   _id3v2old_Album     = 'TAL';
@@ -461,7 +462,7 @@ const
   _id3v2_Link_Id      = 11;
 
   // frames ID for v2.2.x (when first index is False) and v2.3.x & v2.4.x (when first index is True)
-  _id3v2_tags: array [Boolean, 0 .. 16] of String =
+  _id3v2_tags: array [Boolean, _id3v2_Title_Id .. _id3v2_Link_Id] of String =
     ((_id3v2old_Title,
       _id3v2old_Artist,
       _id3v2old_Album,
@@ -473,8 +474,7 @@ const
       _id3v2old_Encoder,
       _id3v2old_Copyright,
       _id3v2old_Language,
-      _id3v2old_Link,
-      'TOR', 'TOA', 'TT1', 'TOT', 'TSI'),
+      _id3v2old_Link),
      (_id3v2new_Title,
       _id3v2new_Artist,
       _id3v2new_Album,
@@ -486,8 +486,7 @@ const
       _id3v2new_Encoder,
       _id3v2new_Copyright,
       _id3v2new_Language,
-      _id3v2new_Link,
-      'TDRC', 'TOPE', 'TIT1', 'TOAL', 'TSIZ'));
+      _id3v2new_Link));
 
   _ape_Artist         = 'Artist';
   _ape_Composer       = 'Composer';
@@ -590,7 +589,7 @@ end;
 
 class function TAuTags.Presents(InFile: HFILE): Boolean;
 begin
-  Result := False;
+  Result := (InFile <> INVALID_HANDLE_VALUE);
 end;
 
 function TAuTags.GetIdCount: Integer;
@@ -757,14 +756,14 @@ end;
 
 function TAuTags.ReadFromFile(InFile: HFILE): Boolean;
 begin
-  Clear();
-
-  Result := False;
+  Result := (InFile <> INVALID_HANDLE_VALUE);
+  if Result then
+    Clear();
 end;
 
-function TAuTags.WriteToFile(OutFile: HFILE): Boolean;
+function TAuTags.WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean;
 begin
-  Result := False;
+  Result := (OutFile <> INVALID_HANDLE_VALUE);
 end;
 
 
@@ -918,10 +917,8 @@ function TId3v1Tags.ReadFromFile(InFile: HFILE): Boolean;
 var
   tags_info: TId3v1TagsInfo;
 begin
-  inherited ReadFromFile(InFile);
-
   Result :=
-    (InFile <> INVALID_HANDLE_VALUE) and
+    inherited ReadFromFile(InFile) and
     ReadTagsInfo(InFile, tags_info);
   if Result then begin
     Title  := Trim(tags_info.Title);
@@ -946,14 +943,14 @@ begin
   end;
 end;
 
-function TId3v1Tags.WriteToFile(OutFile: HFILE): Boolean;
+function TId3v1Tags.WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean;
 var
   tags_info: TId3v1TagsInfo;
   buf: String;
   bytes_written: Cardinal;
 begin
   Result :=
-    (OutFile <> INVALID_HANDLE_VALUE) and
+    inherited WriteToFile(OutFile) and
     (SetFilePointer(OutFile, 0, nil, FILE_END) <> $FFFFFFFF);
   if Result then begin
     FillChar(tags_info, SizeOf(tags_info), 0);
@@ -1007,6 +1004,10 @@ end;
 const
   ID3V2_ID = 'ID3';
 
+  ID3V2_VERSION_2_2 = 2;
+  ID3V2_VERSION_2_3 = 3;
+  ID3V2_VERSION_2_4 = 4;
+
 class function TId3v2Tags.Presents(InFile: HFILE): Boolean;
 var
   file_pos: Cardinal;
@@ -1032,7 +1033,17 @@ begin
   Result :=
     ReadFile(InFile, TagsInfo, SizeOf(TagsInfo), bytes_read, nil) and
     (bytes_read = SizeOf(TagsInfo)) and
-    (TagsInfo.ID = ID3V2_ID);
+    (TagsInfo.ID = ID3V2_ID) and
+    (TagsInfo.Revision < $FF) and
+    (
+     ((TagsInfo.Version = ID3V2_VERSION_2_2) and (TagsInfo.Flags and $3F = 0)) or
+     ((TagsInfo.Version = ID3V2_VERSION_2_3) and (TagsInfo.Flags and $1F = 0)) or
+     ((TagsInfo.Version = ID3V2_VERSION_2_4) and (TagsInfo.Flags and $0F = 0))
+    ) and
+    (TagsInfo.Size[0] and $80 = 0) and
+    (TagsInfo.Size[1] and $80 = 0) and
+    (TagsInfo.Size[2] and $80 = 0) and
+    (TagsInfo.Size[3] and $80 = 0);
 end;
 
 function TId3v2Tags.GetArtist: WideString;
@@ -1156,51 +1167,131 @@ begin
 end;
 
 const
-  ID3V2_VERSION_2_2 = 2;
-  ID3V2_VERSION_2_3 = 3;
-  ID3V2_VERSION_2_4 = 4;
+  ID3V2_FLAG_UNSYNC               = $80;
+  ID3V2_FLAG_EXT_HEADER_PRESENT   = $40;
+  ID3V2_FLAG_EXPERIMENTAL         = $20;
+  ID3V2_FLAG_FOOTER_PRESENT       = $10;
 
-  ID3V2_FRAME_ANSI_ID    = #0;
-  ID3V2_FRAME_UNICODE_ID = #1;
+  ID3V2_EXT_FLAG_TAG_IS_UPDATE    = $40;
+  ID3V2_EXT_FLAG_CRC_PRESENT      = $20;
+  ID3V2_EXT_FLAG_TAG_RESTRICTIONS = $10;
+
+  // frames count and tag size restrictions
+  ID3V2_RESTRICTION_SIZE_128_1MB  = $00; // 00xxxxxx - max 128 frames and 1 MB total tag size
+  ID3V2_RESTRICTION_SIZE_64_128KB = $40; // 01xxxxxx - max 64 frames and 128 KB total tag size
+  ID3V2_RESTRICTION_SIZE_32_40KB  = $80; // 10xxxxxx - max 32 frames and 40 KB total tag size
+  ID3V2_RESTRICTION_SIZE_32_4KB   = $C0; // 11xxxxxx - max 32 frames and 4 KB total tag size
+  ID3V2_RESTRICTION_SIZE_MASK     = $C0;
+
+  // strings encoding restrictions
+  ID3V2_RESTRICTION_STRENC_MULTI  = $00; // xx0xxxxx - no restrictions
+  ID3V2_RESTRICTION_STRENC_SINGLE = $20; // xx1xxxxx - strings are only encoded with
+                                         //            ISO-8859-1 [ISO-8859-1] or UTF-8 [UTF-8]
+  ID3V2_RESTRICTION_STRENC_MASK   = $20;
+
+  // strings size restrictions
+  ID3V2_RESTRICTION_STR_UNLIMITED = $00; // xxx00xxx - no restrictions
+  ID3V2_RESTRICTION_STR_1024      = $08; // xxx01xxx - no string is longer than
+                                         //            1024 characters
+  ID3V2_RESTRICTION_STR_128       = $10; // xxx10xxx - no string is longer than
+                                         //            128 characters
+  ID3V2_RESTRICTION_STR_30        = $18; // xxx11xxx - no string is longer than
+                                         //            30 characters
+  ID3V2_RESTRICTION_STR_MASK      = $18;
+
+  // imags encoding restrictions
+  ID3V2_RESTRICTION_IMGENC_MULTI  = $00; // xxxxx0xx - no restrictions
+  ID3V2_RESTRICTION_IMGENC_SINGLE = $04; // xxxxx1xx - images are encoded only with
+                                         //            PNG [PNG] or JPEG [JFIF]
+  ID3V2_RESTRICTION_IMGENC_MASK   = $04;
+
+  // images size restrictions
+  ID3V2_RESTRICTION_IMG_UNLIMITED = $00; // xxxxxx00 - no restrictions
+  ID3V2_RESTRICTION_IMG_256x256   = $01; // xxxxxx01 - all images are
+                                         //            256x256 pixels or smaller
+  ID3V2_RESTRICTION_IMG_64x64     = $02; // xxxxxx10 - all images are
+                                         //            64x64 pixels or smaller
+  ID3V2_RESTRICTION_IMG_64x64PREC = $03; // xxxxxx11 - all images are
+                                         //            exactly 64x64 pixels,
+                                         //            unless required otherwise
+  ID3V2_RESTRICTION_IMG_MASK      = $03;
+
+  ID3V2_FRAME_ANSI_ID    = $00;
+  ID3V2_FRAME_UNICODE_ID = $01;
+
+  ID3V2_FRAME_FLAG_DISCARD_WHEN_TAG_ALTERED  = $8000;
+  ID3V2_FRAME_FLAG_DISCARD_WHEN_FILE_ALTERED = $4000;
+  ID3V2_FRAME_FLAG_READ_ONLY                 = $2000;
+  ID3V2_FRAME_FLAG_COMPRESSED                = $0080;
+  ID3V2_FRAME_FLAG_ENCRYPTED                 = $0040;
+  ID3V2_FRAME_FLAG_GROUPED                   = $0020;
 
 type
-  TId3v2FrameHeaderOld = record          // frame header for v2.2.x
-    ID: packed array [1 .. 3] of Char;   // frame ID
-    Size: packed array [1 .. 3] of Byte; // frame size excluding size of TId3v2FrameHeaderOld structure
+  TId3v2ExtHeader = packed record
+    Size: packed array [0 .. 3] of Byte; // size of header
+    ExtFlagsSize: Byte;                  // in bytes; must be $01
+    ExtFlags: Byte;                      // extended flags
   end;
+  PId3v2ExtHeader = ^TId3v2ExtHeader;
+
+  TId3v2FrameHeaderOld = packed record   // frame header for v2.2.x
+    ID: packed array [1 .. 3] of Char;   // frame ID
+    Size: packed array [0 .. 2] of Byte; // frame size excluding size of TId3v2FrameHeaderOld structure
+  end;
+  PId3v2FrameHeaderOld = ^TId3v2FrameHeaderOld;
 
   TId3v2FrameHeaderNew = packed record   // frame header for v2.3.x & v2.4.x
     ID: packed array [1 .. 4] of Char;   // frame ID
-    Size: packed array [1 .. 4] of Byte; // frame size excluding size of TId3v2FrameHeaderNew structure
+    Size: packed array [0 .. 3] of Byte; // frame size excluding size of TId3v2FrameHeaderNew structure
     Flags: Word;                         // frame flags
   end;
+  PId3v2FrameHeaderNew = ^TId3v2FrameHeaderNew;
+
+  TId3v2TagsFooter = packed record
+    ID: packed array [1 .. 3] of Char;   // must be "3DI"
+    Version: Byte;                       // doubled Version in header (must be $04)
+    Revision: Byte;                      // doubled Revision in header (must be 0???)
+    Flags: Byte;                         // doubled Flags in header
+    Size: packed array [0 .. 3] of Byte; // doubled Size in header
+  end;
+  PId3v2TagsFooter = ^TId3v2TagsFooter;
 
 function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
 
   function get_tags_size(const tags_info: TId3v2TagsInfo): Cardinal;
   begin
-    Result :=
-      tags_info.Size[1] * $200000 + // 10 0000 0000 0000 0000 0000
-      tags_info.Size[2] * $4000 +   // 100 0000 0000 0000
-      tags_info.Size[3] * $80 +     // 1000 0000
-      tags_info.Size[4] +
-      SizeOf(tags_info);
-    if tags_info.Flags and $10 = $10 then
-      Inc(Result, SizeOf(tags_info));
+    Result := SizeOf(tags_info) +
+      ((Integer(tags_info.Size[0]) shl 21) or
+       (Integer(tags_info.Size[1]) shl 14) or
+       (Integer(tags_info.Size[2]) shl 7) or
+       (Integer(tags_info.Size[3]))
+      );
+    if tags_info.Flags and ID3V2_FLAG_FOOTER_PRESENT = ID3V2_FLAG_FOOTER_PRESENT then
+      Inc(Result, SizeOf(TId3v2TagsFooter));
   end;
 
-  function set_tag_item(const id, data: String; const tags_info: TId3v2TagsInfo): Boolean;
+  function set_tag_item(const id: String; const data: array of Byte;
+    const tags_info: TId3v2TagsInfo): Boolean;
   var
     i: Integer;
   begin
     for i := Low(_id3v2_tags[False]) to High(_id3v2_tags[False]) do begin
       Result := (_id3v2_tags[FNew, i] = id);
       if Result then begin
-        case data[1] of
-          ID3V2_FRAME_ANSI_ID   : SetValue(id, Copy(data, 2, Length(Data) - 1));
-          ID3V2_FRAME_UNICODE_ID: { TODO };
+        case i of
+          _id3v2_Year_Id   : begin
+            { TODO }
+          end;
+          _id3v2_Comment_Id: begin
+            { TODO }
+          end;
           else
-            Result := False;
+            case data[0] of
+              ID3V2_FRAME_ANSI_ID   : SetValue(id, String(PChar(@(data[2]))));
+              ID3V2_FRAME_UNICODE_ID: SetValue(id, WideString(PWideChar(@(data[2]))));
+              else
+                Result := False;
+            end;
         end;
 
         Break;
@@ -1213,7 +1304,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
     start_file_pos, end_tag_pos, file_size, file_pos, bytes_read: Cardinal;
     frame: TId3v2FrameHeaderOld;
     data_size: Integer;
-    data: String;
+    data: array of Byte;
   begin
     start_file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
     Result := (start_file_pos <> $FFFFFFFF);
@@ -1236,15 +1327,15 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
               Break;
 
             data_size :=
-              Integer(frame.Size[1]) shl 16 +
-              Integer(frame.Size[2]) shl 8 +
-              Integer(frame.Size[3]);
+              Integer(frame.Size[0]) shl 16 +
+              Integer(frame.Size[1]) shl 8 +
+              Integer(frame.Size[2]);
             if data_size > 0 then begin
               SetLength(data, data_size);
-              FillChar(data[1], Length(data), 0);
+              FillChar(data[0], Length(data), 0);
 
               Result :=
-                ReadFile(InFile, data[1], Length(data), bytes_read, nil) and
+                ReadFile(InFile, data[0], Length(data), bytes_read, nil) and
                 (bytes_read = Cardinal(Length(data)));
               Inc(file_pos, bytes_read);
               Result := (file_pos <= end_tag_pos) and Result;
@@ -1267,7 +1358,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
     start_file_pos, end_tag_pos, file_size, file_pos, bytes_read: Cardinal;
     frame: TId3v2FrameHeaderNew;
     data_size: Integer;
-    data: String;
+    data: array of Byte;
   begin
     start_file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
     Result := (start_file_pos <> $FFFFFFFF);
@@ -1290,16 +1381,16 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
               Break;
 
             data_size :=
-              Integer(frame.Size[1]) shl 24 +
-              Integer(frame.Size[2]) shl 16 +
-              Integer(frame.Size[3]) shl 8 +
-              Integer(frame.Size[4]);
+              Integer(frame.Size[0]) shl 24 +
+              Integer(frame.Size[1]) shl 16 +
+              Integer(frame.Size[2]) shl 8 +
+              Integer(frame.Size[3]);
             if data_size > 0 then begin
               SetLength(data, data_size);
-              FillChar(data[1], Length(data), 0);
+              FillChar(data[0], Length(data), 0);
 
               Result :=
-                ReadFile(InFile, data[1], Length(data), bytes_read, nil) and
+                ReadFile(InFile, data[0], Length(data), bytes_read, nil) and
                 (bytes_read = Cardinal(Length(data)));
               Inc(file_pos, bytes_read);
               Result := (file_pos <= end_tag_pos) and Result;
@@ -1307,7 +1398,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
               if not Result then
                 Break;
 
-              if frame.Flags and $8000 = 0 then
+              {if frame.Flags and ID3V2_FRAME_FLAG_DISCARD_WHEN_TAG_ALTERED = 0 then}
                 set_tag_item(frame.ID, data, tags_info);
             end;
           until file_pos >= end_tag_pos;
@@ -1321,12 +1412,10 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
 var
   tags_info: TId3v2TagsInfo;
 begin
-  inherited ReadFromFile(InFile);
-
   Result :=
+    inherited ReadFromFile(InFile) and
     (InFile <> INVALID_HANDLE_VALUE) and
-    ReadTagsInfo(InFile, tags_info) and
-    (tags_info.Version in [ID3V2_VERSION_2_2 .. ID3V2_VERSION_2_4]);
+    ReadTagsInfo(InFile, tags_info);
   if Result then begin
     FNew := (tags_info.Version <> ID3V2_VERSION_2_2);
 
@@ -1334,6 +1423,117 @@ begin
       read_frames_new(tags_info)
     else
       read_frames_old(tags_info);
+  end;
+end;
+
+function TId3v2Tags.WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean;
+const
+  a_str_terminator: Byte = $00;
+  w_str_terminator: Word = $0000;
+  encoding_flags: array [Boolean] of Byte = (
+    ID3V2_FRAME_ANSI_ID, ID3V2_FRAME_UNICODE_ID);
+var
+  ms: TMemoryStream;
+  i: Integer;
+  a_buf: String;
+  w_buf: WideString;
+  size, data_size, tags_size: Cardinal;
+  frame: TId3v2FrameHeaderNew;
+  tags_info: TId3v2TagsInfo;
+  h_mapping: THandle;
+  p_mapping: Pointer;
+begin
+  Result := inherited WriteToFile(OutFile);
+  if Result then begin
+    ms := TMemoryStream.Create();
+    try
+      for i := Low(_id3v2_tags[True]) to High(_id3v2_tags[True]) do
+        case i of
+          _id3v2_Year_Id   : begin
+            { TODO }
+          end;
+          _id3v2_Comment_Id: begin
+            { TODO }
+          end;
+          else begin
+            data_size := SizeOf(encoding_flags[Unicode]);
+            if Unicode then begin
+              w_buf := AsWideString[_id3v2_tags[True, i]];
+              size := Length(w_buf) * SizeOf(w_buf[1]);
+              Inc(data_size, SizeOf(w_str_terminator));
+            end
+            else begin
+              a_buf := AsString[_id3v2_tags[True, i]];
+              size := Length(a_buf) * SizeOf(a_buf[1]);
+              Inc(data_size, SizeOf(a_str_terminator));
+            end;
+            Inc(data_size, size);
+
+            PCardinal(@(frame.ID))^ := PCardinal(@(_id3v2_tags[True, i][1]))^;
+            frame.Size[0] := (data_size and $FF000000) shr 24;
+            frame.Size[1] := (data_size and $00FF0000) shr 16;
+            frame.Size[2] := (data_size and $0000FF00) shr  8;
+            frame.Size[3] := (data_size and $000000FF);
+            frame.Flags := 0;
+
+            ms.Write(frame, SizeOf(frame));
+            ms.Write(encoding_flags[Unicode], SizeOf(encoding_flags[Unicode]));
+            if Unicode then begin
+              ms.Write(w_buf[1], size);
+              ms.Write(w_str_terminator, SizeOf(w_str_terminator));
+            end
+            else begin
+              ms.Write(a_buf[1], size);
+              ms.Write(a_str_terminator, SizeOf(a_str_terminator));
+            end;
+          end;
+        end;
+
+      tags_info.ID := ID3V2_ID;
+      tags_info.Version := ID3V2_VERSION_2_3;
+      tags_info.Revision := 0;
+      tags_info.Flags := ID3V2_FLAG_UNSYNC;
+      data_size := ms.Size;
+      tags_info.Size[0] := (data_size shr 21) and $7F;
+      tags_info.Size[1] := (data_size shr 14) and $7F;
+      tags_info.Size[2] := (data_size shr  7) and $7F;
+      tags_info.Size[3] := data_size and $7F;
+
+      tags_size := SizeOf(tags_info) + data_size;
+      size := SetFilePointer(OutFile, tags_size, nil, FILE_END);
+      Result := (size <> $FFFFFFFF) and
+        SetEndOfFile(OutFile);
+      if Result then begin
+        h_mapping := CreateFileMapping(
+          OutFile,
+          nil,
+          PAGE_READWRITE,
+          0, size,
+          nil);
+        Result := (h_mapping <> 0);
+        if Result then
+          try
+            p_mapping := MapViewOfFile(h_mapping, FILE_MAP_WRITE, 0, 0, 0);
+            Result := (p_mapping <> nil);
+            if Result then
+              try
+                Move(p_mapping^, PChar(p_mapping)[tags_size], size - tags_size);
+                Move(tags_info, p_mapping^, SizeOf(tags_info));
+                Move(ms.Memory^, PChar(p_mapping)[SizeOf(tags_info)], data_size);
+              finally
+                try
+                  FlushViewOfFile(p_mapping, 0);
+                finally
+                  UnmapViewOfFile(p_mapping);
+                end;
+              end;
+          finally
+            CloseHandle(h_mapping);
+          end;
+      end;
+    finally
+      ms.Free();
+    end;
   end;
 end;
 
