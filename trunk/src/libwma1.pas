@@ -16,7 +16,7 @@ unit libwma1;
 interface
 
 uses
-  Windows, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types;
+  Windows, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types, SyncObjs;
 
 type
 
@@ -47,6 +47,42 @@ type
     function Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult;
       stdcall;
     function Clone(out stm: IStream): HResult; stdcall;
+   end;
+
+   TSampleInfo = record
+     Data : PBuffer8;
+     Length : LongWord;
+     Offset : LongWord;
+   end;
+   PSampleInfo = ^TSampleInfo;
+
+   wma_async_reader = record
+     status : TWMTStatus;
+     reader : IWMReader;
+     BlockList : TList;
+     WMReaderCallback : IWMReaderCallback;
+     Event : TEvent;
+     CriticalSection : TCriticalSection;
+     HeaderInfo : IWMHeaderInfo;
+     TimedOut : Boolean;
+     output : LongWord;
+     has_audio : Boolean;
+     channels : Integer;
+     SampleRate :  Integer;
+     BitsPerSample : Integer;
+     duration : QWORD;
+   end;
+   pwma_async_reader = ^wma_async_reader;
+
+   TWMReaderCallback = class(TInterfacedObject, IWMReaderCallback)
+   private
+      FReader : pwma_async_reader;
+   public
+      constructor Create(reader : pwma_async_reader);
+      function OnStatus(Status: TWMTStatus; hr: HRESULT; dwType: TWMTAttrDataType;
+        pValue: PBYTE; pvContext: Pointer): HRESULT; stdcall;
+      function OnSample(dwOutputNum: LongWord; cnsSampleTime, cnsSampleDuration: Int64;
+        dwFlags: LongWord; pSample: INSSBuffer; pvContext: Pointer): HRESULT; stdcall;
    end;
 
 
@@ -104,6 +140,9 @@ type
    procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : LongWord);
    procedure lwma_reader_free(var sync_reader : wma_sync_reader);
 
+   procedure lwma_async_reader_init(var async_reader : wma_async_reader; const URL : WideString);
+   procedure lwma_async_reader_get_data(var async_reader : wma_async_reader; var buffer : Pointer; var bufsize : LongWord);
+
   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
   procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; vbr : Boolean; DesiredBitrate : LongWord);
   procedure lwma_writer_set_author(var writer : wma_writer; const value : WideString);
@@ -140,6 +179,135 @@ implementation
      Result := True;
    end;
 
+   procedure lwma_async_reader_init(var async_reader : wma_async_reader; const URL : WideString);
+   var
+     WMReaderCallback : TWMReaderCallback;
+     OutputCount : LongWord;
+     i, size : LongWord;
+     MediaProps : IWMOutputMediaProps;
+     MediaType : PWMMEDIATYPE;
+     format : PWAVEFORMATEX;
+     datatype : WMT_ATTR_DATATYPE;
+     len, astream : Word;
+     res : HResult;
+   begin
+     CoInitialize(nil);
+     FillChar(async_reader, SizeOf(async_reader), 0);
+     if WMCreateReader(nil, 1, async_reader.reader) <> S_OK then
+     Exit;
+     async_reader.Event := TEvent.Create(nil, False, False, '');
+     async_reader.CriticalSection := TCriticalSection.Create;
+     WMReaderCallback := TWMReaderCallback.Create(@async_reader);
+     res := async_reader.reader.Open(PWideChar(URL), WMReaderCallback as IWMReaderCallback, nil);
+     if res <> S_OK then
+     begin
+       raise EAuException.Create('Result ' + IntToStr(res));
+       async_reader.reader := nil;
+       async_reader.WMReaderCallback := nil;
+       async_reader.Event.Free;
+       async_reader.CriticalSection.Free;
+       Exit;
+     end;
+     async_reader.Event.WaitFor(15000);
+     if async_reader.status <> WMT_OPENED then
+     begin
+       async_reader.reader := nil;
+       async_reader.WMReaderCallback := nil;
+       async_reader.Event.Free;
+       async_reader.CriticalSection.Free;
+       Exit;
+     end;
+     if async_reader.reader.GetOutputCount(OutputCount) <> S_OK then
+     begin
+       async_reader.reader := nil;
+       async_reader.WMReaderCallback := nil;
+       async_reader.Event.Free;
+       async_reader.CriticalSection.Free;
+       Exit;
+     end;
+     for i := 0 to OutputCount - 1 do
+     begin
+       async_reader.reader.GetOutputProps(i, MediaProps);
+       MediaProps.GetMediaType(nil, size);
+       GetMem(MediaType, size);
+       MediaProps.GetMediaType(MediaType, size);
+       if GUIDSEqual(MediaType.majortype, WMMEDIATYPE_Audio) and GUIDSEqual(MediaType.formattype, WMFORMAT_WaveFormatEx) then
+       begin
+         async_reader.has_audio := True;
+	 async_reader.output := i;
+	 format := PWAVEFORMATEX(MediaType.pbFormat);
+	 async_reader.channels := format.nChannels;
+	 async_reader.SampleRate := format.nSamplesPerSec;
+	 async_reader.BitsPerSample := format.wBitsPerSample;
+       end;
+       FreeMem(MediaType);
+       MediaProps := nil;
+     end;
+     if async_reader.has_audio then
+     begin
+       len := 8;
+       astream := 0;
+       async_reader.reader.QueryInterface(IID_IWMHeaderInfo, async_reader.HeaderInfo);
+       if async_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMDuration, datatype, PByte(@(async_reader.duration)), len) <> S_OK then
+         async_reader.duration := 0;
+       async_reader.reader.Start(WM_START_CURRENTPOSITION, 0, 1.0, nil);
+     end;
+   end;
+
+   function has_data_block(var async_reader : wma_async_reader) : Boolean;
+   begin
+     Result := False;
+     if async_reader.BlockList.Count = 0 then
+     begin
+       if (async_reader.status = WMT_CLOSED) or async_reader.TimedOut then
+         Exit;
+       async_reader.Event.WaitFor(15000);
+       if async_reader.BlockList.Count = 0 then
+       begin
+         async_reader.TimedOut := True;
+         Exit;
+       end;
+     end;
+     Result := True;
+   end;
+
+   procedure lwma_async_reader_get_data(var async_reader : wma_async_reader; var buffer : Pointer; var bufsize : LongWord);
+   var
+     SI : PSampleInfo;
+   begin
+     buffer := nil;
+     while buffer = nil do
+     begin
+       if not has_data_block(async_reader) then
+       begin
+         bufsize := 0;
+         Exit;
+       end;
+       async_reader.CriticalSection.Enter;
+       SI := PSampleInfo(async_reader.BlockList.Last);
+       async_reader.CriticalSection.Leave;
+       if SI.Offset = SI.Length then
+       begin
+         async_reader.CriticalSection.Enter;
+         async_reader.BlockList.Delete(async_reader.BlockList.Count -1);
+         async_reader.CriticalSection.Leave;
+       end else
+       begin
+         buffer := @(SI.Data[SI.Offset]);
+         if bufsize > SI.Length - SI.Offset then
+         begin
+           bufsize := SI.Length - SI.Offset;
+           SI.Offset := SI.Length;
+         end else
+           Inc(SI.Offset, bufsize)
+       end;
+     end;
+   end;
+
+   procedure lwma_async_reader_free(var async_reader : wma_async_reader);
+   begin
+   end;
+
    procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream);
    var
      OutputCount : LongWord;
@@ -167,7 +335,7 @@ implementation
          sync_reader.AudioStream := nil;
          Exit;
        end;
-     end;  
+     end;
      if sync_reader.reader.GetOutputCount(OutputCount) <> S_OK then
      begin
        sync_reader.reader := nil;
@@ -841,6 +1009,36 @@ implementation
      Result := -1;
    end;
 
+   constructor TWMReaderCallback.Create;
+   begin
+     FReader := reader;
+     inherited Create;
+   end;
+
+   function TWMReaderCallback.OnStatus;
+   begin
+     FReader.status := Status;
+     FReader.Event.SetEvent;
+     Result := S_OK;
+   end;
+
+   function TWMReaderCallback.OnSample;
+   var
+     Buffer : PByte;
+     Length : DWord;
+     SI : PSampleInfo;
+   begin
+     pSample.GetBufferAndLength(Buffer, Length);
+     GetMem(SI, SizeOf(TSampleInfo));
+     GetMem(SI.Data, Length);
+     Move(Buffer^, SI.Data^, Length);
+     SI.Length := Length;
+     SI.Offset := 0;
+     FReader.CriticalSection.Enter;
+     FReader.BlockList.Add(Pointer(SI));
+     FReader.CriticalSection.Leave;
+     Result := S_OK;
+   end;
 
 
 end.
