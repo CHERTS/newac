@@ -15,6 +15,8 @@ uses
 
 const
 
+  IID_IWMReader                 : TGUID = '{96406bd6-2b2b-11d3-b36b-00c04f6108ff}';
+  {$EXTERNALSYM IID_IWMReader}
   IID_IWMSyncReader             : TGUID = '{9397f121-7705-4dc9-b049-98b698188414}';
   {$EXTERNALSYM IID_IWMSyncReader}
   IID_IWMOutputMediaProps       : TGUID = '{96406bd7-2b2b-11d3-b36b-00c04f6108ff}';
@@ -41,6 +43,9 @@ const
   {$EXTERNALSYM IID_IWMCodecInfo2}
   IID_IWMCodecInfo3             : TGUID = '{7e51f487-4d93-4f98-8ab4-27d0565adc51}';
   {$EXTERNALSYM IID_IWMCodecInfo3}
+  IID_IWMReaderCallback         : TGUID = '{96406bd8-2b2b-11d3-b36b-00c04f6108ff}';
+  {$EXTERNALSYM IID_IWMReaderCallback}
+
 
   WMMEDIASUBTYPE_WMAudioV9        : TGUID = '{00000162-0000-0010-8000-00AA00389B71}';
   {$EXTERNALSYM WMMEDIASUBTYPE_WMAudioV9}
@@ -70,6 +75,9 @@ const
   {$EXTERNALSYM WMMEDIATYPE_Audio}
   WMFORMAT_WaveFormatEx    : TGUID = '{05589f81-c356-11ce-bf01-00aa0055595a}';
   {$EXTERNALSYM WMFORMAT_WaveFormatEx}
+
+  WM_START_CURRENTPOSITION = Int64(-1);
+  {$EXTERNALSYM WM_START_CURRENTPOSITION}
 
   g_dwWMSpecialAttributes       = LongWord(20);
   {$EXTERNALSYM g_dwWMSpecialAttributes}
@@ -275,6 +283,57 @@ const
 
 
 type
+  WMT_STATUS = (
+    WMT_ERROR,
+    WMT_OPENED,
+    WMT_BUFFERING_START,
+    WMT_BUFFERING_STOP,
+    WMT_END_OF_FILE,
+{$IFDEF COMPILER6_UP}
+    WMT_EOF = 4, 
+{$ENDIF}
+    WMT_END_OF_SEGMENT,
+    WMT_END_OF_STREAMING,
+    WMT_LOCATING,
+    WMT_CONNECTING,
+    WMT_NO_RIGHTS,
+    WMT_MISSING_CODEC,
+    WMT_STARTED,
+    WMT_STOPPED,
+    WMT_CLOSED,
+    WMT_STRIDING,
+    WMT_TIMER,
+    WMT_INDEX_PROGRESS,
+    WMT_SAVEAS_START,
+    WMT_SAVEAS_STOP,
+    WMT_NEW_SOURCEFLAGS,
+    WMT_NEW_METADATA,
+    WMT_BACKUPRESTORE_BEGIN,
+    WMT_SOURCE_SWITCH,
+    WMT_ACQUIRE_LICENSE,
+    WMT_INDIVIDUALIZE,
+    WMT_NEEDS_INDIVIDUALIZATION,
+    WMT_NO_RIGHTS_EX,
+    WMT_BACKUPRESTORE_END,
+    WMT_BACKUPRESTORE_CONNECTING,
+    WMT_BACKUPRESTORE_DISCONNECTING,
+    WMT_ERROR_WITHURL,
+    WMT_RESTRICTED_LICENSE,
+    WMT_CLIENT_CONNECT,
+    WMT_CLIENT_DISCONNECT,
+    WMT_NATIVE_OUTPUT_PROPS_CHANGED,
+    WMT_RECONNECT_START,
+    WMT_RECONNECT_END,
+    WMT_CLIENT_CONNECT_EX,
+    WMT_CLIENT_DISCONNECT_EX,
+    WMT_SET_FEC_SPAN,
+    WMT_PREROLL_READY,
+    WMT_PREROLL_COMPLETE,
+    WMT_CLIENT_PROPERTIES,
+    WMT_LICENSEURL_SIGNATURE_STATE
+  );
+  {$EXTERNALSYM WMT_STATUS}
+  TWMTStatus = WMT_STATUS;
 
  WAVEFORMATEXTENSIBLE = record
    Format : TWAVEFORMATEX;
@@ -320,6 +379,10 @@ type
     cbFormat             : ULONG;
     pbFormat             : PBYTE; // size_is(cbFormat)
   end;
+
+
+
+
   {$EXTERNALSYM _WMMediaType}
   WM_MEDIA_TYPE = _WMMediaType;
   {$EXTERNALSYM WM_MEDIA_TYPE}
@@ -629,7 +692,7 @@ type
     ['{7E51F487-4D93-4F98-8AB4-27D0565ADC51}']
     (*** IWMCodecInfo3 methods ***)
     function GetCodecFormatProp(const guidType: TGUID; dwCodecIndex: LongWord;
-                                dwFormatIndex: LongWord; pszName: PWideChar; 
+                                dwFormatIndex: LongWord; pszName: PWideChar;
                                 out pType: TWMTAttrDataType; {out} pValue: PByte;
                                 var pdwSize: LongWord): HResult; stdcall;
     function GetCodecProp(const guidType: TGUID; dwCodecIndex: LongWord; pszName: PWideChar;
@@ -854,6 +917,84 @@ type
     function GetSyncTolerance(out pmsWindow: LongWord): HResult; stdcall;
   end;
 
+  IWMStatusCallback = interface(IUnknown)
+  ['{6d7cdc70-9888-11d3-8edc-00c04f6109cf}']
+  (*** IWMStatusCallback methods ***)
+    // The contents of pValue depends on the Status.
+    function OnStatus(Status: TWMTStatus; hr: HRESULT; dwType: TWMTAttrDataType;
+      pValue: PBYTE; pvContext: Pointer): HRESULT; stdcall;
+  end;
+
+  {$HPPEMIT 'typedef System::DelphiInterface<IWMReaderCallback> _di_IWMReaderCallback;'}
+  {$EXTERNALSYM IWMReaderCallback}
+  IWMReaderCallback = interface(IWMStatusCallback)
+  ['{96406BD8-2B2B-11d3-B36B-00C04F6108FF}']
+  (*** IWMReaderCallback methods ***)
+    // cnsSampleDuration will be 0 for most media types.
+    function OnSample(dwOutputNum: LongWord; cnsSampleTime, cnsSampleDuration: Int64;
+      dwFlags: LongWord; pSample: INSSBuffer; pvContext: Pointer): HRESULT; stdcall;
+  end;
+
+    {$EXTERNALSYM IWMReader}
+  IWMReader = interface(IUnknown)
+  ['{96406BD6-2B2B-11d3-B36B-00C04F6108FF}']
+  (*** IWMReader methods ***)
+    //
+    // This interface QI's for IWMHeaderInfo, IWMProfile, IWMReaderAdvanced,
+    // IWMReaderAdvanced2, and IWMReaderAdvanced3.
+    //
+
+    //
+    // Open is an asynch call; it returns almost immediately (if the URL
+    // is valid), and the user should wait for appropriate OnStatus calls to
+    // be sent to the callback.
+    //
+    function Open(pwszURL: PWideChar; pCallback: IWMReaderCallback;
+      pvContext: Pointer): HRESULT; stdcall;
+
+    function Close: HRESULT; stdcall;
+
+    //
+    // The user can enumerate through the various outputs, and get the
+    // output format for that data.
+    //
+    // Manipulating the IWMOutputMediaProps has no effect on the output, unless
+    // the user also calls SetOutputProps.
+    //
+    function GetOutputCount(out pcOutputs: LongWord): HRESULT; stdcall;
+
+    function GetOutputProps(dwOutputNum: LongWord; out ppOutput: IWMOutputMediaProps): HRESULT; stdcall;
+
+    function SetOutputProps(dwOutputNum: LongWord; pOutput: IWMOutputMediaProps): HRESULT; stdcall;
+
+    //
+    // Used for determining all possible format types supported by this
+    // output on the reader.
+    //
+    function GetOutputFormatCount(dwOutputNumber: LongWord; out pcFormats: LongWord): HRESULT; stdcall;
+
+    function GetOutputFormat(dwOutputNumber, dwFormatNumber: LongWord;
+      out ppProps: IWMOutputMediaProps): HRESULT; stdcall;
+
+    //
+    // If duration is 0, play to the end of the file.
+    // If msStart is set to WM_START_CURRENTPOSITION then don't perform a seek
+    // operation.  A good use for this is when you want to change the rate but
+    // not the current file position.
+    //
+    // Note that any call to start while Paused will be treated as a seek.
+    // Even calls to Start( WM_START_CURRENTPOSITION, ... ).  If your intention
+    // is to seek (which will incur the buffering penalty from network files)
+    // then you can go ahead and call Start.  However, if your intention was
+    // to continue playing from where the user paused, you should call Resume
+    // instead.
+    //
+    function Start(cnsStart, cnsDuration: Int64; fRate: Single; pvContext: Pointer): HRESULT; stdcall;
+    function Stop: HRESULT; stdcall;
+    function Pause: HRESULT; stdcall;
+    function Resume: HRESULT; stdcall;
+  end;
+
   function WMCreateSyncReader(pUnkCert: IUnknown; dwRights: LongWord; out ppSyncReader: IWMSyncReader): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateSyncReader}
   function WMCreateWriter(pUnkCert: IUnknown; out ppWriter: IWMWriter): HRESULT; stdcall;
@@ -862,7 +1003,8 @@ type
   {$EXTERNALSYM WMCreateWriterFileSink}
   function WMCreateProfileManager(out ppProfileManager: IWMProfileManager): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateProfileManager}
-
+  function WMCreateReader(pUnkCert: IUnknown; dwRights: LongWord; out ppReader: IWMReader): HRESULT; stdcall;
+  {$EXTERNALSYM WMCreateReader}
 
 
 implementation
@@ -874,6 +1016,6 @@ const
   function WMCreateWriter; external WMVCORE name 'WMCreateWriter';
   function WMCreateWriterFileSink; external WMVCORE name 'WMCreateWriterFileSink';
   function WMCreateProfileManager; external WMVCORE name 'WMCreateProfileManager';
+  function WMCreateReader; external WMVCORE name 'WMCreateReader';
 
 end.
- 
