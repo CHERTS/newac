@@ -40,6 +40,8 @@ type
 
   TOutputProgressEvent = procedure(Sender : TComponent) of object;
 
+  TGenericEvent = procedure(Sender : TComponent) of object;
+
 {$IFDEF LINUX}
 // File access mask constants
 const
@@ -639,7 +641,7 @@ type
 
   TACSBufferMode = (bmBlock, bmReport);
 
-  TEventType = (etOnProgress, etOnDone);
+  TEventType = (etOnProgress, etOnDone, etGeneric);
 
   TEventRecord = record
     _type : TEventType;
@@ -647,6 +649,7 @@ type
     case i : Integer of
       1 : (DoneEvent : TOutputDoneEvent; Thread : TAuThread;);
       2 : (ProgressEvent : TOutputProgressEvent;);
+      3 : (GenericEvent : TGenericEvent;);
    end;
 
    PEventRecord = ^TEventRecord;
@@ -670,6 +673,7 @@ type
     destructor Destroy; override;
     procedure PostOnProgress(Sender : TComponent; Handler :TOutputProgressEvent);
     procedure PostOnDone(Sender : TComponent; Thread : TAuThread; Handler :TOutputProgressEvent);
+    procedure PostGenericEvent(Sender : TComponent; Handler : TGenericEvent);
     procedure Execute; override;
     procedure ClearEvents(Sender : TComponent);
     procedure BlockEvents(Sender : TComponent);
@@ -784,7 +788,10 @@ end;
         CurrentEvent.DoneEvent(CurrentEvent.Sender)
     else
     if CurrentEvent._type = etOnProgress then
-        CurrentEvent.ProgressEvent(CurrentEvent.Sender);
+        CurrentEvent.ProgressEvent(CurrentEvent.Sender)
+    else
+    if CurrentEvent._type = etGeneric then
+        CurrentEvent.GenericEvent(CurrentEvent.Sender);
   end;
 
   procedure TEventHandler.Execute;
@@ -826,7 +833,18 @@ end;
     New(e);
     e._type := etOnProgress;
     e.Sender := Sender;
-    e.DoneEvent := Handler;
+    e.ProgressEvent := Handler;
+    AddEvent(e);
+  end;
+
+  procedure TEventHandler.PostGenericEvent;
+  var
+    e : PEventRecord;
+  begin
+    New(e);
+    e._type := etGeneric;
+    e.Sender := Sender;
+    e.GenericEvent := Handler;
     AddEvent(e);
   end;
 

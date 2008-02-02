@@ -24,6 +24,8 @@ const
 
 type
 
+  TUnderrunEvent = procedure(Sender : TComponent) of object;
+
   (* Class: TDXAudioOut
       Performs audio output using the DirectX API.
       Descends from <TAuOutput>. *)
@@ -42,6 +44,7 @@ type
     FBufferSize : Integer;
     FillByte : Byte;
     FUnderruns, _TmpUnderruns : LongWord;
+    FOnUnderrun : TUnderrunEvent;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
   protected
@@ -75,6 +78,12 @@ type
          The default value is 0 which corresponds to the default audio output device in your system.
          Valid numbers range from 0 to <DeviceCount> - 1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    (* Property: OnUnderrun
+         OnUnderrun event is raised when the component has run out of data. This can happen if the component recieves data at slow rate
+         from a slow CD-ROM unit or a network link. Usually TDXAudioOut successfully recovers from underruns by itself,
+         but this causes pauses in playback so if you start to recieve OnUnderrun events, you may try to increase the speed rate of data passing to the component,
+         if you can. Yo can check the <Underruns> property for the total number of underruns. *)
+    property OnUnderrun : TUnderrunEvent read FOnUnderrun write FOnUnderrun;
   end;
 
   (* Class: TDXAudioIn
@@ -267,8 +276,14 @@ begin
     DSW_FillEmptySpace(DSW, FillByte);
   if _TmpUnderruns <> DSW.dsw_OutputUnderflows then
   begin
-    FUnderruns := DSW.dsw_OutputUnderflows - _TmpUnderruns;
+    FUnderruns := DSW.dsw_OutputUnderflows;
     _TmpUnderruns := DSW.dsw_OutputUnderflows;
+    DSW_StopOutput(DSW);
+
+    if Assigned(FOnUnderrun) then
+      EventHandler.PostGenericEvent(Self, FOnUnderrun);
+    FOnUnderrun(Self);
+    StartInput := True;
   end;
 end;
 
@@ -500,4 +515,6 @@ procedure TDXAudioIn._Resume;
 begin
   DSW_StartInput(DSW);
 end;
+
+
 end.
