@@ -59,17 +59,25 @@ type
    wma_async_reader = record
      status : TWMTStatus;
      reader : IWMReader;
+     MaxWaitMilliseconds : LongWord;
+     BufferingTime : LongWord;
+     StretchFactor : Single;
+     EnableTCP : Boolean;
+     EnableHTTP : Boolean;
+     EnableUDP : Boolean;
      BlockList : TList;
      WMReaderCallback : IWMReaderCallback;
      Event : TEvent;
      CriticalSection : TCriticalSection;
      HeaderInfo : IWMHeaderInfo;
      TimedOut : Boolean;
+     Paused : Boolean;
      output : LongWord;
      has_audio : Boolean;
      channels : Integer;
      SampleRate :  Integer;
      BitsPerSample : Integer;
+     Bitrate : LongWord;
      duration : QWORD;
    end;
    pwma_async_reader = ^wma_async_reader;
@@ -140,8 +148,21 @@ type
    procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : LongWord);
    procedure lwma_reader_free(var sync_reader : wma_sync_reader);
 
-   procedure lwma_async_reader_init(var async_reader : wma_async_reader; const URL : WideString);
+   procedure lwma_async_reader_init(var async_reader : wma_async_reader);
+   procedure lwma_async_reader_open(var async_reader : wma_async_reader; const URL : WideString);
+   procedure lwma_async_reader_pause(var async_reader : wma_async_reader);
+   procedure lwma_async_reader_resume(var async_reader : wma_async_reader);
+   procedure lwma_async_reader_set_proxy(var async_reader : wma_async_reader; const Protocol, Host : WideString; Port : LongWord);
+   procedure lwma_async_reader_reset_stretch(var async_reader : wma_async_reader; new_stretch : Single); 
+   procedure lwma_async_reader_get_author(var async_reader : wma_async_reader; var result : WideString);
+   procedure lwma_async_reader_get_title(var async_reader : wma_async_reader; var result : WideString);
+   procedure lwma_async_reader_get_album(var async_reader : wma_async_reader; var result : WideString);
+   procedure lwma_async_reader_get_genre(var async_reader : wma_async_reader; var result : WideString);
+   procedure lwma_async_reader_get_track(var async_reader : wma_async_reader; var result : WideString);
+   procedure lwma_async_reader_get_year(var async_reader : wma_async_reader; var result : WideString);
+   procedure lwma_async_reader_get_copyright(var async_reader : wma_async_reader; var result : WideString);
    procedure lwma_async_reader_get_data(var async_reader : wma_async_reader; var buffer : Pointer; var bufsize : LongWord);
+   procedure lwma_async_reader_free(var async_reader : wma_async_reader);
 
   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
   procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; vbr : Boolean; DesiredBitrate : LongWord);
@@ -179,7 +200,17 @@ implementation
      Result := True;
    end;
 
-   procedure lwma_async_reader_init(var async_reader : wma_async_reader; const URL : WideString);
+   procedure lwma_async_reader_init(var async_reader : wma_async_reader);
+   begin
+     FillChar(async_reader, SizeOf(async_reader), 0);
+     async_reader.MaxWaitMilliseconds := 10000;
+     async_reader.StretchFactor := 1.0;
+     CoInitialize(nil);
+     if WMCreateReader(nil, 1, async_reader.reader) <> S_OK then
+     Exit;
+   end;
+
+   procedure lwma_async_reader_open(var async_reader : wma_async_reader; const URL : WideString);
    var
      WMReaderCallback : TWMReaderCallback;
      OutputCount : LongWord;
@@ -188,17 +219,25 @@ implementation
      MediaType : PWMMEDIATYPE;
      format : PWAVEFORMATEX;
      datatype : WMT_ATTR_DATATYPE;
-     len, astream : Word;
+     len, astream, bitrate : Word;
      res : HResult;
+     NetworkConfig : IWMReaderNetworkConfig;
    begin
-     CoInitialize(nil);
-     FillChar(async_reader, SizeOf(async_reader), 0);
-     if WMCreateReader(nil, 1, async_reader.reader) <> S_OK then
-     Exit;
+     NetworkConfig := async_reader.reader as IWMReaderNetworkConfig;
+     if async_reader.EnableTCP then
+       NetworkConfig.SetEnableTCP(True);
+     if async_reader.EnableHTTP then
+       NetworkConfig.SetEnableHTTP(True);
+     if async_reader.EnableUDP then
+       NetworkConfig.SetEnableUDP(True);
+     if async_reader.BufferingTime <> 0 then
+       if NetworkConfig.SetBufferingTime(async_reader.BufferingTime) <> S_OK then
+         raise EAuException.Create('Failed seting buffering.');
      async_reader.Event := TEvent.Create(nil, False, False, '');
      async_reader.CriticalSection := TCriticalSection.Create;
      WMReaderCallback := TWMReaderCallback.Create(@async_reader);
-     res := async_reader.reader.Open(PWideChar(URL), WMReaderCallback as IWMReaderCallback, nil);
+     async_reader.WMReaderCallback := WMReaderCallback as IWMReaderCallback;
+     res := async_reader.reader.Open(PWideChar(URL), async_reader.WMReaderCallback, nil);
      if res <> S_OK then
      begin
        raise EAuException.Create('Result ' + IntToStr(res));
@@ -208,13 +247,14 @@ implementation
        async_reader.CriticalSection.Free;
        Exit;
      end;
-     async_reader.Event.WaitFor(15000);
+     async_reader.Event.WaitFor(async_reader.MaxWaitMilliseconds);
      if async_reader.status <> WMT_OPENED then
      begin
        async_reader.reader := nil;
        async_reader.WMReaderCallback := nil;
        async_reader.Event.Free;
        async_reader.CriticalSection.Free;
+       async_reader.TimedOut := True;
        Exit;
      end;
      if async_reader.reader.GetOutputCount(OutputCount) <> S_OK then
@@ -250,18 +290,125 @@ implementation
        async_reader.reader.QueryInterface(IID_IWMHeaderInfo, async_reader.HeaderInfo);
        if async_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMDuration, datatype, PByte(@(async_reader.duration)), len) <> S_OK then
          async_reader.duration := 0;
-       async_reader.reader.Start(WM_START_CURRENTPOSITION, 0, 1.0, nil);
+       async_reader.duration := Round(async_reader.duration/1.e7);
+       len := 4;
+       if async_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMBitrate, datatype, PByte(@async_reader.Bitrate), len) <> S_OK then
+         async_reader.Bitrate :=0;
+       async_reader.BlockList := TList.Create;
+       res := async_reader.reader.Start(0, 0, async_reader.StretchFactor, nil);
+     if res <> S_OK then
+     begin
+       raise EAuException.Create('Result ' + IntToHex(res, 8));
+       async_reader.reader := nil;
+       async_reader.WMReaderCallback := nil;
+       async_reader.Event.Free;
+       async_reader.CriticalSection.Free;
+       Exit;
+     end;
      end;
    end;
+
+   procedure lwma_async_reader_pause(var async_reader : wma_async_reader);
+   begin
+     async_reader.reader.Pause;
+     async_reader.Paused := True;
+   end;
+
+   procedure lwma_async_reader_resume(var async_reader : wma_async_reader);
+   begin
+       async_reader.reader.Resume;
+   end;
+
+   procedure lwma_async_reader_set_proxy(var async_reader : wma_async_reader; const Protocol, Host : WideString; Port : LongWord);
+   var
+    NetworkConfig : IWMReaderNetworkConfig;
+   begin
+     NetworkConfig := async_reader.reader as IWMReaderNetworkConfig;
+     NetworkConfig.SetProxyHostName(PWideChar(Protocol), PWideChar(Host));
+     NetworkConfig.SetProxyPort(PWideChar(Protocol), Port)
+   end;
+
+   procedure lwma_async_reader_reset_stretch(var async_reader : wma_async_reader; new_stretch : Single);
+   begin
+     async_reader.reader.Pause;
+     async_reader.reader.Start(WM_START_CURRENTPOSITION, 0, new_stretch, nil);
+   end;
+
+   procedure get_async_tag(var async_reader : wma_async_reader; name : PWideChar; var result : WideString);
+   var
+     stream : Word;
+     datatype : WMT_ATTR_DATATYPE;
+      len : Word;
+   begin
+     stream := 0;
+     if async_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, nil, len) <> S_OK then
+     begin
+       result := '';
+       Exit;
+     end;
+     SetLength(result, len div 2);
+     if async_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, PByte(@result[1]), len) <> S_OK then
+     begin
+       result := '';
+       Exit;
+     end;
+   end;
+
+
+   procedure lwma_async_reader_get_author(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMAuthor, result);
+   end;
+
+   procedure lwma_async_reader_get_title(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMTitle, result);
+   end;
+
+   procedure lwma_async_reader_get_album(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMAlbumTitle, result);
+   end;
+
+   procedure lwma_async_reader_get_genre(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMGenre, result);
+   end;
+
+   procedure lwma_async_reader_get_track(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMTrack, result);
+   end;
+
+   procedure lwma_async_reader_get_year(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMYear, result);
+   end;
+
+   procedure lwma_async_reader_get_copyright(var async_reader : wma_async_reader; var result : WideString);
+   begin
+     get_async_tag(async_reader, g_wszWMCopyright, result);
+   end;
+
 
    function has_data_block(var async_reader : wma_async_reader) : Boolean;
    begin
      Result := False;
      if async_reader.BlockList.Count = 0 then
      begin
-       if (async_reader.status = WMT_CLOSED) or async_reader.TimedOut then
-         Exit;
-       async_reader.Event.WaitFor(15000);
+       if not async_reader.Paused then
+       begin
+         if (async_reader.status = WMT_CLOSED) or async_reader.TimedOut or (async_reader.status = WMT_EOF) then
+         begin
+           async_reader.StretchFactor := 1.0;
+           Exit;
+         end;
+       end else
+       begin
+         async_reader.status := WMT_STARTED;
+         async_reader.Paused := False;
+       end;  
+       async_reader.Event.WaitFor(async_reader.MaxWaitMilliseconds);
        if async_reader.BlockList.Count = 0 then
        begin
          async_reader.TimedOut := True;
@@ -284,13 +431,15 @@ implementation
          Exit;
        end;
        async_reader.CriticalSection.Enter;
-       SI := PSampleInfo(async_reader.BlockList.Last);
+       SI := PSampleInfo(async_reader.BlockList.First);
        async_reader.CriticalSection.Leave;
        if SI.Offset = SI.Length then
        begin
          async_reader.CriticalSection.Enter;
-         async_reader.BlockList.Delete(async_reader.BlockList.Count -1);
+         async_reader.BlockList.Delete(0);
          async_reader.CriticalSection.Leave;
+         Freemem(SI.Data);
+         Freemem(SI);
        end else
        begin
          buffer := @(SI.Data[SI.Offset]);
@@ -305,7 +454,25 @@ implementation
    end;
 
    procedure lwma_async_reader_free(var async_reader : wma_async_reader);
+   var
+     i : Integer;
+     SI : PSampleInfo;
    begin
+     async_reader.reader.Stop;
+     async_reader.reader.Close;
+     async_reader.reader := nil;
+     async_reader.WMReaderCallback := nil;
+     async_reader.Event.SetEvent;
+     async_reader.Event.Free;
+     async_reader.CriticalSection.Release;
+     async_reader.CriticalSection.Free;
+     for i := 0 to async_reader.BlockList.Count - 1 do
+     begin
+       SI := async_reader.BlockList.Items[i];
+       Freemem(SI.Data);
+       Freemem(SI);
+     end;
+     async_reader.BlockList.Free;
    end;
 
    procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream);
@@ -1017,8 +1184,13 @@ implementation
 
    function TWMReaderCallback.OnStatus;
    begin
+
      FReader.status := Status;
-     FReader.Event.SetEvent;
+     if Status = WMT_Opened then
+       FReader.Event.SetEvent;
+     if hr <> S_OK then
+       FReader.status := WMT_CLOSED;
+       //raise EAuException.Create(IntToHex(hr, 8));
      Result := S_OK;
    end;
 
@@ -1028,15 +1200,20 @@ implementation
      Length : DWord;
      SI : PSampleInfo;
    begin
-     pSample.GetBufferAndLength(Buffer, Length);
-     GetMem(SI, SizeOf(TSampleInfo));
-     GetMem(SI.Data, Length);
-     Move(Buffer^, SI.Data^, Length);
-     SI.Length := Length;
-     SI.Offset := 0;
-     FReader.CriticalSection.Enter;
-     FReader.BlockList.Add(Pointer(SI));
-     FReader.CriticalSection.Leave;
+     if dwOutputNum = FReader.output then
+     begin
+       pSample.GetBufferAndLength(Buffer, Length);
+       GetMem(SI, SizeOf(TSampleInfo));
+       GetMem(SI.Data, Length);
+       Move(Buffer^, SI.Data^, Length);
+       SI.Length := Length;
+       SI.Offset := 0;
+       FReader.CriticalSection.Enter;
+       FReader.BlockList.Add(Pointer(SI));
+       FReader.CriticalSection.Leave;
+       FReader.Event.SetEvent;
+       FReader.Event.ResetEvent;
+     end;
      Result := S_OK;
    end;
 

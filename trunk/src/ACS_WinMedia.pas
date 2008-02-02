@@ -91,6 +91,65 @@ type
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
   end;
 
+  TWMStreamedIn = class(TAuTaggedFileIn)
+  private
+    reader : wma_async_reader;
+    FBitrate : LongWord;
+    FStretchFactor : Single;
+    FBufferingTime : Word;
+    FEnableHTTP : Boolean;
+    FEnableTCP : Boolean;
+    FEnableUDP : Boolean;
+    FMaxWait : LongWord;
+    FProxyProtocol, FProxyHost : String;
+    FProxyPort : LongWord;
+    function GetHasAudio : Boolean;
+    function GetId3v2Tags : TId3v2Tags;
+    function GetTimedOut : Boolean;
+    procedure SetBufferingTime(value : Word);
+  protected
+    procedure OpenFile; override;
+    procedure CloseFile; override;
+    procedure _Pause; override;
+    procedure _Resume; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    function SeekInternal(var SampleNum : Int64) : Boolean; override;
+    function GetTotalTime : LongWord; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure ResetStretch(NewStretch : Single);
+    (* Property: HasAudio
+       Read this property to determine if the input file has an audio stream.
+       The False value indicates that either an audio stream is missing (in
+       WMV file) or the input file is corrupt.
+
+       Note:
+       Windows Media files may contain several audio streams. In the current
+       version TWMIn reads data only from the first audio stream it finds.*)
+    property HasAudio : Boolean read GetHasAudio;
+    (* Property: Bitrate
+       Read this property to get the file's bitrate.
+       Note: for video and multi-streamed files the total bitrate is returned.*)
+     property Bitrate : LongWord read FBitrate;
+    (* Property: Id3v2Tags
+       This property contains file's tags in Id3v2 format.*)
+    property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
+    property TimedOut : Boolean read GetTimedOut;
+  published
+    property BufferingTime : Word read FBufferingTime write SetBufferingTime;
+    property EnableHTTP : Boolean read FEnableHTTP write FEnableHTTP;
+    property EnableTCP : Boolean read FEnableTCP write FEnableTCP;
+    property EnableUDP : Boolean read FEnableUDP write FEnableUDP;
+    property MaxWaitMilliseconds : LongWord read FMaxWait write FMaxWait;
+    property ProxyProtocol : String read FProxyProtocol write FProxyProtocol;
+    property ProxyHost : String read FProxyHost write FProxyHost;
+    property ProxyPort : LongWord read FProxyPort write FProxyPort;
+    property StretchFactor : Single read FStretchFactor write FStretchFactor;
+  end;
+
+
+
 implementation
 
   constructor TWMIn.Create;
@@ -170,7 +229,7 @@ implementation
 
   procedure TWMIn.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
   begin
-    if FSize - FPosition < Bytes then
+    if (FSize > 0) and (FSize - FPosition < Bytes) then
       Bytes := FSize - FPosition;
     lwma_reader_get_data(reader, Buffer, Bytes);
   end;
@@ -269,6 +328,154 @@ implementation
   begin
     FInput.Flush;
     lwma_writer_free(Writer);
+  end;
+
+
+  constructor TWMStreamedIn.Create;
+  begin
+    inherited Create(AOwner);
+    FStretchFactor := 1.0;
+    FMaxWait := 10000;
+    BufferingTime := 2;
+  end;
+
+  destructor TWMStreamedIn.Destroy;
+  begin
+    inherited Destroy;
+  end;
+
+  procedure TWMStreamedIn.OpenFile;
+  var
+//    Tag : TID3Tag;
+    str : WideString;
+  begin
+    OpenCS.Enter;
+    try
+    if FOpened = 0 then
+    begin
+      if FWideFileName = '' then
+      raise EAuException.Create('File name or URL is not assigned');
+      lwma_async_reader_init(reader);
+      if FProxyHost <> '' then
+        lwma_async_reader_set_proxy(reader, FProxyProtocol, FProxyHost, FProxyPort);
+      reader.StretchFactor := FStretchFactor;
+      reader.MaxWaitMilliseconds := FMaxWait;
+      reader.EnableTCP := FEnableTCP;
+      reader.EnableHTTP := FEnableHTTP;
+      reader.EnableUDP := FEnableUDP;
+      reader.BufferingTime := FBufferingTime * 10000000;
+      lwma_async_reader_open(reader, FWideFileName);
+      FValid := reader.has_audio;
+      if reader.reader = nil then Exit;
+      FChan := reader.channels;
+      FBPS := reader.BitsPerSample;
+      FSR := reader.SampleRate;
+      FBitrate := reader.Bitrate;
+      FTotalSamples := reader.duration*FSR;
+      if FTotalSamples = 0 then
+      begin
+        FSize := -1;
+        FTotalSamples := -1;
+      end else
+        FSize := FTotalSamples*FChan*(FBPS shr 3);
+      FSeekable := False;
+      SetLength(Str, 256);
+      lwma_async_reader_get_author(reader, Str);
+      _Id3v2Tags.Artist := Str;
+      lwma_async_reader_get_title(reader, Str);
+      _Id3v2Tags.Title := Str;
+      lwma_async_reader_get_album(reader, Str);
+      _Id3v2Tags.Album := Str;
+      lwma_async_reader_get_genre(reader, Str);
+      _Id3v2Tags.Genre := Str;
+      lwma_async_reader_get_track(reader, Str);
+      _Id3v2Tags.Track := Str;
+      lwma_async_reader_get_year(reader, Str);
+      _Id3v2Tags.Year := Str;
+      lwma_async_reader_get_copyright(reader, Str);
+      _Id3v2Tags.Comment := Str; 
+      Inc(FOpened);
+    end;
+    finally
+      OpenCS.Leave;
+    end;
+  end;
+
+  procedure TWMStreamedIn.CloseFile;
+  begin
+    OpenCS.Enter;
+    try
+    if FOpened > 0 then
+    begin
+      lwma_async_reader_free(reader);
+      FOpened := 0;
+    end;
+    finally
+      OpenCS.Leave;
+    end;
+  end;
+
+  procedure TWMStreamedIn.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
+  begin
+    lwma_async_reader_get_data(reader, Buffer, Bytes);
+  end;
+
+  function TWMStreamedIn.SeekInternal(var SampleNum : Int64) : Boolean;
+//  var
+//    Offset : LongWord;
+  begin
+    Result := False;
+(*    if Busy then
+    begin
+      Offset := Round(SampleNum/FTotalSamples*FDuration);
+      lwma_reader_seek(reader, Offset);
+      Result := True;
+    end; *)
+  end;
+
+  function TWMStreamedIn.GetHasAudio;
+  begin
+    OpenFile;
+    Result := reader.has_audio;
+  end;
+
+  function TWMStreamedIn.GetId3v2Tags;
+  begin
+    Result := _Id3v2Tags;
+  end;
+
+  function TWMStreamedIn.GetTotalTime;
+  begin
+    Result := reader.duration;
+  end;
+
+  procedure TWMStreamedIn.ResetStretch;
+  begin
+    FStretchFactor := NewStretch;
+    lwma_async_reader_reset_stretch(reader, NewStretch);
+  end;
+
+  procedure TWMStreamedIn._Pause;
+  begin
+    _Lock;
+    lwma_async_reader_pause(reader);
+    _Unlock;
+  end;
+
+  procedure TWMStreamedIn._Resume;
+  begin
+    lwma_async_reader_resume(reader);
+  end;
+
+  procedure TWMStreamedIn.SetBufferingTime;
+  begin
+    if value in [1..60] then
+      FBufferingTime := value;
+  end;
+
+  function TWMStreamedIn.GetTimedOut;
+  begin
+    Result := reader.TimedOut;
   end;
 
 end.
