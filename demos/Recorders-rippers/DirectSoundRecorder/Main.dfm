@@ -174,10 +174,41 @@ object Form1: TForm1
     Left = 192
     Top = 176
   end
+  object VorbisOut1: TVorbisOut
+    Input = DXAudioIn1
+    OnDone = OutputDone
+    Compression = 0.200000002980232
+    Comments.Track = 0
+    DesiredMaximumBitrate = brAutoSelect
+    DesiredNominalBitrate = brAutoSelect
+    FileMode = foRewrite
+    MinimumBitrate = brAutoSelect
+    Serial = 0
+    Left = 96
+    Top = 176
+  end
+  object WaveOut1: TWaveOut
+    Input = DXAudioIn1
+    OnDone = OutputDone
+    WavType = wtPCM
+    BlockSize = 512
+    FileMode = foRewrite
+    Left = 64
+    Top = 176
+  end
+  object DXAudioIn1: TDXAudioIn
+    SamplesToRead = -1
+    DeviceNumber = 0
+    InBitsPerSample = 8
+    InChannels = 1
+    InSampleRate = 8000
+    RecTime = -1
+    Left = 32
+    Top = 176
+  end
   object FLACOut1: TFLACOut
     Input = DXAudioIn1
     OnDone = OutputDone
-    FileMode = foRewrite
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
@@ -191,38 +222,6 @@ object Form1: TForm1
     Tags.Track = 0
     Verify = False
     Left = 128
-    Top = 176
-  end
-  object VorbisOut1: TVorbisOut
-    Input = DXAudioIn1
-    OnDone = OutputDone
-    FileMode = foRewrite
-    Compression = 0.200000002980232
-    Comments.Track = 0
-    DesiredMaximumBitrate = brAutoSelect
-    DesiredNominalBitrate = brAutoSelect
-    MinimumBitrate = brAutoSelect
-    Serial = 0
-    Left = 96
-    Top = 176
-  end
-  object WaveOut1: TWaveOut
-    Input = DXAudioIn1
-    OnDone = OutputDone
-    FileMode = foRewrite
-    WavType = wtPCM
-    BlockSize = 512
-    Left = 64
-    Top = 176
-  end
-  object DXAudioIn1: TDXAudioIn
-    SamplesToRead = -1
-    DeviceNumber = 0
-    InBitsPerSample = 8
-    InChannels = 1
-    InSampleRate = 8000
-    RecTime = -1
-    Left = 32
     Top = 176
   end
 end
