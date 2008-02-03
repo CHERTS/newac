@@ -185,7 +185,6 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = FLACOut1Done
     OnProgress = FLACOut1Progress
-    FileMode = foRewrite
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
