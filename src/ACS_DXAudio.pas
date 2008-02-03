@@ -104,7 +104,7 @@ type
     FSamplesToRead : Int64;
     FRecTime : Integer;
     FOverruns : LongWord;
-    FOnOverrun : TUnderrunEvent
+    FOnOverrun : TOverrunEvent;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure OpenAudio;
@@ -462,7 +462,7 @@ begin
                         Generally this shouldn't happen. *)
       Inc(FOverruns);
       if Assigned(FOnOverrun) then
-        EventHandler.PostGenericEvent(FOnOverrun);
+        EventHandler.PostGenericEvent(Self, FOnOverrun);
     end;
 //    l := l - (l mod 1024);
     DSW_ReadBlock(DSW, @Buf[0], l);
