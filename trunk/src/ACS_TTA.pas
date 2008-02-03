@@ -60,6 +60,8 @@ type
        This property returns the file tags in Id3v1Tags format. *)
     property Id3v1Tags: TId3v1Tags read GetId3v1Tags;
     property Id3v2Tags: TId3v2Tags read GetId3v2Tags;
+  published
+    property Loop;
   end;
 
   { class TTTAOut }
@@ -87,6 +89,8 @@ type
     (* Property: Id3v1Tags
          This property allows you to set the file tags in Id3v1Tags format. *)
     property Id3v1Tags;
+    (* Property: Id3v2Tags
+         This property allows you to set the file tags in Id3v2Tags format. *)
     property Id3v2Tags;
   end;
 
