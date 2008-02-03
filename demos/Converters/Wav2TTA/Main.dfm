@@ -140,7 +140,6 @@ object Form1: TForm1
     OnDone = TTAOut1Done
     OnProgress = TTAOut1Progress
     OnThreadException = TTAOut1ThreadException
-    FileMode = foRewrite
     Id3v1Tags.Year = 0
     Id3v1Tags.Track = 0
     Id3v1Tags.Genre = 'Blues'
