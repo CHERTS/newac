@@ -110,8 +110,6 @@ type
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
-    procedure _Pause; override;
-    procedure _Resume; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
     function GetTotalTime : LongWord; override;
@@ -127,6 +125,8 @@ type
        Note:
        Windows Media files may contain several audio streams. In the current
        version TWMIn reads data only from the first audio stream it finds.*)
+    procedure _Pause; override;
+    procedure _Resume; override;
     property HasAudio : Boolean read GetHasAudio;
     (* Property: Bitrate
        Read this property to get the file's bitrate.
