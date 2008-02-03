@@ -35,9 +35,9 @@ type
     TitleEdit: TEdit;
     TrackSpinEdit: TSpinEdit;
     Edit1: TEdit;
-    WMAOut1: TWMAOut;
     Label1: TLabel;
     Button2: TButton;
+    WMAOut1: TWMAOut;
     procedure Button1Click(Sender: TObject);
     procedure WMAOut1Done(Sender: TComponent);
     procedure WMAOut1Progress(Sender: TComponent);

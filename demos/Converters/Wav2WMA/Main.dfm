@@ -184,7 +184,6 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = WMAOut1Done
     OnProgress = WMAOut1Progress
-    FileMode = foRewrite
     DesiredBitrate = 0
     Left = 104
     Top = 240
