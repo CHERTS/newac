@@ -25,7 +25,6 @@ type
     StatusBar1: TStatusBar;
     SpinEdit1: TSpinEdit;
     Label4: TLabel;
-    FLACOut1: TFLACOut;
     Panel1: TPanel;
     Button2: TButton;
     Label1: TLabel;
@@ -40,6 +39,7 @@ type
     Edit4: TEdit;
     Edit5: TEdit;
     SpinEdit2: TSpinEdit;
+    FLACOut1: TFLACOut;
     procedure Button1Click(Sender: TObject);
     procedure FLACOut1Progress(Sender: TComponent);
     procedure FLACOut1Done(Sender: TComponent);
