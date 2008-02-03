@@ -118,6 +118,7 @@ type
       It is recommended by Ogg Vorbis developers to use the <Compression>
       property rather than specify bitrates directly. *)
     property DesiredNominalBitrate : TVorbisBitRate read FDesiredNominalBitrate write SetDesiredNominalBitrate;
+    property FileMode;
    (* Property: MinimumBitrate
      Set the minimum bitrate limit for the file being
      created. The values of this property are brXXX constants, indicating

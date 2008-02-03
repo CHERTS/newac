@@ -276,6 +276,7 @@ type
       The size of the block must be a multiple of four.
       Since all the blocks in the file must be the same size, the size of the block will be set automatically when appending data to the existing MS DVI IMA ADPCM encoded file.*)
     property BlockSize : Word read FBlockAlign write SetBlockSize;
+    property FileMode;
   end;
 
 implementation
