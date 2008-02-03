@@ -865,9 +865,10 @@ end;
     try
       _EndOfStream := False;
       InitInternal;
-    finally
-      DataCS.Leave;
+    except
+      _EndOfStream := True;
     end;
+    DataCS.Leave;
   end;
 
   procedure TAuInput.Flush;
