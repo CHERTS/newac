@@ -168,7 +168,6 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = WVOut1Done
     OnProgress = WVOut1Progress
-    FileMode = foRewrite
     Left = 104
     Top = 112
   end
