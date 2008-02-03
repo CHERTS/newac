@@ -284,53 +284,58 @@ const
 
 type
   WMT_STATUS = (
-    WMT_ERROR,
-    WMT_OPENED,
-    WMT_BUFFERING_START,
-    WMT_BUFFERING_STOP,
-    WMT_END_OF_FILE,
-{$IFDEF COMPILER6_UP}
-    WMT_EOF = 4, 
-{$ENDIF}
-    WMT_END_OF_SEGMENT,
-    WMT_END_OF_STREAMING,
-    WMT_LOCATING,
-    WMT_CONNECTING,
-    WMT_NO_RIGHTS,
-    WMT_MISSING_CODEC,
-    WMT_STARTED,
-    WMT_STOPPED,
-    WMT_CLOSED,
-    WMT_STRIDING,
-    WMT_TIMER,
-    WMT_INDEX_PROGRESS,
-    WMT_SAVEAS_START,
-    WMT_SAVEAS_STOP,
-    WMT_NEW_SOURCEFLAGS,
-    WMT_NEW_METADATA,
-    WMT_BACKUPRESTORE_BEGIN,
-    WMT_SOURCE_SWITCH,
-    WMT_ACQUIRE_LICENSE,
-    WMT_INDIVIDUALIZE,
-    WMT_NEEDS_INDIVIDUALIZATION,
-    WMT_NO_RIGHTS_EX,
-    WMT_BACKUPRESTORE_END,
-    WMT_BACKUPRESTORE_CONNECTING,
-    WMT_BACKUPRESTORE_DISCONNECTING,
-    WMT_ERROR_WITHURL,
-    WMT_RESTRICTED_LICENSE,
-    WMT_CLIENT_CONNECT,
-    WMT_CLIENT_DISCONNECT,
-    WMT_NATIVE_OUTPUT_PROPS_CHANGED,
-    WMT_RECONNECT_START,
-    WMT_RECONNECT_END,
-    WMT_CLIENT_CONNECT_EX,
-    WMT_CLIENT_DISCONNECT_EX,
-    WMT_SET_FEC_SPAN,
-    WMT_PREROLL_READY,
-    WMT_PREROLL_COMPLETE,
-    WMT_CLIENT_PROPERTIES,
-    WMT_LICENSEURL_SIGNATURE_STATE
+  WMT_ERROR                       = 0,
+  WMT_OPENED                      = 1,
+  WMT_BUFFERING_START             = 2,
+  WMT_BUFFERING_STOP              = 3,
+  WMT_EOF                         = 4,
+  WMT_END_OF_FILE                 = 4,
+  WMT_END_OF_SEGMENT              = 5,
+  WMT_END_OF_STREAMING            = 6,
+  WMT_LOCATING                    = 7,
+  WMT_CONNECTING                  = 8,
+  WMT_NO_RIGHTS                   = 9,
+  WMT_MISSING_CODEC               = 10,
+  WMT_STARTED                     = 11,
+  WMT_STOPPED                     = 12,
+  WMT_CLOSED                      = 13,
+  WMT_STRIDING                    = 14,
+  WMT_TIMER                       = 15,
+  WMT_INDEX_PROGRESS              = 16,
+  WMT_SAVEAS_START                = 17,
+  WMT_SAVEAS_STOP                = 18,
+  WMT_NEW_SOURCEFLAGS             = 19,
+  WMT_NEW_METADATA                = 20,
+  WMT_BACKUPRESTORE_BEGIN         = 21,
+  WMT_SOURCE_SWITCH               = 22,
+  WMT_ACQUIRE_LICENSE             = 23,
+  WMT_INDIVIDUALIZE               = 24,
+  WMT_NEEDS_INDIVIDUALIZATION     = 25,
+  WMT_NO_RIGHTS_EX                = 26,
+  WMT_BACKUPRESTORE_END           = 27,
+  WMT_BACKUPRESTORE_CONNECTING    = 28,
+  WMT_BACKUPRESTORE_DISCONNECTING = 29,
+  WMT_ERROR_WITHURL               = 30,
+  WMT_RESTRICTED_LICENSE          = 31,
+  WMT_CLIENT_CONNECT              = 32,
+  WMT_CLIENT_DISCONNECT           = 33,
+  WMT_NATIVE_OUTPUT_PROPS_CHANGED = 34,
+  WMT_RECONNECT_START             = 35,
+  WMT_RECONNECT_END               = 36,
+  WMT_CLIENT_CONNECT_EX           = 37,
+  WMT_CLIENT_DISCONNECT_EX        = 38,
+  WMT_SET_FEC_SPAN                = 39,
+  WMT_PREROLL_READY               = 40,
+  WMT_PREROLL_COMPLETE            = 41,
+  WMT_CLIENT_PROPERTIES           = 42,
+  WMT_LICENSEURL_SIGNATURE_STATE  = 43,
+  WMT_INIT_PLAYLIST_BURN          = 44,
+  WMT_TRANSCRYPTOR_INIT           = 45,
+  WMT_TRANSCRYPTOR_SEEKED         = 46,
+  WMT_TRANSCRYPTOR_READ           = 47,
+  WMT_TRANSCRYPTOR_CLOSED         = 48,
+  WMT_PROXIMITY_RESULT            = 49,
+  WMT_PROXIMITY_COMPLETED         = 50
   );
   {$EXTERNALSYM WMT_STATUS}
   TWMTStatus = WMT_STATUS;
@@ -994,6 +999,92 @@ type
     function Pause: HRESULT; stdcall;
     function Resume: HRESULT; stdcall;
   end;
+
+  PWMPortNumberRange = ^TWMPortNumberRange;
+  _WMPortNumberRange = packed record
+    wPortBegin : Word;
+    wPortEnd   : Word;
+  end;
+  {$EXTERNALSYM _WMPortNumberRange}
+  WM_PORT_NUMBER_RANGE = _WMPortNumberRange;
+  {$EXTERNALSYM WM_PORT_NUMBER_RANGE}
+  TWMPortNumberRange = _WMPortNumberRange;
+
+    WMT_PROXY_SETTINGS = (
+    WMT_PROXY_SETTING_NONE,
+    WMT_PROXY_SETTING_MANUAL,
+    WMT_PROXY_SETTING_AUTO,
+    WMT_PROXY_SETTING_BROWSER,       // Only valid for HTTP
+    WMT_PROXY_SETTING_MAX
+  );
+  {$EXTERNALSYM WMT_PROXY_SETTINGS}
+  TWMTProxySettings = WMT_PROXY_SETTINGS;
+
+
+    IWMReaderNetworkConfig = interface(IUnknown)
+    ['{96406BEC-2B2B-11D3-B36B-00C04F6108FF}']
+    (*** IWMReaderNetworkConfig methods ***)
+    // Get and set the amount of time the network source will buffer
+    // data before rendering it.
+    function GetBufferingTime(out pcnsBufferingTime: Int64): HResult; stdcall;
+    function SetBufferingTime(cnsBufferingTime: Int64): HResult; stdcall;
+    // Returns the UDP port number ranges that will be used for receiving
+    // data.  If no ranges are available, random UDP port numbers will be used.
+    function GetUDPPortRanges({out} pRangeArray: PWMPortNumberRange; var pcRanges: LongWord): HResult; stdcall;
+    // Sets the UDP port number ranges that can be used for receiving data.
+    // If no ranges are specified, random UDP port numbers will be used.
+    function SetUDPPortRanges({in} pRangeArray: PWMPortNumberRange; cRanges: LongWord): HResult; stdcall;
+    // Proxy settings: Manual proxy, Autodetect, UseBrowser (only for HTTP), or No Proxy.
+    function GetProxySettings(pwszProtocol: PWideChar; out pProxySetting: TWMTProxySettings): HResult; stdcall;
+    function SetProxySettings(pwszProtocol: PWideChar; ProxySetting: TWMTProxySettings): HResult; stdcall;
+    // The host to use as the proxy.
+    function GetProxyHostName(pwszProtocol: PWideChar; {out} pwszHostName: PWideChar;
+                              var pcchHostName: LongWord): HResult; stdcall;
+    function SetProxyHostName(pwszProtocol: PWideChar; pwszHostName: PWideChar): HResult; stdcall;
+    // The port to use as the proxy.
+    function GetProxyPort(pwszProtocol: PWideChar; out pdwPort: LongWord): HResult; stdcall;
+    function SetProxyPort(pwszProtocol: PWideChar; dwPort: LongWord): HResult; stdcall;
+    // Get and set the proxy exception list.
+    function GetProxyExceptionList(pwszProtocol: PWideChar; {out} pwszExceptionList: PWideChar;
+                                   var pcchExceptionList: LongWord): HResult; stdcall;
+    function SetProxyExceptionList(pwszProtocol: PWideChar; pwszExceptionList: PWideChar): HResult; stdcall;
+    // Whether or not to bypass proxy for local hosts
+    function GetProxyBypassForLocal(pwszProtocol: PWideChar; out pfBypassForLocal: BOOL): HResult; stdcall;
+    function SetProxyBypassForLocal(pwszProtocol: PWideChar; fBypassForLocal: BOOL): HResult; stdcall;
+    // Whether to force a wpad discovery on the next run
+    function GetForceRerunAutoProxyDetection(out pfForceRerunDetection: BOOL): HResult; stdcall;
+    function SetForceRerunAutoProxyDetection(fForceRerunDetection: BOOL): HResult; stdcall;
+    // Whether or not to use multicast, http, tcp, or udp
+    function GetEnableMulticast(out pfEnableMulticast: BOOL): HResult; stdcall;
+    function SetEnableMulticast(fEnableMulticast: BOOL): HResult; stdcall;
+    function GetEnableHTTP(out pfEnableHTTP: BOOL): HResult; stdcall;
+    function SetEnableHTTP(fEnableHTTP: BOOL): HResult; stdcall;
+    function GetEnableUDP(out pfEnableUDP: BOOL): HResult; stdcall;
+    function SetEnableUDP(fEnableUDP: BOOL): HResult; stdcall;
+    function GetEnableTCP(out pfEnableTCP: BOOL): HResult; stdcall;
+    function SetEnableTCP(fEnableTCP: BOOL): HResult; stdcall;
+    // Forgets automatic protocol detection settings and redetects next time.
+    function ResetProtocolRollover: HResult; stdcall;
+    // Return or set the client's link bandwidth in bps.  This is an optional
+    // setting.  By default, the SDK will automatically detect its connection
+    // bandwidth to the streaming media server.
+    function GetConnectionBandwidth(out pdwConnectionBandwidth: LongWord): HResult; stdcall;
+    function SetConnectionBandwidth(dwConnectionBandwidth: LongWord): HResult; stdcall;
+    // Iterate through the network protocols supported by this reader
+    function GetNumProtocolsSupported(out pcProtocols: LongWord): HResult; stdcall;
+    function GetSupportedProtocolName(dwProtocolNum: LongWord; {out} pwszProtocolName: PWideChar;
+                                      var pcchProtocolName: LongWord): HResult; stdcall;
+    // Adds the specified pszUrl to the list of URL's to recieve logging data.
+    // This list is in addition to the origin server.
+    function AddLoggingUrl(pwszURL: PWideChar): HResult; stdcall;
+    // Fills the buffer with the URL corresponding to index dwIndex.
+    function GetLoggingUrl(dwIndex: LongWord; {out} pwszURL: PWideChar; var pcchURL: LongWord): HResult; stdcall;
+    // Returns the number of URLs in the current list of logging URLs.
+    function GetLoggingUrlCount(out pdwUrlCount: LongWord): HResult; stdcall;
+    // Clears the list of logging URLs
+    function ResetLoggingUrlList: HResult; stdcall;
+  end;
+
 
   function WMCreateSyncReader(pUnkCert: IUnknown; dwRights: LongWord; out ppSyncReader: IWMSyncReader): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateSyncReader}
