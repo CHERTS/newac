@@ -43,6 +43,7 @@ type
     FBufferRest: array of Byte;
 
     function GetId3v1Tags: TId3v1Tags;
+    function GetId3v2Tags: TId3v2Tags;
 
     procedure InitDecoder;
     procedure DoneDecoder;
@@ -58,6 +59,7 @@ type
   (* Property: Id3v1Tags
        This property returns the file tags in Id3v1Tags format. *)
     property Id3v1Tags: TId3v1Tags read GetId3v1Tags;
+    property Id3v2Tags: TId3v2Tags read GetId3v2Tags;
   end;
 
   { class TTTAOut }
@@ -85,6 +87,7 @@ type
     (* Property: Id3v1Tags
          This property allows you to set the file tags in Id3v1Tags format. *)
     property Id3v1Tags;
+    property Id3v2Tags;
   end;
 
 implementation
@@ -144,8 +147,26 @@ begin
   Result := _Id3v1Tags;
 end;
 
-procedure TTTAIn.InitDecoder;
+function TTTAIn.GetId3v2Tags: TId3v2Tags;
 begin
+  Result := _Id3v2Tags;
+end;
+
+procedure TTTAIn.InitDecoder;
+var
+  file_pos: Cardinal;
+begin
+  file_pos := SetFilePointer(FFile, 0, nil, FILE_CURRENT);
+  if file_pos <> $FFFFFFFF then
+    try
+      _Id3v1Tags.ReadFromFile(FFile);
+    finally
+      SetFilePointer(FFile, file_pos, nil, FILE_BEGIN);
+    end;
+
+  if _Id3v2Tags.Presents(FFile) and not _Id3v2Tags.ReadFromFile(FFile) then
+    EAuException.Create('Broken or unsupported Id3v2 tags was found!');
+
   FDecoder := TTTADecoder.Create(FFile);
 
   FSeekable := False;
@@ -237,8 +258,6 @@ begin
             raise EAuException.Create('Unable to map temporary file to memory!');
         end;
       end;
-
-      _Id3v1Tags.ReadFromFile(FFile);
 
       SetFilePointer(FFile, 0, nil, FILE_BEGIN);
 
@@ -467,7 +486,10 @@ begin
 
   if FFile <> INVALID_HANDLE_VALUE then
     try
-      ID3v1Tags.WriteToFile(FFile);
+      if not ID3v1Tags.Empty then
+        ID3v1Tags.WriteToFile(FFile);
+      if not Id3v2Tags.Empty then
+        Id3v2Tags.WriteToFile(FFile, False);
 
       if FStreamAssigned then begin
         size := GetFileSize(FFile, nil);
