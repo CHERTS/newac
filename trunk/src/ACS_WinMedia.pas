@@ -107,6 +107,7 @@ type
     FMaxWait : LongWord;
     FProxyProtocol, FProxyHost : String;
     FProxyPort : LongWord;
+    FLoggingURL : String;
     function GetHasAudio : Boolean;
     function GetId3v2Tags : TId3v2Tags;
     function GetTimedOut : Boolean;
@@ -145,6 +146,7 @@ type
     property EnableHTTP : Boolean read FEnableHTTP write FEnableHTTP;
     property EnableTCP : Boolean read FEnableTCP write FEnableTCP;
     property EnableUDP : Boolean read FEnableUDP write FEnableUDP;
+    property LoggingURL : String read FLoggingURL write FLoggingURL;
     property MaxWaitMilliseconds : LongWord read FMaxWait write FMaxWait;
     property ProxyProtocol : String read FProxyProtocol write FProxyProtocol;
     property ProxyHost : String read FProxyHost write FProxyHost;
@@ -362,6 +364,8 @@ implementation
       lwma_async_reader_init(reader);
       if FProxyHost <> '' then
         lwma_async_reader_set_proxy(reader, FProxyProtocol, FProxyHost, FProxyPort);
+      if FLoggingURL <> '' then
+        lwma_async_reader_add_logging_url(reader, FLoggingURL);
       reader.StretchFactor := FStretchFactor;
       reader.MaxWaitMilliseconds := FMaxWait;
       reader.EnableTCP := FEnableTCP;
@@ -411,6 +415,7 @@ implementation
     try
     if FOpened > 0 then
     begin
+      lwma_async_reader_clear_logging_urls(reader);
       lwma_async_reader_free(reader);
       FOpened := 0;
     end;
