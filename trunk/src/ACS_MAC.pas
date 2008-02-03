@@ -114,15 +114,16 @@ type
     (* Property: CurrentMS
        This property shows how many milliseconds have passed since the beginning of the file.*)
     property CurrentMS: Integer read GetCurrentMS;
-    property EndSample;
-    property Loop;
-    property StartSample;
     (* Property: LengthMS
        Read this property to get the length of the file in milliseconds.*)
     property LengthMS: Integer read GetLengthMS;
     (* Property: TotalBlocks
        The total number of blocks in the file.*)
     property TotalBlocks: Integer read GetTotalBlocks;
+  published
+    property EndSample;
+    property Loop;
+    property StartSample;
   end;
 
 implementation
