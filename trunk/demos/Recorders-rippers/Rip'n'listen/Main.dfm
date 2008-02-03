@@ -150,43 +150,13 @@ object Form1: TForm1
     Left = 232
     Top = 144
   end
-  object FLACOut1: TFLACOut
-    Input = AudioPass1
-    OnDone = OutputDone
-    OnProgress = Progress
-    FileMode = foRewrite
-    BestModelSearch = False
-    BlockSize = 4608
-    CompressionLevel = -1
-    EnableMidSideStereo = True
-    EnableLooseMidSideStereo = False
-    MaxLPCOrder = 0
-    MaxResidualPartitionOrder = 0
-    MinResidualPartitionOrder = 0
-    QLPCoeffPrecision = 0
-    QLPCoeffPrecisionSearch = False
-    Tags.Track = 0
-    Verify = False
-    Left = 72
-    Top = 144
-  end
-  object MACOut1: TMACOut
-    Input = AudioPass1
-    OnDone = OutputDone
-    OnProgress = Progress
-    FileMode = foRewrite
-    CompressionLevel = 2000
-    MaxAudioBytes = -1
-    Left = 104
-    Top = 144
-  end
   object WaveOut1: TWaveOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
-    FileMode = foRewrite
     WavType = wtPCM
     BlockSize = 512
+    FileMode = foRewrite
     Left = 136
     Top = 144
   end
@@ -194,11 +164,11 @@ object Form1: TForm1
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
-    FileMode = foRewrite
     Compression = 0.200000002980232
     Comments.Track = 0
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
+    FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
     Left = 168
@@ -215,12 +185,39 @@ object Form1: TForm1
     Left = 40
     Top = 144
   end
+  object MACOut1: TMACOut
+    Input = AudioPass1
+    OnDone = OutputDone
+    OnProgress = Progress
+    CompressionLevel = 2000
+    MaxAudioBytes = -1
+    Left = 72
+    Top = 144
+  end
+  object FLACOut1: TFLACOut
+    Input = AudioPass1
+    OnDone = OutputDone
+    OnProgress = Progress
+    BestModelSearch = False
+    BlockSize = 4608
+    CompressionLevel = -1
+    EnableMidSideStereo = True
+    EnableLooseMidSideStereo = False
+    MaxLPCOrder = 0
+    MaxResidualPartitionOrder = 0
+    MinResidualPartitionOrder = 0
+    QLPCoeffPrecision = 0
+    QLPCoeffPrecisionSearch = False
+    Tags.Track = 0
+    Verify = False
+    Left = 104
+    Top = 144
+  end
   object WMAOut1: TWMAOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
-    FileMode = foRewrite
-    DesiredBitrate = 128
+    DesiredBitrate = 0
     Left = 200
     Top = 144
   end
