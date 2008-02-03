@@ -37,14 +37,14 @@ type
     StatusBar1: TStatusBar;
     ComboBox3: TComboBox;
     Label3: TLabel;
-    FLACOut1: TFLACOut;
-    MACOut1: TMACOut;
     WaveOut1: TWaveOut;
     VorbisOut1: TVorbisOut;
     CDIn1: TCDIn;
     AudioPass1: TAudioPass;
-    WMAOut1: TWMAOut;
     CheckBox1: TCheckBox;
+    MACOut1: TMACOut;
+    FLACOut1: TFLACOut;
+    WMAOut1: TWMAOut;
     procedure Button1Click(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
     procedure Progress(Sender: TComponent);
