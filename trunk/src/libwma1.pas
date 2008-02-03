@@ -150,6 +150,8 @@ type
 
    procedure lwma_async_reader_init(var async_reader : wma_async_reader);
    procedure lwma_async_reader_open(var async_reader : wma_async_reader; const URL : WideString);
+   procedure lwma_async_reader_add_logging_url(var async_reader : wma_async_reader; const URL : WideString);
+   procedure lwma_async_reader_clear_logging_urls(var async_reader : wma_async_reader);
    procedure lwma_async_reader_pause(var async_reader : wma_async_reader);
    procedure lwma_async_reader_resume(var async_reader : wma_async_reader);
    procedure lwma_async_reader_set_proxy(var async_reader : wma_async_reader; const Protocol, Host : WideString; Port : LongWord);
@@ -327,6 +329,24 @@ implementation
      NetworkConfig.SetProxyHostName(PWideChar(Protocol), PWideChar(Host));
      NetworkConfig.SetProxyPort(PWideChar(Protocol), Port)
    end;
+
+   procedure lwma_async_reader_add_logging_url(var async_reader : wma_async_reader; const URL : WideString);
+   var
+    NetworkConfig : IWMReaderNetworkConfig;
+   begin
+     NetworkConfig := async_reader.reader as IWMReaderNetworkConfig;
+     if NetworkConfig.AddLoggingUrl(PWideChar(URL)) <> S_OK then
+       raise EauException.Create('Canoot add a logging URL');
+   end;
+
+   procedure lwma_async_reader_clear_logging_urls(var async_reader : wma_async_reader);
+   var
+    NetworkConfig : IWMReaderNetworkConfig;
+   begin
+     NetworkConfig := async_reader.reader as IWMReaderNetworkConfig;
+     NetworkConfig.ResetLoggingUrlList;
+   end;
+
 
    procedure lwma_async_reader_reset_stretch(var async_reader : wma_async_reader; new_stretch : Single);
    begin
