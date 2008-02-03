@@ -227,6 +227,10 @@ type
     property WavType : TWavType read GetWavType;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+  published
+    property EndSample;
+    property Loop;
+    property StartSample;
   end;
 
   (* Class: TWaveOut
