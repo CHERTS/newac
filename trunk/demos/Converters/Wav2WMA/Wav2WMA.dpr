@@ -2,9 +2,7 @@ program Wav2WMA;
 
 uses
   Forms,
-  Main in 'Main.pas' {Form1},
-  libwma1 in '..\..\Source\libwma1.pas',
-  wmfintf in '..\..\Source\wmfintf.pas';
+  Main in 'Main.pas' {Form1};
 
 {$R *.res}
 
