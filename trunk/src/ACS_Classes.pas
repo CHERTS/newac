@@ -563,6 +563,13 @@ type
     FFileMode : TFileOutputMode;
     FAccessMask : Integer;
     procedure SetFileMode(aMode : TFileOutputMode); virtual;
+    (* Property: FileMode
+       This property can take one of two values foRewrite (default) and
+       foAppend. In the foRewrite mode the new file overwrites the previous
+       one (if it existed). In the foAppend mode the new content is added to
+       the existing. Currently only <TWaveOut> and <TVorbisOut> components
+       support this mode. *)
+    property FileMode : TFileOutputMode read FFileMode write SetFileMode;
   public
     constructor Create(AOwner: TComponent); override;
 {$IFDEF LINUX}
@@ -573,13 +580,6 @@ type
         overrides the value set to FileName. *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
-    (* Property: FileMode
-       This property can take one of two values foRewrite (default) and
-       foAppend. In the foRewrite mode the new file overwrites the previous
-       one (if it existed). In the foAppend mode the new content is added to
-       the existing. Currently only <TWaveOut> and <TVorbisOut> components
-       support this mode. *)
-    property FileMode : TFileOutputMode read FFileMode write SetFileMode;
     (* Property: Filename
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
