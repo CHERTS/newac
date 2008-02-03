@@ -60,6 +60,10 @@ type
     (* Property: Id3v2Tags
        This property contains file's tags in Id3v2 format.*)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
+  published
+    property EndSample;
+    property Loop;
+    property StartSample;
   end;
 
    (* Class: TWMAOut
