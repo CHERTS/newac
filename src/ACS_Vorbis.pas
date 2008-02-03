@@ -205,6 +205,7 @@ type
     (* Property: NominalBitrate
       Get the nominal bitrate (in bits per second) of the Vorbis file. *)
     property NominalBitrate: Integer read GetNominalBitrate;
+  published
     property EndSample;
     property Loop;
     property StartSample;
