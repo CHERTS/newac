@@ -923,49 +923,51 @@ end;
     ParentComponent := TAuOutput(Parent);
     while not Terminated do
     begin
-      if Delay > 5 then sleep(Delay);
       try
-        if ParentComponent.Progress <> ParentComponent.CurProgr then
+        ParentComponent.Busy := True;
+        ParentComponent.Prepare;
+        Stop := False;
+        Res := True;
+        ParentComponent.CanOutput := True;
+        SetPause := False;
+        Paused := False;
+        PauseEvent.ResetEvent;
+        while (not Stop) and Res do
         begin
-          ParentComponent.CurProgr := ParentComponent.Progress;
-          if Assigned(ParentComponent.FOnProgress)
-            then EventHandler.PostOnProgress(ParentComponent, ParentComponent.FOnProgress);
-        end;
-        if SetPause then
-        begin
-          if (not Paused) and (not Stop) then
-            PauseEvent.SetEvent;
-          Paused := True;
-          Res := True;
-          Sleep(50);
-        end else
-        begin
-          if Paused and (not Stop) then
-            PauseEvent.SetEvent;
-          Paused := False;
-          Res := ParentComponent.DoOutput(Stop);
-        end;  
-        if Stop or (not Res) then
-        begin
-          Stop := False;
-          ParentComponent.WhenDone;
-          if DoNotify then
-            RaiseDoneEvent;
-          Stopped := True;
-          if not Terminated then Self.Suspend;
-        end;
+          if Delay > 5 then sleep(Delay);
+          if ParentComponent.Progress <> ParentComponent.CurProgr then
+          begin
+            ParentComponent.CurProgr := ParentComponent.Progress;
+            if Assigned(ParentComponent.FOnProgress)
+              then EventHandler.PostOnProgress(ParentComponent, ParentComponent.FOnProgress);
+          end;
+          if SetPause then
+          begin
+            if (not Paused) and (not Stop) then
+              PauseEvent.SetEvent;
+            Paused := True;
+            Res := True;
+            Sleep(50);
+          end else
+          begin
+            if Paused and (not Stop) then
+              PauseEvent.SetEvent;
+            Paused := False;
+            Res := ParentComponent.DoOutput(Stop);
+          end;
+        end; // while (not Stop) and Res do
       except
         on E : Exception do
         begin
-          ParentComponent.WhenDone;
-          if DoNotify then
-            RaiseDoneEvent;
-          Stopped := True; // Stop := False;
-          ErrorMsg := E.Message;
           Synchronize(CallOnException);
-          if not Terminated then Self.Suspend;
         end;
       end;
+      Stop := False;
+      ParentComponent.WhenDone;
+      if DoNotify then
+         RaiseDoneEvent;
+       Stopped := True;
+       if not Terminated then Self.Suspend;
     end;
   end;
 
@@ -990,6 +992,7 @@ end;
       begin
         Stop(False);
         Thread.Terminate;
+        Stop(False);
         while Thread.Suspended do
           Thread.Resume;
         Thread.WaitFor;
@@ -1013,36 +1016,8 @@ end;
     FExceptionMessage := '';
     if Busy then raise EAuException.Create('Component is Busy');
     if not Assigned(FInput) then raise EAuException.Create('Input is not assigned');
-    try
-      Busy := True;
-      Prepare;
-      Thread.Stop := False;
-      CanOutput := True;
-      if Thread.Suspended then
-      begin
-        Thread.SetPause := False;
-        Thread.Paused := False;
+    if Thread.Suspended then
         Thread.Resume;
-        Thread.PauseEvent.ResetEvent;
-      end;
-    except
-      on E : Exception do
-      begin
-        try
-          if not Thread.Suspended then
-          begin
-            Stop;
-          end else
-          begin
-            WhenDone;
-            Thread.RaiseDoneEvent;
-          end;
-        except
-        end;
-        Busy := False;
-        HandleException(Self, E.Message);
-      end;
-    end;
   end;
 
   procedure TAuOutput.Stop;
