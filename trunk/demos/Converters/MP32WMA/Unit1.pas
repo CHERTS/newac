@@ -9,12 +9,12 @@ uses
 type
   TForm1 = class(TForm)
     Button1: TButton;
-    MP3In1: TMP3In;
     WMAOut1: TWMAOut;
     ProgressBar1: TProgressBar;
     OpenDialog1: TOpenDialog;
     Edit1: TEdit;
     Label1: TLabel;
+    MP3In1: TMP3In;
     procedure Button1Click(Sender: TObject);
     procedure WMAOut1Done(Sender: TComponent);
     procedure WMAOut1Progress(Sender: TComponent);

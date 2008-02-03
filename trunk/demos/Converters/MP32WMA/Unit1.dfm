@@ -47,17 +47,10 @@ object Form1: TForm1
     TabOrder = 2
     Text = '256'
   end
-  object MP3In1: TMP3In
-    EndSample = -1
-    Loop = False
-    Left = 16
-    Top = 64
-  end
   object WMAOut1: TWMAOut
     Input = MP3In1
     OnDone = WMAOut1Done
     OnProgress = WMAOut1Progress
-    FileMode = foRewrite
     DesiredBitrate = 0
     Left = 48
     Top = 64
@@ -66,6 +59,12 @@ object Form1: TForm1
     DefaultExt = 'mp3'
     Filter = 'mp3|*.mp3'
     Left = 80
+    Top = 64
+  end
+  object MP3In1: TMP3In
+    EndSample = -1
+    Loop = False
+    Left = 16
     Top = 64
   end
 end
