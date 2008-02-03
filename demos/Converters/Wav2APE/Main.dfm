@@ -121,10 +121,9 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = MACOut1Done
     OnProgress = MACOut1Progress
-    FileMode = foRewrite
     CompressionLevel = 2000
     MaxAudioBytes = -1
-    Left = 112
+    Left = 104
     Top = 88
   end
 end
