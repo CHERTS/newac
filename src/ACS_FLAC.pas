@@ -139,6 +139,9 @@ type
       Note, that seeking in the input file turns the signature checking off (the value of CheckMD5Signature becomes False).
       In this case <IsMD5SignatureValid> will aalways return True.*)
     property CheckMD5Signature : Boolean read FCheckMD5Signature write FCheckMD5Signature;
+    property EndSample;
+    property Loop;
+    property StartSample;
   end;
 
 
