@@ -219,7 +219,7 @@ implementation
      MediaType : PWMMEDIATYPE;
      format : PWAVEFORMATEX;
      datatype : WMT_ATTR_DATATYPE;
-     len, astream, bitrate : Word;
+     len, astream : Word;
      res : HResult;
      NetworkConfig : IWMReaderNetworkConfig;
    begin
