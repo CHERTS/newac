@@ -354,6 +354,23 @@ type
       end;
       If you want to make your component seekable you have to implement a real seeking in this function. *)
     function SeekInternal(var SampleNum : Int64) : Boolean; virtual; abstract;
+     (* Property: EndSample
+        Set this property's value to the sample (frame) you want the input to
+        stop playing at. By default it is set to -1 which indicates "play to
+        the end of input." Changing this property value has an effect only
+        when the component is idle. *)
+    property EndSample : Int64 read FEndSample write FEndSample;
+    (* Property: Loop
+        If set to True, the input loops (i.e. starts again from the beginning
+        after it is finished). *)
+    property Loop : Boolean read FLoop write FLoop;
+    (* Property: StartSample
+        Set this property's value to the sample (frame) you want the input to
+        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect.
+        Note that when you set StartSample and <EndSample> properties you define a subrange of the input data.
+        All further operations, such as playback and <Seek>ing will be performed within this subrange.
+        The StartSample and <EndSample> values also affect the <TotalSamples> and <Size> values, returned by the component.*)
+    property StartSample : Int64 read FStartSample write FStartSample;
   public
 
 
@@ -389,24 +406,6 @@ type
     *)
     function Seek(SampleNum : Int64) : Boolean;
     constructor Create(AOwner: TComponent); override;
-  published
-     (* Property: EndSample
-        Set this property's value to the sample (frame) you want the input to
-        stop playing at. By default it is set to -1 which indicates "play to
-        the end of input." Changing this property value has an effect only
-        when the component is idle. *)
-    property EndSample : Int64 read FEndSample write FEndSample;
-    (* Property: Loop
-        If set to True, the input loops (i.e. starts again from the beginning
-        after it is finished). *)
-    property Loop : Boolean read FLoop write FLoop;
-    (* Property: StartSample
-        Set this property's value to the sample (frame) you want the input to
-        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect.
-        Note that when you set StartSample and <EndSample> properties you define a subrange of the input data.
-        All further operations, such as playback and <Seek>ing will be performed within this subrange.
-        The StartSample and <EndSample> values also affect the <TotalSamples> and <Size> values, returned by the component.*)
-    property StartSample : Int64 read FStartSample write FStartSample;
   end;
 
 (* Class: TAuStreamedOutput
