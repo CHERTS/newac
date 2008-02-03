@@ -74,6 +74,10 @@ type
       Since raw audio has no descriptive headers providing information about its parameters you should provide this information yourself.
       InSampleRate property lets you set the sample rate (in Hz) for the incoming audio data.*)
     property InSampleRate : LongWord read FFreq write FFreq;
+    property EndSample;
+    property Loop;
+    property StartSample;
+
     (* Property: Seekable
        By default the TSreamIn component treats the stream it works with as non-seekable.
        Set this property to true if the stream is actually seekable.
