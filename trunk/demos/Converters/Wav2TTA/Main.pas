@@ -25,7 +25,6 @@ type
     StatusBar1: TStatusBar;
     Panel1: TPanel;
     Button2: TButton;
-    TTAOut1: TTTAOut;
     Label4: TLabel;
     Edit1: TEdit;
     Label5: TLabel;
@@ -34,6 +33,7 @@ type
     Label7: TLabel;
     Edit3: TEdit;
     Edit4: TEdit;
+    TTAOut1: TTTAOut;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
