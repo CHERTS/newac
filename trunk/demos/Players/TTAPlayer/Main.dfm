@@ -401,8 +401,6 @@ object Form1: TForm1
     Top = 152
   end
   object TTAIn1: TTTAIn
-    EndSample = -1
-    Loop = False
     Left = 64
     Top = 152
   end

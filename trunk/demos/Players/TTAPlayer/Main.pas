@@ -36,9 +36,9 @@ type
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     DXAudioOut1: TDXAudioOut;
-    TTAIn1: TTTAIn;
     Label4: TLabel;
     Label6: TLabel;
+    TTAIn1: TTTAIn;
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
