@@ -34,10 +34,10 @@ type
     Label7: TLabel;
     RadioGroup1: TRadioGroup;
     PauseButton: TButton;
-    FLACOut1: TFLACOut;
     VorbisOut1: TVorbisOut;
     WaveOut1: TWaveOut;
     DXAudioIn1: TDXAudioIn;
+    FLACOut1: TFLACOut;
     procedure RecordButtonClick(Sender: TObject);
     procedure SaveDialog1TypeChange(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
