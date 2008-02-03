@@ -130,10 +130,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
-    FileMode = foRewrite
     BitRate = br128
-    Id3v1Tags.Year = 0
-    Id3v1Tags.Track = 0
     Left = 104
     Top = 88
   end
