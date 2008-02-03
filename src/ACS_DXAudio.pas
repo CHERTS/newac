@@ -25,6 +25,7 @@ const
 type
 
   TUnderrunEvent = procedure(Sender : TComponent) of object;
+  TOverrunEvent = procedure(Sender : TComponent) of object;
 
   (* Class: TDXAudioOut
       Performs audio output using the DirectX API.
@@ -80,7 +81,7 @@ type
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data. This can happen if the component recieves data at slow rate
-         from a slow CD-ROM unit or a network link. Usually TDXAudioOut successfully recovers from underruns by itself,
+         from a slow CD-ROM unit or a network link. You will also get OnUnderrun event when unpuasing paused playback (this is a normal situation). Usually TDXAudioOut successfully recovers from underruns by itself,
          but this causes pauses in playback so if you start to recieve OnUnderrun events, you may try to increase the speed rate of data passing to the component,
          if you can. Yo can check the <Underruns> property for the total number of underruns. *)
     property OnUnderrun : TUnderrunEvent read FOnUnderrun write FOnUnderrun;
@@ -102,7 +103,8 @@ type
     FOpened : Integer;
     FSamplesToRead : Int64;
     FRecTime : Integer;
-    FUnderruns : Integer;
+    FOverruns : LongWord;
+    FOnOverrun : TUnderrunEvent
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure OpenAudio;
@@ -131,9 +133,9 @@ type
          specified by its number. Valid numbers range from 0 to
          <DeviceCount> - 1. *)
     property DeviceName[Number : Integer] : String read GetDeviceName;
-    (* Property: Underruns
-         This read only property returns the number of internal buffer underruns that have occured during recording. *)
-    property Underruns : Integer read FUnderruns;
+    (* Property: Overruns
+         This read only property returns the number of internal buffer overruns that have occured during recording. *)
+    property Overruns : LongWord read FOverruns;
   published
     (* Property: SamplesToRead
          Use this property to set the number of samples (frames) the component should
@@ -167,6 +169,11 @@ type
          property value to -1 (the default) the component will be endlessly
          recording until you stop it.*)
     property RecTime : Integer read FRecTime write SetRecTime;
+    (* Property: OnOverrun
+         OnOverrun event is raised when this component provides data faster than the rest of audio-processing chain can consume.
+         It indicates that some data is lost. You may also get OnOverrun event when unpausing paused recordind (this is a normal situation).
+         To get the total number of overruns read the <Overruns> property. *)
+    property OnOverrun : TOverrunEvent read FOnOverrun write FOnOverrun;
   end;
 
 implementation
@@ -279,11 +286,10 @@ begin
     FUnderruns := DSW.dsw_OutputUnderflows;
     _TmpUnderruns := DSW.dsw_OutputUnderflows;
     DSW_StopOutput(DSW);
-
+    DSW_FillEmptySpace(DSW, FillByte);
     if Assigned(FOnUnderrun) then
       EventHandler.PostGenericEvent(Self, FOnUnderrun);
-    FOnUnderrun(Self);
-    StartInput := True;
+    DSW_RestartOutput(DSW); //StartInput := True;
   end;
 end;
 
@@ -454,7 +460,9 @@ begin
     begin
       l := _BufSize; (* We have lost some data.
                         Generally this shouldn't happen. *)
-      Inc(FUnderruns);
+      Inc(FOverruns);
+      if Assigned(FOnOverrun) then
+        EventHandler.PostGenericEvent(FOnOverrun);
     end;
 //    l := l - (l mod 1024);
     DSW_ReadBlock(DSW, @Buf[0], l);
