@@ -139,11 +139,38 @@ object Form1: TForm1
     Left = 168
     Top = 128
   end
+  object WaveOut1: TWaveOut
+    Input = CDIn1
+    OnDone = OutputDone
+    OnProgress = Progress
+    WavType = wtPCM
+    BlockSize = 512
+    FileMode = foRewrite
+    Left = 104
+    Top = 128
+  end
+  object VorbisOut1: TVorbisOut
+    Input = CDIn1
+    OnDone = OutputDone
+    OnProgress = Progress
+    Compression = 0.200000002980232
+    Comments.Track = 0
+    DesiredMaximumBitrate = brAutoSelect
+    DesiredNominalBitrate = brAutoSelect
+    FileMode = foRewrite
+    MinimumBitrate = brAutoSelect
+    Serial = 0
+    Left = 136
+    Top = 128
+  end
+  object CDIn1: TCDIn
+    Left = 8
+    Top = 128
+  end
   object FLACOut1: TFLACOut
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
-    FileMode = foRewrite
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
@@ -154,6 +181,7 @@ object Form1: TForm1
     MinResidualPartitionOrder = 0
     QLPCoeffPrecision = 0
     QLPCoeffPrecisionSearch = False
+    Tags.Track = 0
     Verify = False
     Left = 40
     Top = 128
@@ -162,38 +190,9 @@ object Form1: TForm1
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
-    FileMode = foRewrite
     CompressionLevel = 2000
     MaxAudioBytes = -1
     Left = 72
-    Top = 128
-  end
-  object WaveOut1: TWaveOut
-    Input = CDIn1
-    OnDone = OutputDone
-    OnProgress = Progress
-    FileMode = foRewrite
-    WavType = wtPCM
-    BlockSize = 512
-    Left = 104
-    Top = 128
-  end
-  object VorbisOut1: TVorbisOut
-    Input = CDIn1
-    OnDone = OutputDone
-    OnProgress = Progress
-    FileMode = foRewrite
-    Compression = 0.200000002980232
-    Comments.Track = 0
-    DesiredMaximumBitrate = brAutoSelect
-    DesiredNominalBitrate = brAutoSelect
-    MinimumBitrate = brAutoSelect
-    Serial = 0
-    Left = 136
-    Top = 128
-  end
-  object CDIn1: TCDIn
-    Left = 8
     Top = 128
   end
 end
