@@ -110,7 +110,7 @@ end;
 
 procedure TForm1.BitBtn3Click(Sender: TObject);
 begin
-  DXAudioOut1.SoftStop;
+  DXAudioOut1.Stop;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
