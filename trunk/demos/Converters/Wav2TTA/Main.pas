@@ -79,9 +79,15 @@ begin
     TTAOut1.FileName := SaveDialog1.FileName;
     Button1.Enabled := False;
     Button2.Enabled := False;
+    TTAOut1.Id3v1Tags.Clear;
+    TTAOut1.Id3v2Tags.Clear;
+    if Edit1.Text <> '' then
     TTAOut1.Id3v1Tags.Artist := Edit1.Text;
+    if Edit2.Text <> '' then
     TTAOut1.Id3v1Tags.Album := Edit2.Text;
+    if Edit3.Text <> '' then
     TTAOut1.Id3v1Tags.Title := Edit3.Text;
+    if Edit4.Text <> '' then
     TTAOut1.Id3v1Tags.Year := StrToInt(Edit4.Text);
     TTAOut1.Run;
   end;
