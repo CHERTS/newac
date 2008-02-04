@@ -21,16 +21,15 @@ object Form1: TForm1
   object Label14: TLabel
     Left = 264
     Top = 56
-    Width = 58
+    Width = 25
     Height = 13
-    Caption = 'Underuns: 0'
   end
   object BitBtn1: TBitBtn
     Left = 8
     Top = 40
     Width = 65
     Height = 25
-    Caption = 'Play...'
+    Caption = 'Play'
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -314,6 +313,8 @@ object Form1: TForm1
     MaxWaitMilliseconds = 10000
     ProxyPort = 0
     StretchFactor = 1
+    OnStreamOpened = WMStreamedIn1StreamOpened
+    OnStartedPlaying = WMStreamedIn1StartedPlaying
     Left = 8
     Top = 152
   end
