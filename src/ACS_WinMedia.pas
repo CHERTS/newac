@@ -19,6 +19,8 @@ uses
 
 type
 
+  TStreamedAudioEvent = procedure(Sender : TComponent) of object;
+
    (* Class: TWMIn
       Windows Media Audio file/stream decoder. This component can read not
       only WMA files but sound tracks from WMV files as well. It can also read
@@ -95,6 +97,30 @@ type
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
   end;
 
+   (* Class: TWMStreamedIn
+      Streamable WMA/MP3 decoder component. This component can do three things:
+       - decode wma and mp3 files stored on your hard drive.
+       - decode wma and mp3 files stored at some network (http) location. The component
+         starts downloading the file and decoding it simultaneously.
+       - decode wma and mp3 audio streamed from "live" audio servers such as Internet radio servers.
+
+       You shuld assign file or stream URL to the components <Filename> property.
+
+       Important note: most links to Internet streamed media that you can find on Web sites
+       point not to media itself but to wax, asx, or m3u shortcuts instead.
+       These shortcuts contain information about the content, and, among other things, a direct link to
+       a stremed audio server. Although it is relatively easy to parse wax, asx, and m3u shortcuts
+       and extract required links from them, it is not TWMStreamedIn's job.
+       The component expects a direct link to a wma/mp3 file or a network stream to be assigned to its <Filename> property.
+       See also the <LoggingURL> property.
+
+       If you write a live audio player, you have to take care about http links traversal and shortcuts parsing.
+       I-Radio demo that accompanies NewAC, uses preset links to several live audio servers.
+
+       This decoder is not seekable.
+
+       Descends from <TAuTaggedFileIn> .*)
+
   TWMStreamedIn = class(TAuTaggedFileIn)
   private
     reader : wma_async_reader;
@@ -108,6 +134,9 @@ type
     FProxyProtocol, FProxyHost : String;
     FProxyPort : LongWord;
     FLoggingURL : String;
+    FOnStreamOpened : TStreamedAudioEvent;
+    FOnStartedPlaying : TStreamedAudioEvent;
+    FFirstTime : Boolean;
     function GetHasAudio : Boolean;
     function GetId3v2Tags : TId3v2Tags;
     function GetTimedOut : Boolean;
@@ -130,9 +159,9 @@ type
        Note:
        Windows Media files may contain several audio streams. In the current
        version TWMIn reads data only from the first audio stream it finds.*)
+    property HasAudio : Boolean read GetHasAudio;
     procedure _Pause; override;
     procedure _Resume; override;
-    property HasAudio : Boolean read GetHasAudio;
     (* Property: Bitrate
        Read this property to get the file's bitrate.
        Note: for video and multi-streamed files the total bitrate is returned.*)
@@ -140,18 +169,56 @@ type
     (* Property: Id3v2Tags
        This property contains file's tags in Id3v2 format.*)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
+    (* Property: TimedOut
+       This property indicates if some network operation has timed out.
+       If the timeout has occured, the component reports the end of data.
+       You can change the time it waits before timeout in the <MaxWaitMilliseconds> property. *)
     property TimedOut : Boolean read GetTimedOut;
   published
+  (* Property: BufferingTime
+       This property allows you to set the size of internal buffer in terms of playback duation.
+       The value of this property should be buffer's playback time in seconds raging from 1 to 60.
+       Larger bufering time imposes some delay at the beginning of the playback, but guarantees a smoother playback later. *)
     property BufferingTime : Word read FBufferingTime write SetBufferingTime;
+  (* Property: EnableHTTP
+       Use this property to enable or disable HTTP support. This property's value matters only if an URL supplied to <Filename> has no http:, mms: or rtsp: prefix. *)
     property EnableHTTP : Boolean read FEnableHTTP write FEnableHTTP;
+  (* Property: EnableTCP
+       Use this property to enable or disable TCP support. This property's value matters only if an URL supplied to <Filename> has no http:, mms: or rtsp: prefix. *)
     property EnableTCP : Boolean read FEnableTCP write FEnableTCP;
+  (* Property: EnableUDP
+       Use this property to enable or disable UDP support. This property's value matters only if an URL supplied to <Filename> has no http:, mms: or rtsp: prefix. *)
     property EnableUDP : Boolean read FEnableUDP write FEnableUDP;
+  (* Property: LoggingURL
+       Use this property to set a logging URL, if you have one. Logging URLs may be obtained from wax, asx, or m3u shortcuts. *)
     property LoggingURL : String read FLoggingURL write FLoggingURL;
+  (* Property: MaxWaitMilliseconds
+       This property allows you to set the maximum waiting time for some network operations to complete.
+       The time is set in milliseconds. If this time is exceeded, the <TimedOut> property is set to True and the coomponent
+       stops its operation. The default value of this property is 10000 (10 seconds). Setting this property's value too low
+       will result in too many premature timeouts. Setting it too high will mean that you will have to wait too long just to learn that the remote server
+       could not be reached. *)
     property MaxWaitMilliseconds : LongWord read FMaxWait write FMaxWait;
+  (* Property: ProxyProtocol
+       If your application requires a proxy to connect to Internet, use this property to set the proxy protocol. *)
     property ProxyProtocol : String read FProxyProtocol write FProxyProtocol;
+  (* Property: ProxyHost
+       If your application requires a proxy to connect to Internet, use this property to set the proxy host name. *)
     property ProxyHost : String read FProxyHost write FProxyHost;
+  (* Property: ProxyPort
+       If your application requires a proxy to connect to Internet, use this property to set the proxy port value. *)
     property ProxyPort : LongWord read FProxyPort write FProxyPort;
+  (* Property: StretchFactor
+       Use this property to change the speed at with content is delivered to the component.
+       The default value is 1.0. Possible values range from 1.0 to 10.0 and from -10.0 to -1.0.
+       This property has no effect when handling live audio. *)
     property StretchFactor : Single read FStretchFactor write FStretchFactor;
+  (* Property: OnStreamOpened
+       This event informs you that the audio stream has been opened successfully. *)
+    property OnStreamOpened : TStreamedAudioEvent read FOnStreamOpened write FOnStreamOpened;
+  (* Property: OnStartedPlaying
+       This event informs you that the decoder has decoded the first chunk of audio data. *)
+    property OnStartedPlaying : TStreamedAudioEvent read FOnStartedPlaying write FOnStartedPlaying;
   end;
 
 
@@ -373,6 +440,8 @@ implementation
       reader.EnableUDP := FEnableUDP;
       reader.BufferingTime := FBufferingTime * 10000000;
       lwma_async_reader_open(reader, FWideFileName);
+      if Assigned(FOnStreamOpened) then
+        EventHandler.PostGenericEvent(Self, FOnStreamOpened);
       FValid := reader.has_audio;
       if reader.reader = nil then Exit;
       FChan := reader.channels;
@@ -401,7 +470,8 @@ implementation
       lwma_async_reader_get_year(reader, Str);
       _Id3v2Tags.Year := Str;
       lwma_async_reader_get_copyright(reader, Str);
-      _Id3v2Tags.Comment := Str; 
+      _Id3v2Tags.Comment := Str;
+      FFirstTime := True;
       Inc(FOpened);
     end;
     finally
@@ -427,6 +497,12 @@ implementation
   procedure TWMStreamedIn.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
   begin
     lwma_async_reader_get_data(reader, Buffer, Bytes);
+    if FFirstTime then
+    begin
+      if Assigned(FOnStartedPlaying) then
+          EventHandler.PostGenericEvent(Self, FOnStartedPlaying);
+      FFirstTime := False;    
+    end;
   end;
 
   function TWMStreamedIn.SeekInternal(var SampleNum : Int64) : Boolean;
