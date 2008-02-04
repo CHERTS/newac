@@ -435,6 +435,7 @@ implementation
         lwma_async_reader_add_logging_url(reader, FLoggingURL);
       reader.StretchFactor := FStretchFactor;
       reader.MaxWaitMilliseconds := FMaxWait;
+      reader.TimedOut := False;
       reader.EnableTCP := FEnableTCP;
       reader.EnableHTTP := FEnableHTTP;
       reader.EnableUDP := FEnableUDP;
@@ -485,6 +486,7 @@ implementation
     try
     if FOpened > 0 then
     begin
+      reader.MaxWaitMilliseconds := 2000;
       lwma_async_reader_clear_logging_urls(reader);
       lwma_async_reader_free(reader);
       FOpened := 0;
