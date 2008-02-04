@@ -1,5 +1,5 @@
 (*
- NewAC Windows Media player demo.
+ NewAC Internet Radio demo.
  (c) Andrei Borovsky, anb@symmetrica.net
 *)
 
@@ -69,8 +69,6 @@ var
   Secs : String;
 begin
   WMStreamedIn1.FileName := SL.Values[ComboBox1.Text];
-//  'mms://livewmstream-ws.bbc.co.uk.edgestreams.net/reflector:38288'; // 'mms://spb.radioshock.ru/radioshock'; //'http://www.angelich.com/music/lifeofb.wma';
-    //'mms://livewmstream-ws.bbc.co.uk.edgestreams.net/reflector:38288';//'http://www.symmetrica.net/uploads/oneway32000m.wma'; //OpenDialog1.FileName;
   StatusBar1.Panels[0].Text := WMStreamedIn1.FileName;
   WMStreamedIn1.BufferingTime := 2;
   Label14.Caption := 'Connecting...';
