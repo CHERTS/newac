@@ -131,7 +131,7 @@ begin
   if Output <> nil then
   begin
     Label2.Caption := Format('%d seconds elapsed', [Output.TimeElapsed]);
-    Label7.Caption := IntToStr(DXAudioIn1.Underruns);
+    Label7.Caption := IntToStr(DXAudioIn1.Overruns);
   end;
 end;
 

@@ -53,14 +53,14 @@ object Form1: TForm1
   object Label6: TLabel
     Left = 8
     Top = 168
-    Width = 55
+    Width = 49
     Height = 13
-    Caption = 'Underruns: '
+    Caption = 'Overruns: '
   end
   object Label7: TLabel
-    Left = 72
+    Left = 56
     Top = 168
-    Width = 6
+    Width = 14
     Height = 13
     Caption = '0'
   end
