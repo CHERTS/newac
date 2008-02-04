@@ -56,7 +56,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Pause;
-    procedure SoftStop;
     procedure Resume;
     (* Property: DeviceCount
          This read only property returns the number of logical output DirectSound devices. *)
@@ -222,12 +221,12 @@ end;
 
 procedure TDXAudioOut.Done;
 begin
-  Finput.Flush;
   if not Freed then
   begin
     DSW_Term(DSW);
     FreeMem(Buf);
   end;
+  Finput.Flush;
   Freed := True;
 end;
 
@@ -278,11 +277,8 @@ begin
     DSW_QueryOutputSpace(DSW, lb);
     lb := lb - (lb mod DSW.dsw_BytesPerFrame);
   until lb <> 0;
-  if not EndOfInput then
-  begin
-    Len := FInput.FillBuffer(Buf, _Min(lb, _BufSize), EndOfInput);
-    DSW_WriteBlock(DSW, @Buf[0], Len);
-  end;  
+  Len := FInput.FillBuffer(Buf, _Min(lb, _BufSize), EndOfInput);
+  DSW_WriteBlock(DSW, @Buf[0], Len);
   if EndOfInput then
     DSW_FillEmptySpace(DSW, FillByte);
   if _TmpUnderruns <> DSW.dsw_OutputUnderflows then
@@ -526,11 +522,6 @@ end;
 procedure TDXAudioIn._Resume;
 begin
   DSW_StartInput(DSW);
-end;
-
-procedure TDXAudioOut.SoftStop;
-begin
-  EndOfInput := True;
 end;
 
 end.
