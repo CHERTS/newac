@@ -242,6 +242,9 @@ begin
   begin
     FUnderruns := DSW.dsw_OutputUnderflows - _TmpUnderruns;
     _TmpUnderruns := DSW.dsw_OutputUnderflows;
+    DSW_StopOutput(DSW);
+    DSW_FillEmptySpace(DSW, FillByte);
+    DSW_RestartOutput(DSW);
   end;
 end;
 
