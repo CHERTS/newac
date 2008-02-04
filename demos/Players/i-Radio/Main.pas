@@ -48,6 +48,8 @@ type
       const Msg: String);
     procedure DXAudioOut1Underrun(Sender: TComponent);
     procedure FormCreate(Sender: TObject);
+    procedure WMStreamedIn1StreamOpened(Sender: TComponent);
+    procedure WMStreamedIn1StartedPlaying(Sender: TComponent);
   private
     { Private declarations }
     SL : TStringList;
@@ -71,6 +73,7 @@ begin
     //'mms://livewmstream-ws.bbc.co.uk.edgestreams.net/reflector:38288';//'http://www.symmetrica.net/uploads/oneway32000m.wma'; //OpenDialog1.FileName;
   StatusBar1.Panels[0].Text := WMStreamedIn1.FileName;
   WMStreamedIn1.BufferingTime := 2;
+  Label14.Caption := 'Connecting...';
   if not WMStreamedIn1.HasAudio then
     raise Exception.Create('Could not find an audio stream in this file.');
   BitBtn1.Enabled := False;
@@ -86,6 +89,7 @@ begin
   Secs := IntToStr(WMStreamedIn1.TotalTime mod 60);
   if WMStreamedIn1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
   Label7.Caption := Format('%d:%s', [WMStreamedIn1.TotalTime div 60, Secs]);
+
 end;
 
 procedure TForm1.AudioOut1Progress(Sender: TComponent);
@@ -140,6 +144,16 @@ begin
   for i := 0 to SL.Count - 1 do
     ComboBox1.Items.Add(SL.Names[i]);
   ComboBox1.ItemIndex := 0;
+end;
+
+procedure TForm1.WMStreamedIn1StreamOpened(Sender: TComponent);
+begin
+  Label14.Caption := 'Stream Opened...'
+end;
+
+procedure TForm1.WMStreamedIn1StartedPlaying(Sender: TComponent);
+begin
+  Label14.Caption := 'Playing'
 end;
 
 end.
