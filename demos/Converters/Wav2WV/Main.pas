@@ -108,10 +108,15 @@ begin
     WVOut1.JointStereo := CheckBox1.Checked;
     Button1.Enabled := False;
     Button2.Enabled := False;
-    WVOut1.APEv2Tags.Artist := Edit1.Text;
-    WVOut1.APEv2Tags.Album := Edit2.Text;
-    WVOut1.APEv2Tags.Title := Edit3.Text;
-    WVOut1.APEv2Tags.Year := Edit4.Text;
+    WVOut1.APEv2Tags.Clear;
+    if Edit1.Text <> '' then
+      WVOut1.APEv2Tags.Artist := Edit1.Text;
+    if Edit2.Text <> '' then
+      WVOut1.APEv2Tags.Album := Edit2.Text;
+    if Edit3.Text <> '' then
+      WVOut1.APEv2Tags.Title := Edit3.Text;
+    if Edit4.Text <> '' then
+      WVOut1.APEv2Tags.Year := Edit4.Text;
     WVOut1.Run;
   end;
 end;
