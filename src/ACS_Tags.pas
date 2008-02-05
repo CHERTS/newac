@@ -5,6 +5,8 @@
   You can contact me at anb@symmetrica.net
 *)
 
+(* This unit is written by Sergei Borisov, <jr_ross@mail.ru> *)
+
 (* $Id$ *)
 
 unit ACS_Tags;
@@ -23,7 +25,8 @@ type
   end;
   PTagValueInfo = ^TTagValueInfo;
 
-  { class TAuTags }
+  (* Ñlass: TAuTags
+     The base class for all the tag classes. *)
 
   TAuTags = class(TPersistent)
   private
@@ -49,18 +52,40 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignTo(Dest: TPersistent); override;
 
+
+  (* Procedure: Clear
+     Clears all the tag contents.
+     Always call Clear before setting new tag values or simply opening a new file for output otherwise it will bear some old tags or even some empty tags may be added.*)
+
     procedure Clear;
 
     function ReadFromFile(InFile: HFILE): Boolean; virtual;
     function WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean; virtual;
 
+
+   (* Property: Empty
+      Returns True if the  tag cass contains no data. *)
     property Empty: Boolean read FEmpty;
+
     property Changed: Boolean read FChanged;
+
+  (* Property: IdCount
+     Returns the number of records in a tag object.*)
     property IdCount: Integer read GetIdCount;
+  (* Property: Ids[Index: Integer]
+     This property returns a tag Id based on its index. The valid vaues for indeces range from 0 to <IdCount> - 1.*)
     property Ids[Index: Integer]: String read GetId;
+  (* Property: Values[const Id: String]
+     This property returns a tag value based on its Id. All this works very much like name/value pairs in TStringList. *)
     property Values[const Id: String]: Variant read GetValue write SetValue; default;
+  (* Property: AsInteger[const Id: String]
+     Returns the value of the Id as Integer. Make sure the value is of appropriate type. *)
     property AsInteger[const Id: String]: Integer read GetAsInteger;
+  (* Property: AsString[const Id: String]
+     Returns the value of the Id as String. *)
     property AsString[const Id: String]: String read GetAsString;
+  (* Property: AsWidString[const Id: String]
+     Returns the value of the Id as WidString. *)
     property AsWideString[const Id: String]: WideString read GetAsWideString;
   end;
 
@@ -77,6 +102,11 @@ type
   end;
 
   TId3v1TagsGenreId = 0 .. 147;
+
+  (* Class: TId3v1Tags
+     This class is for handling Id3V1 tags.
+
+     Descends from <TAuTags> *)
 
   TId3v1Tags = class(TAuTags)
   private
@@ -125,6 +155,11 @@ type
     Flags: Byte;                         // flags
     Size: packed array [0 .. 3] of Byte; // tags info size excluding size of TId3v2TagsInfo structure
   end;
+
+  (* Class: TId3v2Tags
+     This class is for handling Id3v2 tags.
+
+     Descends from <TAuTags> *)
 
   TId3v2Tags = class(TAuTags)
   private
