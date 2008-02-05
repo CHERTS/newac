@@ -571,8 +571,8 @@ type
      procedure SetGenre(Value : WideString);
      function GetTitle : WideString;
      procedure SetTitle(Value : WideString);
-     function GetTrack : Integer;
-     procedure SetTrack(Value : Integer);
+     function GetTrack : WideString;
+     procedure SetTrack(Value : WideString);
   public
     constructor Create; override;
   published
@@ -581,7 +581,7 @@ type
     property Date : WideString read GetDate write SetDate;
     property Genre : WideString read GetGenre write SetGenre;
     property Title : WideString read GetTitle write SetTitle;
-    property Track : Integer read GetTrack write SetTrack;
+    property Track : WideString read GetTrack write SetTrack;
   end;
 
 
@@ -1920,7 +1920,7 @@ end;
 
   function TVorbisTags.GetTrack;
   begin
-    Result := AsInteger[_vorbis_Track];
+    Result := AsWideString[_vorbis_Track];
   end;
 
   procedure TVorbisTags.SetTrack;
