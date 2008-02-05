@@ -93,7 +93,7 @@ begin
     if FLACIn1.VorbisComments.Genre <> '' then
       Memo1.Lines.Add('Genre: ' + FLACIn1.VorbisComments.Genre);
     if FLACIn1.VorbisComments.Track <> 0 then
-      Memo1.Lines.Add('Track: ' + IntToStr(FLACIn1.VorbisComments.Track));
+      Memo1.Lines.Add('Track: ' + FLACIn1.VorbisComments.Track);
   end;
 end;
 
