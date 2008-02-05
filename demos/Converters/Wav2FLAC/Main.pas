@@ -38,8 +38,8 @@ type
     Edit3: TEdit;
     Edit4: TEdit;
     Edit5: TEdit;
-    SpinEdit2: TSpinEdit;
     FLACOut1: TFLACOut;
+    Edit6: TEdit;
     procedure Button1Click(Sender: TObject);
     procedure FLACOut1Progress(Sender: TComponent);
     procedure FLACOut1Done(Sender: TComponent);
@@ -69,12 +69,19 @@ begin
     StatusBar1.Panels[0].Text := 'Converting...';
     FLACOut1.FileName := SaveDialog1.FileName;
     FLACOut1.CompressionLevel := SpinEdit1.Value;
-    FLACOut1.Tags.Title := Edit1.Text;
-    FLACOut1.Tags.Album := Edit2.Text;
-    FLACOut1.Tags.Artist := Edit3.Text;
-    FLACOut1.Tags.Date := Edit4.Text;
-    FLACOut1.Tags.Genre := Edit5.Text;
-    FLACOut1.Tags.Track := SpinEdit2.Value;        
+    FLACOut1.Tags.Clear;
+    if Edit1.Text <> '' then
+      FLACOut1.Tags.Title := Edit1.Text;
+    if Edit2.Text <> '' then
+      FLACOut1.Tags.Album := Edit2.Text;
+    if Edit3.Text <> '' then
+      FLACOut1.Tags.Artist := Edit3.Text;
+    if Edit4.Text <> '' then
+      FLACOut1.Tags.Date := Edit4.Text;
+    if Edit5.Text <> '' then
+      FLACOut1.Tags.Genre := Edit5.Text;
+    if Edit6.Text <> '' then
+      FLACOut1.Tags.Track := Edit6.Text;
     Button1.Enabled := False;
     FLACOut1.Run;
   end;
