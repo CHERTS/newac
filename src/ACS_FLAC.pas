@@ -277,17 +277,17 @@ type
         begin
           FLACOut.BolckInserted := True;
           if FlacOut.FTags.Artist <> '' then
-            Comm.Artist := Utf8Encode(WideString(AnsiUpperCase(_vorbis_Artist) + '=') + FlacOut.FTags.Artist);
+            Comm.Artist := Utf8Encode(WideString(_vorbis_Artist + '=') + FlacOut.FTags.Artist);
           if FlacOut.FTags.Album <> '' then
-            Comm.Album := Utf8Encode(WideString(AnsiUpperCase(_vorbis_Album) + '=') + FlacOut.FTags.Album);
+            Comm.Album := Utf8Encode(WideString(_vorbis_Album + '=') + FlacOut.FTags.Album);
           if FlacOut.FTags.Title <> '' then
-            Comm.Title := Utf8Encode(WideString(AnsiUpperCase(_vorbis_Title) + '=') + FlacOut.FTags.Title);
+            Comm.Title := Utf8Encode(WideString(_vorbis_Title + '=') + FlacOut.FTags.Title);
           if FlacOut.FTags.Date <> '' then
-            Comm.Date := Utf8Encode(WideString(AnsiUpperCase(_vorbis_Date) + '=') + FlacOut.FTags.Date);
+            Comm.Date := Utf8Encode(WideString(_vorbis_Date + '=') + FlacOut.FTags.Date);
           if FlacOut.FTags.Genre <> '' then
-            Comm.Genre := Utf8Encode(WideString(AnsiUpperCase(_vorbis_Genre) + '=') + FlacOut.FTags.Genre);
-          if FlacOut.FTags.Track <> 0 then
-            Comm.Track := Utf8Encode(WideString(AnsiUpperCase(_vorbis_Track) + '=') + IntToStr(FlacOut.FTags.Track));
+            Comm.Genre := Utf8Encode(WideString(_vorbis_Genre + '=') + FlacOut.FTags.Genre);
+          if FlacOut.FTags.Track <> '' then
+            Comm.Track := Utf8Encode(WideString(_vorbis_Track + '=') + FlacOut.FTags.Track);
           BL := BuildCommentsBlock(Comm, Block, BI.HasNext);
           FLACOut.FStream.Write(Block^, BL);
           FreeMem(Block);
@@ -559,10 +559,8 @@ type
       S := SL.Values[AnsiUpperCase(_vorbis_Genre)];
       FLACIn.FComments.Genre := Utf8Decode(S);
       S := SL.Values[AnsiUpperCase(_vorbis_Track)];
-      if S <> '' then
-        FLACIn.FComments.Track := StrToInt(S)
-      else  FLACIn.FComments.Track := 0;
-      SL.Free; 
+      FLACIn.FComments.Track := Utf8Decode(S);
+      SL.Free;
     end;
     FLacIn.EndOfMetadata := metadata.is_last;
   end;
