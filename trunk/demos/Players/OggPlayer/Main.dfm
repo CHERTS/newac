@@ -252,8 +252,8 @@ object Form1: TForm1
     OnChange = TrackBar1Change
   end
   object VorbisIn1: TVorbisIn
-    EndSample = -1
     FileName = 'E:\Music\Valkyries.ogg'
+    EndSample = -1
     Loop = False
     Left = 40
     Top = 232
