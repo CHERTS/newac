@@ -92,7 +92,7 @@ begin
       Memo1.Lines.Add('Date: ' + FLACIn1.VorbisComments.Date);
     if FLACIn1.VorbisComments.Genre <> '' then
       Memo1.Lines.Add('Genre: ' + FLACIn1.VorbisComments.Genre);
-    if FLACIn1.VorbisComments.Track <> 0 then
+    if FLACIn1.VorbisComments.Track <> '' then
       Memo1.Lines.Add('Track: ' + FLACIn1.VorbisComments.Track);
   end;
 end;
