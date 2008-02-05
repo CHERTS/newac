@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 109
-  Top = 115
+  Left = 207
+  Top = 205
   Width = 336
   Height = 277
   Caption = 'Wav2FLAC Converter'
@@ -156,15 +156,12 @@ object Form1: TForm1
     Height = 21
     TabOrder = 10
   end
-  object SpinEdit2: TSpinEdit
+  object Edit6: TEdit
     Left = 64
     Top = 168
-    Width = 33
-    Height = 22
-    MaxValue = 0
-    MinValue = 0
+    Width = 73
+    Height = 21
     TabOrder = 11
-    Value = 0
   end
   object WaveIn1: TWaveIn
     EndSample = -1
@@ -195,7 +192,6 @@ object Form1: TForm1
     MinResidualPartitionOrder = 0
     QLPCoeffPrecision = 0
     QLPCoeffPrecisionSearch = False
-    Tags.Track = 0
     Verify = False
     Left = 104
     Top = 200
