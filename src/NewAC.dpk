@@ -20,6 +20,7 @@ package NewAC;
 {$R 'ACS_WinMedia.dcr'}
 {$R 'ACS_TTA.dcr'}
 {$R 'AudioPass.dcr'}
+{$R 'ACS_OptimFROG.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -90,6 +91,8 @@ contains
   wmfintf in 'wmfintf.pas',
   ACS_TTA in 'ACS_TTA.pas',
   TTALib in 'TTALib.pas',
-  AudioPass in 'AudioPass.pas';
+  AudioPass in 'AudioPass.pas',
+  ACS_OptimFROG in 'ACS_OptimFROG.pas',
+  OptimFROGDLL in 'OptimFROGDLL.pas';
 
 end.
