@@ -147,24 +147,21 @@ object Form1: TForm1
     Height = 21
     TabOrder = 9
   end
-  object TrackSpinEdit: TSpinEdit
-    Left = 56
-    Top = 200
-    Width = 49
-    Height = 22
-    MaxValue = 99
-    MinValue = 0
-    TabOrder = 10
-    Value = 0
-  end
   object Button2: TButton
     Left = 8
     Top = 8
     Width = 75
     Height = 25
     Caption = 'Select...'
-    TabOrder = 11
+    TabOrder = 10
     OnClick = Button2Click
+  end
+  object TrackEdit: TEdit
+    Left = 56
+    Top = 200
+    Width = 97
+    Height = 21
+    TabOrder = 11
   end
   object WaveIn1: TWaveIn
     EndSample = -1
@@ -186,11 +183,10 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = VorbisOut1Done
     OnProgress = VorbisOut1Progress
-    FileMode = foRewrite
     Compression = 0.400000005960464
-    Comments.Track = 0
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
+    FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
     Left = 104
