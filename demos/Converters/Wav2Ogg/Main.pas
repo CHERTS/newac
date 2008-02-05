@@ -37,9 +37,9 @@ type
     DateEdit: TEdit;
     GenreEdit: TEdit;
     TitleEdit: TEdit;
-    TrackSpinEdit: TSpinEdit;
     VorbisOut1: TVorbisOut;
     Button2: TButton;
+    TrackEdit: TEdit;
     procedure Button1Click(Sender: TObject);
     procedure VorbisOut1Done(Sender: TComponent);
     procedure VorbisOut1Progress(Sender: TComponent);
@@ -82,8 +82,8 @@ begin
         VorbisOut1.Comments.Genre := GenreEdit.Text;
       if Self.TitleEdit.Text <> '' then
         VorbisOut1.Comments.Title := TitleEdit.Text;
-      if Self.TrackSpinEdit.Value <> 0 then
-        VorbisOut1.Comments.Track := TrackSpinEdit.Value;
+      if Self.TrackEdit.Text <> '' then
+        VorbisOut1.Comments.Track := TrackEdit.Text;
       Button1.Enabled := False;
       VorbisOut1.Run;
       StatusBar1.Panels[0].Text := 'Converting to ' + ExtractFileName(VorbisOut1.FileName);
