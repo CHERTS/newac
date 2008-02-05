@@ -519,7 +519,7 @@ implementation
           FComments.Genre := UTF8Decode(CV)
         else
         if CN = _vorbis_Track then
-          FComments.Track := StrToInt(UTF8Decode(CV));
+          FComments.Track := UTF8Decode(CV);
         Inc(LongWord(PComment), 4);
         Comment := PComment^;
       end;
