@@ -11,7 +11,8 @@
 
 unit ACS_Tags;
 
-(* Title: ACS_Tags *)
+(* Title: ACS_Tags
+    This unit contains classes for audio files tags handling. *)
 
 interface
 
