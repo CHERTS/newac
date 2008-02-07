@@ -643,7 +643,7 @@ begin
         p_byte_samples := @(FBufferIn[0]);
         for i := 0 to samples - 1 do
           p_int32_samples[i] :=
-            (t_int32_sample(p_byte_samples[i]) - t_int32_sample(byte_sample_base)) and $FF;
+            (t_int32_sample(p_byte_samples[i]) - t_int32_sample(byte_sample_base));
       end;
       2: begin // 16 bits per sample
         p_int32_samples := @(FBufferOut[0]);

@@ -78,7 +78,7 @@ type
     function GetSeekable: Boolean;
     function GetRecoverableErrors: Boolean;
 
-    function GetTag(const Key: String): String;
+    function GetTag(const Key: String): WideString;
   public
     constructor Create(const AFileName: String); overload;
     constructor Create(AStream: TStream); overload;
@@ -105,7 +105,7 @@ type
     property Seekable: Boolean read GetSeekable;
     property RecoverableErrors: Boolean read GetRecoverableErrors;
 
-    property Tags[const Key: String]: String read GetTag;
+    property Tags[const Key: String]: WideString read GetTag;
   end;
 
 implementation
@@ -473,7 +473,7 @@ begin
   Result := OptimFROG_recoverableErrors(FInstance);
 end;
 
-function TOptimFROGDecoder.GetTag(const Key: String): String;
+function TOptimFROGDecoder.GetTag(const Key: String): WideString;
 var
   _key: String;
   i: Integer;
@@ -494,11 +494,11 @@ begin
       end;
     end;
 
-    for i := Low(FTags.keys) to High(FTags.keys) do
+    for i := Low(FTags.keys) to Low(FTags.keys) + FTags.key_count - 1 do
       if (FTags.keys[i] <> nil) and (FTags.values[i] <> nil) and
          AnsiSameText(_key, Trim(FTags.keys[i]))
       then begin
-        Result := FTags.values[i];
+        Result := UTF8Decode(FTags.values[i]);
 
         Exit;
       end;
