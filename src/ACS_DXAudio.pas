@@ -46,8 +46,11 @@ type
     FillByte : Byte;
     FUnderruns, _TmpUnderruns : LongWord;
     FOnUnderrun : TUnderrunEvent;
+    FVolume : Integer;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
+    function GetVolume : Integer;
+    procedure SetVolume(value : Integer);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -73,6 +76,13 @@ type
          Use this property to set the component's internal buffer size if the
          defult one doesn't suit you. *)
     property BufferSize : Integer read FBufferSize write FBufferSize;
+    (* Property: Volume
+         Use this property to set or get the volume of the sound being played.
+         The default value is 0 which corresponds to the original volume of the sound.
+         Valid values range from -10000 (silence) to 0.
+         The Volume property allows you to make the played sound softer than the original one,
+         but not louder. *)
+    property Volume : Integer read GetVolume write SetVolume;
   published
     (* Property: DeviceNumber
          Use this property to select the playback device by number.
@@ -522,6 +532,16 @@ end;
 procedure TDXAudioIn._Resume;
 begin
   DSW_StartInput(DSW);
+end;
+
+procedure TDXAudioOut.SetVolume;
+begin
+  dsw_SetVolume(DSW, value);
+end;
+
+function TDXAudioOut.GetVolume;
+begin
+  dsw_GetVolume(DSW, Result);
 end;
 
 end.
