@@ -248,7 +248,7 @@ begin
     // Setup the secondary buffer description
   ZeroMemory(@secondaryDesc, sizeof(TDSBUFFERDESC));
   secondaryDesc.dwSize := sizeof(TDSBUFFERDESC);
-  secondaryDesc.dwFlags :=  DSBCAPS_GLOBALFOCUS or DSBCAPS_GETCURRENTPOSITION2;
+  secondaryDesc.dwFlags :=  DSBCAPS_GLOBALFOCUS or DSBCAPS_GETCURRENTPOSITION2 or DSBCAPS_CTRLVOLUME;
   secondaryDesc.dwBufferBytes := bytesPerBuffer;
   secondaryDesc.lpwfxFormat := @wfFormat;
     // Create the secondary buffer
@@ -615,7 +615,9 @@ begin
   if Assigned(dsw.dsw_OutputBuffer) then
     Result := dsw.dsw_OutputBuffer.SetVolume(Volume)
   else
-    Result := S_OK;  
+    Result := S_OK;
+  if Result = DSERR_CONTROLUNAVAIL then
+    raise Exception.Create('Control not available');
 end;
 
   function DSW_FlushOutputBuffer(var dsw : DSoundWrapper; BytesToLeave : Integer) : HRESULT;
