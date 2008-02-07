@@ -992,7 +992,6 @@ end;
       begin
         Stop(False);
         Thread.Terminate;
-        Stop(False);
         while Thread.Suspended do
           Thread.Resume;
         Thread.WaitFor;
