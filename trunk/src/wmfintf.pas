@@ -245,7 +245,10 @@ const
   g_wszIsVBRSupported    = WideString('_ISVBRSUPPORTED');
   {$EXTERNALSYM g_wszIsVBRSupported}
   g_wszVBREnabled         = WideString('_VBRENABLED');
+  g_wszVBRBitrateMax      = WideString('_RMAX');
+  g_wszVBRBufferWindowMax = WideString('_BMAX');
   {$EXTERNALSYM g_wszVBREnabled}
+  g_wszVBRQuality         = WideString('_VBRQUALITY');
   g_wszNumPasses = WideString('_PASSESUSED');
   {$EXTERNALSYM g_wszNumPasses}
 
@@ -1083,6 +1086,21 @@ type
     function GetLoggingUrlCount(out pdwUrlCount: LongWord): HResult; stdcall;
     // Clears the list of logging URLs
     function ResetLoggingUrlList: HResult; stdcall;
+  end;
+
+  IWMPropertyVault = interface(IUnknown)
+  ['{72995A79-5090-42a4-9C8C-D9D0B6D34BE5}']
+  (*** IWMPropertyVault methods ***)
+    function GetPropertyCount(out pdwCount: LongWord): HRESULT; stdcall;
+    function GetPropertyByName(pszName: PWideChar; out pType: TWMTAttrDataType;
+      {out} pValue: PBYTE;  var pdwSize: LongWord): HRESULT; stdcall;
+    function SetProperty(pszName: PWideChar; pType: TWMTAttrDataType;
+      pValue: PBYTE; dwSize: LongWord): HRESULT; stdcall;
+    function GetPropertyByIndex(dwIndex: LongWord; {out} pszName: PWideChar;
+      var pdwNameLen: LongWord; out pType: TWMTAttrDataType;
+      {out} pValue: PBYTE; var pdwSize: LongWord): HRESULT; stdcall;
+    function CopyPropertiesFrom(pIWMPropertyVault: IWMPropertyVault): HRESULT; stdcall;
+    function Clear: HRESULT; stdcall;
   end;
 
 
