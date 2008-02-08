@@ -46,7 +46,6 @@ type
     FillByte : Byte;
     FUnderruns, _TmpUnderruns : LongWord;
     FOnUnderrun : TUnderrunEvent;
-    FVolume : Integer;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
