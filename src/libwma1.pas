@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package v. 1.3.2
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v. 1.5
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -130,12 +130,15 @@ type
    AUDIO_128 = 4;
 
 
+   procedure lwma_enumerate_codecs(var Codecs : TStringList);
+   procedure lwma_enumerate_codec_formats(CodecIndex : LongWord; VBR : LongBool; var Formats : TStringList);
 
    procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream);
 //   function lwma_reader_has_audio(reader : Pointer) : Byte;
 //   function lwma_reader_is_protected(reader : Pointer) : Byte;
    function lwma_reader_get_duration(var sync_reader : wma_sync_reader) : LongWord;
    function lwma_reader_get_bitrate(var sync_reader : wma_sync_reader) : LongWord;
+   function lwma_reader_get_is_vbr(var sync_reader : wma_sync_reader) : LongBool;
    procedure lwma_reader_get_author(var sync_reader : wma_sync_reader; var result : WideString);
    procedure lwma_reader_get_title(var sync_reader : wma_sync_reader; var result : WideString);
    procedure lwma_reader_get_album(var sync_reader : wma_sync_reader; var result : WideString);
@@ -167,7 +170,8 @@ type
    procedure lwma_async_reader_free(var async_reader : wma_async_reader);
 
   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
-  procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; vbr : Boolean; DesiredBitrate : LongWord);
+  procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; Lossless, vbr : Boolean; DesiredBitrate : LongWord);
+  procedure lwma_writer_set_audio_properties2(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
   procedure lwma_writer_set_author(var writer : wma_writer; const value : WideString);
   procedure lwma_writer_set_title(var writer : wma_writer; const value : WideString);
   procedure lwma_writer_set_album(var writer : wma_writer; const value : WideString);
@@ -544,6 +548,7 @@ implementation
 	   sync_reader.channels := format.nChannels;
 	   sync_reader.SampleRate := format.nSamplesPerSec;
 	   sync_reader.BitsPerSample := format.wBitsPerSample;
+           sync_reader.reader.SetOutputProps(i, MediaProps);
 	 end;
 	 FreeMem(MediaType);
 	 MediaProps := nil;
@@ -616,6 +621,17 @@ implementation
      stream := 0;
      if sync_reader.HeaderInfo.GetAttributeByName(stream, g_wszWMBitrate, datatype, PByte(@Result), len) <> S_OK then
        Result:=0;
+   end;
+
+   function lwma_reader_get_is_vbr(var sync_reader : wma_sync_reader) : LongBool;
+   var
+     len, stream : Word;
+     datatype : WMT_ATTR_DATATYPE;
+   begin
+     len := 4;
+     stream := 0;
+     if sync_reader.HeaderInfo.GetAttributeByName(stream, g_wszWMIsVBR, datatype, PByte(@Result), len) <> S_OK then
+       Result:=False;
    end;
 
    procedure get_tag(var sync_reader : wma_sync_reader; name : PWideChar; var result : WideString);
@@ -694,6 +710,7 @@ implementation
      flags : LongWord;
      Output : LongWord;
      w : Word;
+     res : HResult;
    begin
      while (True) do
      begin
@@ -715,8 +732,10 @@ implementation
          sync_reader.buffer := nil;
 	 sync_reader.offset := 0;
        end;
-       if sync_reader.reader.GetNextSample(sync_reader.stream, sync_reader.buffer, time, duration, flags, Output, w) <> S_OK then
+       res := sync_reader.reader.GetNextSample(sync_reader.stream, sync_reader.buffer, time, duration, flags, Output, w);
+       if res <> S_OK then
        begin
+//         raise Exception.Create(IntToHex(Res, 8));
 	 buffer := nil;
 	 bufsize := 0;
          Exit;
@@ -925,7 +944,127 @@ implementation
     Result := True;
   end;  *)
 
-  function SeletBestConfig(pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
+  procedure lwma_enumerate_codecs(var Codecs : TStringList);
+  var
+    pProfileMgr : IWMProfileManager;
+    pCodecInfo : IWMCodecInfo2;
+    cEntries : LongWord;
+    CodecName : WideString;
+    len : LongWord;
+    i : LongWord;
+  begin
+    CoInitialize(nil);
+    WMCreateProfileManager(pProfileMgr);
+    pCodecInfo := pProfileMgr as IWMCodecInfo2;
+    pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+    for i := 0 to cEntries - 1 do
+    begin
+      pCodecInfo.GetCodecName(WMMEDIATYPE_Audio, i, nil, len);
+      len := len * 2;
+      SetLength(CodecName, len);
+      pCodecInfo.GetCodecName(WMMEDIATYPE_Audio, i, PWideChar(CodecName), len);
+      Codecs.Add(CodecName);
+    end;
+    pCodecInfo := nil;
+    pProfileMgr := nil;
+  end;
+
+  procedure lwma_enumerate_codec_formats(CodecIndex : LongWord; VBR : LongBool; var Formats : TStringList);
+  var
+    pProfileMgr : IWMProfileManager;
+    pCodecInfo : IWMCodecInfo3;
+    cEntries, cEntries2 : LongWord;
+    FormatDesc : WideString;
+    len : LongWord;
+    i : Integer;
+    Dummie : IWMStreamConfig;
+  begin
+    CoInitialize(nil);
+    WMCreateProfileManager(pProfileMgr);
+    pCodecInfo := pProfileMgr as IWMCodecInfo3;
+    pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+    if CodecIndex >= cEntries then Exit;
+    if VBR then
+       if pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@VBR), SizeOf(VBR)) <> S_OK then
+          Exit;
+    pCodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, CodecIndex, cEntries2);
+    for i := 0 to cEntries2 - 1 do
+    begin
+      pCodecInfo.GetCodecFormatDesc(WMMEDIATYPE_Audio, CodecIndex, i, Dummie, nil, len);
+      Dummie := nil;
+      len := len * 2;
+      SetLength(FormatDesc, len);
+      pCodecInfo.GetCodecFormatDesc(WMMEDIATYPE_Audio, CodecIndex, i, Dummie, PWideChar(FormatDesc), len);
+      Dummie := nil;
+      Formats.Add(FormatDesc);
+    end;
+    pCodecInfo := nil;
+    pProfileMgr := nil;
+  end;
+
+   procedure lwma_writer_set_audio_properties2(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
+   var
+     Size : LongWord;
+     cInputs, inputIndex : LongWord;
+     pProps : IWMInputMediaProps;
+     MediaType : PWMMEDIATYPE;
+     format : PWAVEFORMATEX;
+     Config : IWMStreamConfig;
+     ProfileManager : IWMProfileManager;
+     Profile : IWMProfile;
+     pCodecInfo : IWMCodecInfo3;
+     cEntries : LongWord;
+   begin
+     WMCreateProfileManager(ProfileManager);
+     ProfileManager.CreateEmptyProfile(WMT_VER_9_0, Profile);
+     pCodecInfo := ProfileManager as IWMCodecInfo3;
+     pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+     if CodecIndex >= cEntries then Exit;
+        if VBR then
+           if pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@VBR), SizeOf(VBR)) <> S_OK then
+              Exit;
+     pCodecInfo.GetCodecFormat(WMMEDIATYPE_Audio, CodecIndex, FormatIndex, Config);
+     Config.SetStreamNumber(1);
+     Config.SetStreamName('NAAudioStream');
+     Config.SetConnectionName('NAAudioConnection');
+     if Profile.AddStream(Config) <> S_OK then
+       raise exception.Create('fff');
+     writer.writer.SetProfile(Profile);
+     Config := nil;
+     Profile := nil;
+     writer.writer.GetInputCount(cInputs);
+     for inputIndex := 0 to cInputs - 1 do
+     begin
+       writer.writer.GetInputProps(inputIndex, pProps);
+       pProps.GetMediaType(nil, size);
+       GetMem(MediaType, size);
+       pProps.GetMediaType(MediaType, size);
+       if GUIDSEqual(MediaType.majortype, WMMEDIATYPE_Audio) and GUIDSEqual(MediaType.formattype, WMFORMAT_WaveFormatEx) then
+       begin
+   	 writer.input := inputIndex;
+	 format := PWAVEFORMATEX(MediaType.pbFormat);
+	 format.nChannels := channels;
+	 format.nSamplesPerSec := SampleRate;
+	 format.wBitsPerSample := BitsPerSample;
+	 format.wFormatTag := 1;
+	 format.nBlockAlign := (BitsPerSample*channels) div 8;
+	 format.nAvgBytesPerSec := SampleRate*format.nBlockAlign;
+	 writer.BytesPerSecond := format.nAvgBytesPerSec;
+	 pProps.SetMediaType(MediaType);
+	 writer.writer.SetInputProps(inputIndex, pProps);
+ 	 FreeMem(MediaType);
+	 pProps := nil;
+	 Exit;
+       end;
+       FreeMem(MediaType);
+       pProps := nil;
+     end;
+     pCodecInfo := nil;
+   end;
+
+
+
+  function SeletBestConfig(pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; Lossless : Boolean; VBR : Boolean; out ppStreamConfig : IWMStreamConfig) : Boolean;
    var
     pProfileMgr : IWMProfileManager;
     pCodecInfo : IWMCodecInfo3;
@@ -936,6 +1075,11 @@ implementation
     cbType : LongWord;
     pWave  : PWAVEFORMATEX;
     index, index2, cEntries, cEntries2, dwBestRate, dwCurRate, CurSR : LongWord;
+    ES :  LongBool;
+    Cond : Boolean;
+    res : HResult;
+    DType : WMT_ATTR_DATATYPE;
+    Q, TmpQ, Size : LongWord;
     const INVALID_INDEX = $FFFFF;
    begin
      dwCurRate := 0;
@@ -943,13 +1087,21 @@ implementation
      cEntries := 0;
      dwBestRate := 0;
      pBestMatch := nil;
+     Cond := False;
 
+     TmpQ := 0;
      WMCreateProfileManager(pProfileMgr);
      pCodecInfo := pProfileMgr as IWMCodecInfo3;
      pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+     ES := True;
      for index := 0 to  cEntries -1 do
      begin
-       pCodecInfo.GetCodecFormat(WMMEDIATYPE_Audio, index, 0, pStreamConfig);
+        if Lossless or VBR then
+        begin
+          res := pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, index, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@ES), SizeOf(ES));
+          if res  <> S_OK then Continue;
+        end;
+//       pCodecInfo.GetCodecFormat(WMMEDIATYPE_Audio, index, 0, pStreamConfig);
 //       if pStreamConfig = nil then
 //        Break;
        pCodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, Index, cEntries2);
@@ -963,10 +1115,25 @@ implementation
          GetMem(pType, cbType);
          pProps.GetMediaType(pType, cbType);
          pWave := PWAVEFORMATEX(pType.pbFormat);
-         pStreamConfig.GetBitrate(dwCurRate);
-         if Abs(dwCurRate - dwMaxRate) < Abs(dwBestRate - dwMaxRate)
-         then
+         if Lossless then
+           Cond := GUIDsEqual(pType.subtype, WMMEDIASUBTYPE_WMAudio_Lossless)
+         else
+         if VBR then
          begin
+           pCodecInfo.GetCodecFormatProp(WMMEDIATYPE_Audio, Index, Index2, g_wszVBRQuality, DType, PByte(@Q), Size);
+           if Abs(dwMaxRate - Q) < Abs(dwMaxRate - tmpQ) then
+           begin
+             tmpQ := Q;
+             Cond := True;
+           end;
+         end else
+         begin
+           pStreamConfig.GetBitrate(dwCurRate);
+           Cond := Abs(dwCurRate - dwMaxRate) < Abs(dwBestRate - dwMaxRate);
+         end;
+         if Cond then
+         begin
+           if (Lossless or VBR) and (pBestMatch = nil) then pBestMatch := pStreamConfig;
            if  (pWave.nChannels = pWaveLimits.nChannels) then
            if (pWave.wBitsPerSample = pWaveLimits.wBitsPerSample) then
            if Abs(pWave.nSamplesPerSec - pWaveLimits.nSamplesPerSec) <= Abs(CurSR - pWaveLimits.nSamplesPerSec) then
@@ -996,7 +1163,7 @@ implementation
   end;
 
 
-   procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; vbr : Boolean; DesiredBitrate : LongWord);
+   procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; Lossless, vbr : Boolean; DesiredBitrate : LongWord);
    var
      Size : LongWord;
      cInputs, inputIndex : LongWord;
@@ -1007,21 +1174,23 @@ implementation
      ProfileManager : IWMProfileManager;
      Profile : IWMProfile;
    begin
-     if DesiredBitRate < 1000 then DesiredBitRate := DesiredBitRate*1000;
+     if not VBR then
+       if DesiredBitRate < 1000 then DesiredBitRate := DesiredBitRate*1000;
      New(format);
      format.nChannels := channels;
      format.nSamplesPerSec := SampleRate;
      format.wBitsPerSample := BitsPerSample;
      format.wFormatTag := 1;
-     if not SeletBestConfig(format, DesiredBitrate, Config) then
+     if not SeletBestConfig(format, DesiredBitrate, Lossless, vbr, Config) then
        raise exception.Create('Failed to init codec');
+     Dispose(format);
      WMCreateProfileManager(ProfileManager);
      ProfileManager.CreateEmptyProfile(WMT_VER_9_0, Profile);
      Config.SetStreamNumber(1);
      Config.SetStreamName('NAAudioStream');
      Config.SetConnectionName('NAAudioConnection');
      if Profile.AddStream(Config) <> S_OK then
-     raise exception.Create('fff');
+       raise exception.Create('fff');
      writer.writer.SetProfile(Profile);
      Config := nil;
      Profile := nil;
