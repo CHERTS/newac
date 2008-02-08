@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 1.3.2
+  This file is a part of New Audio Components package v. 1.5
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -34,6 +34,7 @@ type
     function GetProtected : Boolean;
     function GetBitrate : LongWord;
     function GetId3v2Tags : TId3v2Tags;
+    function GetIsVBR : Boolean;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -46,8 +47,8 @@ type
        Read this property to determine if the input file has an audio stream.
        The False value indicates that either an audio stream is missing (in
        WMV file) or the input file is corrupt.
-       
-       Note: 
+
+       Note:
        Windows Media files may contain several audio streams. In the current
        version TWMIn reads data only from the first audio stream it finds.*)
     property HasAudio : Boolean read GetHasAudio;
@@ -62,6 +63,9 @@ type
     (* Property: Id3v2Tags
        This property contains file's tags in Id3v2 format.*)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
+    (* Property: IsVBR
+       This property's value is True if the input file is VBR-encoded and False otherwise.*)
+    property IsVBR : Boolean read GetIsVBR;
   published
     property EndSample;
     property Loop;
@@ -69,16 +73,30 @@ type
   end;
 
    (* Class: TWMAOut
-      Windows Media Audio file/stream encoder. Descends from
-      <TAuTaggedFileOut> .*)
+      Windows Media Audio file/stream encoder.
+      This component supports CBR/VBR, lossy/lossless encoding.
+      There are two mutually exclusive groups of properties affecting the output audio quality.
+      One group allows you to set output file bitrate or quaity and let the component select the most appropriate codec.
+      The other group allows you to specify the codec and format directly.
+      This component descends from  <TAuTaggedFileOut> .*)
 
   TWMAOut = class(TAuTaggedFileOut)
   private
+    FCodecs : TStringList;
+    FFormats : TStringList;
+    FCodecIndex, FFormatIndex : Integer;
     Writer : wma_writer;
     EndOfStream : Boolean;
     Buf : Pointer;
     BufSize : Integer;
     FBitrate : LongWord;
+    FLossless, FVBR : Boolean;
+    FVBRQuality : Byte;
+    function GetCodecs : TStringList;
+    function GetCodecsCount : Word;
+    function GetCodecName(Index : Word) : String;
+    function GetFormats(Index : Word) : TStringList;
+    function GetFormatsCount(Index : Word) : Word;
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -86,15 +104,70 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function: GetFormatDesc
+        This method returns a format description based on the CodecIndex and FormatIndex parameters. *)
+    function GetFormatDesc(CodecIndex, FormatIndex : Word) : String;
+    (* Property: Codecs
+        Returns the names of all the WMA codecs installed in the system. *)
+    property Codecs : TStringList read GetCodecs;
+    (* Property: CodecsCount
+        Returns the total number of the WMA codecs available in the system. *)
+    property CodecsCount : Word read GetCodecsCount;
+    (* Property: CodecIndex
+        Use this property to set the index number of the codec to use when encoding.
+        The valid values for this property range from -1 to <CodecsCount> -1.
+        If this property's value is set to -1 (the default setting), the <FormatIndex> property is ignored and
+        the codec is selected automatically by the component depending on <DesiredBitrate> and <VBRQuality> values.
+        If this property's value is greater than -1, the <DesiredBitrate> and <VBRQuality> properties are ignored and
+        CodecIndex along with <FormatIndex> specify how audio data will be encoded. Wav2WMA-2 demo uses this method. *)
+    property CodecIndex : Integer read FCodecIndex write FCodecIndex;
+    (* Property: CodecName
+        Returns the name of the WMA codec specified by its index.
+        The valid indeces range from 0 to <CodecsCount> -1. *)
+    property CodecName[Index : Word] : String read GetCodecName;
+    (* Property: FormatIndex
+        Use this property to set the index of the format to encode data.
+         The valid values range from 0 to <FormatsCount> -1.
+         This property has any effect only if <CodecIndex> is greater than -1.*)
+    property FormatIndex : Integer read FFormatIndex write FFormatIndex;
+    (* Property: Formats
+        Returns the names of all formats supported by the codec, specified by index, and the current encoding mode.
+        Note that <VBR> and <Lossless> settings affect the number of available formats.
+        For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Losless> property is set to True.
+        You shoud re-read the format related properties each time. you change either the <VBR> or the <Lossless> value.
+        See Wav2WMA2 demo for more details. *)
+    property Formats[Index : Word] : TStringList read GetFormats;
+    (* Property: FormatsCount
+        Returns the total number of formats supported by the codec, specified by its index, and the current encoding mode.
+        The valid indeces range from 0 to <CodecsCount> -1.
+        Note that <VBR> and <Lossless> settings affect the number of available formats.
+        For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Losless> property is set to True.
+        You shoud re-read the format related properties each time. you change either the <VBR> or the <Lossless> value. *)
+    property FormatsCount[index : Word] : Word read GetFormatsCount;
   published
     (* Property: Id3v2Tags
-        Set an output file's tags in Id3v2 format.*)
+        Set an output file's tags in Id3v2 format. *)
     property Id3v2Tags;
     (* Property: DesiredBitrate
-       Set the desied bitrate for an output file. The component will search
+       Set the desired bitrate for an output file (in a constant bitrate lossy mode). The component will search
        for the best configuration matching your parameters, so the actual
        bitrate may be less than this value.*)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
+    (* Property: Lossless
+       Use this property to switch between the lossless and lossy compression modes.
+       In the lossless mode the <DesiredBitrate> and <VBRQuality> values are ignored.
+       Lossless encoding is always VBR. *)
+    property Lossless : Boolean read FLossless write FLossless;
+    (* Property: VBR
+       Use this property to switch between constant bitrate and variable bitrate lossy encoding modes.
+       In VBR mode <DesiredBitrate> value is ignored. The quality of the output sound is defined by
+       the <VBRQuality> property.
+       In the lossless mode the this property's value is ignored. *)
+    property VBR : Boolean read FVBR write FVBR;
+    (* Property: VBRQuality
+       Use this property to set the output audio quality in VBR mode.
+       The valid values range from 1 to 99. This property has any efect only if <VBR> is set to True and <Lossless> to False. *)
+    property VBRQuality : Byte read FVBRQuality write FVBRQuality;
   end;
 
    (* Class: TWMStreamedIn
@@ -344,13 +417,31 @@ implementation
     Result := _Id3v2Tags;
   end;
 
+  function TWMIn.GetIsVBR;
+  begin
+    OpenFile;
+    Result := lwma_reader_get_is_vbr(reader);
+  end;
+
   constructor TWMAOut.Create;
   begin
     inherited Create(AOwner);
+    if not (csDesigning in ComponentState) then
+    begin
+      FCodecs := TStringList.Create;
+      lwma_enumerate_codecs(FCodecs);
+      FFormats := TStringList.Create;
+      FCodecIndex := -1;
+    end;
   end;
 
   destructor TWMAOut.Destroy;
   begin
+    if not (csDesigning in ComponentState) then
+    begin
+      FCodecs.Free;
+      FFormats.Free;
+    end;
     inherited Destroy;
   end;
 
@@ -361,7 +452,15 @@ implementation
     lwma_writer_init(Writer, PWideChar(FWideFileName));
     if not Writer.Initialized then
       raise Exception.Create('Cannot create file');
-    lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, true, FBitrate);
+    if FCodecIndex < 0 then
+    begin
+      if not FVBR then
+        lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FBitrate)
+      else
+        lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FVBRQuality);
+    end  
+    else
+      lwma_writer_set_audio_properties2(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FVBR or FLossless, FCodecIndex, FFormatIndex);
     BufSize := FInput.Channels*FInput.BitsPerSample*FInput.SampleRate div 100;
     GetMem(Buf, BufSize);
     if Id3v2Tags.Artist <> '' then
@@ -564,5 +663,44 @@ implementation
   begin
     Result := reader.TimedOut;
   end;
+
+  function TWMAOut.GetCodecs;
+  begin
+    Result := FCodecs;
+  end;
+
+  function TWMAOut.GetCodecsCount;
+  begin
+    Result := FCodecs.Count;
+  end;
+
+  function TWMAOut.GetCodecName;
+  begin
+    if Index < FCodecs.Count then
+      Result := FCodecs.Strings[Index];
+  end;
+
+  function TWMAOut.GetFormats;
+  begin
+    FFormats.Clear;
+    if Index < FCodecs.Count then
+      lwma_enumerate_codec_formats(Index, FVBR or FLossless, FFormats);
+    Result := FFormats;
+  end;
+
+  function TWMAOut.GetFormatsCount;
+  begin
+    GetFormats(Index);
+    Result := FFormats.Count;
+  end;
+
+  function TWMAOut.GetFormatDesc;
+  begin
+      GetFormats(CodecIndex);
+      if FormatIndex >= FFormats.Count then Result := ''
+      else
+        Result := FFormats.Strings[FormatIndex];
+  end;
+
 
 end.
