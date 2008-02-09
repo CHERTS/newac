@@ -163,7 +163,7 @@ type
     (* Property: VBR
        Use this property to switch between constant bitrate and variable bitrate lossy encoding modes.
        In VBR mode <DesiredBitrate> value is ignored. The quality of the output sound is defined by
-       the <VBRQuality> property. If you encode data by directly selecting codec and format, note that the VBR value affects <Formats> and <FormatCount> for every codec.
+       the <VBRQuality> property. If you encode data by directly selecting the codec and format, note that the VBR setting affects <Formats> and <FormatCount> values for every codec.
        In the lossless mode the this property's value is ignored. *)
     property VBR : Boolean read FVBR write FVBR;
     (* Property: VBRQuality
@@ -179,7 +179,7 @@ type
          starts downloading the file and decoding it simultaneously.
        - decode wma and mp3 audio streamed from "live" audio servers such as Internet radio servers.
 
-       You shuld assign file or stream URL to the components <Filename> property.
+       You shuld assign file or stream URL to the components <FileName> property.
 
        Important note: most links to Internet streamed media that you can find on Web sites
        point not to media itself but to wax, asx, or m3u shortcuts instead.
@@ -247,7 +247,7 @@ type
     (* Property: TimedOut
        This property indicates if some network operation has timed out.
        If the timeout has occured, the component reports the end of data.
-       You can change the time it waits before timeout in the <MaxWaitMilliseconds> property. *)
+       You can change the time the component waits before timeout in the <MaxWaitMilliseconds> property. *)
     property TimedOut : Boolean read GetTimedOut;
   published
   (* Property: BufferingTime
@@ -256,13 +256,13 @@ type
        Larger bufering time imposes some delay at the beginning of the playback, but guarantees a smoother playback later. *)
     property BufferingTime : Word read FBufferingTime write SetBufferingTime;
   (* Property: EnableHTTP
-       Use this property to enable or disable HTTP support. This property's value matters only if an URL supplied to <Filename> has no http:, mms: or rtsp: prefix. *)
+       Use this property to enable or disable HTTP support. This property's value matters only if an URL supplied to <FileName> has no http:, mms: or rtsp: prefix. *)
     property EnableHTTP : Boolean read FEnableHTTP write FEnableHTTP;
   (* Property: EnableTCP
-       Use this property to enable or disable TCP support. This property's value matters only if an URL supplied to <Filename> has no http:, mms: or rtsp: prefix. *)
+       Use this property to enable or disable TCP support. This property's value matters only if an URL supplied to <FileName> has no http:, mms: or rtsp: prefix. *)
     property EnableTCP : Boolean read FEnableTCP write FEnableTCP;
   (* Property: EnableUDP
-       Use this property to enable or disable UDP support. This property's value matters only if an URL supplied to <Filename> has no http:, mms: or rtsp: prefix. *)
+       Use this property to enable or disable UDP support. This property's value matters only if an URL supplied to <FileName> has no http:, mms: or rtsp: prefix. *)
     property EnableUDP : Boolean read FEnableUDP write FEnableUDP;
   (* Property: LoggingURL
        Use this property to set a logging URL, if you have one. Logging URLs may be obtained from wax, asx, or m3u shortcuts. *)
