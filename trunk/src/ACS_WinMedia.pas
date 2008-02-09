@@ -134,6 +134,7 @@ type
         Returns the names of all formats supported by the codec, specified by index, and the current encoding mode.
         Note that <VBR> and <Lossless> settings affect the number of available formats.
         For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Losless> property is set to True.
+        On the contraty, Windows Media Voice codec exposes only CBR formats. It will expose no formats if <VBR> or <Lossless> are set to True.
         You shoud re-read the format related properties each time. you change either the <VBR> or the <Lossless> value.
         See Wav2WMA2 demo for more details. *)
     property Formats[Index : Word] : TStringList read GetFormats;
@@ -141,6 +142,7 @@ type
         Returns the total number of formats supported by the codec, specified by its index, and the current encoding mode.
         The valid indeces range from 0 to <CodecsCount> -1.
         Note that <VBR> and <Lossless> settings affect the number of available formats.
+        On the contraty, Windows Media Voice codec exposes only CBR formats. It will expose no formats if <VBR> or <Lossless> are set to True.
         For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Losless> property is set to True.
         You shoud re-read the format related properties each time. you change either the <VBR> or the <Lossless> value. *)
     property FormatsCount[index : Word] : Word read GetFormatsCount;
@@ -161,7 +163,7 @@ type
     (* Property: VBR
        Use this property to switch between constant bitrate and variable bitrate lossy encoding modes.
        In VBR mode <DesiredBitrate> value is ignored. The quality of the output sound is defined by
-       the <VBRQuality> property.
+       the <VBRQuality> property. If you encode data by directly selecting codec and format, note that the VBR value affects <Formats> and <FormatCount> for every codec.
        In the lossless mode the this property's value is ignored. *)
     property VBR : Boolean read FVBR write FVBR;
     (* Property: VBRQuality
