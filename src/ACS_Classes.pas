@@ -20,7 +20,7 @@ uses
   Windows,
 {$ENDIF}
   Classes, SysUtils, SyncObjs,
-  ACS_Tags;
+  ACS_Types, ACS_Tags;
 
 type
 
@@ -630,6 +630,38 @@ type
     property Input : TAuInput read FInput write SetInput;
   end;
 
+  TAudioTap = class(TAuConverter)
+  private
+    FFileName : String;
+    FWideFileName : WideString;
+    FRecording, FStarting, FPaused, FStopping : Boolean;
+    function GetStatus : TOutputStatus;
+    procedure SetFileName(Value : String);
+    procedure SetWideFileName(Value : WideString);
+  protected
+    procedure StartRecordInternal; virtual; abstract;
+    procedure StopRecordInternal; virtual; abstract;
+    procedure WriteDataInternal(Buffer : Pointer; BufferLength : LongWord); virtual; abstract;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    procedure _Pause; override;
+    procedure _Resume; override;
+    procedure StartRecord;
+    procedure StopRecord;
+    procedure PauseRecord;
+    procedure ResumeRecord;
+    property Status : TOutputStatus read GetStatus;
+    property WideFileName : WideString read FWideFileName write SetWideFileName;
+  published
+    property FileName : String read FFileName write SetFileName;
+  end;
+
+
 const
 
   STREAM_BUFFER_SIZE = $80000;
@@ -677,6 +709,32 @@ type
     procedure ClearEvents(Sender : TComponent);
     procedure BlockEvents(Sender : TComponent);
     procedure UnblockEvents(Sender : TComponent);
+  end;
+
+  TCircularBuffer = class(TObject)
+  private
+    FBuffer : PBuffer8;
+    FBufSize : LongWord;
+    FWrap : Boolean;
+    FWritePtr : LongWord;
+    FReadPtr : LongWord;
+    FOverrun : Boolean;
+    FUnderrun : Boolean;
+    CS : TCriticalSection;
+  public
+    constructor Create(BufSize : LongWord);
+    destructor Destroy; override;
+    procedure Lock;
+    procedure Unlock;
+    procedure ExposeSingleBufferWrite(var Buffer : Pointer; var BufSize : LongWord);
+    procedure ExposeSingleBufferRead(var Buffer : Pointer; var BufSize : LongWord);
+    procedure ExposeDoubleBufferWrite(var Buffer1 : Pointer; var BufSize1 : LongWord; var Buffer2 : Pointer; var BufSize2 : LongWord);
+    procedure ExposeDoubleBufferRead(var Buffer1 : Pointer; var BufSize1 : LongWord; var Buffer2 : Pointer; var BufSize2 : LongWord);
+    procedure SetBytesWritten(Bytes : LongWord);
+    procedure SetBytesRead(Bytes : LongWord);
+    procedure Reset;
+    property Underrun : Boolean read FUnderrun;
+    property Overrun  : Boolean read FOverrun;
   end;
 
 procedure CreateEventHandler;
@@ -1713,6 +1771,259 @@ function TAuInput.GetTotalSamples;
 begin
   Result := 0;
 end;  
+
+function TAudioTap.GetStatus;
+begin
+  if FRecording then
+  begin
+    if not FPaused then
+      Result := tosPlaying
+    else
+      Result := tosPaused;
+ end else
+   Result := tosIdle;
+end;
+
+function TAudioTap.GetBPS;
+begin
+  Result := FInput.BitsPerSample;
+end;
+
+function TAudioTap.GetCh;
+begin
+  Result := FInput.Channels;
+end;
+
+function TAudioTap.GetSR;
+begin
+  Result := FInput.SampleRate;
+end;
+
+procedure TAudioTap.SetFileName;
+begin
+  FFileName := Value;
+  FWideFileName := Value;
+end;
+
+procedure TAudioTap.SetWideFileName;
+begin
+  FFileName := '';
+  FWideFileName := Value;
+end;
+
+procedure TAudioTap.InitInternal;
+begin
+  if not Assigned(FInput) then
+  raise EAuException.Create('Input not assigned');
+  FInput.Init;
+  Busy := True;
+  FSize := FInput.Size;
+  FPosition := 0;
+end;
+
+procedure TAudioTap.GetDataInternal;
+begin
+  FInput.GetDataInternal(Buffer, Bytes);
+  if FRecording then
+  begin
+    if (Bytes = 0) or FStopping then
+    begin
+      FRecording := False;
+      FStopping := False;
+      FPaused := False;
+      FStarting := False;
+      StopRecordInternal;
+    end else
+    begin
+      if not FPaused then
+      begin
+        WriteDataInternal(Buffer, Bytes);
+      end;
+    end;
+  end else // if FRecording then
+  begin
+    if (Bytes <> 0) and FStarting then
+    begin
+      FStarting := False;
+      FRecording := True;
+      StartRecordInternal;
+      WriteDataInternal(Buffer, Bytes);
+    end;
+  end;
+end;
+
+procedure TAudioTap.FlushInternal;
+begin
+  Finput.Flush;
+  if FRecording then
+  begin
+    FRecording := False;
+    FStopping := False;
+    FPaused := False;
+    FStarting := False;
+    StopRecordInternal;
+  end;
+  Busy := False;
+end;
+
+procedure TAudioTap._Pause;
+begin
+  FInput._Pause;
+end;
+
+procedure TAudioTap._Resume;
+begin
+  FInput._Resume;
+end;
+
+procedure TAudioTap.StartRecord;
+begin
+  if not FRecording then FStarting := True;
+end;
+
+procedure TAudioTap.PauseRecord;
+begin
+  if FRecording then FPaused := True;
+end;
+
+procedure TAudioTap.ResumeRecord;
+begin
+  FPaused := False;
+end;
+
+procedure TAudioTap.StopRecord;
+begin
+  if FRecording then FStopping := True;
+end;
+
+constructor TCircularBuffer.Create;
+begin
+  inherited Create;
+  GetMem(FBuffer, BufSize);
+  FBufSize := BufSize;
+  CS := TCriticalSection.Create;
+end;
+
+destructor TCircularBuffer.Destroy;
+begin
+  FreeMem(FBuffer);
+  CS.Free;
+  inherited Destroy;
+end;
+
+procedure TCircularBuffer.Lock;
+begin
+  CS.Enter;
+end;
+
+procedure TCircularBuffer.Unlock;
+begin
+  CS.Leave;
+end;
+
+procedure TCircularBuffer.ExposeSingleBufferWrite;
+begin
+  Buffer := @FBuffer[FWritePtr];
+  if not FWrap then
+  begin
+    BufSize := FBufSize - FWritePtr;
+    if BufSize = 0 then
+    begin
+       Buffer := @FBuffer[0];
+       BufSize := FReadPtr;
+    end;
+  end else
+  begin
+    if FReadPtr > FWritePtr then
+      BufSize := FReadPtr - FWritePtr
+    else
+      BufSize := 0;
+  end;
+end;
+
+procedure TCircularBuffer.ExposeSingleBufferRead;
+begin
+  Buffer := @FBuffer[FReadPtr];
+  if FWrap then
+  begin
+    BufSize := FBufSize - FReadPtr;
+    if BufSize = 0 then
+    begin
+      Buffer := @FBuffer[0];
+      BufSize := FWritePtr;
+    end;
+  end else
+  begin
+    if FWritePtr > FReadPtr then
+      BufSize := FWritePtr - FReadPtr
+    else
+      BufSize := 0;
+  end;
+end;
+
+procedure TCircularBuffer.ExposeDoubleBufferWrite;
+begin
+  Buffer1 := @FBuffer[FWritePtr];
+  if FWritePtr >= FReadPtr then
+  begin
+     BufSize1 := FBufSize - FWritePtr;
+     Buffer2 := @FBuffer[0];
+     BufSize2 := FReadPtr;
+  end else
+  begin
+    BufSize1 := FReadPtr - FWritePtr;
+    Buffer2 := nil;
+    BufSize2 := 0;
+  end;
+end;
+
+procedure TCircularBuffer.ExposeDoubleBufferRead;
+begin
+  Buffer1 := @FBuffer[FReadPtr];
+  if FWritePtr >= FReadPtr then
+  begin
+     BufSize1 := FWritePtr - FReadPtr;
+     Buffer2 := nil;
+     BufSize2 := 0;
+  end else
+  begin
+    BufSize1 := FBufSize - FReadPtr;
+    Buffer2 := @FBuffer[0];
+    BufSize2 := FWritePtr;
+  end;
+end;
+
+procedure TCircularBuffer.SetBytesWritten;
+begin
+  if FWritePtr = FBufSize then
+  begin
+    FWrap := True;
+    FWritePtr := 0;
+  end;
+  Inc(FWritePtr, Bytes);
+  if FWrap = (FWritePtr > FReadPtr) then FOverrun := True
+  else FOverrun := False;
+end;
+
+
+procedure TCircularBuffer.SetBytesRead;
+begin
+  if FReadPtr = FBufSize then
+  begin
+    FWrap := False;
+    FReadPtr := 0;
+  end;
+  Inc(FReadPtr, Bytes);
+  if FWrap = (FWritePtr > FReadPtr) then FUnderrun := True
+  else FOverrun := False;
+end;
+
+procedure TCircularBuffer.Reset;
+begin
+  FReadPtr := 0;
+  FWritePtr := 0;
+  FWrap := False;
+end;
 
 initialization
 
