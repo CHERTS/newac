@@ -28,7 +28,7 @@ type
   TOverrunEvent = procedure(Sender : TComponent) of object;
 
   (* Class: TDXAudioOut
-      Performs audio output using the DirectX API.
+      Performs audio playback using the DirectX API.
       Descends from <TAuOutput>. *)
 
   TDXAudioOut = class(TAuOutput)
@@ -97,7 +97,7 @@ type
   end;
 
   (* Class: TDXAudioIn
-      Performs audio recording using the DirectX API.
+      Performs audio recording from a sound card using the DirectX API.
       Descends from <TAuInput>. *)
 
   TDXAudioIn = class(TAuInput)
