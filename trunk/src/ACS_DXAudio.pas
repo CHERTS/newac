@@ -241,7 +241,7 @@ end;
 
 function TDXAudioOut.DoOutput;
 var
-  Len, lb : LongWord;
+  Len, lb, counter : LongWord;
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
 begin
@@ -281,10 +281,19 @@ begin
     Result := False;
     Exit;
   end;
+  counter := 0;
   repeat
     Sleep(DS_POLLING_INTERVAL);
     DSW_QueryOutputSpace(DSW, lb);
     lb := lb - (lb mod DSW.dsw_BytesPerFrame);
+    Inc(counter);
+    if counter > 16 then
+    begin
+      DSW_StopOutput(DSW);
+      StartInput := True;
+      Result := True;
+      Exit;
+    end;
   until lb <> 0;
   Len := FInput.FillBuffer(Buf, _Min(lb, _BufSize), EndOfInput);
   DSW_WriteBlock(DSW, @Buf[0], Len);
