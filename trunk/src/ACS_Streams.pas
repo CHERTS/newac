@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.4
+  This file is a part of New Audio Components package v 1.5
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -105,7 +105,6 @@ var
   Len : LongWord;
   P : Pointer;
 begin
-  // No exceptions Here
   Result := True;
   if not Busy then Exit;
   if Abort or (not CanOutput) then
@@ -113,7 +112,6 @@ begin
     Result := False;
     Exit;
   end;
-  GetMem(P, OUTBUF_SIZE);
   Len := OUTBUF_SIZE;
   Finput.GetData(P, Len);
   if Len > 0 then
@@ -122,7 +120,6 @@ begin
     FStream.WriteBuffer(P^, Len);
   end
   else Result := False;
-  FreeMem(P);
 end;
 
 constructor TStreamOut.Create;
