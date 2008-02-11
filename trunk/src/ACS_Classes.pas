@@ -630,15 +630,21 @@ type
     property Input : TAuInput read FInput write SetInput;
   end;
 
+ (* Class: TAudioTap
+      Descends from <TAuConverter>.
+      This is the base class for all "audio tap components". Technically audio taps are converters as they sit between input
+      and output components in the audio-processing chain. But audio taps do not modify audio data passing trough them.
+      Instead they write everithing passing through into some audio file. *)
+
   TAudioTap = class(TAuConverter)
   private
-    FFileName : String;
-    FWideFileName : WideString;
-    FRecording, FStarting, FPaused, FStopping : Boolean;
     function GetStatus : TOutputStatus;
     procedure SetFileName(Value : String);
     procedure SetWideFileName(Value : WideString);
   protected
+    FFileName : String;
+    FWideFileName : WideString;
+    FRecording, FStarting, FPaused, FStopping : Boolean;
     procedure StartRecordInternal; virtual; abstract;
     procedure StopRecordInternal; virtual; abstract;
     procedure WriteDataInternal(Buffer : Pointer; BufferLength : LongWord); virtual; abstract;
@@ -651,13 +657,31 @@ type
   public
     procedure _Pause; override;
     procedure _Resume; override;
+    (* Procedure: StartRecord
+       Call this method to start recording audio date passing through an audio tap. *)
     procedure StartRecord;
+    (* Procedure: StopRecord
+       Call this method to stop recording. *)
     procedure StopRecord;
+    (* Procedure: PauseRecord
+       Call this method to pause recording. *)
     procedure PauseRecord;
+    (* Procedure: ResumeRecord
+       Call this method to resume paused recording. *)
     procedure ResumeRecord;
+    (* Property: Status
+       Read this property to get the component status.
+       The possible values are tosIdle (the component passes data through without recording),
+       tosPlaying (the component records data) and tpsPaused. *)
     property Status : TOutputStatus read GetStatus;
+    (* Property: WideFileName
+       Use this proeprty to set og get the file name the data is written to in Unicode charset.
+       The value assigned to this prperty overrides <FileName> *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
+    (* Property: FileName
+       Use this proeprty to set og get the file name the data is written to in 8-bit charset.
+       The value assigned to this prperty overrides <WideFileName> *)
     property FileName : String read FFileName write SetFileName;
   end;
 
@@ -1868,12 +1892,14 @@ end;
 
 procedure TAudioTap._Pause;
 begin
-  FInput._Pause;
+ if FRecording then PauseRecord;
+ FInput._Pause;
 end;
 
 procedure TAudioTap._Resume;
 begin
   FInput._Resume;
+  if FRecording then ResumeRecord;
 end;
 
 procedure TAudioTap.StartRecord;
