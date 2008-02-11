@@ -1,6 +1,6 @@
 (*
   This file is a part of New Audio Components package v. 1.5
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -171,6 +171,53 @@ type
        The valid values range from 1 to 99. This property has any efect only if <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
   end;
+
+
+  (* Class: TWMATap
+      Descends from <TAudioTap>.
+      Thi is one of the "audio tap" components that sit betweeen input and output in the audio chain and optionally record
+      the audio data passing through them into a file. This component records data into WMA file. *)
+
+  TWMATap = class(TAudioTap)
+  private
+    FTags : TId3v2Tags;
+    FBitrate : LongWord;
+    FLossless, FVBR : Boolean;
+    FVBRQuality : Byte;
+    Writer : wma_writer;
+    procedure SetId3v2Tags(Value: TId3v2Tags);
+  protected
+    procedure StartRecordInternal; override;
+    procedure StopRecordInternal; override;
+    procedure WriteDataInternal(Buffer : Pointer; BufferLength : LongWord); override;
+  public
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+  published
+    (* Property: Id3v2Tags
+        Set an output file's tags in Id3v2 format. *)
+    property Id3v2Tags : TId3v2Tags read FTags write SetId3v2Tags;
+    (* Property: DesiredBitrate
+       Set the desired bitrate for an output file (in a constant bitrate lossy mode). The component will search
+       for the best configuration matching your parameters, so the actual
+       bitrate may be less than this value.*)
+    property DesiredBitrate : LongWord read FBitrate write FBitrate;
+    (* Property: Lossless
+       Use this property to switch between the lossless and lossy compression modes.
+       In the lossless mode the <DesiredBitrate> and <VBRQuality> values are ignored.
+       Lossless encoding is always VBR. *)
+    property Lossless : Boolean read FLossless write FLossless;
+    (* Property: VBR
+       Use this property to switch between constant bitrate and variable bitrate lossy encoding modes.
+       In VBR mode <DesiredBitrate> value is ignored. The quality of the output sound is defined by
+       the <VBRQuality> property. *)
+    property VBR : Boolean read FVBR write FVBR;
+    (* Property: VBRQuality
+       Use this property to set the output audio quality in VBR mode.
+       The valid values range from 1 to 99. This property has any efect only if <VBR> is set to True and <Lossless> to False. *)
+    property VBRQuality : Byte read FVBRQuality write FVBRQuality;
+  end;
+
 
    (* Class: TWMStreamedIn
       Streamable WMA/MP3 decoder component. This component can do three things:
@@ -433,8 +480,8 @@ implementation
       FCodecs := TStringList.Create;
       lwma_enumerate_codecs(FCodecs);
       FFormats := TStringList.Create;
-      FCodecIndex := -1;
     end;
+    FCodecIndex := -1;
   end;
 
   destructor TWMAOut.Destroy;
@@ -460,7 +507,7 @@ implementation
         lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FBitrate)
       else
         lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FVBRQuality);
-    end  
+    end
     else
       lwma_writer_set_audio_properties2(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FVBR or FLossless, FCodecIndex, FFormatIndex);
     BufSize := FInput.Channels*FInput.BitsPerSample*FInput.SampleRate div 100;
@@ -502,6 +549,7 @@ implementation
   begin
     FInput.Flush;
     lwma_writer_free(Writer);
+    FreeMem(Buf);
   end;
 
 
@@ -704,5 +752,58 @@ implementation
         Result := FFormats.Strings[FormatIndex];
   end;
 
+  constructor TWMATap.Create;
+  begin
+    inherited Create(AOwner);
+    FTags := TId3v2Tags.Create;
+  end;
+
+  destructor TWMATap.Destroy;
+  begin
+    FTags.Free;
+    inherited Destroy;
+  end;
+
+  procedure TWMATap.SetId3v2Tags(Value: TId3v2Tags);
+  begin
+    FTags.Assign(Value);
+  end;
+
+  procedure TWMATap.StartRecordInternal;
+  begin
+    if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
+    lwma_writer_init(Writer, PWideChar(FWideFileName));
+    if not Writer.Initialized then
+      raise Exception.Create('Cannot create file');
+      if not FVBR then
+        lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FBitrate)
+      else
+        lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FVBRQuality);
+    if FTags.Artist <> '' then
+      lwma_writer_set_author(Writer, FTags.Artist);
+    if FTags.Album <> '' then
+      lwma_writer_set_album(Writer, FTags.Album);
+    if FTags.Genre <> '' then
+      lwma_writer_set_genre(Writer, FTags.Genre);
+    if FTags.Year <> '' then
+      lwma_writer_set_year(Writer, FTags.Year);
+    if FTags.Track <> '' then
+      lwma_writer_set_track(Writer, FTags.Track);
+    if FTags.Title <> '' then
+      lwma_writer_set_title(Writer, Id3v2Tags.Title);
+    if FTags.Comment <> '' then
+      lwma_writer_set_copyright(Writer, FTags.Comment);
+    lwma_writer_begin(Writer);
+  end;
+
+  procedure TWMATap.StopRecordInternal;
+  begin
+    lwma_writer_free(Writer);
+  end;
+
+  procedure TWMATap.WriteDataInternal;
+  begin
+    lwma_writer_write(Writer, Buffer, BufferLength);
+  end;
 
 end.
