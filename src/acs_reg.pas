@@ -20,7 +20,7 @@ begin
   TCDPlayer, TCDIn, TWMStreamedIn,
   TInputList, TMemoryIn, TVorbisIn, TVorbisOut,
   TWaveIn, TWaveOut, TMP3In, TMP3Out, TMACIn, TMACOut, TStreamIn, TStreamOut, TFLACIn, TFLACOut, TWVIn, TWVOut, TWMIn,
-  TWMAOut, TTTAIn, TTTAOut, TOFRIn, TNULLOut]);
+  TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TNULLOut]);
   RegisterComponents('Audio Processing', [TAudioMixer, TAudioConverter, TACMConverter,
   TRateConverter, TMSConverter, TAudioProcessor, TBWFilter, TSincFilter, TStereoBalance, TConvolver, TResampler, TAudioPass]);
 
