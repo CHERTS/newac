@@ -283,6 +283,22 @@ type
     property FileMode;
   end;
 
+    (* Class: TWaveTap
+      Descends from <TAudioTap>.
+      Thi is one of the "audio tap" components that sit betweeen input and output in the audio chain and optionally record
+      the audio data passing through them into a file. This component records data into wav file using PCM encoding. *)
+
+  TWaveTap = class(TAudioTap)
+  private
+    FStream : TAuFileStream;
+    BytesCounter : LongWord;
+    procedure FillHeaderPCM(var Header : TWaveHeader);
+  protected
+    procedure StartRecordInternal; override;
+    procedure StopRecordInternal; override;
+    procedure WriteDataInternal(Buffer : Pointer; BufferLength : LongWord); override;
+  end;
+
 implementation
 
 const
@@ -1749,5 +1765,48 @@ end;
     if BS <> 0 then
     if (BS mod 4) = 0 then FBlockAlign := BS;
   end;
+
+  procedure TWaveTap.FillHeaderPCM(var Header : TWaveHeader);
+  begin
+    Header.RIFF := 'RIFF';
+    Header.RIFFType := 'WAVE';
+    Header.FmtChunkId := 'fmt ';
+    Header.FmtChunkSize := 16;
+    Header.FormatTag := WAVE_FORMAT_PCM;
+    Header.Channels := FInput.Channels;
+    Header.SampleRate := FInput.SampleRate;
+    Header.BitsPerSample := FInput.BitsPerSample;
+    Header.BlockAlign := (Header.BitsPerSample * Header.Channels) shr 3;
+    Header.BytesPerSecond := Header.SampleRate * Header.BlockAlign;
+    Header.DataChunkId := 'data';
+  end;
+
+
+  procedure TWaveTap.StartRecordInternal;
+  var
+    Header : TWaveHeader;
+  begin
+    if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
+    FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive);
+    BytesCounter := 0;
+    FillHeaderPCM(Header);
+    FStream.Write(Header, SizeOf(Header));
+  end;
+
+  procedure TWaveTap.StopRecordInternal;
+  begin
+    FStream.Seek(DataSizeOffs, soFromBeginning);
+    FStream.Write(BytesCounter, 4);
+    Inc(BytesCounter, 36);
+    FStream.Seek(4, soFromBeginning);
+    FStream.Write(BytesCounter, 4);
+    FStream.Free;
+  end;
+
+  procedure TWaveTap.WriteDataInternal;
+  begin
+    Inc(BytesCounter, BufferLength);
+    FStream.Write(Buffer^, BufferLength);
+  end;  
 
 end.
