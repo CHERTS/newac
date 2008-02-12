@@ -89,7 +89,7 @@ type
     (* Property: Id3v1Tags
          This property allows you to set the file tags in Id3v1Tags format. *)
     property Id3v1Tags;
-    (* Property: Id3v2Tags
+  (*   Property: Id3v2Tags
          This property allows you to set the file tags in Id3v2Tags format. *)
     property Id3v2Tags;
   end;
@@ -449,7 +449,6 @@ begin
     0);
   if FFile = INVALID_HANDLE_VALUE then
     raise EAuException.Create(error[FStreamAssigned]);
-
   FInput.Init();
   try
     if FInput.BitsPerSample < 32 then begin
@@ -492,8 +491,8 @@ begin
     try
       if not ID3v1Tags.Empty then
         ID3v1Tags.WriteToFile(FFile);
-      if not Id3v2Tags.Empty then
-        Id3v2Tags.WriteToFile(FFile, False);
+//      if not Id3v2Tags.Empty then
+//        Id3v2Tags.WriteToFile(FFile, False);
 
       if FStreamAssigned then begin
         size := GetFileSize(FFile, nil);
