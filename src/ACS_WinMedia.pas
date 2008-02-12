@@ -76,7 +76,7 @@ type
       Windows Media Audio file/stream encoder.
       This component supports CBR/VBR, lossy/lossless encoding.
       There are two mutually exclusive groups of properties affecting the output audio quality.
-      One group allows you to set output file bitrate or quaity and let the component select the most appropriate codec.
+      One group allows you to set output file bitrate or quality and let the component select the most appropriate codec.
       The other group allows you to specify the codec and format directly.
       This component descends from  <TAuTaggedFileOut> .*)
 
@@ -121,7 +121,7 @@ type
         If this property's value is greater than -1, the <DesiredBitrate> and <VBRQuality> properties are ignored and
         CodecIndex along with <FormatIndex> specify how audio data will be encoded. Wav2WMA-2 demo uses this method. *)
     property CodecIndex : Integer read FCodecIndex write FCodecIndex;
-    (* Property: CodecName
+    (* Property: CodecName[Index : Word]
         Returns the name of the WMA codec specified by its index.
         The valid indeces range from 0 to <CodecsCount> -1. *)
     property CodecName[Index : Word] : String read GetCodecName;
@@ -130,12 +130,12 @@ type
          The valid values range from 0 to <FormatsCount> -1.
          This property has any effect only if <CodecIndex> is greater than -1.*)
     property FormatIndex : Integer read FFormatIndex write FFormatIndex;
-    (* Property: Formats
-        Returns the names of all formats supported by the codec, specified by index, and the current encoding mode.
+    (* Property: Formats[Index : Word]
+        Returns the names of all formats supported by the codec, specified by the Index and the current encoding mode.
         Note that <VBR> and <Lossless> settings affect the number of available formats.
-        For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Losless> property is set to True.
+        For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Lossless> property is set to True.
         On the contraty, Windows Media Voice codec exposes only CBR formats. It will expose no formats if <VBR> or <Lossless> are set to True.
-        You shoud re-read the format related properties each time. you change either the <VBR> or the <Lossless> value.
+        You shoud re-read the format related properties each time you change either the <VBR> or the <Lossless> value.
         See Wav2WMA2 demo for more details. *)
     property Formats[Index : Word] : TStringList read GetFormats;
     (* Property: FormatsCount
@@ -151,7 +151,7 @@ type
         Set an output file's tags in Id3v2 format. *)
     property Id3v2Tags;
     (* Property: DesiredBitrate
-       Set the desired bitrate for an output file (in a constant bitrate lossy mode). The component will search
+       Set the desired bitrate for an output file (in the constant bitrate lossy mode). The component will search
        for the best configuration matching your parameters, so the actual
        bitrate may be less than this value.*)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
@@ -168,15 +168,15 @@ type
     property VBR : Boolean read FVBR write FVBR;
     (* Property: VBRQuality
        Use this property to set the output audio quality in VBR mode.
-       The valid values range from 1 to 99. This property has any efect only if <VBR> is set to True and <Lossless> to False. *)
+       The valid values range from 1 to 99. This property has any effect only if <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
   end;
 
 
   (* Class: TWMATap
       Descends from <TAudioTap>.
-      Thi is one of the "audio tap" components that sit betweeen input and output in the audio chain and optionally record
-      the audio data passing through them into a file. This component records data into WMA file. *)
+      This is one of the "audio tap" components that sit between input and output in the audio chain and optionally record
+      the audio data passing through them into a file. This component records data into WMA files. *)
 
   TWMATap = class(TAudioTap)
   private
@@ -198,7 +198,7 @@ type
         Set an output file's tags in Id3v2 format. *)
     property Id3v2Tags : TId3v2Tags read FTags write SetId3v2Tags;
     (* Property: DesiredBitrate
-       Set the desired bitrate for an output file (in a constant bitrate lossy mode). The component will search
+       Set the desired bitrate for an output file (in the constant bitrate lossy mode). The component will search
        for the best configuration matching your parameters, so the actual
        bitrate may be less than this value.*)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
@@ -214,7 +214,7 @@ type
     property VBR : Boolean read FVBR write FVBR;
     (* Property: VBRQuality
        Use this property to set the output audio quality in VBR mode.
-       The valid values range from 1 to 99. This property has any efect only if <VBR> is set to True and <Lossless> to False. *)
+       The valid values range from 1 to 99. This property has any effect only if <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
   end;
 
