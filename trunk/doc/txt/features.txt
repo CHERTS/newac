@@ -1,6 +1,6 @@
 Title: Main NewAC Features List
 
-Section: Geeral Features
+Section: General Features
 
 With NewAC Delphi components package components you can:
 
