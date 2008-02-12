@@ -59,7 +59,7 @@ uses
  *
  *  Copyright (c) Microsoft Corporation.  All rights reserved.
  *
- *  File:       dsound.h
+ *  file dsound.h
  *  Content:    DirectSound include file
  *
  **************************************************************************)
