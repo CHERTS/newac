@@ -289,9 +289,10 @@ begin
     Inc(counter);
     if counter > 16 then
     begin
-      DSW_StopOutput(DSW);
-      StartInput := True;
-      Result := True;
+      FExceptionMessage := 'Audio output error';
+      if Assigned(FOnThreadException) then
+        EventHandler.PostGenericEvent(Self, FOnThreadException);
+      Result := False;
       Exit;
     end;
   until lb <> 0;
