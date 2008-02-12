@@ -91,7 +91,7 @@ Topic: Basic Operation
 
 The New Audio Components package is a set of components designed to handle different sound processing tasks, such as reading and storing data in different audio formats, working with sound hardware, audio streams mixing and so on.
 
-Most of the components in the New Audio Components package belong to one of three categories: input components, output components, converter components. There are also two components that do not fit into this scheme. These are TCDPlayer component and TMixer component.
+Most of the components in the New Audio Components package belong to one of three categories: input components, output components, converter components.
 
 The input components acquire audio input from some source (device, disk file, etc.) and convert it into a digital audio stream which is the internal audio representation in NewAC. The output components take in the digital audio produced by input components and send it to some audio output device or store it on disk in a specified audio file format. Converter components perform different operations on audio streams. These components take in a digital audio stream and output a stream which is modified according to the function of the component. The following diagram illustrates the flow of audio data in the NewAC processing chain.
 
@@ -101,7 +101,9 @@ All components are linked via their Input properties. Arrows show connections be
 
 The converter component is not a necessary element in this chain. In many cases you will just connect input and output components together to convert data from one format to the other or to perform I/O with some particular device. As you can see NewAC isn't just a collection of components implementing interfaces to some hardware or file formats. It is rather a set of building blocks with which you can construct a complete sound-processing application.
 
-The driving force of this sound processing chain is an output component. Output components use internal thread objects that call data-retrieving functions of the input/converter components attached to the output component. Note that NewAC provides you with several ways to set the amount of CPU time consumed by these threads: TheradPriority, Delay, and SuspendWhenIdle properties. You can use this features to set the best performance/CPU usage ratio in your NewAC applications.
+Note that an audio processing chain may have more than one input (if you use the TAudioMixer component) and more than one output (if you use TAudioPass or TAudioTap-descending components).
+
+The driving force of this sound processing chain is an output component. Output components use internal thread objects that call data-retrieving functions of the input/converter components attached to the output component. Note that NewAC provides you with several ways to set the amount of CPU time consumed by these threads: TheradPriority and Delay properties. You can use this features to set the best performance/CPU usage ratio in your NewAC applications.
 
 Topic: Ripping a CD to OGG
 
