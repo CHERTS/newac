@@ -2,8 +2,8 @@
 {*                                                                            *}
 {*  Copyright (C) Microsoft Corporation.  All Rights Reserved.                *}
 {*                                                                            *}
-{*  Files:      dxsdkver.h, extracts from various DirectX SDK include files   *}
-{*  Content:    DirectX 9.0 headers common types                              *}
+{*  files  dxsdkver.h, extracts from various DirectX SDK include files   *}
+{*  DirectX 9.0 headers common types                              *}
 {*                                                                            *}
 {*  DirectX 9.0 Delphi / FreePascal adaptation by Alexey Barkovoy             *}
 {*  E-Mail: directx@clootie.ru                                                *}
