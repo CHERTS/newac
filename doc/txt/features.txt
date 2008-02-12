@@ -1,0 +1,32 @@
+Title: Main NewAC Features List
+
+Section: Geeral Features
+
+With NewAC Delphi components package components you can:
+
+- Play audio using your sound card.
+- Record audio from your sound card.
+- Acquire audio data from live Internet audio streams (WMA, MP3).
+- Rip audio CDs
+- Convert audio from one format to another.
+- Mix and concatenate audio data from several sources.
+- Change audio streams sample rate, number of bits per sample and number of channels.
+- Select parts of audio files for further manipulation.
+- Read and store audio in TStream classes, including TMemoryStream.
+
+Section: Supported Audio Formats
+
+- Wav - reading, writing (PCM, MS ADPCM, IMA DVI ADPCM encodings). You can add audio data to already existing Wav files.
+- MP3 - decoding with Windows Media decoder, reading tags, encoding with LAME.
+- Ogg Vorbis - decoding, encoding, writing/reading tags (comments), several bitstreams support. You can add audio data to already existing Ogg Vorbis files.
+- FLAC - decoding, encoding, writing/reading tags (comments)
+- WMA, including WMA lossless, – decoding, encoding, editing tags.
+- Monkey’s Audio - decoding, encoding.
+- TTA - decoding, encoding, editing tags.
+- WavPack - decoding, encoding, editing tags.
+- OptimFrog – decoding.
+
+Section: Additional Features
+
+- 24-bit sound support
+- Unicode support Unicode file names and Unicode tags are support.
