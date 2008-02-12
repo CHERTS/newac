@@ -612,7 +612,9 @@ type
   end;
 
    (* Class: TAuConverter
-      Descends from <TAuInput>, the base class for all converter components. *)
+      Descends from <TAuInput>, the base class for all converter components.
+      Converters are laced between input and output in the audio-processing chain.
+      See NewAC Introduction for more information on the converters. *)
 
   TAuConverter = class(TAuInput)
   protected
@@ -625,8 +627,8 @@ type
     procedure _Resume; override;
   published
     (* Property: Input
-       Like the output components converters can be assigned an input.
-       Unlike the output components converters themselves can be input sources (for output components and other converters. *)
+       Like the output components, converters can be assigned an input.
+       Unlike the output components converters themselves can be input sources (for output components and other converters). *)
     property Input : TAuInput read FInput write SetInput;
   end;
 
@@ -634,7 +636,9 @@ type
       Descends from <TAuConverter>.
       This is the base class for all "audio tap components". Technically audio taps are converters as they sit between input
       and output components in the audio-processing chain. But audio taps do not modify audio data passing trough them.
-      Instead they write everithing passing through into some audio file. *)
+      Instead they write everithing passing through into some audio file.
+
+      The main goal of audio tap components is to make the audio-processing chain to perform several tasks at once: record while you listen, save data at several formats simultaneously, etc. *)
 
   TAudioTap = class(TAuConverter)
   private
@@ -658,7 +662,7 @@ type
     procedure _Pause; override;
     procedure _Resume; override;
     (* Procedure: StartRecord
-       Call this method to start recording audio date passing through an audio tap. *)
+       Call this method to start recording audio data passing through an audio tap. *)
     procedure StartRecord;
     (* Procedure: StopRecord
        Call this method to stop recording. *)
@@ -675,12 +679,12 @@ type
        tosPlaying (the component records data) and tpsPaused. *)
     property Status : TOutputStatus read GetStatus;
     (* Property: WideFileName
-       Use this proeprty to set og get the file name the data is written to in Unicode charset.
+       Use this proeprty to set or get the file name the data is written to in Unicode charset.
        The value assigned to this prperty overrides <FileName> *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     (* Property: FileName
-       Use this proeprty to set og get the file name the data is written to in 8-bit charset.
+       Use this proeprty to set or get the file name the data is written to in 8-bit charset.
        The value assigned to this prperty overrides <WideFileName> *)
     property FileName : String read FFileName write SetFileName;
   end;
