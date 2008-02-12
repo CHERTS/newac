@@ -13,7 +13,7 @@ unit ACS_OptimFROG;
 
 (* $Id$ *)
 
-(* Title: OptimFROG;
+(* Title: ACS_OptimFROG
     OptimFROG decoder component
     Requires OptimFROG.dll TTALib.dll. *)
 
