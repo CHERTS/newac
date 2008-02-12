@@ -60,6 +60,7 @@ type
     procedure RecordButtonClick(Sender: TObject);
     procedure PauseRecordButtonClick(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
+    procedure DXAudioOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
     SL : TStringList;
@@ -109,7 +110,8 @@ procedure TForm1.AudioOut1Done(Sender: TComponent);
 begin
    BitBtn1.Enabled := True;
    ProgressBar1.Position := 0;
-   StatusBar1.Panels[0].Text := DXAudioOut1.ExceptionMessage;
+   if DXAudioOut1.ExceptionMessage = '' then
+     Label14.Caption := 'Ready';
 end;
 
 procedure TForm1.BitBtn2Click(Sender: TObject);
@@ -131,7 +133,6 @@ end;
 procedure TForm1.BitBtn3Click(Sender: TObject);
 begin
   DXAudioOut1.Stop;
-  Label14.Caption := 'Ready';
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -211,6 +212,11 @@ end;
 procedure TForm1.TrackBar1Change(Sender: TObject);
 begin
   DXAudioOut1.Volume := TrackBar1.Position;
+end;
+
+procedure TForm1.DXAudioOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels.Items[0].Text := DXAudioOut1.ExceptionMessage; 
 end;
 
 end.
