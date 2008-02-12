@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 539
-  Top = 393
+  Left = 540
+  Top = 394
   Width = 461
   Height = 243
   Caption = 'RadioRecorder'
@@ -330,9 +330,9 @@ object Form1: TForm1
     Width = 161
     Height = 24
     Max = 0
-    Min = -2000
+    Min = -4000
     Orientation = trHorizontal
-    Frequency = 1
+    Frequency = 4
     Position = 0
     SelEnd = 0
     SelStart = 0
@@ -359,6 +359,7 @@ object Form1: TForm1
     Input = WMATap1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
+    OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
     OnUnderrun = DXAudioOut1Underrun
     Left = 72
