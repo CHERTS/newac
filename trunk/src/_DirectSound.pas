@@ -1,8 +1,9 @@
+(* Title: _DXTypes *)
+
 {******************************************************************************}
 {*                                                                            *}
 {*  Copyright (C) Microsoft Corporation.  All Rights Reserved.                *}
 {*                                                                            *}
-{*  Files:      dsound.h                                                      *}
 {*  Content:    DirectSound include file                                      *}
 {*                                                                            *}
 {*  DirectX 9.0 Delphi / FreePascal adaptation by Alexey Barkovoy             *}
