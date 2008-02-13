@@ -1,11 +1,11 @@
 (*
-  This file is a part of New Audio Components package v 1.2
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 1.6
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.4 $ $Date: 2007/09/04 17:03:11 $ *)
+(* $Id$ *)
 
 unit ACS_Misc;
 
@@ -43,34 +43,53 @@ type
 
   TGetDataEvent = procedure(Sender : TComponent; var Buffer : Pointer; var Bytes : LongWord) of object;
 
+  (* Class: TMemoryIn
+    This component reads audio data from a memory block that you provide.
+    It is analogous to TStreamIn when reading from TMemoryStream, with only diference that
+    a pointer to a memory block is used instead of a TMemoryStream object. *)
+
   TMemoryIn = class(TAuInput)
   private
     FBuffer : PBuffer;
-    FDataSize : Integer;
-    FOnBufferDone : TOnBufferDone;
+    FDataSize : Int64;
     Busy : Boolean;
     BufStart, BufEnd : LongWord;
     FBPS, FSR, FChan : LongWord;
+    FRepeatCount : LongWord;
     function GetBuffer : Pointer;
     procedure SetBuffer(v : Pointer);
   protected
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    (* Property: DataBuffer
+      Use this property to assign a pointer pointing to a data block, audio data will be read from.
+      The data block IS NOT created by this component. You create it and fill it with data.
+      The memory block pointed to by DataBuffer should be <DataSize> in length. *)
     property DataBuffer : Pointer read GetBuffer write SetBuffer;
-    property DataSize : Integer read FDataSize write FDataSize;
+    (* Property: DataSize
+      Use this property to set the size of the <DataBuffer> in bytes. *)
+    property DataSize : Int64 read FDataSize write FDataSize;
   published
-    property GlobalSize : Int64 read FSize write FSize;
+    (* Property: InBitsPerSample
+      Use this property to tell the component the number of bits per sample for the audio data stored in the <AudioBuffer>. *)
     property InBitsPerSample : LongWord read GetBPS write FBPS;
+    (* Property: InChannels
+      Use this property to tell the component the number of channels for the audio data stored in the <AudioBuffer>. *)
     property InChannels : LongWord read GetCh write FChan;
+    (* Property: InSampleRate
+      Use this property to tell the component the sample rate of the audio data stored in the <AudioBuffer>. *)
     property InSampleRate : LongWord read GetSR write FSR;
-    property OnBufferDone : TOnBufferDone read FOnBufferDone write FOnBufferDone;
+    (* Property: RepeatCount
+      Use this property to tell the component how many times the contents of the <AudioBuffer> should be replayed before the component reports the end of data.
+      The default value for this property is 1. *)
+    property RepeatCount : LongWord read FRepeatCount write FRepeatCount;
   end;
 
   TAudioProcessor = class(TAuConverter)
@@ -205,7 +224,7 @@ var
   constructor TMemoryIn.Create;
   begin
     inherited Create(AOwner);
-    FSize := -1;
+    FRepeatCount := 1;
   end;
 
   destructor TMemoryIn.Destroy;
@@ -235,7 +254,8 @@ var
   begin
     FPosition := 0;
     BufEnd := FDataSize;
-    BufStart := 1;
+    BufStart := 0;
+    FSize := FDataSize*FRepeatCount;
     Busy := True;
   end;
 
@@ -254,33 +274,21 @@ var
       Buffer := nil;
       Exit;
     end;
-    if BufStart > BufEnd then
+    if BufStart >= BufEnd then
     begin
-      BufStart := 1;
-      if FDataSize = 0 then
-      begin
-        if Assigned(FOnBufferDone) then FOnBufferDone(Self)
-        else
-        begin
-          Bytes := 0;
-          Buffer := nil;
-          Exit;
-        end;
-      end;
-      BufEnd := FDataSize;
-      if FDataSize = 0 then
+      if (FDataSize = 0) or (FPosition >= FSize) then
       begin
         Bytes := 0;
         Buffer := nil;
         Exit;
       end;
     end;
-    if Bytes > (BufEnd - BufStart + 1) then
-      Bytes := BufEnd - BufStart + 1;
-    Buffer := @FBuffer[BufStart-1];
+    BufStart := 0;
+    if Bytes > (BufEnd - BufStart) then
+      Bytes := BufEnd - BufStart;
+    Buffer := @FBuffer[BufStart];
     Inc(BufStart, Bytes);
     Inc(FPosition, Bytes);
-    Dec(FDataSize, Bytes);
   end;
 
   function TMemoryIn.GetBuffer;
