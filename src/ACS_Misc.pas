@@ -44,7 +44,8 @@ type
   TGetDataEvent = procedure(Sender : TComponent; var Buffer : Pointer; var Bytes : LongWord) of object;
 
   (* Class: TMemoryIn
-    This component reads audio data from a memory block that you provide.
+    Descends from <TAuInput>.
+    This input component reads audio data from a memory block that you provide.
     It is analogous to TStreamIn when reading from TMemoryStream, with only diference that
     a pointer to a memory block is used instead of a TMemoryStream object. *)
 
@@ -71,6 +72,7 @@ type
     (* Property: DataBuffer
       Use this property to assign a pointer pointing to a data block, audio data will be read from.
       The data block IS NOT created by this component. You create it and fill it with data.
+      You must not free the memory block pointed to by DataBuffer until you get an OnDone event from the output component that reads from this input.
       The memory block pointed to by DataBuffer should be <DataSize> in length. *)
     property DataBuffer : Pointer read GetBuffer write SetBuffer;
     (* Property: DataSize
