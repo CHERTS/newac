@@ -56,7 +56,7 @@ type
     Busy : Boolean;
     BufStart, BufEnd : LongWord;
     FBPS, FSR, FChan : LongWord;
-    FRepeatCount : LongWord;
+    FRepeatCount : Integer;
     function GetBuffer : Pointer;
     procedure SetBuffer(v : Pointer);
   protected
@@ -90,8 +90,9 @@ type
     property InSampleRate : LongWord read GetSR write FSR;
     (* Property: RepeatCount
       Use this property to tell the component how many times the contents of the <AudioBuffer> should be replayed before the component reports the end of data.
-      The default value for this property is 1. *)
-    property RepeatCount : LongWord read FRepeatCount write FRepeatCount;
+      The default value for this property is 1.
+      If this property is set to -1 the component will replay the buffer endlessly until it is stopped. *)
+    property RepeatCount : Integer read FRepeatCount write FRepeatCount;
   end;
 
   TAudioProcessor = class(TAuConverter)
@@ -257,7 +258,10 @@ var
     FPosition := 0;
     BufEnd := FDataSize;
     BufStart := 0;
-    FSize := FDataSize*FRepeatCount;
+    if FRepeatCount >= 0 then
+      FSize := FDataSize*FRepeatCount
+    else
+      FSize := -1;
     Busy := True;
   end;
 
@@ -278,7 +282,7 @@ var
     end;
     if BufStart >= BufEnd then
     begin
-      if (FDataSize = 0) or (FPosition >= FSize) then
+      if (FDataSize = 0) or ((FSize > 0) and (FPosition >= FSize)) then
       begin
         Bytes := 0;
         Buffer := nil;
