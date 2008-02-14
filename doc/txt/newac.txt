@@ -1,4 +1,4 @@
-Title: New Audio Components
+Title: About New Audio Components
 
 	New Audio Components (NewAC) are designed to help your Delphi programs perform different sound processing tasks. With NewAC you can play audio stored in many formats (wav, Ogg Vorbis, FLAC, Monkey Audio, WavPack, MP3, Windows WMA, True Audio (TTA)). The playback is performed in the background, and although your application can control it (stop, pause, move forward and backward, play in a loop) it can perform other tasks while audio plays.
 
