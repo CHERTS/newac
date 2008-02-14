@@ -15,7 +15,7 @@ unit ACS_Misc;
 interface
 
 uses
-  Classes, SysUtils, ACS_Types, ACS_Classes
+  Classes, SysUtils, ACS_Types, ACS_Classes, SyncObjs
 
  {$IFDEF WIN32}
   , Windows
@@ -173,26 +173,42 @@ type
     procedure Prepare; override;
   end;
 
+  (* Class: TInputItem
+
+     Descends from TCollectionItem.
+
+     Objects of this class are the elements of the <TInputList.InputItems> collection. *)
+
   TInputItem = class(TCollectionItem)
   protected
     FInput : TAuInput;
     function GetOwner : TPersistent; override;
   published
+    (* Property: Input
+       Use this property to assign an input component to the collection element.
+       If a playing TInputList component reaches a TInputItem without an Input assigned, it raises an exception. *)
     property Input : TAuInput read FInput write FInput;
   end;
 
   TInputItems = class(TOwnedCollection)
   end;
 
-  TInputChangedEvent = procedure(Sender : TComponent; var Index : Integer; var Continue : Boolean) of object;
+  TInputChangedEvent = procedure(Sender : TComponent) of object;
+
+  (* Class: TInputList
+
+     Descends from <TAuInput>.
+
+     This component can play consecutively audio data from several attached input components.
+     It is not a godd choice for building a player's playlist as all the input audio sources attached to the component must have the
+     same audio stream parameters (samplerate, bits per sample, number of channels), it is rather a tool for
+     concatenating together audio data from several diferent sources as the audio is played seamlessly when the component switchs from one input source to the other. *)
 
   TInputList = class(TAuInput)
   private
     FCurrentInput : Integer;
     FInputItems : TInputItems;
-    {$IFDEF WIN32}
-    CS : TRTLCriticalSection;
-    {$ENDIF}
+    CS : TCriticalSection;
     FOnInputChanged : TInputChangedEvent;
     FIndicateProgress : Boolean;
     procedure SetCurrentInput(aInput : Integer);
@@ -201,16 +217,27 @@ type
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    (* Property: CurrentInput
+       use this property to get the index of the audio source being played or to set the index of the audio source to be played.
+       If you assign a new value to this property the new input will start playing at once.
+       The valid values for this property range from 0  to <InputItems>.Count - 1 *)
     property CurrentInput : Integer read FCurrentInput write SetCurrentInput;
   published
+    (* Property: IndicateProgress
+       Use this property to tell the component if oit should report playback progress on the current item being played. *)
     property IndicateProgress : Boolean read FIndicateProgress write FIndicateProgress;
+    (* Property: InputItems
+       This property is the collection of <TInputItem> elements that describe attached input components. *)
     property InputItems : TInputItems read FInputItems write SetInputItems;
+    (* Property: OnInputChanged
+       OnInputChanged event is raised when the component has finished playing one input source and is starting to play the next one.
+       It is not raised when you change the value of the <CurrentInput> property. *)
     property OnInputChanged : TInputChangedEvent read FOnInputChanged write FOnInputChanged;
   end;
 
@@ -682,17 +709,15 @@ begin
   FPosition := 0;
   FSize := -1;
   FIndicateProgress := True;
-  {$IFDEF WIN32}
-  InitializeCriticalSection(CS);
-  {$ENDIF}
+  if not (csDesigning in ComponentState) then
+    CS := TCriticalSection.Create;
 end;
 
 destructor TInputList.Destroy;
 begin
+  if not (csDesigning in ComponentState) then
+  CS.Free;
   FInputItems.Free;
-  {$IFDEF WIN32}
-  DeleteCriticalSection(CS);
-  {$ENDIF}
   Inherited Destroy;
 end;
 
@@ -705,9 +730,7 @@ begin
   raise EAuException.Create('List index out of bounds: ' + IntToStr(aInput));
   if Busy then
   begin
-    {$IFDEF WIN32}
-    EnterCriticalSection(CS);
-    {$ENDIF}
+    CS.Enter;
     I := TInputItem(InputItems.Items[FCurrentInput]);
     I.Input.Flush;
     I := TInputItem(InputItems.Items[aInput]);
@@ -716,9 +739,7 @@ begin
     FSize := I.Input.Size
     else FSize := -1;
     FPosition := 0;
-    {$IFDEF WIN32}
-    LeaveCriticalSection(CS);
-    {$ENDIF}
+    CS.Leave;
   end;
   FCurrentInput := aInput;
 end;
@@ -806,43 +827,38 @@ end;
 procedure TInputList.GetDataInternal;
 var
   I : TInputItem;
-  Continue : Boolean;
-  OriginalBytes : Integer;
+  BytesTmp : LongWord;
 begin
-  {$IFDEF WIN32}
-  EnterCriticalSection(CS);
-  {$ENDIF}
-  I := TInputItem(InputItems.Items[FCurrentInput]);
-  OriginalBytes := Bytes;
-  Bytes := I.Input.CopyData(Buffer, OriginalBytes);
-  while Bytes = 0 do
-  begin
-    if FCurrentInput < InputItems.Count -1 then
+  CS.Enter;
+  try
+    BytesTmp := Bytes;
+    I := TInputItem(InputItems.Items[FCurrentInput]);
+    I.Input.GetData(Buffer, Bytes);
+    while Bytes = 0 do
     begin
-      I.Input.Flush;
-      Inc(FCurrentInput);
-      Continue := True;
-      if Assigned(FonInputChanged) then
-      FonInputChanged(Self, FCurrentInput, Continue);
-      if Continue then
+      if FCurrentInput < InputItems.Count -1 then
       begin
+        I.Input.Flush;
+        Inc(FCurrentInput);
+        if Assigned(FonInputChanged) then
+          EventHandler.PostGenericEvent(Self, FOnInputChanged);
         I := TInputItem(InputItems.Items[FCurrentInput]);
         if not Assigned(I.Input) then
-        raise EAuException.Create('No input assigned to the input item '+IntToStr(FCurrentInput));
+          raise EAuException.Create('No input assigned to the input item '+IntToStr(FCurrentInput));
         I.Input.Init;
         if FIndicateProgress then
-        FSize := I.Input.Size
+          FSize := I.Input.Size
         else FSize := -1;
         FPosition := 0;
-        Bytes := I.Input.CopyData(Buffer, OriginalBytes);
+        Bytes := BytesTmp;
+        I.Input.GetData(Buffer, Bytes);
       end else Break;
-    end else Break;
+    end;
+    if FIndicateProgress then
+      FPosition := I.Input.Position;
+  finally
+    CS.Leave;
   end;
-  if FIndicateProgress then
-  FPosition := I.Input.Position;
-  {$IFDEF WIN32}
-  LeaveCriticalSection(CS);
-  {$ENDIF}
 end;
 
 procedure TInputList.SetInputItems;
