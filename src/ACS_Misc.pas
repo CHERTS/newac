@@ -80,16 +80,16 @@ type
     property DataSize : Int64 read FDataSize write FDataSize;
   published
     (* Property: InBitsPerSample
-      Use this property to tell the component the number of bits per sample for the audio data stored in the <AudioBuffer>. *)
+      Use this property to tell the component the number of bits per sample for the audio data stored in the <DataBuffer>. *)
     property InBitsPerSample : LongWord read GetBPS write FBPS;
     (* Property: InChannels
-      Use this property to tell the component the number of channels for the audio data stored in the <AudioBuffer>. *)
+      Use this property to tell the component the number of channels for the audio data stored in the <DataBuffer>. *)
     property InChannels : LongWord read GetCh write FChan;
     (* Property: InSampleRate
-      Use this property to tell the component the sample rate of the audio data stored in the <AudioBuffer>. *)
+      Use this property to tell the component the sample rate of the audio data stored in the <DataBuffer>. *)
     property InSampleRate : LongWord read GetSR write FSR;
     (* Property: RepeatCount
-      Use this property to tell the component how many times the contents of the <AudioBuffer> should be replayed before the component reports the end of data.
+      Use this property to tell the component how many times the contents of the <DataBuffer> should be replayed before the component reports the end of data.
       The default value for this property is 1.
       If this property is set to -1 the component will replay the buffer endlessly until it is stopped. *)
     property RepeatCount : Integer read FRepeatCount write FRepeatCount;
