@@ -13,7 +13,7 @@ Contributors:
 	-	Jan Henrik Ejme: adding ACM-playing support.
 	-	Thomas Grelle: improving CDRip support.
 	-	Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany): some useful corrections and suggestions.
-	-	Sergei Borisov: quite a few contributions, including TWVIn and TWVOut components.
+	-	Sergei Borisov: quite a few contributions, including WavPack, TTA, OptimFrog support and much more. 
 	-	Eriks Aleksans: many useful suggestions.
 	- Wayne Thursby: preparing documentation and not breaking things (not entirely, at least)
 
@@ -29,7 +29,15 @@ Section: On the Web
 		The source code for NewAC is now hosted on Google Code http://code.google.com/p/newac/.
 
 Section: Version History
-	Past versions of NewAC and their major changes and bugfixes. 
+	Short new features list for every NewAC version.
+
+
+Version: NewAC 1.5
+	- TWMStreamedIn for reading live mp3 and wma network streams.
+	- WMA lossless encoding support.
+	- TWaveTap and TWMATap components.
+	- Many smaller fixes and improvements.  
+
 	
 Version: NewAC 1.4
 	- FLAC tags support (reading/writing).
