@@ -2,7 +2,7 @@ Format: Development Release 01-12-2008 (1.35 base)
 
 
 Title: NewAC
-SubTitle: v1.4
+SubTitle: v1.5
 
 Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
@@ -50,40 +50,9 @@ Group: Documentation  {
    File: Component Writer's Guide  (doc\txt\cwguide.txt)
    File: License  (doc\txt\license.txt)
    File: Tips &amp; Tricks  (doc\txt\tips and tricks.txt)
-   File: New Audio Components  (doc\txt\newac.txt)
+   File: About New Audio Components  (doc\txt\newac.txt)
+   File: Main NewAC Features List  (doc\txt\features.txt)
    }  # Group: Documentation
-
-Group: Audio I/O Components  {
-
-   File: TÑDIn  (no auto-title, src\ACS_CDROM.pas)
-   File: TDXAudioIn  (no auto-title, src\ACS_DXAudio.pas)
-   File: TDXAudioOut  (no auto-title, src\ACS_DXAudio.pas)
-   File: TFLACIn  (no auto-title, src\ACS_FLAC.pas)
-   File: TFLACOut  (no auto-title, src\ACS_FLAC.pas)
-   File: TMACIn  (no auto-title, src\ACS_MAC.pas)
-   File: TMACOut  (no auto-title, src\ACS_MAC.pas)
-   File: TMP3In  (no auto-title, src\ACS_smpeg.pas)
-   File: TStreamIn  (no auto-title, src\ACS_Streams.pas)
-   File: TTTAIn  (no auto-title, src\ACS_TTA.pas)
-   File: TTTAOut  (no auto-title, src\ACS_TTA.pas)
-   File: TVorbisIn  (no auto-title, src\ACS_Vorbis.pas)
-   File: TVorbisOut  (no auto-title, src\ACS_Vorbis.pas)
-   File: TWMAOut  (no auto-title, src\ACS_WinMedia.pas)
-   File: TWMIn  (no auto-title, src\ACS_WinMedia.pas)
-   File: TWVIn  (no auto-title, src\ACS_WavPack.pas)
-   File: TWVOut  (no auto-title, src\ACS_WavPack.pas)
-   File: TWaveIn  (no auto-title, src\ACS_Wave.pas)
-   File: TWaveOut  (no auto-title, src\ACS_Wave.pas)
-   }  # Group: Audio I/O Components
-
-Group: Audio Processing Components  {
-
-   File: TACMConverter  (no auto-title, src\ACS_Converters.pas)
-   File: TAudioConverter  (no auto-title, src\ACS_Converters.pas)
-   File: TAudioMixer  (no auto-title, src\ACS_AudioMix.pas)
-   File: TAudioPass  (no auto-title, src\AudioPass.pas)
-   File: TResampler  (no auto-title, src\AuSampleRate.pas)
-   }  # Group: Audio Processing Components
 
 Group: Main Units  {
 
@@ -98,6 +67,7 @@ Group: Main Units  {
    File: ACS_LAME  (src\ACS_LAME.pas)
    File: ACS_MAC  (src\ACS_MAC.pas)
    File: ACS_Misc  (src\ACS_Misc.pas)
+   File: ACS_OptimFROG  (src\ACS_OptimFROG.pas)
    File: ACS_SMPEG  (src\ACS_smpeg.pas)
    File: ACS_Streams  (src\ACS_Streams.pas)
    File: ACS_TTA  (src\ACS_TTA.pas)
@@ -107,17 +77,7 @@ Group: Main Units  {
    File: ACS_Wave  (src\ACS_Wave.pas)
    File: ACS_WinMedia  (src\ACS_WinMedia.pas)
    File: AuSampleRate  (src\AuSampleRate.pas)
-   File: MACDll.pas  (src\MACDll.pas)
    File: AudioPass  (src\AudioPass.pas)
-   File: VorbisEnc.pas  (src\VorbisEnc.pas)
-   File: VorbisFile.pas  (src\VorbisFile.pas)
-   File: WavPackDLL  (src\WavPackDLL.pas)
-   File: WaveConverter.pas  (src\WaveConverter.pas)
-   File: lame.pas  (src\lame.pas)
-   File: libsamplerate.pas  (src\libsamplerate.pas)
-   File: ogg.pas  (src\ogg.pas)
-   File: ovencode  (src\ovencode.pas)
-   File: wmfintf.pas  (src\wmfintf.pas)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
@@ -127,6 +87,8 @@ Group: Converted C/C++ Headers  {
    File: DSWrapper  (src\DSWrapper.pas)
    File: FLAC  (src\FLAC.pas)
    File: libwma1.pas  (src\libwma1.pas)
+   File: _DirectSound  (src\_DirectSound.pas)
+   File: _DXTypes  (src\_DXTypes.pas)
    }  # Group: Converted C/C++ Headers
 
 Group: Utility Units  {
@@ -141,8 +103,9 @@ Group: Tutorials  {
 
    File: Audio Processor  (demos\Tutorial\AudioProcessor\Main.pas)
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
-   File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
+
+File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
 
 Group: Index  {
 
