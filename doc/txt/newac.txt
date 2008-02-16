@@ -6,9 +6,9 @@ Title: About New Audio Components
 
 	In addition to all this, NewAC can perform some audio editing tasks, like mixing and concatenating audio streams, selecting and copying fragments of audio files, resampling and other audio conversions. 
 
-	Along with the full NewAC source code you will find a set of demos showing how to use different NewAC components. Some of these demos are in fact fully featured programs that you can use for audio processing.
+	Along with the full NewAC source code you will find a set of demos showing how to use different NewAC components. Some of these demos are in fact full featured programs that you can use for audio processing.
 
-	Some of NewAC components require third-party DLLs. ou can get these DLLs on the Net, or at the official NewAC site. See the "Quick Introduction to NewAC" on where to get these DLLs.
+	Some of the NewAC components require third-party DLLs. You can get these DLLs on the net, or at the official NewAC site. See the "Quick Introduction to NewAC" on where to get these DLLs.
 
 	The main NewAC site is http://symmetrica.net/newac.
 
