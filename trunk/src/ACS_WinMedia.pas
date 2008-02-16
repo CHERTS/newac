@@ -10,7 +10,8 @@
 unit ACS_WinMedia;
 
 (* Title: ACS_WinMedia
-    Delphi interface for Windows Media Audio (WMA) using Windows' built-in codec. *)
+    Delphi interface for Windows Media Audio (WMA) using Windows' built-in
+    codec. *)
 
 interface
 
@@ -50,21 +51,23 @@ type
 
        Note:
        Windows Media files may contain several audio streams. In the current
-       version TWMIn reads data only from the first audio stream it finds.*)
+       version TWMIn reads data only from the first audio stream it finds. *)
     property HasAudio : Boolean read GetHasAudio;
     (* Property: IsProtected
-       If the value of this property is True, th file is DRM-protected and hence not supported.
-       This property has no meaning for mp3 files.*)
+       If the value of this property is True, the file is DRM-protected and
+       hence not supported. This property has no meaning for mp3 files. *)
     property IsProtected : Boolean read GetProtected;
     (* Property: Bitrate
        Read this property to get the file's bitrate.
-       Note: for video and multi-streamed files the total bitrate is returned.*)
+       
+       Note: 
+       For video and multi-streamed files the total bitrate is returned. *)
      property Bitrate : LongWord read GetBitrate;
     (* Property: Id3v2Tags
-       This property contains file's tags in Id3v2 format.*)
+       This property contains file's tags in Id3v2 format. *)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
     (* Property: IsVBR
-       This property's value is True if the input file is VBR-encoded and False otherwise.*)
+       This property's value is True if the input file is VBR-encoded and False otherwise. *)
     property IsVBR : Boolean read GetIsVBR;
   published
     property EndSample;
@@ -73,12 +76,13 @@ type
   end;
 
    (* Class: TWMAOut
-      Windows Media Audio file/stream encoder.
-      This component supports CBR/VBR, lossy/lossless encoding.
-      There are two mutually exclusive groups of properties affecting the output audio quality.
-      One group allows you to set output file bitrate or quality and let the component select the most appropriate codec.
-      The other group allows you to specify the codec and format directly.
-      This component descends from  <TAuTaggedFileOut> .*)
+      Windows Media Audio file/stream encoder. This component supports
+      CBR/VBR, lossy/lossless encoding. There are two mutually exclusive
+      groups of properties affecting the output audio quality. One group
+      allows you to set output file bitrate or quality and let the component
+      select the most appropriate codec. The other group allows you to specify
+      the codec and format directly. This component descends from
+      <TAuTaggedFileOut>. *)
 
   TWMAOut = class(TAuTaggedFileOut)
   private
@@ -105,7 +109,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: GetFormatDesc
-        This method returns a format description based on the CodecIndex and FormatIndex parameters. *)
+        This method returns a format description based on the CodecIndex and
+        FormatIndex parameters. *)
     function GetFormatDesc(CodecIndex, FormatIndex : Word) : String;
     (* Property: Codecs
         Returns the names of all the WMA codecs installed in the system. *)
@@ -114,46 +119,45 @@ type
         Returns the total number of the WMA codecs available in the system. *)
     property CodecsCount : Word read GetCodecsCount;
     (* Property: CodecIndex
-        Use this property to set the index number of the codec to use when encoding.
-        The valid values for this property range from -1 to <CodecsCount> -1.
-        If this property's value is set to -1 (the default setting), the <FormatIndex> property is ignored and
-        the codec is selected automatically by the component depending on <DesiredBitrate> and <VBRQuality> values.
-        If this property's value is greater than -1, the <DesiredBitrate> and <VBRQuality> properties are ignored and
-        CodecIndex along with <FormatIndex> specify how audio data will be encoded. Wav2WMA-2 demo uses this method. *)
+        Use this property to set the index number of the codec to use when
+        encoding. The valid values for this property range from -1 to
+        <CodecsCount> - 1. If this property's value is set to -1 (the default
+        setting), the <FormatIndex> property is ignored and the codec is
+        selected automatically by the component depending on <DesiredBitrate>
+        and <VBRQuality> values. If this property's value is greater than -1,
+        the <DesiredBitrate> and <VBRQuality> properties are ignored and
+        CodecIndex along with <FormatIndex> specify how audio data will be
+        encoded. Wav2WMA-2 demo uses this method. *)
     property CodecIndex : Integer read FCodecIndex write FCodecIndex;
-    (* Property: CodecName[Index : Word]
+    (* Property: CodecName
         Returns the name of the WMA codec specified by its index.
-        The valid indeces range from 0 to <CodecsCount> -1. *)
+        The valid indices range from 0 to <CodecsCount> -1. *)
     property CodecName[Index : Word] : String read GetCodecName;
     (* Property: FormatIndex
-        Use this property to set the index of the format to encode data.
-         The valid values range from 0 to <FormatsCount> -1.
-         This property has any effect only if <CodecIndex> is greater than -1.*)
+        Use this property to set the index of the format to encode data. Valid
+         values range from 0 to <FormatsCount> -1. This property has an effect
+         only if <CodecIndex> is greater than -1. *)
     property FormatIndex : Integer read FFormatIndex write FFormatIndex;
-    (* Property: Formats[Index : Word]
-        Returns the names of all formats supported by the codec, specified by the Index and the current encoding mode.
-        Note that <VBR> and <Lossless> settings affect the number of available formats.
-        For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Lossless> property is set to True.
-        On the contraty, Windows Media Voice codec exposes only CBR formats. It will expose no formats if <VBR> or <Lossless> are set to True.
-        You shoud re-read the format related properties each time you change either the <VBR> or the <Lossless> value.
-        See Wav2WMA2 demo for more details. *)
+    (* Property: Formats
+        Returns the names of all formats supported by the codec, specified by
+        the Index and the current encoding mode. See the Wav2WMA2 demo for an
+        example. See also <A Note on Windows Media Formats>. *)
     property Formats[Index : Word] : TStringList read GetFormats;
     (* Property: FormatsCount
-        Returns the total number of formats supported by the codec, specified by its index, and the current encoding mode.
-        The valid indeces range from 0 to <CodecsCount> -1.
-        Note that <VBR> and <Lossless> settings affect the number of available formats.
-        On the contraty, Windows Media Voice codec exposes only CBR formats. It will expose no formats if <VBR> or <Lossless> are set to True.
-        For example, Windows Media Audio Lossless codec will return any format only if <VBR> or <Losless> property is set to True.
-        You shoud re-read the format related properties each time. you change either the <VBR> or the <Lossless> value. *)
+        Returns the total number of formats supported by the codec, specified
+        by its index, and the current encoding mode. The valid indices range
+        from 0 to <CodecsCount> -1. Please see <A Note on Windows Media Formats>.      
+    *)
     property FormatsCount[index : Word] : Word read GetFormatsCount;
   published
     (* Property: Id3v2Tags
         Set an output file's tags in Id3v2 format. *)
     property Id3v2Tags;
     (* Property: DesiredBitrate
-       Set the desired bitrate for an output file (in the constant bitrate lossy mode). The component will search
-       for the best configuration matching your parameters, so the actual
-       bitrate may be less than this value.*)
+       Set the desired bitrate for an output file (in the constant bitrate
+       lossy mode). The component will search for the best configuration
+       matching your parameters, so the actual bitrate may be less than this
+       value. *)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
     (* Property: Lossless
        Use this property to switch between the lossless and lossy compression modes.
@@ -161,22 +165,35 @@ type
        Lossless encoding is always VBR. *)
     property Lossless : Boolean read FLossless write FLossless;
     (* Property: VBR
-       Use this property to switch between constant bitrate and variable bitrate lossy encoding modes.
-       In VBR mode <DesiredBitrate> value is ignored. The quality of the output sound is defined by
-       the <VBRQuality> property. If you encode data by directly selecting the codec and format, note that the VBR setting affects <Formats> and <FormatCount> values for every codec.
-       In the lossless mode the this property's value is ignored. *)
+       Use this property to switch between constant bitrate and variable
+       bitrate lossy encoding modes. In VBR mode <DesiredBitrate> value is
+       ignored. The quality of the output sound is defined by the <VBRQuality>
+       property. If you encode data by directly selecting the codec and
+       format, note that the VBR setting affects <Formats> and <FormatCount>
+       values for every codec. In the lossless mode the this property's value
+       is ignored. *)
     property VBR : Boolean read FVBR write FVBR;
     (* Property: VBRQuality
-       Use this property to set the output audio quality in VBR mode.
-       The valid values range from 1 to 99. This property has any effect only if <VBR> is set to True and <Lossless> to False. *)
+       Use this property to set the output audio quality in VBR mode. The
+       valid values range from 1 to 99. This property only has an effect if
+       <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
   end;
 
-
+  (* Topic: A Note on Windows Media Formats
+        The <VBR> and <Lossless> settings affect the number of available
+        formats. Conversely, Windows Media Voice codec exposes only CBR
+        formats. It won't expose any formats if <VBR> or <Lossless> are set to
+        True. For example, Windows Media Audio Lossless codec will return a
+        format only if <VBR> or <Lossless> property is set to True. You should
+        re-read the format related properties each time you change either the
+        <VBR> or <Lossless> values. *)
+  
   (* Class: TWMATap
-      Descends from <TAudioTap>.
-      This is one of the "audio tap" components that sit between input and output in the audio chain and optionally record
-      the audio data passing through them into a file. This component records data into WMA files. *)
+      Descends from <TAudioTap>. This is one of the "audio tap" components
+      that sit between input and output in the audio chain and optionally
+      record the audio data passing through them into a file. This component
+      records data into WMA files. *)
 
   TWMATap = class(TAudioTap)
   private
@@ -198,23 +215,26 @@ type
         Set an output file's tags in Id3v2 format. *)
     property Id3v2Tags : TId3v2Tags read FTags write SetId3v2Tags;
     (* Property: DesiredBitrate
-       Set the desired bitrate for an output file (in the constant bitrate lossy mode). The component will search
-       for the best configuration matching your parameters, so the actual
-       bitrate may be less than this value.*)
+       Set the desired bitrate for an output file (in the constant bitrate
+       lossy mode). The component will search for the best configuration
+       matching your parameters, so the actual bitrate may be less than this
+       value. *)
     property DesiredBitrate : LongWord read FBitrate write FBitrate;
     (* Property: Lossless
-       Use this property to switch between the lossless and lossy compression modes.
-       In the lossless mode the <DesiredBitrate> and <VBRQuality> values are ignored.
-       Lossless encoding is always VBR. *)
+       Use this property to switch between the lossless and lossy compression
+       modes. In the lossless mode the <DesiredBitrate> and <VBRQuality>
+       values are ignored. Lossless encoding is always VBR. *)
     property Lossless : Boolean read FLossless write FLossless;
     (* Property: VBR
-       Use this property to switch between constant bitrate and variable bitrate lossy encoding modes.
-       In VBR mode <DesiredBitrate> value is ignored. The quality of the output sound is defined by
-       the <VBRQuality> property. *)
+       Use this property to switch between constant bitrate and variable
+       bitrate lossy encoding modes. In VBR mode <DesiredBitrate> value is
+       ignored. The quality of the output sound is defined by the <VBRQuality>
+       property. *)
     property VBR : Boolean read FVBR write FVBR;
     (* Property: VBRQuality
-       Use this property to set the output audio quality in VBR mode.
-       The valid values range from 1 to 99. This property has any effect only if <VBR> is set to True and <Lossless> to False. *)
+       Use this property to set the output audio quality in VBR mode. The
+       valid values range from 1 to 99. This property has any effect only if
+       <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
   end;
 
@@ -226,22 +246,26 @@ type
          starts downloading the file and decoding it simultaneously.
        - decode wma and mp3 audio streamed from "live" audio servers such as Internet radio servers.
 
-       You shuld assign file or stream URL to the components <FileName> property.
+       You should assign file or stream URL to the component's <FileName> property.
 
-       Important note: most links to Internet streamed media that you can find on Web sites
+       Important note: 
+       Most links to Internet streamed media that you can find on Web sites
        point not to media itself but to wax, asx, or m3u shortcuts instead.
-       These shortcuts contain information about the content, and, among other things, a direct link to
-       a stremed audio server. Although it is relatively easy to parse wax, asx, and m3u shortcuts
-       and extract required links from them, it is not TWMStreamedIn's job.
-       The component expects a direct link to a wma/mp3 file or a network stream to be assigned to its <Filename> property.
-       See also the <LoggingURL> property.
+       These shortcuts contain information about the content, and, among other
+       things, a direct link to a streaming audio server. Although it is
+       relatively easy to parse wax, asx, and m3u shortcuts and extract
+       required links from them, it is not TWMStreamedIn's job. The component
+       expects a direct link to a wma/mp3 file or a network stream to be
+       assigned to its <Filename> property. See also the <LoggingURL>
+       property.
 
-       If you write a live audio player, you have to take care about http links traversal and shortcuts parsing.
-       I-Radio demo that accompanies NewAC, uses preset links to several live audio servers.
+       If you write a live audio player, you have to take care about http
+       links traversal and shortcuts parsing. I-Radio demo that accompanies
+       NewAC, uses preset links to several live audio servers.
 
        This decoder is not seekable.
 
-       Descends from <TAuTaggedFileIn> .*)
+       Descends from <TAuTaggedFileIn>. *)
 
   TWMStreamedIn = class(TAuTaggedFileIn)
   private
@@ -280,66 +304,85 @@ type
 
        Note:
        Windows Media files may contain several audio streams. In the current
-       version TWMIn reads data only from the first audio stream it finds.*)
+       version TWMIn reads data only from the first audio stream it finds. *)
     property HasAudio : Boolean read GetHasAudio;
     procedure _Pause; override;
     procedure _Resume; override;
     (* Property: Bitrate
        Read this property to get the file's bitrate.
-       Note: for video and multi-streamed files the total bitrate is returned.*)
+       Note: for video and multi-streamed files the total bitrate is returned. *)
      property Bitrate : LongWord read FBitrate;
     (* Property: Id3v2Tags
-       This property contains file's tags in Id3v2 format.*)
+       This property contains file's tags in Id3v2 format. *)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
     (* Property: TimedOut
-       This property indicates if some network operation has timed out.
-       If the timeout has occured, the component reports the end of data.
-       You can change the time the component waits before timeout in the <MaxWaitMilliseconds> property. *)
+       This property indicates if some network operation has timed out. If the
+       timeout has occurred, the component reports the end of data. You can
+       change the time the component waits before timeout in the
+       <MaxWaitMilliseconds> property. *)
     property TimedOut : Boolean read GetTimedOut;
   published
   (* Property: BufferingTime
-       This property allows you to set the size of internal buffer in terms of playback duation.
-       The value of this property should be buffer's playback time in seconds raging from 1 to 60.
-       Larger bufering time imposes some delay at the beginning of the playback, but guarantees a smoother playback later. *)
+       This property allows you to set the size of internal buffer in terms of
+       playback duration. The value of this property should be buffer's
+       playback time in seconds raging from 1 to 60. Larger buffering time
+       imposes some delay at the beginning of the playback, but helps to
+       provide smoother playback later. *)
     property BufferingTime : Word read FBufferingTime write SetBufferingTime;
   (* Property: EnableHTTP
-       Use this property to enable or disable HTTP support. This property's value matters only if an URL supplied to <FileName> has no http:, mms: or rtsp: prefix. *)
+       Use this property to enable or disable HTTP support. This property's
+       value matters only if the URL supplied to <FileName> has no protocol
+       prefix, such as "http:", "mms:" or "rtsp:". *)
     property EnableHTTP : Boolean read FEnableHTTP write FEnableHTTP;
   (* Property: EnableTCP
-       Use this property to enable or disable TCP support. This property's value matters only if an URL supplied to <FileName> has no http:, mms: or rtsp: prefix. *)
+       Use this property to enable or disable TCP support. This property's
+       value matters only if the URL supplied to <FileName> has no protocol
+       prefix, such as "http:", "mms:" or "rtsp:". *)
     property EnableTCP : Boolean read FEnableTCP write FEnableTCP;
   (* Property: EnableUDP
-       Use this property to enable or disable UDP support. This property's value matters only if an URL supplied to <FileName> has no http:, mms: or rtsp: prefix. *)
+       Use this property to enable or disable UDP support. This property's
+       value matters only if the URL supplied to <FileName> has no protocol
+       prefix, such as "http:", "mms:" or "rtsp:". *)
     property EnableUDP : Boolean read FEnableUDP write FEnableUDP;
   (* Property: LoggingURL
-       Use this property to set a logging URL, if you have one. Logging URLs may be obtained from wax, asx, or m3u shortcuts. *)
+       Use this property to set a logging URL, if you have one. Logging URLs
+       may be obtained from wax, asx, or m3u shortcuts. *)
     property LoggingURL : String read FLoggingURL write FLoggingURL;
   (* Property: MaxWaitMilliseconds
-       This property allows you to set the maximum waiting time for some network operations to complete.
-       The time is set in milliseconds. If this time is exceeded, the <TimedOut> property is set to True and the coomponent
-       stops its operation. The default value of this property is 10000 (10 seconds). Setting this property's value too low
-       will result in too many premature timeouts. Setting it too high will mean that you will have to wait too long just to learn that the remote server
-       could not be reached. *)
+       This property allows you to set the maximum waiting time for some
+       network operations to complete. The time is set in milliseconds. If
+       this time is exceeded, the <TimedOut> property is set to True and the
+       component stops its operation. The default value of this property is
+       10000 (10 seconds). Setting this property's value too low will result
+       in too many premature timeouts. Setting it too high will mean that you
+       will have to wait too long just to learn that the remote server could
+       not be reached. *)
     property MaxWaitMilliseconds : LongWord read FMaxWait write FMaxWait;
   (* Property: ProxyProtocol
-       If your application requires a proxy to connect to Internet, use this property to set the proxy protocol. *)
+       If your application requires a proxy to connect to Internet, use this
+       property to set the proxy protocol. *)
     property ProxyProtocol : String read FProxyProtocol write FProxyProtocol;
   (* Property: ProxyHost
-       If your application requires a proxy to connect to Internet, use this property to set the proxy host name. *)
+       If your application requires a proxy to connect to Internet, use this
+       property to set the proxy host name. *)
     property ProxyHost : String read FProxyHost write FProxyHost;
   (* Property: ProxyPort
-       If your application requires a proxy to connect to Internet, use this property to set the proxy port value. *)
+       If your application requires a proxy to connect to Internet, use this
+       property to set the proxy port value. *)
     property ProxyPort : LongWord read FProxyPort write FProxyPort;
   (* Property: StretchFactor
-       Use this property to change the speed at with content is delivered to the component.
-       The default value is 1.0. Possible values range from 1.0 to 10.0 and from -10.0 to -1.0.
-       This property has no effect when handling live audio. *)
+       Use this property to change the speed at with content is delivered to
+       the component. The default value is 1.0. Possible values range from 1.0
+       to 10.0 and from -10.0 to -1.0. This property has no effect when
+       handling live audio. *)
     property StretchFactor : Single read FStretchFactor write FStretchFactor;
   (* Property: OnStreamOpened
-       This event informs you that the audio stream has been opened successfully. *)
+       This event informs you that the audio stream has been opened
+       successfully. *)
     property OnStreamOpened : TStreamedAudioEvent read FOnStreamOpened write FOnStreamOpened;
   (* Property: OnStartedPlaying
-       This event informs you that the decoder has decoded the first chunk of audio data. *)
+       This event informs you that the decoder has decoded the first chunk of
+       audio data. *)
     property OnStartedPlaying : TStreamedAudioEvent read FOnStartedPlaying write FOnStartedPlaying;
   end;
 

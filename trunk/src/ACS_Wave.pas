@@ -43,7 +43,7 @@ type
     
     wtUnsupported - a WAV format that isn't supported
     wtPCM - a WAV which is PCM (the normal format, use this if you're unsure)
-    wtDVIADPCM - a WAV which is DVIADPCM (uhh..)
+    wtDVIADPCM - a WAV which is MS DVI IMA ADPCM
     wtACM - an MP3 packed inside a WAV
   *)
 
@@ -62,7 +62,7 @@ type
     FormatTag: Word - One of WAVE_FORMAT_XXX constants
     Channels: Word - 1=mono, 2=stereo
     SampleRate: Integer; - sample rate
-    BytesPerSecond: Inteter; - bytes per second
+    BytesPerSecond: Integer; - bytes per second
     BlockAlign: Word; - block alignment?
     BitsPerSample: Word - 8, 16 or 32 Bits/sample
     DataChunkId: array [0..3] of Char - 'data' marks the beginning of the data chunk
@@ -222,8 +222,9 @@ type
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     (* Property: WavType
-      This property indicates the current .wav file encoding. Possible values are: wtUnsupported (unsupported encoding) wtPCM (raw PCM encoding) wtACM (MS ACM encoding),
-      wtDVIADPCM (MS DVI IMA ADPCM 4:1 encoding), wtMSADPCM (MS ADPCM encoding).*)
+      This <TWavType> property indicates the current .wav file encoding. 
+
+    *)
     property WavType : TWavType read GetWavType;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -234,8 +235,7 @@ type
   end;
 
   (* Class: TWaveOut
-     Wave file encoder.
-     Descends from <TAuFileOut>.*)
+     Wave file encoder. Descends from <TAuFileOut>.*)
 
   TWaveOut = class(TAuFileOut)
   private
@@ -270,23 +270,27 @@ type
     destructor Destroy; override;
   published
     (* Property: WavType
-      Use this property to specify output .wav file encoding.
-      Supported encodings are wtPCM (raw PCM encoding) and wtDVIADPCM (MS DVI IMA ADPCM 4:1 encoding).
-      When you append data to already existing file (with data in either raw PCM or MS DVI IMA ADPCM encoding)
-      this property will be automatically set to the file encoding. *)
+      Use this <TWavType> property to specify output .wav file encoding. When
+      you append data to an existing file (with data in either raw PCM or MS
+      DVI IMA ADPCM encoding) this property will be automatically set to the
+      file encoding. *)
     property WavType : TWavType read FWavType write SetWavType;
     (*Property: BlockSize
-      Use this property to set the size of the DVI IMA ADPCM block in bytes (when using DVI IMA ADPCM encoding).
-      The size of the block must be a multiple of four.
-      Since all the blocks in the file must be the same size, the size of the block will be set automatically when appending data to the existing MS DVI IMA ADPCM encoded file.*)
+      Use this property to set the size of the DVI IMA ADPCM block in bytes
+      (when using DVI IMA ADPCM encoding). The size of the block must be a
+      multiple of four. Since all the blocks in the file must be the same
+      size, the size of the block will be set automatically when appending
+      data to the existing MS DVI IMA ADPCM encoded file.*)
     property BlockSize : Word read FBlockAlign write SetBlockSize;
     property FileMode;
   end;
 
     (* Class: TWaveTap
       Descends from <TAudioTap>.
-      Thi is one of the "audio tap" components that sit betweeen input and output in the audio chain and optionally record
-      the audio data passing through them into a file. This component records data into wav file using PCM encoding. *)
+      This is one of the "audio tap" components that sit between input and
+      output in the audio chain and optionally record the audio data passing
+      through them into a file. This component records data into wav file
+      using PCM encoding. *)
 
   TWaveTap = class(TAudioTap)
   private
@@ -345,10 +349,10 @@ const
   // MS ADPCM Stuff
 
   adaptive : array[0..15] of SmallInt =
-	(
-		230, 230, 230, 230, 307, 409, 512, 614,
-		768, 614, 512, 409, 307, 230, 230, 230
-	);
+  (
+    230, 230, 230, 230, 307, 409, 512, 614,
+    768, 614, 512, 409, 307, 230, 230, 230
+  );
 
 
 
@@ -377,7 +381,7 @@ const
       Diff := Diff + (StepTab[Index] shr 1);
       if (Code and 1) <> 0 then
       Diff := Diff + (StepTab[Index] shr 2);
-      if (Code and 8) <> 0 then	Diff := -Diff;
+      if (Code and 8) <> 0 then Diff := -Diff;
       PSample := PSample + Diff;
       if PSample > 32767 then PSample := 32767;
       if PSample < -32767 then PSample := -32767;
@@ -415,7 +419,7 @@ const
       Diff := Diff + (StepTab[Index] shr 1);
       if (Code and 1) <> 0 then
       Diff := Diff + (StepTab[Index] shr 2);
-      if (Code and 8) <> 0 then	Diff := -Diff;
+      if (Code and 8) <> 0 then Diff := -Diff;
       PSample := PSample + Diff;
       if PSample > 32767 then PSample := 32767;
       if PSample < -32767 then PSample := -32767;
@@ -444,7 +448,7 @@ const
       Diff := Diff + (StepTab[Index] shr 1);
       if (Code and 1) <> 0 then
       Diff := Diff + (StepTab[Index] shr 2);
-      if (Code and 8) <> 0 then	Diff := -Diff;
+      if (Code and 8) <> 0 then Diff := -Diff;
       PSample := PSample + Diff;
       if PSample > 32767 then PSample := 32767;
       if PSample < -32767 then PSample := -32767;
@@ -1337,8 +1341,8 @@ end;
     Len := 0;
     if Abort then
     begin
-      (* We don't close file here to avoide exceptions
-        if output componenet's Stop method is called *)
+      (* We don't close file here to avoid exceptions
+        if output component's Stop method is called *)
       Result := False;
       Exit;
     end;
