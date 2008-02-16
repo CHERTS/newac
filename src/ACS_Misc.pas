@@ -45,9 +45,10 @@ type
 
   (* Class: TMemoryIn
     Descends from <TAuInput>.
-    This input component reads audio data from a memory block that you provide.
-    It is analogous to TStreamIn when reading from TMemoryStream, with only diference that
-    a pointer to a memory block is used instead of a TMemoryStream object. *)
+    This input component reads audio data from a memory block that you
+    provide. It is analogous to TStreamIn when reading from TMemoryStream, the
+    only difference is that a pointer to a memory block is used instead of a
+    TMemoryStream object. *)
 
   TMemoryIn = class(TAuInput)
   private
@@ -70,28 +71,35 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Property: DataBuffer
-      Use this property to assign a pointer pointing to a data block, audio data will be read from.
-      The data block IS NOT created by this component. You create it and fill it with data.
-      You must not free the memory block pointed to by DataBuffer until you get an OnDone event from the output component that reads from this input.
-      The memory block pointed to by DataBuffer should be <DataSize> in length. *)
+      Use this property to assign a pointer pointing to a data block, audio
+      data will be read from. The data block IS NOT created by this component.
+      You create it and fill it with data. You must not free the memory block
+      pointed to by DataBuffer until you get an OnDone event from the output
+      component that reads from this input. The memory block pointed to by
+      DataBuffer should be <DataSize> in length. *)
     property DataBuffer : Pointer read GetBuffer write SetBuffer;
     (* Property: DataSize
       Use this property to set the size of the <DataBuffer> in bytes. *)
     property DataSize : Int64 read FDataSize write FDataSize;
   published
     (* Property: InBitsPerSample
-      Use this property to tell the component the number of bits per sample for the audio data stored in the <DataBuffer>. *)
+      Use this property to tell the component the number of bits per sample
+      for the audio data stored in the <DataBuffer>. *)
     property InBitsPerSample : LongWord read GetBPS write FBPS;
     (* Property: InChannels
-      Use this property to tell the component the number of channels for the audio data stored in the <DataBuffer>. *)
+      Use this property to tell the component the number of channels for the
+      audio data stored in the <DataBuffer>. *)
     property InChannels : LongWord read GetCh write FChan;
     (* Property: InSampleRate
-      Use this property to tell the component the sample rate of the audio data stored in the <DataBuffer>. *)
+      Use this property to tell the component the sample rate of the audio
+      data stored in the <DataBuffer>. *)
     property InSampleRate : LongWord read GetSR write FSR;
     (* Property: RepeatCount
-      Use this property to tell the component how many times the contents of the <DataBuffer> should be replayed before the component reports the end of data.
-      The default value for this property is 1.
-      If this property is set to -1 the component will replay the buffer endlessly until it is stopped. *)
+      Use this property to tell the component how many times the contents of
+      the <DataBuffer> should be replayed before the component reports the end
+      of data. The default value for this property is 1. If this property is
+      set to -1 the component will replay the buffer endlessly until it is
+      stopped. *)
     property RepeatCount : Integer read FRepeatCount write FRepeatCount;
   end;
 
@@ -177,7 +185,8 @@ type
 
      Descends from TCollectionItem.
 
-     Objects of this class are the elements of the <TInputList.InputItems> collection. *)
+     Objects of this class are the elements of the <TInputList.InputItems>
+     collection. *)
 
   TInputItem = class(TCollectionItem)
   protected
@@ -185,8 +194,9 @@ type
     function GetOwner : TPersistent; override;
   published
     (* Property: Input
-       Use this property to assign an input component to the collection element.
-       If a playing TInputList component reaches a TInputItem without an Input assigned, it raises an exception. *)
+       Use this property to assign an input component to the collection
+       element. If a playing TInputList component reaches a TInputItem without
+       an Input assigned, it raises an exception. *)
     property Input : TAuInput read FInput write FInput;
   end;
 
@@ -199,10 +209,13 @@ type
 
      Descends from <TAuInput>.
 
-     This component can play consecutively audio data from several attached input components.
-     It is not a godd choice for building a player's playlist as all the input audio sources attached to the component must have the
-     same audio stream parameters (samplerate, bits per sample, number of channels), it is rather a tool for
-     concatenating together audio data from several diferent sources as the audio is played seamlessly when the component switchs from one input source to the other. *)
+     This component can play consecutively audio data from several attached
+     input components. It is not a good choice for building a player's
+     playlist as all the input audio sources attached to the component must
+     have the same audio stream parameters (sample rate, bits per sample,
+     number of channels), it is rather a tool for concatenating audio data
+     from several different sources as the audio is played seamlessly when the
+     component switches from one input source to the other. *)
 
   TInputList = class(TAuInput)
   private
@@ -224,20 +237,25 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Property: CurrentInput
-       use this property to get the index of the audio source being played or to set the index of the audio source to be played.
-       If you assign a new value to this property the new input will start playing at once.
-       The valid values for this property range from 0  to <InputItems>.Count - 1 *)
+       Use this property to get the index of the audio source being played or
+       to set the index of the audio source to be played. If you assign a new
+       value to this property the new input will start playing at once. The
+       valid values for this property range from 0  to <InputItems>.Count - 1
+       *)
     property CurrentInput : Integer read FCurrentInput write SetCurrentInput;
   published
     (* Property: IndicateProgress
-       Use this property to tell the component if oit should report playback progress on the current item being played. *)
+       Use this property to tell the component if it should report playback
+       progress on the current item being played. *)
     property IndicateProgress : Boolean read FIndicateProgress write FIndicateProgress;
     (* Property: InputItems
-       This property is the collection of <TInputItem> elements that describe attached input components. *)
+       This property is the collection of <TInputItem> elements that describe
+       attached input components. *)
     property InputItems : TInputItems read FInputItems write SetInputItems;
     (* Property: OnInputChanged
-       OnInputChanged event is raised when the component has finished playing one input source and is starting to play the next one.
-       It is not raised when you change the value of the <CurrentInput> property. *)
+       Raised when the component has finished playing one input source and is
+       starting to play the next one. It is not raised when you change the
+       value of the <CurrentInput> property. *)
     property OnInputChanged : TInputChangedEvent read FOnInputChanged write FOnInputChanged;
   end;
 

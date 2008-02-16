@@ -214,14 +214,16 @@ type
     property Channels : LongWord read GetCh;
 
     (* Property: Size
-        A read only property which returns input data size in bytes.
-        The value of this property becomes valid after <Init> has been called.
-        For some inputs (like <TDXAudioIn>) the data size may be not known in advance. In this case Size returns -1  *)
+        A read only property which returns input data size in bytes. The value
+        of this property becomes valid after <Init> has been called. For some
+        inputs (like <TDXAudioIn>) the data size may be not known in advance.
+        In this case Size returns -1  *)
     property Size : Int64 read FSize;
 
     (* Property: TotalSamples
-        A read only property which returns number of samples (frames) in the input stream.
-        TotalSamples value may be valid only if the <Size> of the input is known.
+        A read only property which returns number of samples (frames) in the
+        input stream. TotalSamples value may be valid only if the <Size> of
+        the input is known.
     *)
      property TotalSamples : Int64 read GetTotalSamples;
     (* Property: TotalTime
@@ -275,7 +277,11 @@ type
         Resumes previously paused output. *)
     procedure Resume;
     (* Procedure: Run
-        After an input component has been assigned, call Run to start the audio processing chain. When called, Run returns at once while the actual audio processing goes on in the different thread. You will get <OnProgress> events while audio processing continues and an <OnDone> event when the job is done.*)
+        After an input component has been assigned, call Run to start the
+        audio processing chain. When called, Run returns at once while the
+        actual audio processing goes on in the different thread. You will get
+        <OnProgress> events while audio processing continues and an <OnDone>
+        event when the job is done.*)
     procedure Run;
     (* Procedure: Stop
       Stops the busy component or does nothing if the component is idle.
@@ -302,9 +308,10 @@ type
         This read only property indicates the output component's current status.
         Possible values are:
 
-        tosPlaying: the component is performing its task;
-        tosPaused: the component is paused (the Pause method was called);
-        tosIdle: the component is idle;*)
+        tosPlaying - the component is performing its task;
+        tosPaused - the component is paused (the <Pause> method was called)
+        tosIdle - the component is idle
+    *)
     property Status : TOutputStatus read GetStatus;
     (* Property: TimeElapsed
        The time in seconds that has passed since the playback was started.
@@ -312,22 +319,26 @@ type
     property TimeElapsed : Integer read GetTE;
     (* Property: ExceptionMessage
        Most exceptions that may occur during NewAC operation are suppressed.
-       If an exception occurs, the operation is stopped and the <OnThreadException> event is raised.
-       ExceptionMessage holds the exception  text.*)
+       If an exception occurs, the operation is stopped and the
+       <OnThreadException> event is raised. ExceptionMessage holds the
+       exception text. *)
     property ExceptionMessage : String read FExceptionMessage;
   published
     (* Property: Input
-       This property allows you to set the input component for the output component.
-       The valid input components must be descendants of TAuInput.*)
+       This property allows you to set the input component for the output
+       component. The valid input components must be descendants of
+       <TAuInput>. *)
     property Input : TAuInput read Finput write SetInput;
     (* Property: OnDone
-       OnDone event is raised when the component has finished its job or was stopped asynchronously.
-       From this event handler you can perform any action on the output component, even remove the component itself!*)
+       Raised when the component has finished its job or was stopped
+       asynchronously. From this event handler you can perform any action on
+       the output component, even remove the component itself! *)
     property OnDone : TOutputDoneEvent read FOnDone write FOndone;
     (* Property: OnProgress
        OnProgress event is raised periodically to indicate output progress.
-       Use <Progress> property to get the progress value.
-       OnProgress event is sent asynchronously and you can perform any action on the output component from the event handler.*)
+       Use <Progress> property to get the progress value. OnProgress event is
+       sent asynchronously and you can perform any action on the output
+       component from the event handler. *)
     property OnProgress : TOutputProgressEvent read FOnProgress write FOnProgress;
     (* Property: OnThreadException
        This event is raised if an exception has occurred.*)
@@ -346,13 +357,18 @@ type
     FLoop : Boolean;
     FTotalSamples : Int64;
     procedure SetStream(aStream : TStream); virtual;
-    (* You have to override the SeekInternal method whether your input component is seekable or not.
-      if your component is  not seekable then you can write a method like this:
-      function TMyComponent.SeekInternal(var SampleNum : Int64) : Boolean;
-      begin
-        Result := False;
-      end;
-      If you want to make your component seekable you have to implement a real seeking in this function. *)
+    (* Function: SeekInternal
+      This abstract method should be overridden with an implementation
+      dependong on whether your input component is seekable or not. If your
+      component is not seekable then you can write a method like the following.
+      
+      > function TMyComponent.SeekInternal(var SampleNum : Int64) : Boolean;
+      > begin
+      >   Result := False;
+      > end;
+      
+      If you want to make your component seekable you have to implement real
+      seeking in this function. *)
     function SeekInternal(var SampleNum : Int64) : Boolean; virtual; abstract;
      (* Property: EndSample
         Set this property's value to the sample (frame) you want the input to
@@ -366,10 +382,13 @@ type
     property Loop : Boolean read FLoop write FLoop;
     (* Property: StartSample
         Set this property's value to the sample (frame) you want the input to
-        start playing from. By default it is set to 0. Calling the <Seek> method when the component is idle has the same effect.
-        Note that when you set StartSample and <EndSample> properties you define a subrange of the input data.
-        All further operations, such as playback and <Seek>ing will be performed within this subrange.
-        The StartSample and <EndSample> values also affect the <TotalSamples> and <Size> values, returned by the component.*)
+        start playing from. By default it is set to 0. Calling the <Seek>
+        method when the component is idle has the same effect. Note that when
+        you set <StartSample> and <EndSample> properties you define a subrange
+        of the input data. All further operations, such as playback and
+        <Seek>ing will be performed within this subrange. The StartSample and
+        <EndSample> values also affect the <TotalSamples> and <Size> values,
+        returned by the component. *)
     property StartSample : Int64 read FStartSample write FStartSample;
   public
 
@@ -401,8 +420,8 @@ type
 
       Returns:
         Boolean - A False value indicates that either a seek failed (you are
-          seeking beyond the end of file or the <EndSample> value) or that input stream is not
-          seekable.
+          seeking beyond the end of file or the <EndSample> value) or that the
+          input stream is not seekable.
     *)
     function Seek(SampleNum : Int64) : Boolean;
     constructor Create(AOwner: TComponent); override;
@@ -422,7 +441,7 @@ type
 
   (* Class: TAuFileIn
       A descendant of <TAuStreamedInput> to deal with files and streams.
-      All the components that read files descend from this class.*)
+      All the components that read files descend from this class. *)
 
   TAuFileIn = class(TAuStreamedInput)
   private
@@ -447,8 +466,9 @@ type
     procedure SetStream(aStream : TStream); override;
 
     (* Note on FSize calculation:
-      FSize is calculated in OpenFile method as the FULL file size.
-      More precise calculations regarding StartSample/EndSample are done in Init. *)
+      FSize is calculated in OpenFile method as the FULL file size. More
+      precise calculations regarding StartSample/EndSample are done in Init.
+      *)
 
     (* Procedure: OpenFile
         Opens the file or stream if it is not already open. For performance
@@ -478,42 +498,55 @@ type
     (* Function: SetStartTime
       This function is a wrapper around StartSample property, provided for convenience.
       It allows you to set playback start position in minutes and seconds.
+      
       Parameters:
-        Minutes
-        Seconds
-    Note: calls
-    >SetStartTime(1, 30);
+        Minutes : LongWord - Minutes 
+        Seconds : LongWord - Seconds 
+        
+    Note:
+    
+    > SetStartTime(1, 30);
     and
-    >SetStartTime(0, 90);
+    > SetStartTime(0, 90);
     are both allowed.
     *)
     function SetStartTime(Minutes, Seconds : LongWord) : Boolean;
     (* Function: SetEndTime
-      This function is a wrapper around EndSample property, provided for convenience.
-      It allows you to set playback stop position in minutes and seconds.
+      This function is a wrapper around EndSample property, provided for
+      convenience. It allows you to set playback stop position in minutes and
+      seconds.
+
       Parameters:
-        Minutes
-        Seconds
+        Minutes : LongWord - Minutes 
+        Seconds : LongWord - Seconds 
     *)
     function SetEndTime(Minutes, Seconds : LongWord) : Boolean;
     (* Procedure: Jump
-        This method, being a wrapper around <Seek>, simpifies navigation in the input stream.
-        Calling Jump moves you backward or forward relative to the current position.
-        Jump may be called either before starting playback (in this case the playback will be started from the position specified) or during the playback.
+        This method, being a wrapper around <Seek>, simpifies navigation in
+        the input stream. Calling Jump moves you backward or forward relative
+        to the current position. Jump may be called either before starting
+        playback (in this case the playback will be started from the position
+        specified) or during the playback.
+      
       Parameters:
         Offs - the amount of file contents, in percent, that will be skipped.
         Positive value skips forward, negative value skips backward.
-        For example calling Jump(-100) always sets the playing position at the beginning of the file.
-        Note: Use <Seek> for more exact positioning.
+
+        For example calling Jump(-100) always sets the playing position at the
+        beginning of the file. 
+        
+        Note: 
+        Use <Seek> for more exact positioning.
     *)
     procedure Reset; override;
     procedure Jump(Offs : Integer);
 //    property Time : Integer read GetTime;
     (* Property: Valid
-      Read this property to determine if the file is valid.
-      It is a good practice to check this property before performing other operations on audio stream.
-      Note however that True returned by Valid doesn't guarantee the file is fully playable.
-      It indicates only that the fille could be opened successfully and the file headers were correct. *)
+      Read this property to determine if the file is valid. It is a good
+      practice to check this property before performing other operations on
+      audio stream. Note however that True returned by Valid doesn't guarantee
+      the file is fully playable. It indicates only that the file could be
+      opened successfully and the file headers were correct. *)
     property Valid : Boolean read GetValid;
     (* Property: WideFileName
         Allows you to handle file names in Unicode. Setting its value
@@ -527,7 +560,8 @@ type
   end;
 
   (* Class: TAuTaggedFileIn
-      Descends from <TAuFileIn>, this class is an ancestor of the file input components that use ID3V* tags. *)
+      Descends from <TAuFileIn>, this class is an ancestor of the file input
+      components that use ID3V* tags. *)
 
   TAuTaggedFileIn = class(TAuFileIn)
   private
@@ -627,19 +661,26 @@ type
     procedure _Resume; override;
   published
     (* Property: Input
-       Like the output components, converters can be assigned an input.
-       Unlike the output components converters themselves can be input sources (for output components and other converters). *)
+       Like the output components, converters can be assigned an input. Unlike
+       the output components converters themselves can be input sources (for
+       output components and other converters). *)
     property Input : TAuInput read FInput write SetInput;
   end;
 
  (* Class: TAudioTap
+      This is the base class for all "audio tap components". Technically audio
+      taps are converters as they sit between input and output components in
+      the audio-processing chain. But audio taps do not modify audio data
+      passing trough them. Instead they write everithing passing through into
+      some audio file.
+
+      The main goal of audio tap components is to make the audio-processing
+      chain to perform several tasks at once: record while you listen, save
+      data at several formats simultaneously, etc.
+
       Descends from <TAuConverter>.
-      This is the base class for all "audio tap components". Technically audio taps are converters as they sit between input
-      and output components in the audio-processing chain. But audio taps do not modify audio data passing trough them.
-      Instead they write everithing passing through into some audio file.
-
-      The main goal of audio tap components is to make the audio-processing chain to perform several tasks at once: record while you listen, save data at several formats simultaneously, etc. *)
-
+ *)
+ 
   TAudioTap = class(TAuConverter)
   private
     function GetStatus : TOutputStatus;

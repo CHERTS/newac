@@ -69,30 +69,36 @@ type
     property DeviceName[Number : Integer] : String read GetDeviceName;
     (* Property: Underruns
          This read only property returns the number of internal buffer
-         underruns that have occured during playback. *)
+         underruns that have occurred during playback. *)
     property Underruns : LongWord read FUnderruns;
     (* Property: BufferSize
          Use this property to set the component's internal buffer size if the
-         defult one doesn't suit you. *)
+         default one doesn't suit you. *)
     property BufferSize : Integer read FBufferSize write FBufferSize;
     (* Property: Volume
          Use this property to set or get the volume of the sound being played.
-         The default value is 0 which corresponds to the original volume of the sound.
-         Valid values range from -10000 (silence) to 0.
-         The Volume property allows you to make the played sound softer than the original one,
-         but not louder. *)
+         The default value is 0 which corresponds to the original volume of
+         the sound. Valid values range from -10000 (silence) to 0. The Volume
+         property allows you to make the played sound softer than the original
+         one, but not louder. *)
     property Volume : Integer read GetVolume write SetVolume;
   published
     (* Property: DeviceNumber
-         Use this property to select the playback device by number.
-         The default value is 0 which corresponds to the default audio output device in your system.
-         Valid numbers range from 0 to <DeviceCount> - 1. *)
+         Use this property to select the playback device by number. The
+         default value is 0 which corresponds to the default audio output
+         device in your system. Valid numbers range from 0 to <DeviceCount> -
+         1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     (* Property: OnUnderrun
-         OnUnderrun event is raised when the component has run out of data. This can happen if the component recieves data at slow rate
-         from a slow CD-ROM unit or a network link. You will also get OnUnderrun event when unpuasing paused playback (this is a normal situation). Usually TDXAudioOut successfully recovers from underruns by itself,
-         but this causes pauses in playback so if you start to recieve OnUnderrun events, you may try to increase the speed rate of data passing to the component,
-         if you can. Yo can check the <Underruns> property for the total number of underruns. *)
+         OnUnderrun event is raised when the component has run out of data.
+         This can happen if the component receives data at slow rate from a
+         slow CD-ROM unit or a network link. You will also get OnUnderrun
+         event when unpausing paused playback (this is a normal situation).
+         Usually TDXAudioOut successfully recovers from underruns by itself,
+         but this causes pauses in playback so if you start to receive
+         OnUnderrun events, you may try to increase the speed rate of data
+         passing to the component, if you can. Yo can check the <Underruns>
+         property for the total number of underruns. *)
     property OnUnderrun : TUnderrunEvent read FOnUnderrun write FOnUnderrun;
   end;
 
@@ -134,7 +140,7 @@ type
     procedure _Pause; override;
     procedure _Resume; override;
     (* Property: DeviceCount
-         This read only property returns the number of logical directsound
+         This read only property returns the number of logical DirectSound
          input devices. *)
     property DeviceCount : Integer read FDeviceCount;
     (* Property: DeviceName[Number : Integer]
@@ -143,13 +149,14 @@ type
          <DeviceCount> - 1. *)
     property DeviceName[Number : Integer] : String read GetDeviceName;
     (* Property: Overruns
-         This read only property returns the number of internal buffer overruns that have occured during recording. *)
+         This read only property returns the number of internal buffer
+         overruns that have occurred during recording. *)
     property Overruns : LongWord read FOverruns;
   published
     (* Property: SamplesToRead
-         Use this property to set the number of samples (frames) the component should
-         record. If you set this property value to -1 the component will be endlessly recording until you stop
-         it. *)
+         Use this property to set the number of samples (frames) the component
+         should record. If you set this property value to -1 the component
+         will be endlessly recording until you stop it. *)
     property SamplesToRead : Int64 read FSamplesToRead write FSamplesToRead;
     (* Property: DeviceNumber
          Use this property to select the recording device by number. The
@@ -170,18 +177,20 @@ type
     (* Property: InSampleRate
         Use this property to set the sample rate of the audio stream the
         component will provide. Possible values range from 4000 to 128000
-        (depends on the capabilities of your hardware).*)
+        (depends on the capabilities of your hardware). *)
     property InSampleRate : LongWord read GetSR write FFreq stored True;
     (* Property: RecTime
          Use this property to set the recording duration (in seconds). If set
          this property overrides the value of <BytesToRead>. If you set this
          property value to -1 (the default) the component will be endlessly
-         recording until you stop it.*)
+         recording until you stop it. *)
     property RecTime : Integer read FRecTime write SetRecTime;
     (* Property: OnOverrun
-         OnOverrun event is raised when this component provides data faster than the rest of audio-processing chain can consume.
-         It indicates that some data is lost. You may also get OnOverrun event when unpausing paused recordind (this is a normal situation).
-         To get the total number of overruns read the <Overruns> property. *)
+         OnOverrun event is raised when this component provides data faster
+         than the rest of audio-processing chain can consume. It indicates
+         that some data is lost. You may also get OnOverrun event when
+         unpausing paused recording (this is a normal situation). To get the
+         total number of overruns read the <Overruns> property. *)
     property OnOverrun : TOverrunEvent read FOnOverrun write FOnOverrun;
   end;
 
