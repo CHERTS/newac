@@ -78,6 +78,16 @@ Group: Main Units  {
    File: ACS_WinMedia  (src\ACS_WinMedia.pas)
    File: AuSampleRate  (src\AuSampleRate.pas)
    File: AudioPass  (src\AudioPass.pas)
+   File: lame.pas  (src\lame.pas)
+   File: libsamplerate.pas  (src\libsamplerate.pas)
+   File: MACDll.pas  (src\MACDll.pas)
+   File: ogg.pas  (src\ogg.pas)
+   File: ovencode  (src\ovencode.pas)
+   File: VorbisEnc.pas  (src\VorbisEnc.pas)
+   File: VorbisFile.pas  (src\VorbisFile.pas)
+   File: WaveConverter.pas  (src\WaveConverter.pas)
+   File: WavPackDLL  (src\WavPackDLL.pas)
+   File: wmfintf.pas  (src\wmfintf.pas)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
@@ -103,9 +113,8 @@ Group: Tutorials  {
 
    File: Audio Processor  (demos\Tutorial\AudioProcessor\Main.pas)
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
+   File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
-
-File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
 
 Group: Index  {
 
