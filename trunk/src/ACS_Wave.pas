@@ -715,7 +715,7 @@ const
           if FBPS <> 4 then
           FValid := False;
           FBPS := 16;
-          FSize := FTotalSamples*2*FChan;
+          FSize := DVI_ADPCM_INFO.DataSize*2*FChan;
         end;
         wtMSADPCM :
         begin
