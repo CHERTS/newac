@@ -65,7 +65,7 @@ type
 
   TFLACInt32Buf = array[0..0] of FLAC__int32;
   PFLACInt32Buf = ^TFLACInt32Buf;
-  PFLACInt32BufArray = array[0..1] of PFLACInt32Buf;
+  PFLACInt32BufArray = array[0..7] of PFLACInt32Buf;
 
 const
 
