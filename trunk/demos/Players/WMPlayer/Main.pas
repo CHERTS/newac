@@ -85,8 +85,17 @@ begin
     Label13.Caption :=  WMIn1.Id3v2Tags.Year;
     Label1.Caption := IntToStr(WMIn1.BitRate div 1000) + ' kbps';
     Label4.Caption := IntToStr(WMIn1.SampleRate) + ' Hz';
-    if WMIn1.Channels = 1 then Label8.Caption := 'Mono'
-    else Label8.Caption := 'Stereo';
+    if WMIn1.Channels = 1 then
+      Label8.Caption := 'Mono'
+    else
+    if WMIn1.Channels = 2 then
+      Label8.Caption := 'Stereo'
+    else
+    if WMIn1.Channels = 6 then
+      Label8.Caption := '5.1 channels'
+    else
+    if WMIn1.Channels = 8 then
+      Label8.Caption := 'Multi-channel: 7.1 channels';
     Secs := IntToStr(WMIn1.TotalTime mod 60);
     if WMIn1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label7.Caption := Format('%d:%s', [WMIn1.TotalTime div 60, Secs]);
