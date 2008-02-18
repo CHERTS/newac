@@ -10,7 +10,7 @@
 unit ACS_Misc;
 
 (* Title: ACS_Misc
-    Miscellaneous classes which don't fit anywhere else.  *)
+    Some input components that descend directly from TAuInput or TAuOutput.  *)
 
 interface
 
