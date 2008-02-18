@@ -14,6 +14,8 @@ unit ACS_Types;
 
 interface
 
+uses MMSystem;
+
 type
 
   TBuffer16 = array[0..0] of SmallInt;
@@ -90,11 +92,24 @@ type
 
   TMSConverterMode = (msmMonoToBoth, msmMonoToLeft, msmMonoToRight);
 
+
+
+  TWaveFormatExtensible = packed record
+    Format : TWaveFormatEx;
+    wValidBitsPerSample : WORD;
+    dwChannelMask : LongWord;
+    SubFormat : TGUID;
+  end;
+  PWaveFormatExtensible = ^TWaveFormatExtensible;
+
 const
 
   Pi = 3.14159265359;
   TwoPi = 6.28318530718;
   HalfPi = 1.57079632679;
+
+  WAVE_FORMAT_EXTENSIBLE = $FFFE;
+  KSDATAFORMAT_SUBTYPE_PCM : TGuid = '{00000001-0000-0010-8000-00aa00389b71}';
 
 implementation
 
