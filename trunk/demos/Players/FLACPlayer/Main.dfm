@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 239
   Top = 189
-  Width = 290
-  Height = 375
   Caption = 'FLAC Player'
+  ClientHeight = 339
+  ClientWidth = 274
   Color = clNavy
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,8 +16,8 @@ object Form1: TForm1
   TextHeight = 13
   object Label3: TLabel
     Left = 0
-    Top = 328
-    Width = 282
+    Top = 326
+    Width = 274
     Height = 13
     Align = alBottom
     Caption = 'Label3'
@@ -27,6 +27,7 @@ object Form1: TForm1
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
+    ExplicitWidth = 32
   end
   object Label5: TLabel
     Left = 16
@@ -214,15 +215,9 @@ object Form1: TForm1
     Top = 152
     Width = 80
     Height = 30
-    Orientation = trHorizontal
     PageSize = 1
-    Frequency = 1
     Position = 5
-    SelEnd = 0
-    SelStart = 0
     TabOrder = 5
-    TickMarks = tmBottomRight
-    TickStyle = tsAuto
     OnChange = TrackBar1Change
   end
   object CheckBox1: TCheckBox
@@ -246,7 +241,7 @@ object Form1: TForm1
   end
   object StereoBalance1: TStereoBalance
     Input = FLACIn1
-    Balance = 0.5
+    Balance = 0.500000000000000000
     Left = 80
     Top = 232
   end
