@@ -25,10 +25,6 @@ uses
   Windows;
 {$ENDIF}
 
-const
-
-  BUF_SIZE = $6000;
-
 type
 
 (* Class: TFLACOut
@@ -436,35 +432,27 @@ type
     buffer1 : PFLACInt32Buf;
     buffer2 : PFLACInt32Buf;
     B16 : PBuffer16;
-    i : Integer;
+    i, j : LongWord;
+    ch : LongWord;
   begin
     FLACIn := TFLACIn(client_data);
     Header := PFLAC__FrameHeader(frame);
     FLACIn.FBlockSize := Header.blocksize;
     FLACIn.BytesPerBlock := FLACIn.FBlockSize*(FLACIn.FBPS shr 3)*FLACIn.FChan;
+    ch := FLACIn.FChan;
     if FLACIn.BytesPerBlock > FLACIn.BuffSize then
     begin
       FreeMem(FLACIn.Buff, FLACIn.BuffSize);
       FLACIn.BuffSize := FLACIn.BytesPerBlock;
       GetMem(FLACIn.Buff, FLACIn.BuffSize);
     end;
-//    FillChar(FLACIn.Buff[0], FLACIn.BytesPerBlock, 255);
     if FLACIn.FBPS = 16 then
     begin
       B16 := PBuffer16(FLACIn.Buff);
-      if FLACIn.FChan = 1 then
+      for i := 0 to FLACIn.FBlockSize -1 do
       begin
-       buffer1 := buffer[0];
-       for i := 0 to FLACIn.FBlockSize-1 do B16[i] := buffer1[i]
-      end else
-      begin
-        buffer1 := buffer[0];
-        buffer2 := buffer[1];
-        for i := 0 to FLACIn.FBlockSize-1 do
-        begin
-          B16[i shl 1] := buffer1[i];
-          B16[(i shl 1)+1] := buffer2[i];
-        end;
+        for j := 0 to ch - 1 do
+          B16[i*ch + j] := buffer[j][i];
       end;
     end else
     begin
@@ -486,7 +474,17 @@ type
         end;
       end else
       begin
-        if FLACIn.FChan = 1 then
+      for i := 0 to FLACIn.FBlockSize -1 do
+      begin
+        for j := 0 to ch - 1 do
+        begin
+          FLACIn.Buff[(i*ch + j)*3] := (LongWord(buffer[j][i]) and $000000FF);
+          FLACIn.Buff[(i*ch + j)*3 + 1] := (LongWord(buffer[j][i]) and $0000FF00) div $100;
+          FLACIn.Buff[(i*ch + j)*3 + 2] := (LongWord(buffer[j][i]) and $00FF0000) div $10000;
+        end;
+      end;
+
+        (* if FLACIn.FChan = 1 then
         begin
           buffer1 := buffer[0];
           for i := 0 to FLACIn.FBlockSize-1 do
@@ -508,7 +506,7 @@ type
             FLACIn.Buff[i*6 + 4] := (LongWord(buffer2[i]) and $0000FF00) div $100;
             FLACIn.Buff[i*6 + 5] := (LongWord(buffer2[i]) and $00FF0000) div $10000;
           end;
-        end;
+        end; *)
       end;
     end;
     Result := FLAC__STREAM_ENCODER_OK;
@@ -531,7 +529,7 @@ type
       FI := metadata.stream_info;
       FLACIn.FSR := FI.sample_rate;
       FLACIn.FChan := FI.channels;
-      if FLACIn.FChan > 2 then FLACIn.FValid := False;
+//      if FLACIn.FChan > 2 then FLACIn.FValid := False;
       FLACIn.FBPS := FI.bits_per_sample;
       FLACIn.FTotalSamples := FI.total_samples;
       FLACIn.FSize := FLACIn.FTotalSamples*(FLACIn.FBPS shr 3)*FLACIn.FChan;
