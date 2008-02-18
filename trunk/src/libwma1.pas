@@ -11,7 +11,7 @@ unit libwma1;
 
 (* Title: libwma1.pas
     This Delphi unit provides a simple C-style interface for reading and writing WMA files.
-    (c) 2007 Andrei Borovsky *)
+    (c) 2007-2008 Andrei Borovsky *)
 
 interface
 
@@ -23,6 +23,8 @@ type
    TMediaType = (mtV8, mtV9, mtLossless);
 
    QWORD = Int64;
+
+   TNotifyProc = procedure(Dest : TComponent);
 
    TAudioStream = class(TInterfacedObject, IStream)
    private
@@ -93,7 +95,6 @@ type
         dwFlags: LongWord; pSample: INSSBuffer; pvContext: Pointer): HRESULT; stdcall;
    end;
 
-
    wma_sync_reader = record
      AudioStream : TAudioStream;
      reader : IWMSyncReader;
@@ -113,13 +114,28 @@ type
    pwma_sync_reader = ^wma_sync_reader;
 
    wma_writer = record
-     file_sink : IWMWriterFileSink;
+     Owner : TComponent;
      writer : IWMWriter;
      buffer : INSSBuffer;
      input : LongWord;
      BytesPerSecond : LongWord;
      TotalTime : QWORD;
      Initialized : Boolean;
+     file_sink : IWMWriterFileSink;
+     network_sink : IWMWriterNetworkSink;
+     StatusCallback : IWMStatusCallback;
+     OnConnected, OnDisconnected : TNotifyProc;
+   end;
+
+   pwma_writer = ^wma_writer;
+
+   TWMStatusCallback = class(TInterfacedObject, IWMStatusCallback)
+   private
+      FWriter : pwma_writer;
+   public
+      constructor Create(writer : pwma_writer);
+      function OnStatus(Status: TWMTStatus; hr: HRESULT; dwType: TWMTAttrDataType;
+        pValue: PBYTE; pvContext: Pointer): HRESULT; stdcall;
    end;
 
 
@@ -133,7 +149,7 @@ type
    procedure lwma_enumerate_codecs(var Codecs : TStringList);
    procedure lwma_enumerate_codec_formats(CodecIndex : LongWord; VBR : LongBool; var Formats : TStringList);
 
-   procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream);
+   procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream; Descrete : Boolean; Speakers : ShortInt);
 //   function lwma_reader_has_audio(reader : Pointer) : Byte;
 //   function lwma_reader_is_protected(reader : Pointer) : Byte;
    function lwma_reader_get_duration(var sync_reader : wma_sync_reader) : LongWord;
@@ -182,6 +198,12 @@ type
   procedure lwma_writer_begin(var writer : wma_writer);
   procedure lwma_writer_write(var writer : wma_writer; Buffer : Pointer; len : LongWord);
   procedure lwma_writer_free(var writer : wma_writer);
+
+  procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc);
+  procedure lwma_network_writer_free(var writer : wma_writer);
+  function lwma_network_writer_get_connections_count(var writer : wma_writer) : LongWord;
+  procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var IP, Port, DNSName : WideString);
+  function lwm_network_writer_get_url(var writer : wma_writer) : WideString;
 
   procedure lwma_get_codec_names(var SL : TStringList);
   procedure create_configs(var List : TList);
@@ -499,16 +521,19 @@ implementation
      async_reader.BlockList.Free;
    end;
 
-   procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream);
+   procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream; Descrete : Boolean; Speakers : ShortInt);
    var
-     OutputCount : LongWord;
-     i, size : LongWord;
+     OutputCount, FormatCount : LongWord;
+     i, j, size : LongWord;
      MediaProps : IWMOutputMediaProps;
-     MediaType : PWMMEDIATYPE;
+     OutputMediaType, FormatMediaType : PWMMEDIATYPE;
      format : PWAVEFORMATEX;
      datatype : WMT_ATTR_DATATYPE;
      len, astream : Word;
      NP : Int64;
+     Enable : LongBool;
+     Value : LongWord;
+     Cond : Boolean;
    begin
      CoInitialize(nil);
      FillChar(sync_reader, SizeOf(sync_reader), 0);
@@ -535,47 +560,90 @@ implementation
      end;
      for i := 0 to OutputCount - 1 do
      begin
-
        sync_reader.reader.GetOutputProps(i, MediaProps);
-         MediaProps.GetMediaType(nil, size);
-         GetMem(MediaType, size);
-         MediaProps.GetMediaType(MediaType, size);
-         if GUIDSEqual(MediaType.majortype, WMMEDIATYPE_Audio) and GUIDSEqual(MediaType.formattype, WMFORMAT_WaveFormatEx) then
-	 begin
-	   sync_reader.has_audio := True;
-	   sync_reader.output := i;
-	   format := PWAVEFORMATEX(MediaType.pbFormat);
-	   sync_reader.channels := format.nChannels;
-	   sync_reader.SampleRate := format.nSamplesPerSec;
-	   sync_reader.BitsPerSample := format.wBitsPerSample;
-           sync_reader.reader.SetOutputProps(i, MediaProps);
-	 end;
-	 FreeMem(MediaType);
-	 MediaProps := nil;
-
-
-       //sync_reader.reader.GetOutputFormatCount(i, FormatCount);
-       (*for j := 0 to FormatCount - 1 do
+       MediaProps.GetMediaType(nil, size);
+       GetMem(OutputMediaType, size);
+       MediaProps.GetMediaType(OutputMediaType, size);
+       if GUIDSEqual(OutputMediaType.majortype, WMMEDIATYPE_Audio) then
        begin
-         sync_reader.reader.GetOutputFormat(i, j, MediaProps);
-         MediaProps.GetMediaType(nil, size);
-         GetMem(MediaType, size);
-         MediaProps.GetMediaType(MediaType, size);
-         if GUIDSEqual(MediaType.majortype, WMMEDIATYPE_Audio) and GUIDSEqual(MediaType.formattype, WMFORMAT_WaveFormatEx) then
-	 begin
-	   sync_reader.has_audio := True;
-	   sync_reader.output := i;
-	   format := PWAVEFORMATEX(MediaType.pbFormat);
-	   sync_reader.channels := format.nChannels;
-	   sync_reader.SampleRate := format.nSamplesPerSec;
-	   sync_reader.BitsPerSample := format.wBitsPerSample;
-	 end;
-	 FreeMem(MediaType);
-	 MediaProps := nil;
- 	 if sync_reader.has_audio then break;
-       end;
-       if sync_reader.has_audio then break; *)
-     end;
+         if Descrete then
+         begin
+           Enable := True;
+           sync_reader.reader.SetOutputSetting(i, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
+         end;
+         if Speakers = 0 then
+         begin
+           format := PWAVEFORMATEX(OutputMediaType.pbFormat);
+           sync_reader.SampleRate := format.nSamplesPerSec;
+           sync_reader.channels := format.nChannels;
+           sync_reader.reader.GetOutputFormatCount(i, FormatCount);
+           for j := 0 to FormatCount  - 1 do
+           begin
+             sync_reader.reader.GetOutputFormat(i, j, MediaProps);
+             MediaProps.GetMediaType(nil, size);
+             GetMem(FormatMediaType, size);
+             MediaProps.GetMediaType(FormatMediaType, size);
+             if GUIDSEqual(FormatMediaType.formattype, WMFORMAT_WaveFormatEx) then
+             begin
+               format := PWAVEFORMATEX(FormatMediaType.pbFormat);
+               Cond := (format.wBitsPerSample >= sync_reader.BitsPerSample)
+                 and (format.nSamplesPerSec = LongWord(sync_reader.SampleRate))
+                 and (sync_reader.channels = LongWord(format.nChannels));
+
+               if Cond then
+               begin
+                 sync_reader.has_audio := True;
+                 sync_reader.output := i;
+                // sync_reader.channels := format.nChannels;
+                // sync_reader.SampleRate := format.nSamplesPerSec;
+                 sync_reader.BitsPerSample := format.wBitsPerSample;
+                 sync_reader.reader.SetOutputProps(i, MediaProps);
+               end;
+             end; // if GUIDSEqual(FormatMediaType.formattype, WMFORMAT_WaveFormatEx) then
+     	     FreeMem(FormatMediaType);
+           end; // for j := 0 to FormatCount  - 1 do
+         end else // if Speakers = 0 then
+         begin
+           if Speakers > 2 then
+           begin
+             Value := Speakers;
+             sync_reader.reader.SetOutputSetting(i, g_wszSpeakerConfig, WMT_TYPE_DWORD, PByte(@Value), 4);
+           end;
+           sync_reader.reader.GetOutputFormatCount(i, FormatCount);
+           for j := 0 to FormatCount  - 1 do
+           begin
+             sync_reader.reader.GetOutputFormat(i, j, MediaProps);
+             MediaProps.GetMediaType(nil, size);
+             GetMem(FormatMediaType, size);
+             MediaProps.GetMediaType(FormatMediaType, size);
+             if GUIDSEqual(FormatMediaType.formattype, WMFORMAT_WaveFormatEx) then
+             begin
+               format := PWAVEFORMATEX(FormatMediaType.pbFormat);
+                if Speakers > 0 then
+                  Cond := format.nChannels = Word(Speakers)
+                else
+                begin
+                  Cond := (format.nChannels >= sync_reader.channels) and
+                     (format.nSamplesPerSec >= LongWord(sync_reader.SampleRate))
+                end;
+                if Cond then
+                begin
+                 sync_reader.has_audio := True;
+              	 sync_reader.output := i;
+                 sync_reader.channels := format.nChannels;
+	               sync_reader.SampleRate := format.nSamplesPerSec;
+                 sync_reader.BitsPerSample := format.wBitsPerSample;
+                 sync_reader.reader.SetOutputProps(i, MediaProps);
+               end;
+             end; // if GUIDSEqual(FormatMediaType.formattype, WMFORMAT_WaveFormatEx) then
+     	       FreeMem(FormatMediaType);
+           end; // for j := 0 to FormatCount  - 1 do
+         end; // if Speakers = 0 then ... else
+       end; // if GUIDSEqual(OutputMediaType.majortype, WMMEDIATYPE_Audio) then
+       FreeMem(OutputMediaType);
+    	 MediaProps := nil;
+     end; // for i := 0 to OutputCount - 1 do
+
      if sync_reader.has_audio then
      begin
        sync_reader.reader.GetStreamNumberForOutput(sync_reader.output, sync_reader.stream);
@@ -852,6 +920,61 @@ implementation
      Writer.Initialized := True;
    end;
 
+   procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc);
+   var
+    // pSinkBase : IWMWriterSink;
+     pWriterAdvanced : IWMWriterAdvanced;
+     RegisterCallback : IWMRegisterCallback;
+   begin
+     CoInitialize(nil);
+     FillChar(writer, SizeOf(writer), 0);
+     writer.Owner := Owner;
+     writer.OnConnected := CallConnected;
+     writer.OnDisconnected := CallDisconnected;
+     if WMCreateWriterNetworkSink(writer.network_sink) <> S_OK then
+       Exit;
+     if WMCreateWriter(nil, writer.writer) <> S_OK then
+     begin
+       writer.network_sink := nil;
+       Exit;
+     end;
+     //writer.network_sink.QueryInterface(IID_IWMWriterSink, pSinkBase);
+     writer.network_sink.SetNetworkProtocol(WMT_PROTOCOL_HTTP);
+     if writer.network_sink.Open(PortNumber) <> S_OK then
+     begin
+       writer.network_sink := nil;
+       writer.writer := nil;
+       exit;
+     end;
+     if MaxClients > 0 then
+       writer.network_sink.SetMaximumClients(MaxClients);
+     writer.writer.QueryInterface(IID_IWMWriterAdvanced, pWriterAdvanced);
+     if pWriterAdvanced.AddSink(writer.network_sink) <> S_OK then
+     begin
+       writer.network_sink := nil;
+       writer.writer := nil;
+       exit;
+     end;
+     pWriterAdvanced := nil;
+ //    pSinkBase := nil;
+     writer.StatusCallback := TWMStatusCallback.Create(@writer) as IWMStatusCallback;
+     RegisterCallback := writer.network_sink as IWMRegisterCallback;
+     RegisterCallback.Advise(writer.StatusCallback, nil);
+     RegisterCallback := nil;
+     writer.Initialized := True;
+   end;
+
+   function lwm_network_writer_get_url(var writer : wma_writer) : WideString;
+   var
+     len : LongWord;
+   begin
+     if writer.Initialized then
+     begin
+       writer.network_sink.GetHostURL(nil, len);
+       SetLength(Result, len);
+       writer.network_sink.GetHostURL(PWideChar(Result), len);
+     end;
+   end;
 
  (*  function SeletBestConfig(SubType : TGUID; pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; out ppStreamConfig : IWMStreamConfig) : Boolean;
    var
@@ -1270,21 +1393,28 @@ implementation
    end;
 
    procedure lwma_writer_begin(var writer : wma_writer);
+   var
+     res : HResult;
    begin
-     writer.writer.BeginWriting;
+     res := writer.writer.BeginWriting;
+     if res <> S_OK then
+       raise EAuException.Create('Filed to set data writer: ' + IntToHex(res, 8));
      writer.TotalTime := 0;
    end;
 
    procedure lwma_writer_write(var writer : wma_writer; Buffer : Pointer; len : LongWord);
    var
      buf : PByte;
-   begin
+     res : HResult;
+    begin
      writer.writer.AllocateSample(len, writer.buffer);
      writer.buffer.GetBuffer(buf);
      Move(Buffer^, Buf^, len);
      writer.buffer.SetLength(len);
      writer.TotalTime := writer.TotalTime + Round(len/writer.BytesPerSecond/0.1e-6);
-     writer.writer.WriteSample(writer.input, writer.TotalTime, 0, writer.buffer);
+     res := writer.writer.WriteSample(writer.input, writer.TotalTime, 0, writer.buffer);
+     if res <> S_OK then
+       raise EAuException.Create('Failed to write data: ' + IntToHex(res, 8));
      writer.buffer := nil;
    end;
 
@@ -1293,6 +1423,17 @@ implementation
      writer.writer.EndWriting();
      writer.file_sink := nil;
      writer.writer := nil;
+   end;
+
+   procedure lwma_network_writer_free(var writer : wma_writer);
+   begin
+     writer.writer.EndWriting();
+     writer.network_sink.Close;
+     (writer.writer as IWMWriterAdvanced).RemoveSink(writer.network_sink);
+     writer.network_sink := nil;
+     writer.writer := nil;
+     writer.StatusCallback := nil;
+     writer.Initialized := False;
    end;
 
    procedure TAudioStream.AssignStream;
@@ -1367,8 +1508,8 @@ implementation
 
    constructor TWMReaderCallback.Create;
    begin
-     FReader := reader;
      inherited Create;
+     FReader := reader;
    end;
 
    function TWMReaderCallback.OnStatus;
@@ -1406,5 +1547,48 @@ implementation
      Result := S_OK;
    end;
 
+   constructor TWMStatusCallback.Create;
+   begin
+     inherited Create;
+     FWriter := writer;
+   end;
+
+   function TWMStatusCallback.OnStatus;
+   begin
+     if Status = WMT_CLIENT_CONNECT_EX then
+       FWriter.OnConnected(FWriter.Owner);
+     if Status = WMT_CLIENT_DISCONNECT_EX then
+       FWriter.OnDisconnected(FWriter.Owner);
+     Result := S_OK;
+   end;
+
+  function lwma_network_writer_get_connections_count(var writer : wma_writer) : LongWord;
+  var
+    ClientConnections : IWMClientConnections;
+  begin
+    if Assigned(writer.network_sink) then
+    begin
+      ClientConnections := writer.network_sink as IWMClientConnections;
+      ClientConnections.GetClientCount(Result);
+    end else
+       Result := 0;
+  end;
+
+  procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var IP, Port, DNSName : WideString);
+  var
+    ClientConnections : IWMClientConnections2;
+    addrLen, portLen, nameLen : LongWord;
+  begin
+    if Assigned(writer.network_sink) then
+    begin
+      ClientConnections := writer.network_sink as IWMClientConnections2;
+      ClientConnections.GetClientInfo(connection, nil, addrLen, nil, portLen, nil, nameLen);
+      addrLen := 12;
+      SetLength(IP, addrLen);
+      SetLength(Port, portLen);
+      SetLength(DNSname, nameLen);
+      ClientConnections.GetClientInfo(connection, PWideChar(IP), addrLen, PWideChar(Port), portLen, PWideChar(DNSName), nameLen);
+    end;
+  end;
 
 end.
