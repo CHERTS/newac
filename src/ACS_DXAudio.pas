@@ -17,6 +17,8 @@ interface
 uses
   SysUtils, Classes, Forms, ACS_Types, ACS_Classes, Windows, DSWrapper, _DirectSound;
 
+{$DEFINE USE_EXTENDED_SPEC_FOR_24_BPS }
+
 const
 
   DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
@@ -209,6 +211,7 @@ var
   Res : HResult;
   Wnd : HWND;
   Form : TForm;
+  FormatExt : TWaveFormatExtensible;
 begin
   Freed := False;
   if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid device number');
@@ -230,8 +233,44 @@ begin
     FillByte := 0
   else
     FillByte := 128;
-  Res := DSW_InitOutputBuffer(DSW, Wnd, BPS, SR, Chan, _BufSize);
-  if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer');
+//    Res := DSW_InitOutputBuffer(DSW, Wnd, BPS, SR, Chan, _BufSize);
+      FillChar(FormatExt, SizeOf(FormatExt), 0);
+
+{$IFDEF USE_EXTENDED_SPEC_FOR_24_BPS }
+    if (Chan < 3) and (BPS <> 24) then
+{$ENDIF}
+
+{$IFNDEF USE_EXTENDED_SPEC_FOR_24_BPS }
+     if Chan < 3 then
+{$ENDIF}
+
+    begin
+      FormatExt.Format.wFormatTag := 1; //WAVE_FORMAT_PCM;
+      FormatExt.Format.cbSize := 0;
+    end else
+    begin
+      FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+      FormatExt.Format.cbSize := SizeOf(FormatExt) - SizeOf(FormatExt.Format);
+      FormatExt.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
+      if Chan = 2 then
+         FormatExt.dwChannelMask := $3;
+      if Chan = 6 then
+        FormatExt.dwChannelMask := $3F;
+      if Chan = 8 then
+        FormatExt.dwChannelMask := $FF;
+    end;
+    FormatExt.Format.nChannels := Chan;
+    FormatExt.Format.nSamplesPerSec := SR;
+    FormatExt.Format.wBitsPerSample := BPS;
+    FormatExt.Format.nBlockAlign := Chan*BPS shr 3;
+    FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
+ //   FormatExt.wValidBitsPerSample := BPS;
+//    FormatExt.wSamplesPerBlock := 0;
+//   FormatExt.wReserved := 0;
+//    FormatExt.SubFormat := 1;
+
+    Res := DSW_InitOutputBufferEx(DSW, Wnd, FormatExt, _BufSize);
+  if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer' + IntToHex(Res, 8));
   StartInput := True;
   EndOfInput := False;
   _TmpUnderruns := 0;
