@@ -27,8 +27,8 @@ uses
 {$ENDIF}
 
 const
-  OUT_BUF_SIZE = $8000;
-  BUF_SIZE = $2000;
+  OUT_BUF_SIZE = $6000;
+  BUF_SIZE = $3000;
 
 type
 
