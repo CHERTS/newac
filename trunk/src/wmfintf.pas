@@ -43,8 +43,16 @@ const
   {$EXTERNALSYM IID_IWMCodecInfo2}
   IID_IWMCodecInfo3             : TGUID = '{7e51f487-4d93-4f98-8ab4-27d0565adc51}';
   {$EXTERNALSYM IID_IWMCodecInfo3}
-  IID_IWMReaderCallback         : TGUID = '{96406bd8-2b2b-11d3-b36b-00c04f6108ff}';
-  {$EXTERNALSYM IID_IWMReaderCallback}
+  IID_IWMWriterNetworkSink      : TGUID = '{96406be7-2b2b-11d3-b36b-00c04f6108ff}';
+  {$EXTERNALSYM IID_IWMWriterNetworkSink}
+  IID_IWMClientConnections      : TGUID = '{73c66010-a299-41df-b1f0-ccf03b09c1c6}';
+  {$EXTERNALSYM IID_IWMClientConnections}
+  IID_IWMStatusCallback         : TGUID = '{6d7cdc70-9888-11d3-8edc-00c04f6109cf}';
+  {$EXTERNALSYM IID_IWMStatusCallback}
+  IID_IWMRegisterCallback       : TGUID = '{cf4b1f99-4de2-4e49-a363-252740d99bc1}';
+  {$EXTERNALSYM IID_IWMRegisterCallback}
+  IID_IWMClientConnections2     : TGUID = '{4091571e-4701-4593-bb3d-d5f5f0c74246}';
+  {$EXTERNALSYM IID_IWMClientConnections2}
 
 
   WMMEDIASUBTYPE_WMAudioV9        : TGUID = '{00000162-0000-0010-8000-00AA00389B71}';
@@ -125,6 +133,10 @@ const
   {$EXTERNALSYM g_wszWMHasFileTransferStream}
   g_wszWMContainerFormat        = WideString('WM/ContainerFormat');
   {$EXTERNALSYM g_wszWMContainerFormat}
+  g_wszEnableDiscreteOutput    = WideString('EnableDiscreteOutput');
+  {$EXTERNALSYM g_wszEnableDiscreteOutput}
+  g_wszSpeakerConfig           = WideString('SpeakerConfig');
+  {$EXTERNALSYM g_wszSpeakerConfig}
 
 ////////////////////////////////////////////////////////////////
 //
@@ -1103,6 +1115,73 @@ type
     function Clear: HRESULT; stdcall;
   end;
 
+ WMT_NET_PROTOCOL = (
+    WMT_PROTOCOL_HTTP
+  );
+  {$EXTERNALSYM WMT_NET_PROTOCOL}
+  TWMTNetProtocol = WMT_NET_PROTOCOL;
+
+  IWMWriterNetworkSink = interface(IWMWriterSink)
+    ['{96406BE7-2B2B-11D3-B36B-00C04F6108FF}']
+    (*** IWMWriterNetworkSink methods ***)
+    // Determine the maximum number of clients that can connect to this sink.
+    // Default is 5.
+    function SetMaximumClients(dwMaxClients: LongWord): HResult; stdcall;
+    function GetMaximumClients(out pdwMaxClients: LongWord): HResult; stdcall;
+    // The network protocol that the network sink will use.
+    function SetNetworkProtocol(protocol: TWMTNetProtocol): HResult; stdcall;
+    function GetNetworkProtocol(out pProtocol: TWMTNetProtocol): HResult; stdcall;
+    // Find out the name of the URL on which we're broadcasting
+    function GetHostURL({out} pwszURL: PWideChar; var pcchURL: LongWord): HResult; stdcall;
+    // The method claims the network port number. Close the sink to release
+    // the port.
+    //
+    // Specify 0 for the port number and the sink will select a port for
+    // the user.
+    function Open(var pdwPortNum: LongWord): HResult; stdcall;
+    // Disconnect all connected clients.
+    function Disconnect: HResult; stdcall;
+    // Close and release the open port.
+    function Close: HResult; stdcall;
+  end;
+
+  PWMClientProperties = ^TWMClientProperties;
+  _WMClientProperties = packed record
+    dwIPAddress : LongWord;
+    dwPort      : LongWord;
+  end;
+  {$EXTERNALSYM _WMClientProperties}
+  WM_CLIENT_PROPERTIES = _WMClientProperties;
+  {$EXTERNALSYM WM_CLIENT_PROPERTIES}
+  TWMClientProperties = _WMClientProperties;
+
+  IWMClientConnections = interface(IUnknown)
+    ['{73C66010-A299-41DF-B1F0-CCF03B09C1C6}']
+    (*** IWMClientConnections methods ***)
+    // Determine the number of connected clients
+    function GetClientCount(out pcClients: LongWord): HResult; stdcall;
+    // Get information about a connected client
+    function GetClientProperties(dwClientNum: LongWord; out pClientProperties: TWMClientProperties): HResult; stdcall;
+  end;
+
+  {$EXTERNALSYM IWMClientConnections2}
+  IWMClientConnections2 = interface(IWMClientConnections)
+    ['{4091571E-4701-4593-BB3D-D5F5F0C74246}']
+    (*** IWMClientConnections2 methods ***)
+    // Get information about a connected client
+    function GetClientInfo(dwClientNum: LongWord; {out} pwszNetworkAddress: PWideChar;
+      var pcchNetworkAddress: LongWord; {out} pwszPort: PWideChar;
+      var pcchPort: LongWord; {out} pwszDNSName: PWideChar;
+      var pcchDNSName: LongWord): HResult; stdcall;
+  end;
+
+  IWMRegisterCallback = interface(IUnknown)
+    ['{CF4B1F99-4DE2-4E49-A363-252740D99BC1}']
+    (*** IWMRegisterCallback methods ***)
+    function Advise(pCallback: IWMStatusCallback; pvContext: Pointer): HResult; stdcall;
+    function Unadvise(pCallback: IWMStatusCallback; pvContext: Pointer): HResult; stdcall;
+  end;
+
 
   function WMCreateSyncReader(pUnkCert: IUnknown; dwRights: LongWord; out ppSyncReader: IWMSyncReader): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateSyncReader}
@@ -1114,6 +1193,8 @@ type
   {$EXTERNALSYM WMCreateProfileManager}
   function WMCreateReader(pUnkCert: IUnknown; dwRights: LongWord; out ppReader: IWMReader): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateReader}
+  function WMCreateWriterNetworkSink(out ppSink: IWMWriterNetworkSink): HRESULT; stdcall;
+  {$EXTERNALSYM WMCreateWriterNetworkSink}
 
 
 implementation
@@ -1126,5 +1207,5 @@ const
   function WMCreateWriterFileSink; external WMVCORE name 'WMCreateWriterFileSink';
   function WMCreateProfileManager; external WMVCORE name 'WMCreateProfileManager';
   function WMCreateReader; external WMVCORE name 'WMCreateReader';
-
+  function WMCreateWriterNetworkSink; external WMVCORE name 'WMCreateWriterNetworkSink';
 end.
