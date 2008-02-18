@@ -75,8 +75,18 @@ begin
     Label3.Caption := FLACIn1.FileName;
     DXAudioOut1.Run;
     Label4.Caption := IntToStr(FLACIn1.SampleRate);
-    if FLACIn1.Channels = 1 then Label8.Caption := 'Mono'
-    else Label8.Caption := 'Stereo';
+    if FLACIn1.Channels = 1 then
+      Label8.Caption := 'Mono'
+    else
+    if FLACIn1.Channels = 2 then
+      Label8.Caption := 'Stereo'
+    else
+    if FLACIn1.Channels = 6 then
+      Label8.Caption := '5.1 channels'
+    else
+    if FLACIn1.Channels = 8 then
+      Label8.Caption := '7.1 channels';
+
     Secs := IntToStr(FLACIn1.TotalTime mod 60);
     if FLACIn1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label7.Caption := Format('%d:%s', [FLACIn1.TotalTime div 60, Secs]);
