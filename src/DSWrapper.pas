@@ -57,7 +57,7 @@ interface
 
 {$WARNINGS OFF}
 uses
-  SysUtils, Windows, MMSystem, _DirectSound;
+  SysUtils, Windows, MMSystem, _DirectSound, ACS_Types;
 
 type
 
@@ -113,6 +113,7 @@ type
   function DSW_InitOutputDevice(var dsw : DSoundWrapper; lpGUID : PGUID) : HRESULT;
   function DSW_InitOutputBuffer(var dsw  : DSoundWrapper; Wnd : HWND; bps : LongWord;
         nFrameRate : LongWord; nChannels, bytesPerBuffer : LongWord) : HRESULT;
+  function DSW_InitOutputBufferEx(var dsw  : DSoundWrapper; Wnd : HWND; var WaveFormat : TWaveFormatExtensible; bytesPerBuffer : LongWord) : HRESULT;
   function DSW_StartOutput(var dsw : DSoundWrapper) : HRESULT;
   function DSW_StopOutput(var dsw : DSoundWrapper): HRESULT;
   function DSW_RestartOutput(var dsw : DSoundWrapper) : HRESULT;
@@ -285,6 +286,100 @@ begin
     ///* printf("DSW_InitOutputBuffer: playCursor = %d, writeCursor = %d\n", playCursor, dsw->dsw_WriteOffset ); */
   Result := DS_OK;
 end;
+
+function DSW_InitOutputBufferEx(var dsw  : DSoundWrapper; Wnd : HWND; var WaveFormat : TWaveFormatExtensible; bytesPerBuffer : LongWord) : HRESULT;
+var
+  dwDataLen : DWORD;
+  playCursor : DWORD;
+  pPrimaryBuffer : IDIRECTSOUNDBUFFER;
+  _hWnd : HWND;
+  hr : HRESULT;
+  primaryDesc : TDSBufferDesc;
+  secondaryDesc : TDSBufferDesc;
+  pDSBuffData : PByte;
+  counterFrequency : LARGE_INTEGER;
+  framesInBuffer : Integer;
+begin
+  dsw.dsw_OutputSize := bytesPerBuffer;
+  dsw.dsw_OutputRunning := FALSE;
+  dsw.dsw_OutputUnderflows := 0;
+  dsw.dsw_FramesWritten := 0;
+  dsw.dsw_BytesPerFrame := WaveFormat.Format.nBlockAlign;
+  // We were using getForegroundWindow() but sometimes the ForegroundWindow may not be the
+  // applications's window. Also if that window is closed before the Buffer is closed
+  // then DirectSound can crash. (Thanks for Scott Patterson for reporting this.)
+  // So we will use GetDesktopWindow() which was suggested by Miller Puckette.
+  // hWnd = GetForegroundWindow();
+  _hWnd := Wnd;
+  if _hWnd = 0 then
+    _hWnd := GetDesktopWindow();
+  // Set cooperative level to DSSCL_EXCLUSIVE so that we can get 16 bit output, 44.1 KHz.
+  // Exclusize also prevents unexpected sounds from other apps during a performance.
+  hr := dsw.dsw_pDirectSound.SetCooperativeLevel(_hWnd, DSSCL_EXCLUSIVE);
+  if hr <> DS_OK then
+  begin
+    Result := hr;
+    Exit;
+  end;
+  // -----------------------------------------------------------------------
+  // Create primary buffer and set format just so we can specify our custom format.
+  // Otherwise we would be stuck with the default which might be 8 bit or 22050 Hz.
+  // Setup the primary buffer description
+  FillChar(primaryDesc, sizeof(TDSBUFFERDESC), 0);
+  primaryDesc.dwSize := sizeof(DSBUFFERDESC);
+  primaryDesc.dwFlags := DSBCAPS_PRIMARYBUFFER; // all panning, mixing, etc done by synth
+  primaryDesc.dwBufferBytes := 0;
+  primaryDesc.lpwfxFormat := nil; //PWaveFormatEx(@WaveFormat);
+  // Create the buffer
+  Result := dsw.dsw_pDirectSound.CreateSoundBuffer(
+        primaryDesc, pPrimaryBuffer, nil);  // ATTENTION
+  if (Result <> DS_OK) then Exit;
+//  Set the primary buffer's format
+Result := pPrimaryBuffer.SetFormat(PWaveFormatEx(@WaveFormat));
+  if (Result <> DS_OK) then Exit;
+    // ----------------------------------------------------------------------
+    // Setup the secondary buffer description
+  ZeroMemory(@secondaryDesc, sizeof(TDSBUFFERDESC));
+  secondaryDesc.dwSize := sizeof(TDSBUFFERDESC);
+  secondaryDesc.dwFlags :=  DSBCAPS_CTRLPAN or DSBCAPS_CTRLFREQUENCY or DSBCAPS_GLOBALFOCUS or DSBCAPS_GETCURRENTPOSITION2 or DSBCAPS_CTRLVOLUME;
+  secondaryDesc.dwBufferBytes := bytesPerBuffer;
+  secondaryDesc.lpwfxFormat := PWaveFormatEx(@WaveFormat);
+    // Create the secondary buffer
+  Result := dsw.dsw_pDirectSound.CreateSoundBuffer(secondaryDesc, dsw.dsw_OutputBuffer, nil);
+  if Result <> DS_OK then Exit;
+    // Lock the DS buffer
+
+  Result := dsw.dsw_OutputBuffer.Lock(0, dsw.dsw_OutputSize, @pDSBuffData,
+            @dwDataLen, nil, nil, 0);
+  if Result <> DS_OK then Exit;
+    // Zero the DS buffer
+  ZeroMemory(pDSBuffData, dwDataLen);
+    // Unlock the DS buffer
+  Result := dsw.dsw_OutputBuffer.Unlock(pDSBuffData, dwDataLen, nil, 0);
+  if Result <> DS_OK then Exit;
+  if QueryPerformanceFrequency(Int64(counterFrequency)) then
+  begin
+    framesInBuffer := bytesPerBuffer div WaveFormat.Format.nBlockAlign;
+    dsw.dsw_CounterTicksPerBuffer.QuadPart := (counterFrequency.QuadPart * framesInBuffer) div WaveFormat.Format.nSamplesPerSec;
+//        AddTraceMessage("dsw_CounterTicksPerBuffer = %d\n", dsw->dsw_CounterTicksPerBuffer.LowPart );
+  end
+  else begin
+    dsw.dsw_CounterTicksPerBuffer.QuadPart := 0;
+  end;
+    // Let DSound set the starting write position because if we set it to zero, it looks like the
+    // buffer is full to begin with. This causes a long pause before sound starts when using large buffers.
+  hr := dsw.dsw_OutputBuffer.GetCurrentPosition(@playCursor, @(dsw.dsw_WriteOffset));
+  if( hr <> DS_OK ) then
+  begin
+    Result := hr;
+    Exit;
+  end;
+  dsw.dsw_FramesWritten := dsw.dsw_WriteOffset/dsw.dsw_BytesPerFrame;
+    ///* printf("DSW_InitOutputBuffer: playCursor = %d, writeCursor = %d\n", playCursor, dsw->dsw_WriteOffset ); */
+  Result := DS_OK;
+end;
+
+
 
 function DSW_StartOutput(var dsw : DSoundWrapper) : HRESULT;
 begin
