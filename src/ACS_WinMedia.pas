@@ -22,6 +22,14 @@ type
 
   TStreamedAudioEvent = procedure(Sender : TComponent) of object;
 
+  TConnectionInfo = record
+    IP : WideString;
+    Port : WideString;
+    DNSName : WideString;
+  end;  
+
+  TChannelsNumber = (cnMaxAvailable, cnMonoOrStereo, cn5dot1, cn7dot1);
+
    (* Class: TWMIn
       Windows Media Audio file/stream decoder. This component can read not
       only WMA files but sound tracks from WMV files as well. It can also read
@@ -31,11 +39,16 @@ type
   private
     reader : wma_sync_reader;
     FDuration : LongWord;
+    FHighPrecision : Boolean;
+    FOutputChannels : TChannelsNumber;
+    procedure SetHighPrecision(Value : Boolean);
+    procedure SetOutputChannels(Value : TChannelsNumber);
     function GetHasAudio : Boolean;
     function GetProtected : Boolean;
     function GetBitrate : LongWord;
     function GetId3v2Tags : TId3v2Tags;
     function GetIsVBR : Boolean;
+    function CNToShortInt : ShortInt;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -73,6 +86,29 @@ type
     property EndSample;
     property Loop;
     property StartSample;
+    (* Property: HighPrecision
+      Use HighPrecision to set the high precision decoding mode on or off.
+      In normal precision mode the decoder will produce only 16-bit 1 or 2 channel output, even if the input file is 24-bit multi-channel.
+      If you want to obtain 24-bit sound or more than two channels, set HighPrecision to True.
+      This property is set to True automatically if you assign to the <OutputChannels> property some value other than cnMonoOrStereo. *)
+    property HighPrecision : Boolean read FHighPrecision write SetHighPrecision;
+    (* Property: OutputChannels
+      Sets the number of channels for decoder output.
+
+      Possible values are:
+      - cnMaxAvailable - decoder produces all the channels present in the input file.
+      - cnMonoOrStereo - decoder produces mono audio stream for mono input file and stereo for everything else.
+      - cn5dot1 - decoder will produce 5.1 multi-channel output if the input file has enough channels in it.
+      - cn7dot1 - decoder will produce 7.1 multi-channel output if the input file has enough channels in it.
+
+      Use cnMaxAvailable value if you don't know how many channels the input file contains and want to play all of them.
+      Note however that cnMaxAvailable upsamples audio ooutput (usually to 48000 Hz) which is not always desirable.
+      Use cnMonoOrStereo if you want your output to be always mono or stereo (this mode is useful if you play sound on the hardware that doesn't support multiple channels).
+      If the input file is multi-channel and cnMonoOrStereo mode is selected, the channels will be mixed into stereo.
+      Use cn5dot1 if you are sure that the inpt file contains at least 6 channels. Forsing 6 channels ouput on the file that doesn't have enough channels may cause crash.
+      Use cn7dot1 if you are sure that the inpt file contains at least 8 channels. Forsing 8 channels on the file that doesn't have them may cause crash.
+      See also the <HighPrecision> property. *)
+      property OutputChannels : TChannelsNumber read FOutputChannels write SetOutputChannels;
   end;
 
    (* Class: TWMAOut
@@ -89,7 +125,6 @@ type
     FCodecs : TStringList;
     FFormats : TStringList;
     FCodecIndex, FFormatIndex : Integer;
-    Writer : wma_writer;
     EndOfStream : Boolean;
     Buf : Pointer;
     BufSize : Integer;
@@ -102,6 +137,10 @@ type
     function GetFormats(Index : Word) : TStringList;
     function GetFormatsCount(Index : Word) : Word;
   protected
+    Writer : wma_writer;
+    FPort : LongWord;
+    FMaxClients : LongWord;
+    FUseNetwork : Boolean;
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
     procedure Prepare; override;
@@ -386,13 +425,67 @@ type
     property OnStartedPlaying : TStreamedAudioEvent read FOnStartedPlaying write FOnStartedPlaying;
   end;
 
+  (* Class: TWMStreamedOut
+        This component can stream Windows Media audio over HTTP in local or global networks.
+        You can listen to the streamed audio using such players as Windows Media Player, WinAmp, or NewAC demo i-Radio.
+        Audio stream is not a file. You cannot download it to your hard drive (but you can record it).
+        When connecting to the audio-streaming host from a player, don't forget to use http: prefix or the player will not know what protocol to use. *)
 
+  TWMStreamedOut = class(TWMAOut)
+  private
+    FOnClientConnected, FOnClientDisconnected : TStreamedAudioEvent;
+    function GetConnectionsCount : LongWord;
+    function GetConnectionInfo(Index : Integer) : TConnectionInfo;
+    function GetURL : String;
+  public
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+    (* Property: ConnectionsCount
+      The number of incoming connections. *)
+    property ConnectionsCount : LongWord read GetConnectionsCount;
+    (* Property: Connections[Index : Integer]
+      Use this property to get an information about an incoming connection.
+      Valid Index values range from 0 to <ConnectionsCount> - 1. *)
+    property Connections[Index : Integer] : TConnectionInfo read GetConnectionInfo;
+    (* Property: URL
+      Use this property to get the transmitting host URL.
+      This URL usually takes form http://your_host_name:<Port>.
+      The URL value becomes available only after you call Run and not at once. *)
+    property URL : String read GetURL;
+  published
+    (* Property: MaxClients
+      The maximum number of incoming connctions allowed.
+      If this property is set to 0 (the default value) the number of incoming conections is not limited. *)
+    property MaxClients : LongWord read FMaxClients write FMaxClients;
+    (* Property: Port
+      The number of port on which the component will listen for incoming connections. *)
+    property Port : LongWord read FPort write FPort;
+    (* Property: OnClientConnected
+      The OnClientConnected event is raised when a new client connects to the transmitter. *)
+    property OnClientConnected : TStreamedAudioEvent read FOnClientConnected write FOnClientConnected;
+    (* Property: OnClientDisconnected
+      The OnClientDisconnected event is raised when a client disconnects from the transmitter. *)
+    property OnClientDisconnected : TStreamedAudioEvent read FOnClientDisconnected write FOnClientDisconnected;
+  end;
 
 implementation
+
+  procedure CallOnConnected(Dest : TComponent);
+  begin
+    if Assigned((Dest as TWMStreamedOut).FOnClientConnected)  then
+      EventHandler.PostGenericEvent(Dest, (Dest as TWMStreamedOut).FOnClientConnected);
+  end;
+
+  procedure CallOnDisconnected(Dest : TComponent);
+  begin
+    if Assigned((Dest as TWMStreamedOut).FOnClientDisconnected)  then
+      EventHandler.PostGenericEvent(Dest, (Dest as TWMStreamedOut).FOnClientDisconnected);
+  end;
 
   constructor TWMIn.Create;
   begin
     inherited Create(AOwner);
+    FOutputChannels := cnMonoOrStereo;
   end;
 
   destructor TWMIn.Destroy;
@@ -414,7 +507,7 @@ implementation
       if (not FStreamAssigned) and (FWideFileName = '') then
       raise EAuException.Create('File name is not assigned');
       if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead, fmShareDenyNone);
-      lwma_reader_init(reader, FStream);
+      lwma_reader_init(reader, FStream, FHighPrecision, CNToShortInt);
       FValid := reader.has_audio;
       if reader.reader = nil then Exit;
       if reader._protected then
@@ -515,6 +608,19 @@ implementation
     Result := lwma_reader_get_is_vbr(reader);
   end;
 
+  procedure TWMIn.SetHighPrecision(Value: Boolean);
+  begin
+    if Value or (FOutputChannels = cnMonoOrStereo) then
+        FHighPrecision := Value;
+  end;
+
+  procedure TWMIn.SetOutputChannels;
+  begin
+     if Value <> cnMonoOrStereo then
+        FHighPrecision := True;
+     FOutputChannels := Value;
+  end;
+
   constructor TWMAOut.Create;
   begin
     inherited Create(AOwner);
@@ -539,9 +645,13 @@ implementation
 
   procedure TWMAOut.Prepare;
   begin
-    if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
+    if not FUseNetwork then
+      if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
     FInput.Init;
-    lwma_writer_init(Writer, PWideChar(FWideFileName));
+    if FUseNetwork then
+      lwma_network_writer_init(Writer, FPort, FMaxClients, Self, CallOnConnected, CallOnDisconnected)
+    else
+      lwma_writer_init(Writer, PWideChar(FWideFileName));
     if not Writer.Initialized then
       raise Exception.Create('Cannot create file');
     if FCodecIndex < 0 then
@@ -591,7 +701,10 @@ implementation
   procedure TWMAOut.Done;
   begin
     FInput.Flush;
-    lwma_writer_free(Writer);
+    if FUseNetwork then
+      lwma_network_writer_free(Writer)
+    else
+      lwma_writer_free(Writer);
     FreeMem(Buf);
   end;
 
@@ -847,6 +960,43 @@ implementation
   procedure TWMATap.WriteDataInternal;
   begin
     lwma_writer_write(Writer, Buffer, BufferLength);
+  end;
+
+  function TWMin.CNToShortInt;
+  begin
+    Result := 0;
+    case OutputChannels of
+      cnMaxAvailable : Result := -1;
+      cnMonoOrStereo : Result := 0;
+      cn5dot1 : Result := 6;
+      cn7dot1 : Result := 8;
+    end;
+  end;
+
+  constructor TWMStreamedOut.Create;
+  begin
+    inherited Create(AOwner);
+    FUseNetwork := True;
+  end;
+
+  destructor TWMStreamedOut.Destroy;
+  begin
+    inherited Destroy;
+  end;
+
+  function TWMStreamedOut.GetConnectionsCount;
+  begin
+    Result := lwma_network_writer_get_connections_count(Writer);
+  end;
+
+  function TWMStreamedOut.GetConnectionInfo;
+  begin
+    lwma_network_writer_get_connection_info(Writer, Index, Result.IP, Result.Port, Result.DNSName);
+  end;
+
+  function TWMStreamedOut.GetURL;
+  begin
+    Result := lwm_network_writer_get_url(Writer);
   end;
 
 end.
