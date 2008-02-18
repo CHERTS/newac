@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 505
   Top = 393
-  Width = 357
-  Height = 217
   Caption = 'WinMedia Player'
+  ClientHeight = 181
+  ClientWidth = 341
   Color = clSilver
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -45,19 +45,18 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 164
-    Width = 349
+    Top = 162
+    Width = 341
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 83
-    Width = 349
+    Top = 81
+    Width = 341
     Height = 81
     Align = alBottom
     BevelOuter = bvNone
@@ -262,12 +261,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 72
-    Width = 349
+    Top = 70
+    Width = 341
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 5
   end
   object ForwardButton: TButton
@@ -305,6 +302,8 @@ object Form1: TForm1
   object WMIn1: TWMIn
     EndSample = -1
     Loop = False
+    HighPrecision = True
+    OutputChannels = cnMaxAvailable
     Left = 8
     Top = 152
   end
