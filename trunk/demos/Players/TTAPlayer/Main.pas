@@ -99,8 +99,17 @@ begin
     StatusBar1.Panels[0].Text := TTAIn1.FileName;
     DXAudioOut1.Run;
     Label1.Caption := IntToStr(TTAIn1.SampleRate) + ' Hz';
-    if TTAIn1.Channels = 1 then Label17.Caption := 'Mono'
-    else Label17.Caption := 'Stereo';
+    if TTAIn1.Channels = 1 then
+      Label17.Caption := 'Mono'
+    else
+    if TTAIn1.Channels = 2 then
+      Label17.Caption := 'Stereo'
+    else
+    if TTAIn1.Channels = 6 then
+      Label17.Caption := '5.1 channels'
+    else
+    if TTAIn1.Channels = 8 then
+      Label17.Caption := '7.1 channels';
     Secs := IntToStr(TTAIn1.TotalTime mod 60);
     if TTAIn1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label16.Caption := Format('%d:%s', [TTAIn1.TotalTime div 60, Secs]);

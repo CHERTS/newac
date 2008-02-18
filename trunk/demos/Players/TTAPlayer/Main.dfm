@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 313
   Top = 191
-  Width = 347
-  Height = 226
   Caption = 'TTA Player'
+  ClientHeight = 190
+  ClientWidth = 331
   Color = clSilver
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -152,23 +152,20 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 173
-    Width = 339
+    Top = 171
+    Width = 331
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 81
-    Width = 339
+    Top = 79
+    Width = 331
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 1
   end
   object CheckBox1: TCheckBox
@@ -182,8 +179,8 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 92
-    Width = 339
+    Top = 90
+    Width = 331
     Height = 81
     Align = alBottom
     BevelOuter = bvNone
@@ -401,6 +398,7 @@ object Form1: TForm1
     Top = 152
   end
   object TTAIn1: TTTAIn
+    Loop = False
     Left = 64
     Top = 152
   end
