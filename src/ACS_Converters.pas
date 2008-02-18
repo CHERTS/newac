@@ -654,7 +654,10 @@ implementation
   begin
     if not Assigned(FInput) then
     raise EAuException.Create('Input not assigned');
-    Result := 2;
+    if FInput.Channels <= 2 then
+      Result := 2
+    else
+      Result := FInput.Channels;
   end;
 
   function TStereoBalance.GetSR;
@@ -670,8 +673,11 @@ implementation
     raise EAuException.Create('Input not assigned');
     FInput.Init;
     Busy := True;
-    if FInput.Channels = 2 then FSize := FInput.Size
-    else FSize := FInput.Size*2;
+    if FInput.Channels <= 2 then
+    begin
+      if FInput.Channels = 2 then FSize := FInput.Size
+      else FSize := FInput.Size*2;
+    end;
     FPosition := 0;
   end;
 
@@ -691,6 +697,11 @@ implementation
     Diff : Double;
   begin
     if not Busy then  raise EAuException.Create('The Stream is not opened');
+    if FInput.Channels > 2 then
+    begin
+      FInput.GetData(Buffer, Bytes);
+      Exit;
+    end;
     if FInput.Channels = 2 then
     begin
       WantedSize := Bytes;
