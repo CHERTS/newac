@@ -21,7 +21,6 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Timer2: TTimer;
-    Label3: TLabel;
     ScrollBar1: TScrollBar;
     Label5: TLabel;
     Label4: TLabel;
@@ -33,10 +32,11 @@ type
     BitBtn3: TBitBtn;
     Memo1: TMemo;
     Label9: TLabel;
-    StereoBalance1: TStereoBalance;
     TrackBar1: TTrackBar;
     Label10: TLabel;
     DXAudioOut1: TDXAudioOut;
+    StereoBalance1: TStereoBalance;
+    Label3: TLabel;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
@@ -76,8 +76,18 @@ begin
     Label3.Caption := VorbisIn1.FileName;
     DXAudioOut1.Run;
     Label4.Caption := IntToStr(VorbisIn1.SampleRate);
-    if VorbisIn1.Channels = 1 then Label8.Caption := 'Mono'
-    else Label8.Caption := 'Stereo';
+    if VorbisIn1.Channels = 1 then
+      Label8.Caption := 'Mono'
+
+    else
+    if VorbisIn1.Channels = 2 then
+      Label8.Caption := 'Stereo'
+    else
+    if VorbisIn1.Channels = 6 then
+      Label8.Caption := '5.1 channels'
+    else
+    if VorbisIn1.Channels = 8 then
+      Label8.Caption := '7.1 channels';
     Secs := IntToStr(VorbisIn1.TotalTime mod 60);
     if VorbisIn1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label7.Caption := Format('%d:%s', [VorbisIn1.TotalTime div 60, Secs]);

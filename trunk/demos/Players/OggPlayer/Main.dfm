@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 484
   Top = 384
-  Width = 290
-  Height = 375
+  Width = 299
+  Height = 373
   Caption = 'Ogg Player'
   Color = 95
   Font.Charset = DEFAULT_CHARSET
@@ -38,20 +38,6 @@ object Form1: TForm1
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object Label3: TLabel
-    Left = 0
-    Top = 328
-    Width = 282
-    Height = 13
-    Align = alBottom
-    Caption = 'Label3'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
   end
   object Label5: TLabel
@@ -135,6 +121,20 @@ object Form1: TForm1
     Width = 47
     Height = 13
     Caption = 'Balance'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clAqua
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 0
+    Top = 326
+    Width = 291
+    Height = 13
+    Align = alBottom
+    Caption = 'Comments'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clAqua
     Font.Height = -11
@@ -269,18 +269,18 @@ object Form1: TForm1
     Left = 200
     Top = 232
   end
-  object StereoBalance1: TStereoBalance
-    Input = VorbisIn1
-    Balance = 0.5
-    Left = 80
-    Top = 232
-  end
   object DXAudioOut1: TDXAudioOut
     Input = StereoBalance1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
     Left = 120
+    Top = 232
+  end
+  object StereoBalance1: TStereoBalance
+    Input = VorbisIn1
+    Balance = 0.5
+    Left = 80
     Top = 232
   end
 end
