@@ -68,14 +68,6 @@ type
     mp3buf : PByte;
     mp3buf_size : Integer;
 
-    FTitle : String;
-    FArtist : String;
-    FAlbum : String;
-    FYear : String;
-    FTrack : String;
-    FComment : String;
-    FGenre : String;
-
     FCopyright: BOOL;
     FOriginal: BOOL;
     FEnableVBR: BOOL;
@@ -96,15 +88,6 @@ type
     destructor Destroy; override;
   published
     property BitRate : TMP3BitRate read FBitRate write FBitRate stored True;
-
-    property Id3TagTitle : String read FTitle write FTitle;
-    property Id3TagArtist : String read FArtist write FArtist;
-    property Id3TagAlbum : String read FAlbum write FAlbum;
-    property Id3TagYear : String read FYear write FYear;
-    property Id3TagTrack : String read FTrack write FTrack;
-    property Id3TagComment : String read FComment write FComment;
-    property Id3TagGenre : String read FGenre write FGenre;
-
 
     property Id3v1Tags;
 
@@ -287,15 +270,6 @@ implementation
     res : Integer;
   begin
     id3tag_init(_plgf);
-
-    id3tag_set_title(_plgf, PChar(FTitle));
-    id3tag_set_artist(_plgf, PChar(FArtist));
-    id3tag_set_album(_plgf, PChar(FAlbum));
-    id3tag_set_year(_plgf, PChar(FYear));
-    id3tag_set_track(_plgf, PChar(FTrack));
-    id3tag_set_comment(_plgf, PChar(FComment));
-    id3tag_set_genre(_plgf, PChar(FGenre));
-
 
     id3tag_set_title(_plgf, PChar(Id3v1Tags.Title));
     id3tag_set_artist(_plgf, PChar(Id3v1Tags.Artist));
