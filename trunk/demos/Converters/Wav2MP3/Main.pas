@@ -29,6 +29,17 @@ type
     ComboBox1: TComboBox;
     Label4: TLabel;
     MP3Out1: TMP3Out;
+    Button2: TButton;
+    Edit1: TEdit;
+    Label5: TLabel;
+    Label6: TLabel;
+    Edit2: TEdit;
+    Edit3: TEdit;
+    Label7: TLabel;
+    Label8: TLabel;
+    Edit4: TEdit;
+    Label9: TLabel;
+    Edit5: TEdit;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
@@ -36,6 +47,7 @@ type
     procedure MP3Out1Progress(Sender: TComponent);
     procedure MP3Out1ThreadException(Sender: TComponent;
       const Msg: String);
+    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
     function StrToBitRate(const S : String) : TMP3Bitrate;
@@ -51,23 +63,11 @@ implementation
 {$R *.dfm}
 
 procedure TForm1.Button1Click(Sender: TObject);
-var
-  S : String;
 begin
-  MP3Out1.BitRate := Self.StrToBitRate(ComboBOx1.Text);
   If OpenDialog1.Execute then
   begin
     WaveIn1.FileName := OpenDialog1.FileName;
-    S := OpenDialog1.FileName;
-    SetLength(S, Length(S) - 4);
-    SaveDialog1.FileName := S + '.mp3';
-    if SaveDialog1.Execute then
-    begin
-      Self.StatusBar1.Panels[0].Text := 'Converting...';
-      MP3Out1.FileName := SaveDialog1.FileName;
-      MP3Out1.Run;
-      Button1.Enabled := False;
-    end;
+    StatusBar1.Panels.Items[0].Text := 'File to convert: ' + ExtractFileName(WaveIn1.FileName);
   end;
 end;
 
@@ -124,6 +124,34 @@ begin
     Result := br256;
   if S = '320' then
     Result := br320;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  MP3Out1.BitRate := StrToBitRate(ComboBOx1.Text);
+  if WaveIn1.FileName <> '' then
+  begin
+    SaveDialog1.FileName := ChangeFileExt(WaveIn1.FileName, '.mp3');
+    if SaveDialog1.Execute then
+    begin
+      Self.StatusBar1.Panels[0].Text := 'Converting...';
+      MP3Out1.Id3v1Tags.Clear;
+      if Edit1.Text <> '' then
+         MP3Out1.Id3v1Tags.Title := Edit1.Text;
+      if Edit2.Text <> '' then
+         MP3Out1.Id3v1Tags.Artist := Edit2.Text;
+      if Edit3.Text <> '' then
+         MP3Out1.Id3v1Tags.Album := Edit3.Text;
+      if Edit4.Text <> '' then
+         MP3Out1.Id3v1Tags.Genre := Edit4.Text;
+      if Edit5.Text <> '' then
+         MP3Out1.Id3v1Tags.Year := StrToInt(Edit5.Text);
+      MP3Out1.FileName := SaveDialog1.FileName;
+      Button1.Enabled := False;
+      MP3Out1.Run;
+    end;
+  end;
+
 end;
 
 end.

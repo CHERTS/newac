@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 192
   Top = 109
-  Width = 233
-  Height = 152
+  Width = 292
+  Height = 268
   Caption = 'Wav2MP3 Converter'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,24 +12,27 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  DesignSize = (
+    284
+    234)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 152
+    Left = 200
     Top = 8
     Width = 56
     Height = 13
     Caption = 'CPU Usage'
   end
   object Label2: TLabel
-    Left = 144
+    Left = 192
     Top = 48
     Width = 22
     Height = 13
     Caption = 'Less'
   end
   object Label3: TLabel
-    Left = 192
+    Left = 240
     Top = 48
     Width = 24
     Height = 13
@@ -42,26 +45,62 @@ object Form1: TForm1
     Height = 13
     Caption = 'Bitrate'
   end
+  object Label5: TLabel
+    Left = 16
+    Top = 88
+    Width = 20
+    Height = 13
+    Caption = 'Title'
+  end
+  object Label6: TLabel
+    Left = 16
+    Top = 112
+    Width = 23
+    Height = 13
+    Caption = 'Artist'
+  end
+  object Label7: TLabel
+    Left = 16
+    Top = 136
+    Width = 29
+    Height = 13
+    Caption = 'Album'
+  end
+  object Label8: TLabel
+    Left = 16
+    Top = 160
+    Width = 29
+    Height = 13
+    Caption = 'Genre'
+  end
+  object Label9: TLabel
+    Left = 16
+    Top = 184
+    Width = 22
+    Height = 13
+    Caption = 'Year'
+  end
   object Button1: TButton
     Left = 8
     Top = 8
     Width = 75
     Height = 25
-    Caption = 'Convert...'
+    Caption = 'Select...'
     TabOrder = 0
     OnClick = Button1Click
   end
   object ProgressBar1: TProgressBar
     Left = 8
     Top = 72
-    Width = 209
+    Width = 268
     Height = 9
+    Anchors = [akLeft, akTop, akRight]
     Min = 0
     Max = 100
     TabOrder = 1
   end
   object TrackBar1: TTrackBar
-    Left = 144
+    Left = 192
     Top = 24
     Width = 70
     Height = 20
@@ -80,8 +119,8 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 99
-    Width = 225
+    Top = 215
+    Width = 284
     Height = 19
     Panels = <
       item
@@ -110,28 +149,81 @@ object Form1: TForm1
       '256'
       '320')
   end
+  object Button2: TButton
+    Left = 96
+    Top = 8
+    Width = 75
+    Height = 25
+    Caption = 'Convert...'
+    TabOrder = 5
+    OnClick = Button2Click
+  end
+  object Edit1: TEdit
+    Left = 56
+    Top = 88
+    Width = 217
+    Height = 17
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 6
+  end
+  object Edit2: TEdit
+    Left = 56
+    Top = 112
+    Width = 217
+    Height = 17
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 7
+  end
+  object Edit3: TEdit
+    Left = 56
+    Top = 136
+    Width = 217
+    Height = 17
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 8
+  end
+  object Edit4: TEdit
+    Left = 56
+    Top = 160
+    Width = 217
+    Height = 17
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 9
+  end
+  object Edit5: TEdit
+    Left = 56
+    Top = 184
+    Width = 217
+    Height = 17
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 10
+  end
   object WaveIn1: TWaveIn
     EndSample = -1
     Loop = False
     Left = 72
-    Top = 88
+    Top = 200
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wav files|*.wav'
     Left = 8
-    Top = 88
+    Top = 200
   end
   object SaveDialog1: TSaveDialog
-    DefaultExt = 'ogg'
+    DefaultExt = 'mp3'
     Left = 40
-    Top = 88
+    Top = 200
   end
   object MP3Out1: TMP3Out
     Input = WaveIn1
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
     BitRate = br128
+    Id3v1Tags.Year = 0
+    Id3v1Tags.Track = 0
+    Id3v1Tags.Genre = 'Blues'
+    Id3v1Tags.GenreId = 0
     Left = 104
-    Top = 88
+    Top = 200
   end
 end
