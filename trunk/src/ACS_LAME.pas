@@ -9,7 +9,7 @@
 
 *)
 
-(* $Revision: 1.4 $ $Date: 2007/08/19 10:47:27 $ *)
+(* $Id$ *)
 
 
 (*
@@ -31,9 +31,9 @@ interface
 
 uses
   Classes, SysUtils, ACS_Classes, ACS_Types, lame,
-{Ross--- *)
+
   ACS_Tags,
-(* ---Ross}
+
 {$IFDEF LINUX}
   libc;
 {$ENDIF}
@@ -55,7 +55,7 @@ type
               DUAL_CHANNEL, // LAME doesn't supports this!
               MONO);
 
-  TMP3SampleRate = (srDefault, sr32kHz, sr41kHz, sr48kHz);
+  TMP3SampleRate = (srDefault, sr8kHz, sr11kHz, sr12kHz, sr16kHz, sr22kHz, sr24kHz, sr32kHz, sr41kHz, sr48kHz);
 
   TMP3BitRate = (br8, br16, br24, br32, br40, br48, br56, br64, br80, br96,
                  br112, br128, br144, br160, br192, br224, br256, br320);
@@ -67,7 +67,7 @@ type
     _plgf : PLame_global_flags;
     mp3buf : PByte;
     mp3buf_size : Integer;
-{Ross--- 
+
     FTitle : String;
     FArtist : String;
     FAlbum : String;
@@ -75,7 +75,7 @@ type
     FTrack : String;
     FComment : String;
     FGenre : String;
- ---Ross}
+
     FCopyright: BOOL;
     FOriginal: BOOL;
     FEnableVBR: BOOL;
@@ -96,7 +96,7 @@ type
     destructor Destroy; override;
   published
     property BitRate : TMP3BitRate read FBitRate write FBitRate stored True;
-{Ross---
+
     property Id3TagTitle : String read FTitle write FTitle;
     property Id3TagArtist : String read FArtist write FArtist;
     property Id3TagAlbum : String read FAlbum write FAlbum;
@@ -104,10 +104,10 @@ type
     property Id3TagTrack : String read FTrack write FTrack;
     property Id3TagComment : String read FComment write FComment;
     property Id3TagGenre : String read FGenre write FGenre;
- ---Ross}
-{Ross--- *)
+
+
     property Id3v1Tags;
-(* ---Ross}
+
     property Quality     : TMP3Quality read FQuality write FQuality default ql5;
 
     property SampleRate     : TMP3SampleRate read FSampleRate write FSampleRate default srDefault;
@@ -196,13 +196,19 @@ implementation
     end;
     case FSampleRate of
       srDefault: sr := 0;
+      sr8kHz: sr := 8000;
+      sr11kHz: sr := 11025;
+      sr12kHz: sr := 12000;
+      sr16kHz: sr := 16000;
+      sr22kHz: sr := 22050;
+      sr24kHz: sr := 24000;
       sr32kHz: sr := 32000;
       sr41kHz: sr := 41000;
       sr48kHz: sr := 48000;
     end;
 
-    if Finput.SampleRate < 41000 then
-      sr := 32000;
+    if Finput.SampleRate < 11025 then
+      sr := 8000;
 
     lame_set_out_samplerate(_plgf,sr);
 
@@ -281,7 +287,7 @@ implementation
     res : Integer;
   begin
     id3tag_init(_plgf);
-{Ross---
+
     id3tag_set_title(_plgf, PChar(FTitle));
     id3tag_set_artist(_plgf, PChar(FArtist));
     id3tag_set_album(_plgf, PChar(FAlbum));
@@ -289,8 +295,8 @@ implementation
     id3tag_set_track(_plgf, PChar(FTrack));
     id3tag_set_comment(_plgf, PChar(FComment));
     id3tag_set_genre(_plgf, PChar(FGenre));
- ---Ross}
-{Ross--- *)
+
+
     id3tag_set_title(_plgf, PChar(Id3v1Tags.Title));
     id3tag_set_artist(_plgf, PChar(Id3v1Tags.Artist));
     id3tag_set_album(_plgf, PChar(Id3v1Tags.Album));
@@ -298,7 +304,7 @@ implementation
     id3tag_set_track(_plgf, PChar(IntToStr(Id3v1Tags.Track)));
     id3tag_set_comment(_plgf, PChar(Id3v1Tags.Comment));
     id3tag_set_genre(_plgf, PChar(Id3v1Tags.Genre));
-(* ---Ross}
+
     res := lame_encode_flush(_plgf, mp3buf, mp3buf_size);
     FStream.Write(mp3buf^, res);
     if not FStreamAssigned then FStream.Free;
