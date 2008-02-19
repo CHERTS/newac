@@ -520,8 +520,7 @@ implementation
     else P := Pointer(OutBufS);
     Buffer := @P[BufStart-1];
     Inc(BufStart, Bytes);
-    FPosition := Round(FInput.Position*(FSize/FInput.Size));
- //   Inc(FPosition, Result);
+//    FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
   constructor TMSConverter.Create;
@@ -613,8 +612,7 @@ implementation
       Bytes := BufEnd - BufStart + 1;
     Buffer := @InOutBuf[BufStart];
     Inc(BufStart, Bytes);
-    FPosition := Round(FInput.Position*(FSize/FInput.Size));
- //   Inc(FPosition, Result);
+    //FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
   procedure TRateConverter.SetOutSampleRate(aSR : LongWord);
@@ -677,7 +675,9 @@ implementation
     begin
       if FInput.Channels = 2 then FSize := FInput.Size
       else FSize := FInput.Size*2;
-    end;
+    end
+    else
+      FSize := FInput.Size;
     FPosition := 0;
   end;
 
