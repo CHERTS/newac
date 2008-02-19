@@ -52,8 +52,8 @@ type
     Button4: TButton;
     ProgressBar1: TProgressBar;
     WaveOut1: TWaveOut;
-    WMAOut1: TWMAOut;
     AudioConverter1: TAudioConverter;
+    WMAOut1: TWMAOut;
     procedure Button3Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
     procedure Button1Click(Sender: TObject);

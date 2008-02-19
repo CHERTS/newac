@@ -269,19 +269,10 @@ object Form1: TForm1
     Input = AudioConverter1
     OnDone = WaveOut1Done
     OnProgress = WaveOut1Progress
-    FileMode = foRewrite
     WavType = wtPCM
     BlockSize = 512
-    Left = 384
-    Top = 224
-  end
-  object WMAOut1: TWMAOut
-    Input = AudioConverter1
-    OnDone = WaveOut1Done
-    OnProgress = WaveOut1Progress
     FileMode = foRewrite
-    DesiredBitrate = 256
-    Left = 416
+    Left = 384
     Top = 224
   end
   object AudioConverter1: TAudioConverter
@@ -290,6 +281,17 @@ object Form1: TForm1
     OutBitsPerSample = 0
     OutChannels = 0
     Left = 352
+    Top = 224
+  end
+  object WMAOut1: TWMAOut
+    Input = AudioConverter1
+    OnDone = WaveOut1Done
+    OnProgress = WaveOut1Progress
+    DesiredBitrate = 0
+    Lossless = False
+    VBR = False
+    VBRQuality = 0
+    Left = 416
     Top = 224
   end
 end
