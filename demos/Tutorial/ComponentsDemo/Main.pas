@@ -1,6 +1,8 @@
 (*
  NewAC Wave player demo (shows how the TDemoWaveIn component works).
- See ACS documentation on where to find the library.
+ IMPORTANT:
+ This demo is for those who wnat to write their own components for NewAC.
+ If you are new to this components pack use other demos to learn how to work with NewAC.
  (c) Andrei Borovsky, anb@symmetrica.net
 *)
 

@@ -96,6 +96,8 @@ type
       stream.
     *)
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
+  published
+    property Loop;
   end;
 
   (* Class: TDemoWaveOut 
