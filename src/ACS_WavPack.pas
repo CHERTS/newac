@@ -98,7 +98,6 @@ type
     FBitrate: Single;
 
     FEncoder: TWavpackEncoder;
-    FEOF: Boolean;
     FBufferInStart: Cardinal;
     FBufferIn: array of Byte;
     FBufferOut: array of Byte;
@@ -509,8 +508,6 @@ var
   bytes_per_sample: Integer;
   flags: TwvConfigFlags;
 begin
-  FEOF := False;
-
   if not FStreamAssigned then
     if FWideFileName = '' then
       raise EAuException.Create('File name is not assigned')
@@ -613,8 +610,7 @@ begin
   if not Result then
     Exit; 
 
-  FEOF := FEOF or Abort;
-  if FEOF then begin
+  if Abort then begin
     Result := False;
 
     Exit;
@@ -680,8 +676,6 @@ begin
     else
       FBufferInStart := 0;
   end;
-
-  FEOF := not Result;
 end;
 
 end.

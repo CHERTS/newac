@@ -433,6 +433,7 @@ var
 
   stream_reader: TWavpackStreamReader;
 
+
 procedure CheckFunc(Func: Pointer; FuncName: String);
 begin
   if not WavpackDLL_Loaded then
