@@ -17,7 +17,6 @@ uses
 type
   TForm1 = class(TForm)
     OpenDialog1: TOpenDialog;
-    Label3: TLabel;
     ScrollBar1: TScrollBar;
     Label5: TLabel;
     Label4: TLabel;
@@ -35,6 +34,7 @@ type
     FLACIn1: TFLACIn;
     DXAudioOut1: TDXAudioOut;
     CheckBox1: TCheckBox;
+    Label3: TLabel;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
