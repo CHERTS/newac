@@ -12,6 +12,9 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
+  DesignSize = (
+    291
+    339)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -134,19 +137,19 @@ object Form1: TForm1
     Width = 291
     Height = 13
     Align = alBottom
-    Caption = 'Comments'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clAqua
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
+    Font.Style = []
     ParentFont = False
   end
   object ScrollBar1: TScrollBar
     Left = 16
     Top = 112
-    Width = 241
+    Width = 265
     Height = 9
+    Anchors = [akLeft, akTop, akRight]
     Enabled = False
     PageSize = 0
     TabOrder = 0
@@ -219,10 +222,11 @@ object Form1: TForm1
     NumGlyphs = 2
   end
   object Memo1: TMemo
-    Left = 16
+    Left = 8
     Top = 208
-    Width = 249
+    Width = 273
     Height = 105
+    Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvNone
     BevelOuter = bvNone
     Color = 95
