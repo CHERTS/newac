@@ -154,7 +154,7 @@ object Form1: TForm1
     OnDone = OutputDone
     OnProgress = Progress
     Compression = 0.200000002980232
-    Comments.Track = 0
+    Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
     FileMode = foRewrite
@@ -181,7 +181,7 @@ object Form1: TForm1
     MinResidualPartitionOrder = 0
     QLPCoeffPrecision = 0
     QLPCoeffPrecisionSearch = False
-    Tags.Track = 0
+    Tags.Track = '0'
     Verify = False
     Left = 40
     Top = 128
