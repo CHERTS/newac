@@ -57,7 +57,7 @@ type
 implementation
 
 uses
-  SysUtils{, Math, Variants};
+  SysUtils;
 
 { class TOFRIn }
 
@@ -166,7 +166,7 @@ var
   samples, samples_read: Cardinal;
 begin
   if not Busy then
-    raise EAuException.Create('The Stream is not opened');
+    raise EAuException.Create('The stream is not opened');
 
   if Bytes > 0 then begin
     if FSize >= 0 then begin

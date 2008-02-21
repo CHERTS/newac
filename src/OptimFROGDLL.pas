@@ -84,8 +84,8 @@ type
     constructor Create(AStream: TStream); overload;
     destructor Destroy; override;
 
+    function Seek(const Sample: Int64): Boolean;
     function Read(Buffer: Pointer; SampleCount: Cardinal): Integer;
-    function Seek(Sample: Int64): Boolean;
 
     property FileName: String read FFileName;
     property Stream: TStream read FStream;
@@ -277,6 +277,7 @@ var
 
   OptimFROG_decodeFile: t_OptimFROG_decodeFile_func = nil;
   OptimFROG_infoFile: t_OptimFROG_infoFile_func = nil;
+
 
 procedure CheckFunc(Func: Pointer; const FuncName: String);
 begin
@@ -505,6 +506,16 @@ begin
   end;
 end;
 
+function TOptimFROGDecoder.Seek(const Sample: Int64): Boolean;
+begin
+  Result := Seekable;
+  if Result then begin
+    CheckFunc(@OptimFROG_seekPoint, OptimFROG_seekPoint_name);
+
+    Result := OptimFROG_seekPoint(FInstance, Sample);
+  end;
+end;
+
 function TOptimFROGDecoder.Read(Buffer: Pointer; SampleCount: Cardinal): Integer;
 begin
   if Buffer = nil then
@@ -517,16 +528,6 @@ begin
   end
   else
     Result := 0;
-end;
-
-function TOptimFROGDecoder.Seek(Sample: Int64): Boolean;
-begin
-  Result := Seekable;
-  if Result then begin
-    CheckFunc(@OptimFROG_seekPoint, OptimFROG_seekPoint_name);
-
-    Result := OptimFROG_seekPoint(FInstance, Sample);
-  end;
 end;
 
 
