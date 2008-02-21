@@ -38,7 +38,6 @@ type
   private
     FFile: HFILE;
     FDecoder: TTTADecoder;
-    FEOF: Boolean;
     FBuffer: array of Byte;
     FBufferRest: array of Byte;
 
@@ -74,7 +73,6 @@ type
   private
     FFile: HFILE;
     FEncoder: TTTAEncoder;
-    FEOF: Boolean;
     FBufferInStart: LongWord;
     FBufferIn: array of Byte;
     FBufferOut: array of Byte;
@@ -97,7 +95,7 @@ type
 implementation
 
 uses
-  SysUtils, Variants;
+  SysUtils;
 
 type
   t_byte_sample = type Byte;
@@ -176,7 +174,6 @@ begin
   FSeekable := False;
 
   FPosition := 0;
-  FEOF := False;
 end;
 
 procedure TTTAIn.DoneDecoder;
@@ -341,7 +338,6 @@ begin
     raise EAuException.Create('File for input is not opened!');
 
   if Bytes > 0 then begin
-
     if FSize >= 0 then begin
       new_bytes := FSize - FPosition;
       if Bytes > new_bytes then
@@ -357,8 +353,6 @@ begin
       frames := FDecoder.GetBlock(@p_in_samples);
       if frames = 0 then begin
         Bytes := Length(FBuffer);
-
-        FEOF := True;
 
         Break;
       end;
@@ -399,7 +393,6 @@ begin
       SetLength(FBufferRest, 0);
 
     Buffer := @(FBuffer[0]);
-
   end;
 end;
 
@@ -429,8 +422,6 @@ var
   file_name: WideString;
   frame_size: Integer;
 begin
-  FEOF := False;
-
   if FStreamAssigned then
     file_name := CreateTempFileName('tta')
   else
@@ -491,8 +482,8 @@ begin
     try
       if not ID3v1Tags.Empty then
         ID3v1Tags.WriteToFile(FFile);
-//      if not Id3v2Tags.Empty then
-//        Id3v2Tags.WriteToFile(FFile, False);
+      if not Id3v2Tags.Empty then
+        Id3v2Tags.WriteToFile(FFile, False);
 
       if FStreamAssigned then begin
         size := GetFileSize(FFile, nil);
@@ -568,8 +559,7 @@ begin
   if not Result then
     Exit; 
 
-  FEOF := FEOF or Abort;
-  if FEOF then begin
+  if Abort then begin
     Result := False;
 
     Exit;
@@ -655,8 +645,6 @@ begin
     else
       FBufferInStart := 0;
   end;
-
-  FEOF := not Result;
 end;
 
 end.
