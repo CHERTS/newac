@@ -222,7 +222,7 @@ function GetErrorString(Error: TTTAError): String;
 implementation
 
 var
-  TTALibHandle: HINST = 0;
+  TTALib_Handle: HMODULE = 0;
 
 // from WavFile.h
 
@@ -317,14 +317,13 @@ var
 
 procedure CheckFunc(Func: Pointer; FuncName: String);
 begin
-  if TTALibHandle = 0 then
+  if TTALib_Handle = 0 then
     raise ETTAException.CreateFmt(
       'TrueAudio library "%s" not loaded!', [TTALib_name]);
   if Func = nil then
     raise ETTAException.CreateFmt(
       'Function "%s" not found in TrueAudio library!', [FuncName]);
 end;
-
 
 function GetErrorString(Error: TTTAError): String;
 begin
@@ -1020,141 +1019,141 @@ begin
 end;
 
 initialization begin
-  TTALibHandle := LoadLibrary(TTALib_name);
-  TTALib_Loaded := (TTALibHandle <> 0);
+  TTALib_Handle := LoadLibrary(TTALib_name);
+  TTALib_Loaded := (TTALib_Handle <> 0);
   if TTALib_Loaded then begin
-    WaveFile_Create  := GetProcAddress(TTALibHandle,
+    WaveFile_Create  := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::WaveFile::WaveFile(void)')}
       {MAKEINTRESOURCE(5)}
       '??0WaveFile@TTALib@@QAE@XZ');
-    WaveFile_Destroy   := GetProcAddress(TTALibHandle,
+    WaveFile_Destroy   := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::WaveFile::~WaveFile(void)'}
       {MAKEINTRESOURCE(8)}
       '??1WaveFile@TTALib@@QAE@XZ');
-    WaveFile_GetErrNo     := GetProcAddress(TTALibHandle,
+    WaveFile_GetErrNo     := GetProcAddress(TTALib_Handle,
       {'public: enum TTALib::TTAError __thiscall TTALib::WaveFile::GetErrNo(void)const'}
       {MAKEINTRESOURCE(21)}
       '?GetErrNo@WaveFile@TTALib@@QBE?AW4TTAError@2@XZ');
-    WaveFile_Assign       := GetProcAddress(TTALibHandle,
+    WaveFile_Assign       := GetProcAddress(TTALib_Handle,
       {'public: class TTALib::WaveFile & __thiscall TTALib::WaveFile::operator=(class TTALib::WaveFile const &)'}
       {MAKEINTRESOURCE(12)}
       '??4WaveFile@TTALib@@QAEAAV01@ABV01@@Z');
-    WaveFile_Create       := GetProcAddress(TTALibHandle,
+    WaveFile_Create       := GetProcAddress(TTALib_Handle,
       {'public: void * __thiscall TTALib::WaveFile::Create(char const *)'}
       {MAKEINTRESOURCE(16)}
       '?Create@WaveFile@TTALib@@QAEPAXPBD@Z');
-    WaveFile_Open         := GetProcAddress(TTALibHandle,
+    WaveFile_Open         := GetProcAddress(TTALib_Handle,
       {'public: void * __thiscall TTALib::WaveFile::Open(char const *)'}
       {MAKEINTRESOURCE(27)}
       '?Open@WaveFile@TTALib@@QAEPAXPBD@Z');
-    WaveFile_ReadHeaders  := GetProcAddress(TTALibHandle,
+    WaveFile_ReadHeaders  := GetProcAddress(TTALib_Handle,
       {'public: bool __thiscall TTALib::WaveFile::ReadHeaders(void)'}
       {MAKEINTRESOURCE(29)}
       '?ReadHeaders@WaveFile@TTALib@@QAE_NXZ');
-    WaveFile_Read         := GetProcAddress(TTALibHandle,
+    WaveFile_Read         := GetProcAddress(TTALib_Handle,
       {'public: bool __thiscall TTALib::WaveFile::Read(long *,long,unsigned long *)'}
       {MAKEINTRESOURCE(28)}
       '?Read@WaveFile@TTALib@@QAE_NPAJJPAK@Z');
-    WaveFile_WriteHeaders := GetProcAddress(TTALibHandle,
+    WaveFile_WriteHeaders := GetProcAddress(TTALib_Handle,
       {'public: bool __thiscall TTALib::WaveFile::WriteHeaders(void)'}
       {MAKEINTRESOURCE(34)}
       '?WriteHeaders@WaveFile@TTALib@@QAE_NXZ');
-    WaveFile_Write        := GetProcAddress(TTALibHandle,
+    WaveFile_Write        := GetProcAddress(TTALib_Handle,
       {'public: bool __thiscall TTALib::WaveFile::Write(long *,long,long,unsigned long *)'}
       {MAKEINTRESOURCE(33)}
       '?Write@WaveFile@TTALib@@QAE_NPAJJJPAK@Z');
-    WaveFile_Close        := GetProcAddress(TTALibHandle,
+    WaveFile_Close        := GetProcAddress(TTALib_Handle,
       {'public: void __thiscall TTALib::WaveFile::Close(void)'}
       {MAKEINTRESOURCE(13)}
       '?Close@WaveFile@TTALib@@QAEXXZ');
 
-    TTADecoder_CreateFromName   := GetProcAddress(TTALibHandle,
+    TTADecoder_CreateFromName   := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::TTADecoder::TTADecoder(char const *)'}
       {MAKEINTRESOURCE(2)}
       '??0TTADecoder@TTALib@@QAE@PBD@Z');
-    TTADecoder_CreateFromHandle := GetProcAddress(TTALibHandle,
+    TTADecoder_CreateFromHandle := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::TTADecoder::TTADecoder(void *)'}
       {MAKEINTRESOURCE(1)}
       '??0TTADecoder@TTALib@@QAE@PAX@Z');
-    TTADecoder_Destroy          := GetProcAddress(TTALibHandle,
+    TTADecoder_Destroy          := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::TTADecoder::~TTADecoder(void)'}
       {MAKEINTRESOURCE(6)}
       '??1TTADecoder@TTALib@@QAE@XZ');
-    TTADecoder_Assign           := GetProcAddress(TTALibHandle,
+    TTADecoder_Assign           := GetProcAddress(TTALib_Handle,
       {'public: class TTALib::TTADecoder & __thiscall TTALib::TTADecoder::operator=(class TTALib::TTADecoder const &)'}
       {MAKEINTRESOURCE(9)}
       '??4TTADecoder@TTALib@@QAEAAV01@ABV01@@Z');
-    TTADecoder_GetBlock         := GetProcAddress(TTALibHandle,
+    TTADecoder_GetBlock         := GetProcAddress(TTALib_Handle,
       {'public: long __thiscall TTALib::TTADecoder::GetBlock(long * *)'}
       {MAKEINTRESOURCE(19)}
       '?GetBlock@TTADecoder@TTALib@@QAEJPAPAJ@Z');
-    TTADecoder_GetAudioFormat   := GetProcAddress(TTALibHandle,
+    TTADecoder_GetAudioFormat   := GetProcAddress(TTALib_Handle,
       {'public: long __thiscall TTALib::TTADecoder::GetAudioFormat(void)'}
       {MAKEINTRESOURCE(17)}
       '?GetAudioFormat@TTADecoder@TTALib@@QAEJXZ');
-    TTADecoder_GetNumChannels   := GetProcAddress(TTALibHandle,
+    TTADecoder_GetNumChannels   := GetProcAddress(TTALib_Handle,
       {'public: long __thiscall TTALib::TTADecoder::GetNumChannels(void)'}
       {MAKEINTRESOURCE(23)}
       '?GetNumChannels@TTADecoder@TTALib@@QAEJXZ');
-    TTADecoder_GetBitsPerSample := GetProcAddress(TTALibHandle,
+    TTADecoder_GetBitsPerSample := GetProcAddress(TTALib_Handle,
       {'public: long __thiscall TTALib::TTADecoder::GetBitsPerSample(void)'}
       {MAKEINTRESOURCE(18)}
       '?GetBitsPerSample@TTADecoder@TTALib@@QAEJXZ');
-    TTADecoder_GetSampleRate    := GetProcAddress(TTALibHandle,
+    TTADecoder_GetSampleRate    := GetProcAddress(TTALib_Handle,
       {'public: long __thiscall TTALib::TTADecoder::GetSampleRate(void)'}
       {MAKEINTRESOURCE(24)}
       '?GetSampleRate@TTADecoder@TTALib@@QAEJXZ');
-    TTADecoder_GetDataLength    := GetProcAddress(TTALibHandle,
+    TTADecoder_GetDataLength    := GetProcAddress(TTALib_Handle,
       {'public: long __thiscall TTALib::TTADecoder::GetDataLength(void)'}
       {MAKEINTRESOURCE(20)}
       '?GetDataLength@TTADecoder@TTALib@@QAEJXZ');
-    TTADecoder_GetStat          := GetProcAddress(TTALibHandle,
+    TTADecoder_GetStat          := GetProcAddress(TTALib_Handle,
       {'public: struct TTALib::TTAStat __thiscall TTALib::TTADecoder::GetStat(void)'}
       {MAKEINTRESOURCE(25)}
       '?GetStat@TTADecoder@TTALib@@QAE?AUTTAStat@2@XZ');
 
-    TTAEncoder_CreateWithName   := GetProcAddress(TTALibHandle,
+    TTAEncoder_CreateWithName   := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::TTAEncoder::TTAEncoder(char const *,bool,unsigned short,unsigned short,unsigned short,unsigned long,unsigned long)'}
       {MAKEINTRESOURCE(4)}
       '??0TTAEncoder@TTALib@@QAE@PBD_NGGGKK@Z');
-    TTAEncoder_CreateWithHandle := GetProcAddress(TTALibHandle,
+    TTAEncoder_CreateWithHandle := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::TTAEncoder::TTAEncoder(void *,bool,unsigned short,unsigned short,unsigned short,unsigned long,unsigned long)'}
       {MAKEINTRESOURCE(3)}
       '??0TTAEncoder@TTALib@@QAE@PAX_NGGGKK@Z');
-    TTAEncoder_Destroy          := GetProcAddress(TTALibHandle,
+    TTAEncoder_Destroy          := GetProcAddress(TTALib_Handle,
       {'public: __thiscall TTALib::TTAEncoder::~TTAEncoder(void)'}
       {MAKEINTRESOURCE(7)}
       '??1TTAEncoder@TTALib@@QAE@XZ');
-    TTAEncoder_Assign           := GetProcAddress(TTALibHandle,
+    TTAEncoder_Assign           := GetProcAddress(TTALib_Handle,
       {'public: class TTALib::TTAEncoder & __thiscall TTALib::TTAEncoder::operator=(class TTALib::TTAEncoder const &)'}
       {MAKEINTRESOURCE(10)}
       '??4TTAEncoder@TTALib@@QAEAAV01@ABV01@@Z');
-    TTAEncoder_CompressBlock    := GetProcAddress(TTALibHandle,
+    TTAEncoder_CompressBlock    := GetProcAddress(TTALib_Handle,
       {'public: bool __thiscall TTALib::TTAEncoder::CompressBlock(long *,long)'}
       {MAKEINTRESOURCE(14)}
       '?CompressBlock@TTAEncoder@TTALib@@QAE_NPAJJ@Z');
-    TTAEncoder_GetStat          := GetProcAddress(TTALibHandle,
+    TTAEncoder_GetStat          := GetProcAddress(TTALib_Handle,
       {'public: struct TTALib::TTAStat __thiscall TTALib::TTAEncoder::GetStat(void)'}
       {MAKEINTRESOURCE(26)}
       '?GetStat@TTAEncoder@TTALib@@QAE?AUTTAStat@2@XZ');
 
-    _GetErrStr     := GetProcAddress(TTALibHandle,
+    _GetErrStr     := GetProcAddress(TTALib_Handle,
       {'char const * __cdecl TTALib::GetErrStr(enum TTALib::TTAError)'}
       {MAKEINTRESOURCE(22)}
       '?GetErrStr@TTALib@@YAPBDW4TTAError@1@@Z');
-    _CopyId3Header := GetProcAddress(TTALibHandle,
+    _CopyId3Header := GetProcAddress(TTALib_Handle,
       {'enum TTALib::TTAError __cdecl TTALib::CopyId3Header(void *,void *,bool)'}
       {MAKEINTRESOURCE(15)}
       '?CopyId3Header@TTALib@@YA?AW4TTAError@1@PAX0_N@Z');
-    _Wav2TTA       := GetProcAddress(TTALibHandle,
+    _Wav2TTA       := GetProcAddress(TTALib_Handle,
       {'enum TTALib::TTAError __cdecl TTALib::Wav2TTA(char const *,char const *,bool,bool (__cdecl*)(struct TTALib::TTAStat const &,void *),void *)'}
       {MAKEINTRESOURCE(32)}
       '?Wav2TTA@TTALib@@YA?AW4TTAError@1@PBD0_NP6A_NABUTTAStat@1@PAX@Z3@Z');
-    _TTA2Wav       := GetProcAddress(TTALibHandle,
+    _TTA2Wav       := GetProcAddress(TTALib_Handle,
       {'enum TTALib::TTAError __cdecl TTALib::TTA2Wav(char const *,char const *,bool,bool (__cdecl*)(struct TTALib::TTAStat const &,void *),void *)'}
       {MAKEINTRESOURCE(30)}
       '?TTA2Wav@TTALib@@YA?AW4TTAError@1@PBD0_NP6A_NABUTTAStat@1@PAX@Z3@Z');
-    _TTATest       := GetProcAddress(TTALibHandle,
+    _TTATest       := GetProcAddress(TTALib_Handle,
       {'enum TTALib::TTAError __cdecl TTALib::TTATest(char const *,bool (__cdecl*)(struct TTALib::TTAStat const &,void *),void *)'}
       {MAKEINTRESOURCE(31)}
       '?TTATest@TTALib@@YA?AW4TTAError@1@PBDP6A_NABUTTAStat@1@PAX@Z2@Z');
@@ -1162,8 +1161,8 @@ initialization begin
 end;
 
 finalization begin
-  if TTALibHandle <> 0 then
-    FreeLibrary(TTALibHandle);
+  if TTALib_Handle <> 0 then
+    FreeLibrary(TTALib_Handle);
 end;
 
 end.
