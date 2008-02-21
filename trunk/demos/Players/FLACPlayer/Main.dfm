@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 239
   Top = 189
+  Width = 299
+  Height = 373
   Caption = 'FLAC Player'
-  ClientHeight = 339
-  ClientWidth = 274
   Color = clNavy
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,23 +12,11 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
+  DesignSize = (
+    291
+    339)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label3: TLabel
-    Left = 0
-    Top = 326
-    Width = 274
-    Height = 13
-    Align = alBottom
-    Caption = 'Label3'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-    ExplicitWidth = 32
-  end
   object Label5: TLabel
     Left = 16
     Top = 8
@@ -117,11 +105,25 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label3: TLabel
+    Left = 0
+    Top = 326
+    Width = 291
+    Height = 13
+    Align = alBottom
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clAqua
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+  end
   object ScrollBar1: TScrollBar
-    Left = 16
+    Left = 8
     Top = 112
-    Width = 241
+    Width = 273
     Height = 9
+    Anchors = [akLeft, akTop, akRight]
     Enabled = False
     PageSize = 0
     TabOrder = 0
@@ -194,10 +196,11 @@ object Form1: TForm1
     NumGlyphs = 2
   end
   object Memo1: TMemo
-    Left = 16
+    Left = 8
     Top = 208
-    Width = 249
+    Width = 273
     Height = 105
+    Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvNone
     BevelOuter = bvNone
     Color = 95
@@ -215,9 +218,15 @@ object Form1: TForm1
     Top = 152
     Width = 80
     Height = 30
+    Orientation = trHorizontal
     PageSize = 1
+    Frequency = 1
     Position = 5
+    SelEnd = 0
+    SelStart = 0
     TabOrder = 5
+    TickMarks = tmBottomRight
+    TickStyle = tsAuto
     OnChange = TrackBar1Change
   end
   object CheckBox1: TCheckBox
@@ -241,7 +250,7 @@ object Form1: TForm1
   end
   object StereoBalance1: TStereoBalance
     Input = FLACIn1
-    Balance = 0.500000000000000000
+    Balance = 0.5
     Left = 80
     Top = 232
   end
