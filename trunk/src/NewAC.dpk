@@ -1,7 +1,6 @@
 package NewAC;
 
 {$R *.res}
-{$R 'ACS_Audio.dcr'}
 {$R 'ACS_Wave.dcr'}
 {$R 'ACS_Vorbis.dcr'}
 {$R 'ACS_Misc.dcr'}
@@ -21,6 +20,8 @@ package NewAC;
 {$R 'ACS_TTA.dcr'}
 {$R 'AudioPass.dcr'}
 {$R 'ACS_OptimFROG.dcr'}
+{$R 'ACS_MPC.dcr'}
+{$R 'ACS_TAK.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -50,7 +51,6 @@ requires
   vcl;
 
 contains
-  ACS_Audio in 'ACS_Audio.pas',
   ACS_Classes in 'ACS_Classes.pas',
   ACS_Wave in 'ACS_Wave.pas',
   ACS_Vorbis in 'ACS_Vorbis.pas',
@@ -93,6 +93,10 @@ contains
   TTALib in 'TTALib.pas',
   AudioPass in 'AudioPass.pas',
   ACS_OptimFROG in 'ACS_OptimFROG.pas',
-  OptimFROGDLL in 'OptimFROGDLL.pas';
+  OptimFROGDLL in 'OptimFROGDLL.pas',
+  libmpdec in 'libmpdec.pas',
+  tak_deco_lib in 'tak_deco_lib.pas',
+  ACS_MPC in 'ACS_MPC.pas',
+  ACS_TAK in 'ACS_TAK.pas';
 
 end.
