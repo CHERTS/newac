@@ -8,6 +8,11 @@
    TMPCIn component is written by Sergei Borisov, <jr_ross@mail.ru>
 *)
 
+(*
+  This unit contains Musepack decodcer component. You can learn more about Musepack at www.musepack.net.
+  This component requires libmpdec.dll which you can find along with other
+  NewAC libraries.
+*)
 
 unit ACS_MPC;
 
