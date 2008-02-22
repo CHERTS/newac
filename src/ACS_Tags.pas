@@ -617,6 +617,8 @@ begin
   TStringList(FValues).CaseSensitive := False;
   TStringList(FValues).Duplicates := dupIgnore;
   TStringList(FValues).Sorted := True;
+
+  FEmpty := True;
 end;
 
 destructor TAuTags.Destroy;
