@@ -10,7 +10,7 @@
 
 unit ACS_TAK;
 
-(* $Id *)
+(* $Id$ *)
 
 interface
 
