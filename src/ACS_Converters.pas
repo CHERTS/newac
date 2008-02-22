@@ -68,25 +68,6 @@ type
     property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
   end;
 
-  TMSConverter = class(TAuConverter)
-  private
-    WantedSize : Integer;
-    InOutBuf : array[1..BUF_SIZE] of Byte;
-    FMode : TMSConverterMode;
-  protected
-    function GetBPS : LongWord; override;
-    function GetCh : LongWord; override;
-    function GetSR : LongWord; override;
-    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
-    procedure InitInternal; override;
-    procedure FlushInternal; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-  published
-    property Mode : TMSConverterMode read FMode write FMode;
-  end;
-
   TStereoBalance = class(TAuConverter)
   private
     _Buffer : array[0..BUF_SIZE-1] of Byte;
@@ -521,98 +502,6 @@ implementation
     Buffer := @P[BufStart-1];
     Inc(BufStart, Bytes);
 //    FPosition := Round(FInput.Position*(FSize/FInput.Size));
-  end;
-
-  constructor TMSConverter.Create;
-  begin
-    inherited Create(AOwner);
-  end;
-
-  destructor TMSConverter.Destroy;
-  begin
-    inherited Destroy;
-  end;
-
-  function TMSConverter.GetBPS;
-  begin
-    Result := 16;
-  end;
-
-  function TMSConverter.GetCh;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    if FInput.Channels = 1 then Result := 2
-    else Result := 1;
-  end;
-
-  function TMSConverter.GetSR;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    Result := FInput.SampleRate;
-  end;
-
-  procedure TMSConverter.InitInternal;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    FInput.Init;
-    Busy := True;
-    FPosition := 0;
-    BufStart := 1;
-    BufEnd := 0;
-    if FInput.Channels = 2 then WantedSize := BUF_SIZE else
-    WantedSize := BUF_SIZE shr 1;
-    if FInput.Channels = 2 then
-    FSize := FInput.Size shr 1
-    else FSize := FInput.Size shl 1;
-  end;
-
-  procedure TMSConverter.FlushInternal;
-  begin
-    FInput.Flush;
-    Busy := False;
-  end;
-
-  procedure TMSConverter.GetDataInternal;
-  var
-    l : Integer;
-    InSize : Integer;
-  begin
-    if not Busy then  raise EAuException.Create('The Stream is not opened');
-    if BufStart > BufEnd then
-    begin
-      BufStart := 1;
-      l := Finput.CopyData(@InOutBuf[1], WantedSize);
-      if l = 0 then
-      begin
-        Buffer := nil;
-        Bytes := 0;
-        Exit;
-      end;
-      InSize := l;
-      while (l<>0) and (InSize < WantedSize) do
-      begin
-        l := Finput.CopyData(@InOutBuf[InSize+1], WantedSize - InSize);
-        Inc(InSize, l);
-      end;
-      if l = 0 then _EndOfStream := True;
-      if FInput.Channels = 2 then
-      begin
-        ConvertStereoToMono16(@InOutBuf[1], InSize);
-        BufEnd := InSize shr 1;
-      end else
-      begin
-        ConvertMonoToStereo16(@InOutBuf[1], InSize, FMode);
-        BufEnd := InSize shl 1;
-      end;
-    end;
-    if Bytes > (BufEnd - BufStart + 1) then
-      Bytes := BufEnd - BufStart + 1;
-    Buffer := @InOutBuf[BufStart];
-    Inc(BufStart, Bytes);
-    //FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
   procedure TRateConverter.SetOutSampleRate(aSR : LongWord);
