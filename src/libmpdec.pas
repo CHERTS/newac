@@ -1,3 +1,9 @@
+(*
+  This unit contains Musepack decoder library headers transltion.
+  Original Musepack decoder library headers headers Copyright (c) 2005, The Musepack Development Team.
+  You can learn more about Musepack at www.musepack.net.
+*)
+
 unit libmpdec;
 
 interface
