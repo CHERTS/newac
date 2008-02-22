@@ -30,6 +30,8 @@ type
 
   { class TTTAIn }
 
+  TTTAInBuffer = array of Byte;
+
   (* Class: TTTAIn
     The TTA decoder component, descends from <TAuTaggedFileIn>. Note that
     TTA files are not seekable. Requires TTALib.dll.
@@ -38,8 +40,8 @@ type
   private
     FFile: HFILE;
     FDecoder: TTTADecoder;
-    FBuffer: array of Byte;
-    FBufferRest: array of Byte;
+    FBuffer: TTTAInBuffer;
+    FBufferRest: TTTAInBuffer;
 
     function GetId3v1Tags: TId3v1Tags;
     function GetId3v2Tags: TId3v2Tags;
@@ -51,7 +53,7 @@ type
     procedure CloseFile; override;
 
     function SeekInternal(var Sample: Int64): Boolean; override;
-    procedure GetDataInternal(var Buffer: Pointer; var Bytes: LongWord); override;
+    procedure GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -73,7 +75,7 @@ type
   private
     FFile: HFILE;
     FEncoder: TTTAEncoder;
-    FBufferInStart: LongWord;
+    FBufferInStart: Cardinal;
     FBufferIn: array of Byte;
     FBufferOut: array of Byte;
   protected
@@ -95,7 +97,7 @@ type
 implementation
 
 uses
-  SysUtils;
+  SysUtils, Math;
 
 type
   t_byte_sample = type Byte;
@@ -116,6 +118,13 @@ type
   t_int32_sample = type Integer;
   t_int32_sample_array = packed array [0 .. 0] of t_int32_sample;
   p_int32_sample_array = ^t_int32_sample_array;
+
+  t_float_sample = packed record
+    sample: Single;
+    dumb: Cardinal;
+  end;
+  t_float_sample_array = packed array [0 .. 0] of t_float_sample;
+  p_float_sample_array = ^t_float_sample_array;
 
 const
   max_frame_count = 1024;
@@ -311,7 +320,7 @@ begin
   Result := False;
 end;
 
-procedure TTTAIn.GetDataInternal(var Buffer: Pointer; var Bytes: LongWord);
+procedure TTTAIn.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
 type
   t_int24_sample_in_int32 = packed record
     sample: t_int24_sample;
@@ -325,14 +334,14 @@ const
     lo: Low(int24_sample_low.lo); hi: Low(int24_sample_low.hi));
 var
   new_bytes,
-  frame_size, frames, n, i: LongWord;
-  p_byte_samples: p_byte_sample_array;
-  p_int16_samples: p_int16_sample_array;
-  p_int24_samples: p_int24_sample_array;
-{$IFDEF USE_IEEE_FLOAT}
-  p_int32_samples: p_int32_sample_array;
-{$ENDIF}
-  p_in_samples: p_int32_sample_array;
+  frame_size, frames, n, i: Cardinal;
+  p_buf: Pointer;
+  p_in_int32_samples: p_int32_sample_array;
+  p_in_float_samples: p_float_sample_array;
+  p_out_byte_samples: p_byte_sample_array;
+  p_out_int16_samples: p_int16_sample_array;
+  p_out_int24_samples: p_int24_sample_array;
+  p_out_int32_samples: p_int32_sample_array;
 begin
   if not Busy then
     raise EAuException.Create('File for input is not opened!');
@@ -344,13 +353,12 @@ begin
         Bytes := new_bytes;
     end;
 
+    FBuffer := FBufferRest;
+
     frame_size := ((FBPS + 7) shr 3) * FChan;
 
-    SetLength(FBuffer, Length(FBufferRest));
-    Move(FBufferRest[0], FBuffer[0], Length(FBuffer));
-
-    while Bytes > LongWord(Length(FBuffer)) do begin
-      frames := FDecoder.GetBlock(@p_in_samples);
+    while Bytes > Cardinal(Length(FBuffer)) do begin
+      frames := FDecoder.GetBlock(@p_buf);
       if frames = 0 then begin
         Bytes := Length(FBuffer);
 
@@ -362,31 +370,45 @@ begin
 
       case (FBPS + 7) shr 3 of
         1: begin // 8 bits per sample
-          p_byte_samples := @(FBuffer[n]);
+          p_in_int32_samples := p_buf;
+          p_out_byte_samples := @(FBuffer[n]);
           for i := 0 to (frames * FChan) - 1 do
-            p_byte_samples[i] := byte_sample_base +
-              t_byte_sample(p_in_samples[i]);
+            p_out_byte_samples[i] := byte_sample_base +
+              t_byte_sample(p_in_int32_samples[i]);
         end;
         2: begin // 16 bits per sample
-          p_int16_samples := @(FBuffer[n]);
+          p_in_int32_samples := p_buf;
+          p_out_int16_samples := @(FBuffer[n]);
           for i := 0 to (frames * FChan) - 1 do
-            p_int16_samples[i] := p_in_samples[i];
+            p_out_int16_samples[i] := p_in_int32_samples[i];
         end;
         3: begin // 24 bits per sample
-          p_int24_samples := @(FBuffer[n]);
+          p_in_int32_samples := p_buf;
+          p_out_int24_samples := @(FBuffer[n]);
           for i := 0 to (frames * FChan) - 1 do
-            p_int24_samples[i] := t_int24_sample_in_int32(p_in_samples[i]).sample;
+            p_out_int24_samples[i] := t_int24_sample_in_int32(p_in_int32_samples[i]).sample;
         end;
-{$IFDEF USE_IEEE_FLOAT}
         4: begin // 32 bits per sample
-          ?
+          p_in_float_samples := p_buf;
+          p_out_int32_samples := @(FBuffer[n]);
+          for i := 0 to (frames * FChan) - 1 do
+            if p_in_float_samples[i].sample < - 1 then
+              p_out_int32_samples[i] := Low(p_out_int32_samples[i])
+            else
+            if p_in_float_samples[i].sample >= 1 then
+              p_out_int32_samples[i] := High(p_out_int32_samples[i])
+            else
+            if p_in_float_samples[i].sample <> 0 then
+              p_out_int32_samples[i] :=
+                Floor(p_in_float_samples[i].sample * - Int64(Low(p_out_int32_samples[i])))
+            else // p_in_float_samples[i].sample = 0
+              p_out_int32_samples[i] := 0;
         end;
-{$ENDIF}
       end;
     end;
 
-    if LongWord(Length(FBuffer)) > Bytes then begin
-      SetLength(FBufferRest, LongWord(Length(FBuffer)) - Bytes);
+    if Cardinal(Length(FBuffer)) > Bytes then begin
+      SetLength(FBufferRest, Cardinal(Length(FBuffer)) - Bytes);
       Move(FBuffer[Bytes], FBufferRest[0], Length(FBufferRest));
     end
     else
@@ -414,10 +436,8 @@ const
     FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_TEMPORARY or FILE_FLAG_DELETE_ON_CLOSE);
   error: array [Boolean] of String = (
     'Unable to create file for output!', 'Unable to create temporary file!');
-{$IFDEF USE_IEEE_FLOAT}
   wave_formats: array [Boolean] of Word = (
     WAVE_FORMAT_PCM, WAVE_FORMAT_IEEE_FLOAT);
-{$ENDIF}
 var
   file_name: WideString;
   frame_size: Integer;
@@ -442,27 +462,19 @@ begin
     raise EAuException.Create(error[FStreamAssigned]);
   FInput.Init();
   try
-    if FInput.BitsPerSample < 32 then begin
-      frame_size := FInput.Channels * ((FInput.BitsPerSample + 7) shr 3);
+    frame_size := FInput.Channels * ((FInput.BitsPerSample + 7) shr 3);
 
-      try
-        FEncoder := TTTAEncoder.Create(
-          FFile,
-          False,
-{$IFDEF USE_IEEE_FLOAT}
-          wave_formats[FInput.BitsPerSample = 32],
-{$ELSE}
-          WAVE_FORMAT_PCM,
-{$ENDIF}
-          FInput.Channels, FInput.BitsPerSample, FInput.SampleRate,
-          FInput.Size div frame_size);
-      except
-        CloseHandle(FFile);
-        FFile := INVALID_HANDLE_VALUE;
-      end;
-    end
-    else
-      raise EAuException.Create('Defined BitsPerSample is not supported!');
+    try
+      FEncoder := TTTAEncoder.Create(
+        FFile,
+        False,
+        wave_formats[FInput.BitsPerSample = 32],
+        FInput.Channels, FInput.BitsPerSample, FInput.SampleRate,
+        FInput.Size div frame_size);
+    except
+      CloseHandle(FFile);
+      FFile := INVALID_HANDLE_VALUE;
+    end;
   except
     FInput.Reset();
 
@@ -535,25 +547,15 @@ type
     hi: Smallint;
   end;
   p_int24_sample_in_int32 = ^t_int24_sample_in_int32;
-{$IFDEF USE_IEEE_FLOAT}
-  t_int32_sample_in_int64 = packed record
-    sample: {Integer}Cardinal;
-    dumb: Integer;
-  end;
-  p_int32_sample_in_int64 = ^t_int32_sample_in_int64;
-  t_int64_sample_array = packed array [0 .. 0] of t_int32_sample_in_int64;
-  p_int64_sample_array = ^t_int64_sample_array;*)
-{$ENDIF}
 var
   buffer: Pointer;
-  frame_size, bytes, buffer_in_size, buffer_out_size, frames, samples, i: LongWord;
-  p_byte_samples: p_byte_sample_array;
-  p_int16_samples: p_int16_sample_array;
-  p_int24_samples: p_int24_sample_array;
-  p_int32_samples: p_int32_sample_array;
-{$IFDEF USE_IEEE_FLOAT}
-  p_int64_samples: p_int64_sample_array;
-{$ENDIF}
+  frame_size, bytes, buffer_in_size, buffer_out_size, frames, samples, i: Cardinal;
+  p_in_byte_samples: p_byte_sample_array;
+  p_in_int16_samples: p_int16_sample_array;
+  p_in_int24_samples: p_int24_sample_array;
+  p_in_int32_samples: p_int32_sample_array;
+  p_out_int32_samples: p_int32_sample_array;
+  p_out_float_samples: p_float_sample_array;
 begin
   Result := CanOutput;
   if not Result then
@@ -571,69 +573,56 @@ begin
   Result := (bytes > 0);
   if Result then begin
     buffer_in_size := FBufferInStart + bytes;
-    if LongWord(Length(FBufferIn)) < buffer_in_size then
+    if Cardinal(Length(FBufferIn)) < buffer_in_size then
       SetLength(FBufferIn, buffer_in_size);
     Move(buffer^, FBufferIn[FBufferInStart], bytes);
 
     frames := buffer_in_size div frame_size;
     samples := frames * FInput.Channels;
 
-    buffer_out_size := samples * SizeOf(p_int32_samples[Low(p_int32_samples^)]);
-{$IFDEF USE_IEEE_FLOAT}
-    if FInput.BitsPerSample = 32 then begin
-      buffer_out_size := buffer_out_size shl 1;
+    if FInput.BitsPerSample = 32 then
+      buffer_out_size := samples *
+        SizeOf(p_out_float_samples[Low(p_out_float_samples^)])
+    else
+      buffer_out_size := samples *
+        SizeOf(p_out_int32_samples[Low(p_out_int32_samples^)]);
 
-      if Length(FBufferOut) < buffer_out_size then
-        SetLength(FBufferOut, buffer_out_size);
+    if Cardinal(Length(FBufferOut)) < buffer_out_size then
+      SetLength(FBufferOut, buffer_out_size);
 
-      p_int64_samples := @(FBufferOut[0]);
-      p_int32_samples := @(FBufferIn[0]);
-      for i := 0 to samples - 1  do begin
-        if p_int32_samples[i] = 0 then
-          p_int64_samples[i].sample := 0
-        else begin
-          if p_int32_samples[i] < 0 then
-            p_int64_samples[i].sample := $8000000
-          else
-            p_int64_samples[i].sample := 0;
-?          p_int64_samples[i].sample := p_int64_samples[i].sample or
-            (p_int32_samples[i] div 32768)
-            
-
-          p_int64_samples[i].sample := 1 / p_int32_samples[i];
-        end;
-        p_int64_samples[i].dumb := 0;
+    case (FInput.BitsPerSample + 7) shr 3 of
+      1: begin // 8 bits per sample
+        p_in_byte_samples := @(FBufferIn[0]);
+        p_out_int32_samples := @(FBufferOut[0]);
+        for i := 0 to samples - 1 do
+          p_out_int32_samples[i] :=
+            (t_int32_sample(p_in_byte_samples[i]) - t_int32_sample(byte_sample_base)) and $FF;
       end;
-    end
-    else begin
-{$ENDIF}
-      if LongWord(Length(FBufferOut)) < buffer_out_size then
-        SetLength(FBufferOut, buffer_out_size);
-
-      p_int32_samples := @(FBufferOut[0]);
-      case (FInput.BitsPerSample + 7) shr 3 of
-        1: begin // 8 bits per sample
-          p_byte_samples := @(FBufferIn[0]);
-          for i := 0 to samples - 1 do
-            p_int32_samples[i] :=
-              (t_int32_sample(p_byte_samples[i]) - t_int32_sample(byte_sample_base)) and $FF;
-        end;
-        2: begin // 16 bits per sample
-          p_int16_samples := @(FBufferIn[0]);
-          for i := 0 to samples - 1 do
-            p_int32_samples[i] := p_int16_samples[i]; 
-        end;
-        3: begin // 24 bits per sample
-          p_int24_samples := @(FBufferIn[0]);
-          for i := 0 to samples - 1 do begin
-            t_int24_sample_in_int32(p_int32_samples[i]).lo := p_int24_samples[i].lo;
-            t_int24_sample_in_int32(p_int32_samples[i]).hi := p_int24_samples[i].hi;
-          end;
+      2: begin // 16 bits per sample
+        p_in_int16_samples := @(FBufferIn[0]);
+        p_out_int32_samples := @(FBufferOut[0]);
+        for i := 0 to samples - 1 do
+          p_out_int32_samples[i] := p_in_int16_samples[i]; 
+      end;
+      3: begin // 24 bits per sample
+        p_in_int24_samples := @(FBufferIn[0]);
+        p_out_int32_samples := @(FBufferOut[0]);
+        for i := 0 to samples - 1 do begin
+          t_int24_sample_in_int32(p_out_int32_samples[i]).lo := p_in_int24_samples[i].lo;
+          t_int24_sample_in_int32(p_out_int32_samples[i]).hi := p_in_int24_samples[i].hi;
         end;
       end;
-{$IFDEF USE_IEEE_FLOAT}
+      4: begin
+        p_in_int32_samples := @(FBufferIn[0]);
+        p_out_float_samples := @(FBufferOut[0]);
+        for i := 0 to samples - 1  do
+          if p_in_int32_samples[i] <> 0 then
+            p_out_float_samples[i].sample :=
+              p_in_int32_samples[i] / - Int64(Low(p_in_int32_samples[i]))
+          else // if p_in_int32_samples[i] = 0
+            p_out_float_samples[i].sample := 0;
+      end;
     end;
-{$ENDIF}
 
     Result := FEncoder.CompressBlock(@(FBufferOut[0]), frames);
 
