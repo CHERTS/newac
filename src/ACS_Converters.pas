@@ -505,7 +505,7 @@ implementation
         l := Finput.CopyData(@P[InSize], WantedSize - InSize);
         Inc(InSize, l);
       end;
-      if l = 0 then _EndOfStream := True;
+//      if l = 0 then _EndOfStream := True;
       if Self.Channels = 1 then
       begin
         BufEnd := ConvertFreqs16Mono(InSize);
@@ -791,7 +791,7 @@ implementation
       end;
     end;
     Bytes := WantedSize;
-    FPosition := Round(FSize/FInput.Size)*FInput.Position;
+    //FPosition := Round(FSize/FInput.Size)*FInput.Position;
   end;
 
   constructor TAudioConverter.Create;
@@ -908,7 +908,7 @@ implementation
           l := Finput.CopyData(@InOutBuf[InSize], WantedSize - InSize);
           Inc(InSize, l);
         end;
-        if l = 0 then _EndOfStream := True;
+        //if l = 0 then _EndOfStream := True;
       end; //  if FInPlace ... else
       BufEnd := InSize;
 
