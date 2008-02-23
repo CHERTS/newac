@@ -40,7 +40,8 @@ type
     FDecoder: TMPCDecoder;
     FBuffer: TMPCInBuffer;
     FBufferRest: TMPCInBuffer;
-
+//    function GetBitrate : LongWord;
+    function GetAverageBitrate: Cardinal;
     procedure SetBPS(Value: Cardinal);
   protected
     procedure OpenFile; override;
@@ -49,6 +50,9 @@ type
     procedure GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal); override;
   public
     constructor Create(AOwner: TComponent); override;
+//    property CurrentBitrate : LongWord read GetBitrate;
+    property AverageBitrate : Cardinal read GetAverageBitrate;
+
   published
     property OutBitsPerSample: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
     property StartSample;
@@ -291,6 +295,21 @@ begin
     Buffer := @(FBuffer[0]);
   end;
 end;
+
+(*function TMPCIn.GetBitrate;
+begin
+  if Busy then
+    Result := FDecoder.Bitrate
+  else
+    Result := 0;
+end;*)
+
+function TMPCIn.GetAverageBitrate;
+begin
+  OpenFile;
+  Result := FDecoder.AverageBitrate;
+end;
+
 
 end.
 

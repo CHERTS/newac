@@ -4,6 +4,8 @@
   You can learn more about Musepack at www.musepack.net.
 *)
 
+(* Written by Sergei Borisov, with small updates by Andrei Borovsky *)
+
 unit libmpdec;
 
 interface
@@ -39,7 +41,7 @@ type
   t_mpc_sample_format = Single;
   p_mpc_sample_format = ^t_mpc_sample_format;
 
-  t_mpc_streaminfo = packed record
+  t_mpc_streaminfo = record
     /// @name core mpc stream properties
     //@{
     sample_freq       : t_mpc_uint32;         ///< sample frequency of stream
@@ -118,7 +120,7 @@ type
     R: packed array [0 .. 35] of t_mpc_int32;
   end;
 
-  t_mpc_decoder = packed record
+  t_mpc_decoder = record
     r: p_mpc_reader;
 
     /// @name internal state variables
@@ -199,6 +201,7 @@ type
     function GetNumChannels: Cardinal;
     function GetSampleRate: Cardinal;
     function GetBitrate: Cardinal;
+    function GetAverageBitrate: Cardinal;
 
     function GetVersion: Cardinal;
 
@@ -211,8 +214,8 @@ type
 
     property NumChannels: Cardinal read GetNumChannels;
     property SampleRate: Cardinal read GetSampleRate;
+    property AverageBitrate: Cardinal read GetAverageBitrate;
     property Bitrate: Cardinal read GetBitrate;
-
     property Version: Cardinal read GetVersion;
 
     property NumSamples: Int64 read GetNumSamples;
@@ -326,14 +329,14 @@ type
   /// \return 0 if the stream has been completely decoded successfully and there are no more samples
   /// \return > 0 to indicate the number of bytes that were actually read from the stream.
   t_mpc_decoder_decode_func = function (
-    const d: t_mpc_decoder;
+    var d: t_mpc_decoder;
     {buffer: p_mpc_sample_format;}
     var buffer: TMPCDecoderBuffer;
     vbr_update_acc: p_mpc_uint32;
     vbr_update_bits: p_mpc_uint32): t_mpc_uint32; cdecl;
 
   t_mpc_decoder_decode_frame_func = function (
-    const d: p_mpc_decoder;
+    var d: p_mpc_decoder;
     in_buffer: p_mpc_uint32;
     in_len: t_mpc_uint32;
     {out_buffer: p_mpc_sample_format}
@@ -435,7 +438,7 @@ begin
 
   CheckFunc(@mpc_streaminfo_init, mpc_streaminfo_init_name);
   mpc_streaminfo_init(FStreamInfo);
-  
+
   CheckFunc(@mpc_streaminfo_read, mpc_streaminfo_read_name);
   if mpc_streaminfo_read(FStreamInfo, FReader) <> mpc_ERROR_CODE_OK then
     raise EMPCDecException.Create('Unable to read stream info!');
@@ -462,8 +465,14 @@ end;
 
 function TMPCDecoder.GetBitrate: Cardinal;
 begin
-  Result := FStreamInfo.bitrate;
+ Result := FStreamInfo.bitrate;
 end;
+
+function TMPCDecoder.GetAverageBitrate: Cardinal;
+begin
+  Result := Round(FStreamInfo.average_bitrate/1000);
+end;
+
 
 function TMPCDecoder.GetVersion: Cardinal;
 begin
