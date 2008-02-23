@@ -9,7 +9,7 @@
 *)
 
 (*
-  This unit contains Musepack decodcer component. You can learn more about Musepack at www.musepack.net.
+  This unit contains Musepack decoder component. You can learn more about Musepack at www.musepack.net.
   This component requires libmpdec.dll which you can find along with other
   NewAC libraries.
 *)
