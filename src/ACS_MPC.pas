@@ -50,7 +50,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property BPS: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
+    property OutBitsPerSample: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
+    property StartSample;
+    property EndSample;
+    property Loop;
   end;
 
 implementation

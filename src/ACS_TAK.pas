@@ -39,6 +39,10 @@ type
     constructor Create(AOwner: TComponent); override;
 
     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
+  published
+    property Loop;
+    property StartSample;
+    property EndSample;
   end;
 
 
