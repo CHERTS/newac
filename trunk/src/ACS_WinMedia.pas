@@ -23,10 +23,9 @@ type
   TStreamedAudioEvent = procedure(Sender : TComponent) of object;
 
   TConnectionInfo = record
-    IP : WideString;
-    Port : WideString;
-    DNSName : WideString;
-  end;  
+    IP : array[0..15] of Char;
+    Port : LongWord;
+  end;
 
   TChannelsNumber = (cnMaxAvailable, cnMonoOrStereo, cn5dot1, cn7dot1);
 
@@ -84,7 +83,6 @@ type
     property IsVBR : Boolean read GetIsVBR;
   published
     property EndSample;
-    property Loop;
     property StartSample;
     (* Property: HighPrecision
       Use HighPrecision to set the high precision decoding mode on or off.
@@ -990,8 +988,14 @@ implementation
   end;
 
   function TWMStreamedOut.GetConnectionInfo;
+  var
+    IP : LongWord;
+    S : String;
   begin
-    lwma_network_writer_get_connection_info(Writer, Index, Result.IP, Result.Port, Result.DNSName);
+    lwma_network_writer_get_connection_info(Writer, Index, IP, Result.Port);
+    FillChar(Result.IP, 16, 0);
+    S := Format('%d.%d.%d.%d', [(IP shr 24) and $FF, (IP shr 16) and $FF, (IP shr 8) and $FF, IP and $FF]);
+    Move(S[1], Result.IP[0], Length(S));
   end;
 
   function TWMStreamedOut.GetURL;

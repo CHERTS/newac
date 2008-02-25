@@ -202,7 +202,7 @@ type
   procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc);
   procedure lwma_network_writer_free(var writer : wma_writer);
   function lwma_network_writer_get_connections_count(var writer : wma_writer) : LongWord;
-  procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var IP, Port, DNSName : WideString);
+  procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var Address, Port : LongWord);
   function lwm_network_writer_get_url(var writer : wma_writer) : WideString;
 
   procedure lwma_get_codec_names(var SL : TStringList);
@@ -1574,20 +1574,17 @@ implementation
        Result := 0;
   end;
 
-  procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var IP, Port, DNSName : WideString);
+  procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var Address, Port : LongWord);
   var
     ClientConnections : IWMClientConnections2;
-    addrLen, portLen, nameLen : LongWord;
+    CP : TWMClientProperties;
   begin
     if Assigned(writer.network_sink) then
     begin
       ClientConnections := writer.network_sink as IWMClientConnections2;
-      ClientConnections.GetClientInfo(connection, nil, addrLen, nil, portLen, nil, nameLen);
-      addrLen := 12;
-      SetLength(IP, addrLen);
-      SetLength(Port, portLen);
-      SetLength(DNSname, nameLen);
-      ClientConnections.GetClientInfo(connection, PWideChar(IP), addrLen, PWideChar(Port), portLen, PWideChar(DNSName), nameLen);
+      ClientConnections.GetClientProperties(connection, CP);
+      Address := CP.dwIPAddress;
+      Port := CP.dwPort;
     end;
   end;
 
