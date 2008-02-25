@@ -230,7 +230,6 @@ type
     destructor Destroy; override;
   published
     property EndSample;
-    property Loop;
     property StartSample;
   end;
 
