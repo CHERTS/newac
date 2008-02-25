@@ -207,7 +207,6 @@ type
     property NominalBitrate: Integer read GetNominalBitrate;
   published
     property EndSample;
-    property Loop;
     property StartSample;
   end;
 
