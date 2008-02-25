@@ -557,6 +557,7 @@ type
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName stored True;
+    property Loop;
   end;
 
   (* Class: TAuTaggedFileIn
