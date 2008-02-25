@@ -13,8 +13,11 @@
 (*
   This unit contains Musepack decoder and encoder components. You can learn more about Musepack at www.musepack.net.
   The TMPCIn component requires libmpdec.dll library and TMPCOut requires libmppenc.dll library.
-  Both libraies can be downloaded from the project site www.symmetrica.net
+  Both libraies can be downloaded from the project site www.symmetrica.net.
 *)
+
+(* Title: ACS_FLAC
+    NewAC interface to Musepack codec *)
 
 unit ACS_MPC;
 
@@ -38,6 +41,12 @@ type
 
   TMPCInBuffer = array of Byte;
 
+(* Class: TMPCIn
+    Musepack decoder component.
+    Descends from <TAuTaggedFileIn>.
+    Requires libmpdec.dll.
+    You can learn more about Musepack audio compression format at http://www.musepack.net. *)
+
   TMPCIn = class(TAuTaggedFileIn)
   private
     FDecoder: TMPCDecoder;
@@ -54,16 +63,29 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 //    property CurrentBitrate : LongWord read GetBitrate;
+   (* Property: AverageBitrate
+        Read this property to get the input file's average bitrate in kbps. *)
     property AverageBitrate : Cardinal read GetAverageBitrate;
 
   published
+   (* Property: OutBitsPerSample
+        Regardless of an ecoder's input bits per sample value Musepack always encodes its data in 32-bit samples.
+        You can use this property to set output bits per sample value for the decoder (16, 24, or 32). *)
     property OutBitsPerSample: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
     property StartSample;
     property EndSample;
     property Loop;
   end;
 
-  (* *)
+(* Class: TMPCOut
+    Musepack encoder component.
+    Descends from <TAuTaggedFileOut>.
+    Requires libmppenc.dll.
+    You can learn more about Musepack audio compression format at http://www.musepack.net.
+
+    *Important note:* Musepack supports encoding in the limited range of sample rates.
+    Currently only 32000, 37800, 44100, and 48000 Hz sample rates are supported.
+    Trying to use any other input sample rates will result in exception. *)
 
   TMPCOut = class(TAuTaggedFileOut)
   private
@@ -77,6 +99,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
+   (* Property: Quality
+        The output file quality. Valid values range from 1.0 to 10.0. *)
     property Quality : Single read FQuality write FQuality;
     property APEv2Tags;
   end;
@@ -412,22 +436,20 @@ begin
   end;
   EndOfInput := False;
   FInput.Init;
+  LoadMPPEncLibrary;
+  if not libMPPEncLoaded then
+    raise EAuException.Create(LibMPPEncPath + ' library could not be loaded.');
   if not ((Finput.SampleRate div 1000) in [32, 37, 44, 48]) then
   begin
     EndOfInput := True;
-    if Assigned(FOnThreadException) then
-    begin
-      FExceptionMessage := 'Unsupported sample rate.';
-//      EventHandler.PostGenericEvent(Self, FOnThreadException);
-    end;
     raise EAuException.Create('Unsupported sample rate.');
   end;
-  LoadMPPEncLibrary;
-    if not libMPPEncLoaded then
-      raise EAuException.Create(LibMPPEncPath + ' library could not be loaded.');
-
   init_static;
-  init_enc_state(encoder, FInput.SampleRate, FInput.Size div ((FInput.BitsPerSample div 8)* FInput.Channels), Finput.BitsPerSample, Finput.Channels, FQuality);
+  if init_enc_state(encoder, FInput.SampleRate, FInput.Size div ((FInput.BitsPerSample div 8)* FInput.Channels), Finput.BitsPerSample, Finput.Channels, FQuality) <> 0 then
+  begin
+    UnloadMPPEncLibrary;
+    raise EAuException.Create('Failed to initialize encoder');
+  end;
   set_callbacks(encoder, cb_input_open, cb_input_read, cb_input_eof, cb_input_close,
                 cb_output_open, cb_output_seek, cb_output_read, cb_output_write, cb_output_close, Self);
   if not APEv2Tags.Empty then
