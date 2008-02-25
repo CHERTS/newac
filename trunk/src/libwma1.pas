@@ -588,7 +588,7 @@ implementation
                format := PWAVEFORMATEX(FormatMediaType.pbFormat);
                Cond := (format.wBitsPerSample >= sync_reader.BitsPerSample)
                  and (format.nSamplesPerSec = LongWord(sync_reader.SampleRate))
-                 and (sync_reader.channels = LongWord(format.nChannels));
+                 and (sync_reader.channels = format.nChannels);
 
                if Cond then
                begin
