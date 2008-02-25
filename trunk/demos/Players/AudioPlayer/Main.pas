@@ -85,11 +85,6 @@ begin
   ProgressBar1.Position := 0;
   if StopPlaying then
     Exit;
-  if CheckBox1.Checked then
-  begin
-    PlayItem;
-    Exit;
-  end;
   Inc(PlayingIndex);
   if PlayingIndex < ListBox1.Items.Count then
     PlayItem;
@@ -157,7 +152,7 @@ begin
   FI.FileName := FileName;
   if not FI.Valid then Exit;
   StatusBar1.Panels[0].Text := 'Playing: ' + ExtractFileName(FileName);
-  //FI.Loop := CheckBox1.Checked;
+  FI.Loop := CheckBox1.Checked;
   DXAudioOut1.Input := FI;
   PlayButton.Enabled := False;
   DXAudioOut1.Run;
