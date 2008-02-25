@@ -1,6 +1,6 @@
 (*
   This unit contains Musepack encoder library (libmppenc.dll) headers transltion.
-  Original Musepack encoder program Copyright (c) 2005, The Musepack Development Team.
+  Original Musepack encoder program Copyright (C) 1999-2004 Buschmann/Klemm/Piecha/Wolf.
   You can learn more about Musepack audio compression format at www.musepack.net.
 *)
 
