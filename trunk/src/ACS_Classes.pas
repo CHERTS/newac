@@ -1086,7 +1086,8 @@ end;
       except
         on E : Exception do
         begin
-          Synchronize(CallOnException);
+          ErrorMsg := E.Message;
+          CallOnException;
         end;
       end;
       Stop := False;
@@ -1533,7 +1534,10 @@ end;
  
   procedure TAuThread.CallOnException;
   begin
-    HandleException(Parent as TComponent, ErrorMsg);
+    (Parent as TAuOutput).FExceptionMessage := ErrorMsg;
+    if Assigned((Parent as TAuOutput).FOnThreadException) then
+      EventHandler.PostGenericEvent(Parent, (Parent as TAuOutput).FOnThreadException);
+    //HandleException(Parent as TComponent, ErrorMsg);
   end;
 
 (*  procedure TAuThread.CallOnDone;
