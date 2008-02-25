@@ -95,8 +95,9 @@ contains
   ACS_OptimFROG in 'ACS_OptimFROG.pas',
   OptimFROGDLL in 'OptimFROGDLL.pas',
   libmpdec in 'libmpdec.pas',
-  tak_deco_lib in 'tak_deco_lib.pas',
   ACS_MPC in 'ACS_MPC.pas',
-  ACS_TAK in 'ACS_TAK.pas';
+  ACS_TAK in 'ACS_TAK.pas',
+  tak_decoder in 'tak_decoder.pas',
+  libmppenc in 'libmppenc.pas';
 
 end.
