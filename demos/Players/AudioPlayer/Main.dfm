@@ -134,9 +134,9 @@ object Form1: TForm1
     OnClick = BackwardButtonClick
   end
   object VorbisIn1: TVorbisIn
-    EndSample = -1
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'
     Loop = False
+    EndSample = -1
     Left = 8
     Top = 160
   end
@@ -148,20 +148,23 @@ object Form1: TForm1
     Top = 160
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 40
     Top = 160
   end
   object FLACIn1: TFLACIn
-    EndSample = -1
     Loop = False
+    CheckMD5Signature = False
+    EndSample = -1
     Left = 72
     Top = 160
   end
   object MP3In1: TMP3In
-    EndSample = -1
     Loop = False
+    EndSample = -1
+    HighPrecision = False
+    OutputChannels = cnMonoOrStereo
     Left = 104
     Top = 160
   end
