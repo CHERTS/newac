@@ -19,7 +19,7 @@ begin
   RegisterComponents('Audio I/O', [TDXAudioIn, TDXAudioOut, TCDPlayer, TCDIn, TWMStreamedIn, TWMStreamedOut,
   TInputList, TMemoryIn, TVorbisIn, TVorbisOut,
   TWaveIn, TWaveOut, TMP3In, TMP3Out, TMACIn, TMACOut, TStreamIn, TStreamOut, TFLACIn, TFLACOut, TWVIn, TWVOut, TWMIn,
-  TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TTAKIn, TMPCIn,  TNULLOut]);
+  TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TTAKIn, TMPCIn, TMPCOut, TNULLOut]);
   RegisterComponents('Audio Processing', [TAudioMixer, TAudioConverter, TACMConverter,
   TRateConverter, TAudioProcessor, TBWFilter, TSincFilter, TStereoBalance, TConvolver, TResampler, TAudioPass]);
 
