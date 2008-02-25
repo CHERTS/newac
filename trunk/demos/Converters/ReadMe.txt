@@ -10,9 +10,11 @@ Following is the short description of each demo:
 
 · Wav2FLAC - converts wav files to FLAC
 
+· Wav2MPC - converts wav files to Musepack
+
 · Wav2Ogg - converts wav files to Ogg Vorbis
 
-· Wav2Ogg - converts wav files to Ogg Vorbis with a different set of controls
+· Wav2Ogg-2 - converts wav files to Ogg Vorbis with a different set of controls
 
 · Wav2WMA - converts wav files to Windows Media Audio (WMA)
 
