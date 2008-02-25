@@ -75,7 +75,6 @@ type
     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
   published
     property EndSample;
-    property Loop;
     property StartSample;
   end;
 

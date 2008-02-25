@@ -74,7 +74,6 @@ type
     property OutBitsPerSample: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
     property StartSample;
     property EndSample;
-    property Loop;
   end;
 
 (* Class: TMPCOut
