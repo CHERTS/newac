@@ -24,6 +24,9 @@ type
   TBuffer8 = array[0..0] of Byte;
   PBuffer8 = ^TBuffer8;
 
+  TBuffer32 = array[0..0] of Integer;
+  PBuffer32 = ^TBuffer32;
+
   TStereoSample16 = packed record
     Left, Right : SmallInt;
   end;
