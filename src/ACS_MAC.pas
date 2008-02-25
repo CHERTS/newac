@@ -122,7 +122,6 @@ type
     property TotalBlocks: Integer read GetTotalBlocks;
   published
     property EndSample;
-    property Loop;
     property StartSample;
   end;
 
