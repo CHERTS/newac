@@ -1,24 +1,21 @@
 (*
-  This file is a part of New Audio Components package v 1.2
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 1.5
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
+
+  Special thanks to Christophe De Vocht for updating this unit.
 
   CHANGES since v. 2.3
   Changed mono streams encoding
 
+  CHANGES since V. 2.5
+  Cleaned op some mess
+  Support for all samplerates
+  Added IDtag support
 *)
 
 (* $Id$ *)
-
-
-(*
-   IMPORTANT
-   This version supports only limited number of output samplerates.
-   See TMP3SampleRate for more details.
-   If input stream which has a samplerate of less than 44100 Hz,
-   MP3Out uses sr32kHz for the output samplerate.
-*)
 
 unit ACS_LAME;
 
@@ -55,7 +52,7 @@ type
               DUAL_CHANNEL, // LAME doesn't supports this!
               MONO);
 
-  TMP3SampleRate = (srDefault, sr8kHz, sr11kHz, sr12kHz, sr16kHz, sr22kHz, sr24kHz, sr32kHz, sr41kHz, sr48kHz);
+  TMP3SampleRate = (srDefault, sr8kHz, sr11kHz, sr12kHz, sr16kHz, sr22kHz, sr24kHz, sr32kHz, sr44kHz, sr48kHz);
 
   TMP3BitRate = (br8, br16, br24, br32, br40, br48, br56, br64, br80, br96,
                  br112, br128, br144, br160, br192, br224, br256, br320);
@@ -186,7 +183,7 @@ implementation
       sr22kHz: sr := 22050;
       sr24kHz: sr := 24000;
       sr32kHz: sr := 32000;
-      sr41kHz: sr := 41000;
+      sr44kHz: sr := 44100;
       sr48kHz: sr := 48000;
     end;
 
