@@ -431,6 +431,7 @@ type
     buffer1 : PFLACInt32Buf;
     buffer2 : PFLACInt32Buf;
     B16 : PBuffer16;
+    B32 : PBuffer32;
     i, j : LongWord;
     ch : LongWord;
   begin
@@ -454,7 +455,6 @@ type
           B16[i*ch + j] := buffer[j][i];
       end;
     end else
-    begin
       if FLACIn.FBPS = 8 then
       begin
         if FLACIn.FChan = 1 then
@@ -472,16 +472,28 @@ type
           end;
         end;
       end else
-      begin
-      for i := 0 to FLACIn.FBlockSize -1 do
-      begin
-        for j := 0 to ch - 1 do
+        if FLacIn.FBPS = 24 then
         begin
-          FLACIn.Buff[(i*ch + j)*3] := (LongWord(buffer[j][i]) and $000000FF);
-          FLACIn.Buff[(i*ch + j)*3 + 1] := (LongWord(buffer[j][i]) and $0000FF00) div $100;
-          FLACIn.Buff[(i*ch + j)*3 + 2] := (LongWord(buffer[j][i]) and $00FF0000) div $10000;
-        end;
-      end;
+          for i := 0 to FLACIn.FBlockSize -1 do
+          begin
+            for j := 0 to ch - 1 do
+            begin
+              FLACIn.Buff[(i*ch + j)*3] := (LongWord(buffer[j][i]) and $000000FF);
+              FLACIn.Buff[(i*ch + j)*3 + 1] := (LongWord(buffer[j][i]) and $0000FF00) div $100;
+              FLACIn.Buff[(i*ch + j)*3 + 2] := (LongWord(buffer[j][i]) and $00FF0000) div $10000;
+            end;
+          end;
+        end else
+          if FLacIn.FBPS = 32 then
+          begin
+            B32 := PBuffer32(FLACIn.Buff);
+            for i := 0 to FLACIn.FBlockSize -1 do
+            begin
+              for j := 0 to ch - 1 do
+                B32[i*ch + j] := buffer[j][i];
+            end;
+          end;
+
 
         (* if FLACIn.FChan = 1 then
         begin
@@ -506,8 +518,6 @@ type
             FLACIn.Buff[i*6 + 5] := (LongWord(buffer2[i]) and $00FF0000) div $10000;
           end;
         end; *)
-      end;
-    end;
     Result := FLAC__STREAM_ENCODER_OK;
   end;
 
@@ -662,6 +672,7 @@ type
     FB : PFLACBuf;
     FBU : PFLACUBuf;
     B16 : PBuffer16;
+    B32 : PBuffer32;
   begin
     Result := True;
     if not CanOutput then Exit;
@@ -693,16 +704,20 @@ type
       B16 := @Buffer[0];
       for i := 0 to samples - 1 do FB[i] := B16[i];
     end else
-    begin
       if FInput.BitsPerSample = 8 then
-        for i := 0 to samples - 1 do FB[i] := Buffer[i]
-      else
       begin
-        FBU := PFLACUBuf(FB);
-        for i := 0 to samples - 1 do FBU[i] := (Buffer[i*3 + 2] shl 16) + (Buffer[i*3 + 1] shl 8) + (Buffer[i*3]);
-      end;
-
-    end;
+        for i := 0 to samples - 1 do FB[i] := Buffer[i]
+      end else
+        if FInput.BitsPerSample = 24 then
+        begin
+          FBU := PFLACUBuf(FB);
+          for i := 0 to samples - 1 do FBU[i] := (Buffer[i*3 + 2] shl 16) + (Buffer[i*3 + 1] shl 8) + (Buffer[i*3]);
+        end else
+          if FInput.BitsPerSample = 32 then
+          begin
+            B32 := @Buffer[0];
+            for i := 0 to samples - 1 do FB[i] := B32[i];
+          end;
     if not FLAC__stream_encoder_process_interleaved(_encoder, @FB[0], samples div FInput.Channels) then
     raise EAuException.Create('Failed to encode data.');
     FreeMem(FB);
