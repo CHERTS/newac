@@ -13,6 +13,8 @@ Following is the short description of each demo:
 
 • MP3Player – the mp3 payer that shows mp3 tags.
 
+• NetworkRadioStation – simple network audio broadcasting station.
+
 • OggPlayer – the Ogg Vorbis format payer that shows Vorbis tags and the current bitrate.
 
 • WMPlayer – the Windows Media Audio (WMA) payer that shows Id3V2 tags.
