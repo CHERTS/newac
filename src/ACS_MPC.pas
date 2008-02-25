@@ -6,12 +6,14 @@
   *************************************************************
 
    TMPCIn component is written by Sergei Borisov, <jr_ross@mail.ru>
+
+   TMPCOut component is written by Andrei Borovsky
 *)
 
 (*
-  This unit contains Musepack decoder component. You can learn more about Musepack at www.musepack.net.
-  This component requires libmpdec.dll which you can find along with other
-  NewAC libraries.
+  This unit contains Musepack decoder and encoder components. You can learn more about Musepack at www.musepack.net.
+  The TMPCIn component requires libmpdec.dll library and TMPCOut requires libmppenc.dll library.
+  Both libraies can be downloaded from the project site www.symmetrica.net
 *)
 
 unit ACS_MPC;
@@ -23,6 +25,7 @@ interface
 uses
   Classes,
   libmpdec,
+  libmppenc,
   ACS_Classes,
   ACS_Tags;
 
@@ -59,6 +62,25 @@ type
     property EndSample;
     property Loop;
   end;
+
+  (* *)
+
+  TMPCOut = class(TAuTaggedFileOut)
+  private
+    EndOfInput : Boolean;
+    encoder : Pointer;
+    FQuality : Single;
+  protected
+    procedure Prepare; override;
+    function DoOutput(Abort : Boolean):Boolean; override;
+    procedure Done; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Quality : Single read FQuality write FQuality;
+    property APEv2Tags;
+  end;
+
 
 implementation
 
@@ -310,6 +332,152 @@ begin
   Result := FDecoder.AverageBitrate;
 end;
 
+  procedure cb_input_open(cb_data : Pointer); cdecl;
+  begin
+  end;
 
+  function cb_input_read(DstBuf : Pointer; _ElementSize, Count : LongWord; cb_data : Pointer): LongWord; cdecl;
+  var
+    MPCOut : TMPCOut;
+  begin
+    MPCOut := TMPCOut(cb_data);
+    if MPCOut.EndOfInput then
+      Result := 0
+    else
+      Result := MPCOut.Input.FillBuffer(DstBuf, _ElementSize*Count, MPCOut.EndOfInput);
+      Result := Result div _ElementSize;
+  end;
+
+  function cb_input_eof(cb_data : Pointer): Integer; cdecl;
+  var
+    MPCOut : TMPCOut;
+  begin
+    MPCOut := TMPCOut(cb_data);
+    Result := Integer(MPCOut.EndOfInput);
+  end;
+
+  procedure cb_input_close(cb_data : Pointer); cdecl;
+  begin
+  end;
+
+  procedure cb_output_open(cb_data : Pointer); cdecl;
+  begin
+  end;
+
+  function cb_output_read(DstBuf : Pointer; _ElementSize, Count : LongWord; cb_data : Pointer): LongWord; cdecl;
+  var
+    MPCOut : TMPCOut;
+  begin
+    MPCOut := TMPCOut(cb_data);
+    Result := MPCOut.FStream.Read(DstBuf^, _ElementSize*Count);
+    Result := Result div _ElementSize;
+  end;
+
+  function cb_output_write(Buf : Pointer; Size, Count : LongWord; cb_data : Pointer): LongWord; cdecl;
+  var
+    MPCOut : TMPCOut;
+  begin
+    MPCOut := TMPCOut(cb_data);
+    Result := MPCOut.FStream.Write(Buf^, Size*Count);
+    Result := Result div Size;
+  end;
+
+  function cb_output_seek(Offset, Origin : Integer; cb_data : Pointer): Integer; cdecl;
+  var
+    MPCOut : TMPCOut;
+  begin
+    MPCOut := TMPCOut(cb_data);
+    Result := MPCOut.FStream.Seek(Offset, Word(Origin));
+  end;
+
+  procedure cb_output_close(cb_data : Pointer); cdecl;
+  begin
+  end;
+
+
+
+constructor TMPCOut.Create;
+begin
+  inherited Create(AOwner);
+  FQuality := 5.0;
+end;
+
+procedure TMPCOut.Prepare;
+begin
+  FExceptionMessage := '';
+  if not FStreamAssigned then
+  begin
+    if FFileName = '' then raise EAuException.Create('File name is not assigned.');
+    FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive);
+  end;
+  EndOfInput := False;
+  FInput.Init;
+  if not ((Finput.SampleRate div 1000) in [32, 37, 44, 48]) then
+  begin
+    EndOfInput := True;
+    if Assigned(FOnThreadException) then
+    begin
+      FExceptionMessage := 'Unsupported sample rate.';
+//      EventHandler.PostGenericEvent(Self, FOnThreadException);
+    end;
+    raise EAuException.Create('Unsupported sample rate.');
+  end;
+  LoadMPPEncLibrary;
+    if not libMPPEncLoaded then
+      raise EAuException.Create(LibMPPEncPath + ' library could not be loaded.');
+
+  init_static;
+  init_enc_state(encoder, FInput.SampleRate, FInput.Size div ((FInput.BitsPerSample div 8)* FInput.Channels), Finput.BitsPerSample, Finput.Channels, FQuality);
+  set_callbacks(encoder, cb_input_open, cb_input_read, cb_input_eof, cb_input_close,
+                cb_output_open, cb_output_seek, cb_output_read, cb_output_write, cb_output_close, Self);
+  if not APEv2Tags.Empty then
+  begin
+    if APEv2Tags.Artist <> '' then
+       AddTag(_ape_Artist, APEv2Tags.Artist);
+    if APEv2Tags.Album <> '' then
+       AddTag(_ape_Album, APEv2Tags.Album);
+    if APEv2Tags.Title <> '' then
+       AddTag(_ape_Title, APEv2Tags.Title);
+    if APEv2Tags.Year <> '' then
+       AddTag(_ape_Year, APEv2Tags.Year);
+    if APEv2Tags.Genre <> '' then
+       AddTag(_ape_Genre, APEv2Tags.Genre);
+    if APEv2Tags.Copyright <> '' then
+       AddTag(_ape_Copyright, APEv2Tags.Copyright);
+    if APEv2Tags.Composer <> '' then
+       AddTag(_ape_Composer, APEv2Tags.Composer);
+    if APEv2Tags.Track <> '' then
+       AddTag(_ape_Track, APEv2Tags.Track);
+  end;
+  start_encoder(encoder);
+end;
+
+function TMPCOut.DoOutput;
+begin
+  Result := True;
+  if Abort then
+      EndOfInput := True;
+  if EndOfInput then
+  begin
+    Result := False;
+    Exit;
+  end;
+  if process_block(encoder) <> 0 then
+    EndOfInput := True;
+end;
+
+procedure TMPCOut.Done;
+begin
+  free_encoder_state(encoder);
+  UnloadMPPEncLibrary;
+  FInput.Flush;
+  if not FStreamAssigned then FStream.Free;
+end;
+
+  const
+    CW = LongWord($133f);
+
+initialization
+  Set8087CW(CW);
 end.
 

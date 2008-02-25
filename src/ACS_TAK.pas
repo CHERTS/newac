@@ -16,7 +16,7 @@ interface
 
 uses
   Classes,
-  tak_deco_lib,
+  tak_decoder,
   ACS_Classes,
   ACS_Tags;
 
