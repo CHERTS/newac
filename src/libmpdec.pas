@@ -1,10 +1,12 @@
 (*
   This unit contains Musepack decoder library headers transltion.
-  Original Musepack decoder library headers headers Copyright (c) 2005, The Musepack Development Team.
-  You can learn more about Musepack at www.musepack.net.
+  Original Musepack decoder library headers Copyright (c) 2005, The Musepack Development Team.
+  You can learn more about Musepack audio compression format at www.musepack.net.
 *)
 
-(* Written by Sergei Borisov, with small updates by Andrei Borovsky *)
+(* Written by Sergei Borisov *)
+
+(* $Id$ *)
 
 unit libmpdec;
 
