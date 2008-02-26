@@ -61,15 +61,6 @@ object Form1: TForm1
       '320'
       '499')
   end
-  object CheckBox1: TCheckBox
-    Left = 128
-    Top = 64
-    Width = 121
-    Height = 17
-    Caption = 'Switch mono/stereo'
-    TabOrder = 3
-    OnClick = CheckBox1Click
-  end
   object StatusBar1: TStatusBar
     Left = 0
     Top = 139
@@ -87,12 +78,12 @@ object Form1: TForm1
     Width = 75
     Height = 25
     Caption = 'Select...'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = Button2Click
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 128
   end
@@ -110,19 +101,13 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = VorbisOut1Done
     OnProgress = VorbisOut1Progress
-    FileMode = foRewrite
     Compression = 0.200000002980232
-    Comments.Track = 0
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
+    FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
     Left = 104
-    Top = 128
-  end
-  object MSConverter1: TMSConverter
-    Mode = msmMonoToBoth
-    Left = 144
     Top = 128
   end
 end

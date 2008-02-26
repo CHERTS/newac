@@ -24,17 +24,14 @@ type
     ProgressBar1: TProgressBar;
     ComboBox1: TComboBox;
     Label4: TLabel;
-    CheckBox1: TCheckBox;
     StatusBar1: TStatusBar;
     VorbisOut1: TVorbisOut;
-    MSConverter1: TMSConverter;
     Button2: TButton;
     procedure Button1Click(Sender: TObject);
     procedure VorbisOut1Done(Sender: TComponent);
     procedure VorbisOut1Progress(Sender: TComponent);
     procedure FormCreate(Sender: TObject);
     procedure ComboBox1Select(Sender: TObject);
-    procedure CheckBox1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
@@ -87,9 +84,9 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  VorbisOut1.DesiredNominalBitrate := br192;
-  VorbisOut1.DesiredMaximumBitrate := br192;
-  VorbisOut1.MinimumBitrate := br192;
+  VorbisOut1.DesiredNominalBitrate := bitrate192;
+  VorbisOut1.DesiredMaximumBitrate := bitrate192;
+  VorbisOut1.MinimumBitrate := bitrate192;
 end;
 
 procedure TForm1.ComboBox1Select(Sender: TObject);
@@ -97,73 +94,60 @@ begin
   case ComboBox1.ItemIndex of
       0 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br24;
-        VorbisOut1.DesiredMaximumBitrate := br24;
-        VorbisOut1.MinimumBitrate := br24;
+        VorbisOut1.DesiredNominalBitrate := bitrate24;
+        VorbisOut1.DesiredMaximumBitrate := bitrate24;
+        VorbisOut1.MinimumBitrate := bitrate24;
       end;
-      
+
       1 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br32;
-        VorbisOut1.DesiredMaximumBitrate := br32;
-        VorbisOut1.MinimumBitrate := br32;
+        VorbisOut1.DesiredNominalBitrate := bitrate32;
+        VorbisOut1.DesiredMaximumBitrate := bitrate32;
+        VorbisOut1.MinimumBitrate := bitrate32;
       end;
 
       2 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br64;
-        VorbisOut1.DesiredMaximumBitrate := br64;
-        VorbisOut1.MinimumBitrate := br64;
+        VorbisOut1.DesiredNominalBitrate := bitrate64;
+        VorbisOut1.DesiredMaximumBitrate := bitrate64;
+        VorbisOut1.MinimumBitrate := bitrate64;
       end;
 
       3 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br128;
-        VorbisOut1.DesiredMaximumBitrate := br128;
-        VorbisOut1.MinimumBitrate := br128;
+        VorbisOut1.DesiredNominalBitrate := bitrate128;
+        VorbisOut1.DesiredMaximumBitrate := bitrate128;
+        VorbisOut1.MinimumBitrate := bitrate128;
       end;
 
       4 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br192;
-        VorbisOut1.DesiredMaximumBitrate := br192;
-        VorbisOut1.MinimumBitrate := br192;
+        VorbisOut1.DesiredNominalBitrate := bitrate192;
+        VorbisOut1.DesiredMaximumBitrate := bitrate192;
+        VorbisOut1.MinimumBitrate := bitrate192;
       end;
 
       5 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br256;
-        VorbisOut1.DesiredMaximumBitrate := br256;
-        VorbisOut1.MinimumBitrate := br256;
+        VorbisOut1.DesiredNominalBitrate := bitrate256;
+        VorbisOut1.DesiredMaximumBitrate := bitrate256;
+        VorbisOut1.MinimumBitrate := bitrate256;
       end;
 
       6 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br320;
-        VorbisOut1.DesiredMaximumBitrate := br320;
-        VorbisOut1.MinimumBitrate := br256;
+        VorbisOut1.DesiredNominalBitrate := bitrate320;
+        VorbisOut1.DesiredMaximumBitrate := bitrate320;
+        VorbisOut1.MinimumBitrate := bitrate320;
       end;
 
       7 :
       begin
-        VorbisOut1.DesiredNominalBitrate := br499;
-        VorbisOut1.DesiredMaximumBitrate := br499;
-        VorbisOut1.MinimumBitrate := br499;
+        VorbisOut1.DesiredNominalBitrate := bitrate499;
+        VorbisOut1.DesiredMaximumBitrate := bitrate499;
+        VorbisOut1.MinimumBitrate := bitrate499;
       end;
    end;
-end;
-
-procedure TForm1.CheckBox1Click(Sender: TObject);
-begin
-  VorbisOut1.Stop(False);
-  if CheckBox1.Checked then
-  begin
-    VorbisOut1.Input := MSConverter1;
-    MSConverter1.Input := WaveIn1;
-  end else
-  begin
-    VorbisOut1.Input := WaveIn1;
-  end;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
