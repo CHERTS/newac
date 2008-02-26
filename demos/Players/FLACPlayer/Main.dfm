@@ -255,9 +255,9 @@ object Form1: TForm1
     Top = 232
   end
   object FLACIn1: TFLACIn
+    Loop = False
     CheckMD5Signature = False
     EndSample = -1
-    Loop = False
     Left = 40
     Top = 232
   end
