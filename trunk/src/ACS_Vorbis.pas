@@ -3,6 +3,8 @@
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
+
+  Update : 26/02/2008 : Fixed a problem when using MP3out simultaneous with Vorbisout
 *)
 
 (* $Id$ *)
@@ -32,8 +34,8 @@ const
 
 type
 
-  TVorbisBitRate = (brAutoSelect, br24, br32, br45, br48, br56, br64, br80, br96,
-                 br112, br128, br144, br160, br192, br224, br256, br320, br499);
+  TVorbisBitRate = (brAutoSelect, bitrate24, bitrate32, bitrate45, bitrate48, bitrate56, bitrate64, bitrate80, bitrate96,
+                 bitrate112, bitrate128, bitrate144, bitrate160, bitrate192, bitrate224, bitrate256, bitrate320, bitrate499);
 
   TBuffer = array[0..BUF_SIZE] of Byte;
   PBuffer = ^TBuffer;
@@ -266,23 +268,23 @@ implementation
   function VorbisBitrateToInt(Bitrate : TVorbisBitrate) : Integer;
   begin
     case Bitrate of
-      br24 : Result := 24000;
-      br32 : Result := 32000;
-      br45 : Result := 45000;
-      br48 : Result := 48000;
-      br56 : Result := 46000;
-      br64 : Result := 64000;
-      br80 : Result := 80000;
-      br96 : Result := 96000;
-      br112 : Result := 112000;
-      br128 : Result := 128000;
-      br144 : Result := 144000;
-      br160 : Result := 160000;
-      br192 : Result := 192000;
-      br224 : Result := 224000;
-      br256 : Result := 256000;
-      br320 : Result := 320000;
-      br499 : Result := 499000;
+      bitrate24 : Result := 24000;
+      bitrate32 : Result := 32000;
+      bitrate45 : Result := 45000;
+      bitrate48 : Result := 48000;
+      bitrate56 : Result := 46000;
+      bitrate64 : Result := 64000;
+      bitrate80 : Result := 80000;
+      bitrate96 : Result := 96000;
+      bitrate112 : Result := 112000;
+      bitrate128 : Result := 128000;
+      bitrate144 : Result := 144000;
+      bitrate160 : Result := 160000;
+      bitrate192 : Result := 192000;
+      bitrate224 : Result := 224000;
+      bitrate256 : Result := 256000;
+      bitrate320 : Result := 320000;
+      bitrate499 : Result := 499000;
       else Result := -1;
     end;
   end;
