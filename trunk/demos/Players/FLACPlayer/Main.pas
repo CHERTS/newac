@@ -12,7 +12,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, ACS_Classes,
-  ACS_Audio, Buttons, ACS_Converters, ACS_FLAC, ACS_DXAudio;
+  Buttons, ACS_Converters, ACS_FLAC, ACS_DXAudio;
 
 type
   TForm1 = class(TForm)
