@@ -5,6 +5,8 @@ Following is the short description of each demo:
 
 • AudioMixer - shows how to mix or concatenate two audio streams.
 
+• MemoryInDemo - shows how to use TMemoryIn to generate a sine wave of a given frequency.
+
 • SincFilterDemo – demonstrates a simple sinc filter.
 
 • WaveFileConverter – this program can convert wav file parameters (the sample rate, the number of bits per sample, the number of channels).
