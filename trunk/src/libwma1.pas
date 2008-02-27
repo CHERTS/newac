@@ -155,13 +155,13 @@ type
    function lwma_reader_get_duration(var sync_reader : wma_sync_reader) : LongWord;
    function lwma_reader_get_bitrate(var sync_reader : wma_sync_reader) : LongWord;
    function lwma_reader_get_is_vbr(var sync_reader : wma_sync_reader) : LongBool;
-   procedure lwma_reader_get_author(var sync_reader : wma_sync_reader; var result : WideString);
-   procedure lwma_reader_get_title(var sync_reader : wma_sync_reader; var result : WideString);
-   procedure lwma_reader_get_album(var sync_reader : wma_sync_reader; var result : WideString);
-   procedure lwma_reader_get_genre(var sync_reader : wma_sync_reader; var result : WideString);
-   procedure lwma_reader_get_track(var sync_reader : wma_sync_reader; var result : WideString);
-   procedure lwma_reader_get_year(var sync_reader : wma_sync_reader; var result : WideString);
-   procedure lwma_reader_get_copyright(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_author(var sync_reader : wma_sync_reader) : WideString;
+   function lwma_reader_get_title(var sync_reader : wma_sync_reader) : WideString;
+   function lwma_reader_get_album(var sync_reader : wma_sync_reader) : WideString;
+   function lwma_reader_get_genre(var sync_reader : wma_sync_reader) : WideString;
+   function lwma_reader_get_track(var sync_reader : wma_sync_reader) : WideString;
+   function lwma_reader_get_year(var sync_reader : wma_sync_reader) : WideString;
+   function lwma_reader_get_copyright(var sync_reader : wma_sync_reader) : WideString;
    procedure lwma_reader_get_audio_properties(var sync_reader : wma_sync_reader; var channels, BitsPerSample : Word; var SampleRate : LongWord);
    procedure lwma_reader_seek(var sync_reader : wma_sync_reader; start_from : LongWord);
    procedure lwma_reader_get_data(var sync_reader : wma_sync_reader; var buffer : Pointer; var bufsize : LongWord);
@@ -175,13 +175,13 @@ type
    procedure lwma_async_reader_resume(var async_reader : wma_async_reader);
    procedure lwma_async_reader_set_proxy(var async_reader : wma_async_reader; const Protocol, Host : WideString; Port : LongWord);
    procedure lwma_async_reader_reset_stretch(var async_reader : wma_async_reader; new_stretch : Single); 
-   procedure lwma_async_reader_get_author(var async_reader : wma_async_reader; var result : WideString);
-   procedure lwma_async_reader_get_title(var async_reader : wma_async_reader; var result : WideString);
-   procedure lwma_async_reader_get_album(var async_reader : wma_async_reader; var result : WideString);
-   procedure lwma_async_reader_get_genre(var async_reader : wma_async_reader; var result : WideString);
-   procedure lwma_async_reader_get_track(var async_reader : wma_async_reader; var result : WideString);
-   procedure lwma_async_reader_get_year(var async_reader : wma_async_reader; var result : WideString);
-   procedure lwma_async_reader_get_copyright(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_author(var async_reader : wma_async_reader) : WideString;
+   function lwma_async_reader_get_title(var async_reader : wma_async_reader) : WideString;
+   function lwma_async_reader_get_album(var async_reader : wma_async_reader) : WideString;
+   function lwma_async_reader_get_genre(var async_reader : wma_async_reader) : WideString;
+   function lwma_async_reader_get_track(var async_reader : wma_async_reader) : WideString;
+   function lwma_async_reader_get_year(var async_reader : wma_async_reader) : WideString;
+   function lwma_async_reader_get_copyright(var async_reader : wma_async_reader) : WideString;
    procedure lwma_async_reader_get_data(var async_reader : wma_async_reader; var buffer : Pointer; var bufsize : LongWord);
    procedure lwma_async_reader_free(var async_reader : wma_async_reader);
 
@@ -380,62 +380,97 @@ implementation
      async_reader.reader.Start(WM_START_CURRENTPOSITION, 0, new_stretch, nil);
    end;
 
-   procedure get_async_tag(var async_reader : wma_async_reader; name : PWideChar; var result : WideString);
+   function get_async_tag_length(var async_reader : wma_async_reader; name : PWideChar) : Word;
    var
      stream : Word;
      datatype : WMT_ATTR_DATATYPE;
-      len : Word;
    begin
      stream := 0;
-     if async_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, nil, len) <> S_OK then
+     if async_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, nil, Result) <> S_OK then
      begin
-       result := '';
-       Exit;
-     end;
-     SetLength(result, len div 2);
-     if async_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, PByte(@result[1]), len) <> S_OK then
-     begin
-       result := '';
+       Result := 0;
        Exit;
      end;
    end;
 
-
-   procedure lwma_async_reader_get_author(var async_reader : wma_async_reader; var result : WideString);
+   procedure get_async_tag(var async_reader : wma_async_reader; name : PWideChar; var value : WideString);
+   var
+     stream : Word;
+     datatype : WMT_ATTR_DATATYPE;
+     len : Word;
    begin
-     get_async_tag(async_reader, g_wszWMAuthor, result);
+     stream := 0;
+     len := Length(value);
+     datatype := WMT_TYPE_STRING;
+     if async_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, PByte(PWideChar(value)), len) <> S_OK then
+     begin
+       value := '';
+       Exit;
+     end;
    end;
 
-   procedure lwma_async_reader_get_title(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_author(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_async_tag(async_reader, g_wszWMTitle, result);
+     len := get_async_tag_length(async_reader, g_wszWMAuthor);
+     SetLength(Result, len);
+     get_async_tag(async_reader, g_wszWMAuthor, Result);
    end;
 
-   procedure lwma_async_reader_get_album(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_title(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
    begin
+     len := get_async_tag_length(async_reader, g_wszWMTitle);
+     SetLength(Result, len);
+     get_async_tag(async_reader, g_wszWMTitle, Result);
+   end;
+
+   function lwma_async_reader_get_album(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
+   begin
+     len := get_async_tag_length(async_reader, g_wszWMAlbumTitle);
+     SetLength(Result, len);
      get_async_tag(async_reader, g_wszWMAlbumTitle, result);
    end;
 
-   procedure lwma_async_reader_get_genre(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_genre(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_async_tag(async_reader, g_wszWMGenre, result);
+     len := get_async_tag_length(async_reader, g_wszWMGenre);
+     SetLength(Result, len);
+     get_async_tag(async_reader, g_wszWMGenre, Result);
    end;
 
-   procedure lwma_async_reader_get_track(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_track(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_async_tag(async_reader, g_wszWMTrack, result);
+     len := get_async_tag_length(async_reader, g_wszWMTrack);
+     SetLength(Result, len);
+     get_async_tag(async_reader, g_wszWMTrack, Result);
    end;
 
-   procedure lwma_async_reader_get_year(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_year(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
    begin
+     len := get_async_tag_length(async_reader, g_wszWMYear);
+     SetLength(Result, len);
      get_async_tag(async_reader, g_wszWMYear, result);
    end;
 
-   procedure lwma_async_reader_get_copyright(var async_reader : wma_async_reader; var result : WideString);
+   function lwma_async_reader_get_copyright(var async_reader : wma_async_reader) : WideString;
+   var
+     len : Word;
    begin
+     len := get_async_tag_length(async_reader, g_wszWMCopyright);
+     SetLength(Result, len);
      get_async_tag(async_reader, g_wszWMCopyright, result);
    end;
-
 
    function has_data_block(var async_reader : wma_async_reader) : Boolean;
    begin
@@ -702,59 +737,98 @@ implementation
        Result:=False;
    end;
 
-   procedure get_tag(var sync_reader : wma_sync_reader; name : PWideChar; var result : WideString);
+   function get_tag_length(var sync_reader : wma_sync_reader; name : PWideChar) : Word;
    var
      stream : Word;
      datatype : WMT_ATTR_DATATYPE;
-      len : Word;
    begin
      stream := 0;
-     if sync_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, nil, len) <> S_OK then
+     if sync_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, nil, Result) <> S_OK then
      begin
-       result := '';
-       Exit;
-     end;
-     SetLength(result, len div 2);
-     if sync_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, PByte(@result[1]), len) <> S_OK then
-     begin
-       result := '';
+       Result := 0;
        Exit;
      end;
    end;
 
-   procedure lwma_reader_get_author(var sync_reader : wma_sync_reader; var result : WideString);
+   procedure get_tag(var sync_reader : wma_sync_reader; name : PWideChar; var value : WideString);
+   var
+     stream : Word;
+     datatype : WMT_ATTR_DATATYPE;
+     len : Word;
+     res : HResult;
    begin
-     get_tag(sync_reader, g_wszWMAuthor, result);
+     stream := 0;
+     len := Length(value);
+     datatype := WMT_TYPE_STRING;
+     res := sync_reader.HeaderInfo.GetAttributeByName(stream, name, datatype, PByte(PWideChar(value)), len);
+     if res <> S_OK then
+     begin
+       value := '';
+       Exit;
+     end;
    end;
 
-   procedure lwma_reader_get_title(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_author(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_tag(sync_reader, g_wszWMTitle, result);
+     len := get_tag_length(sync_reader, g_wszWMAuthor);
+     SetLength(Result, len);
+     get_tag(sync_reader, g_wszWMAuthor, Result);
    end;
 
-   procedure lwma_reader_get_album(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_title(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_tag(sync_reader, g_wszWMAlbumTitle, result);
+     len := get_tag_length(sync_reader, g_wszWMTitle);
+     SetLength(Result, len);
+     get_tag(sync_reader, g_wszWMTitle, Result);
    end;
 
-   procedure lwma_reader_get_genre(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_album(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
    begin
+     len := get_tag_length(sync_reader, g_wszWMAlbumTitle);
+     SetLength(Result, len);
+     get_tag(sync_reader, g_wszWMAlbumTitle, Result);
+   end;
+
+   function lwma_reader_get_genre(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
+   begin
+     len := get_tag_length(sync_reader, g_wszWMGenre);
+     SetLength(Result, len);
      get_tag(sync_reader, g_wszWMGenre, result);
    end;
 
-   procedure lwma_reader_get_track(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_track(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_tag(sync_reader, g_wszWMTrack, result);
+     len := get_tag_length(sync_reader, g_wszWMTrack);
+     SetLength(Result, len);
+     get_tag(sync_reader, g_wszWMTrack, Result);
    end;
 
-   procedure lwma_reader_get_year(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_year(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_tag(sync_reader, g_wszWMYear, result);
+     len := get_tag_length(sync_reader, g_wszWMYear);
+     SetLength(Result, len);
+     get_tag(sync_reader, g_wszWMYear, Result);
    end;
 
-   procedure lwma_reader_get_copyright(var sync_reader : wma_sync_reader; var result : WideString);
+   function lwma_reader_get_copyright(var sync_reader : wma_sync_reader) : WideString;
+   var
+     len : Word;
    begin
-     get_tag(sync_reader, g_wszWMCopyright, result);
+     len := get_tag_length(sync_reader, g_wszWMCopyright);
+     SetLength(Result, len);
+     get_tag(sync_reader, g_wszWMCopyright, Result);
    end;
 
    procedure lwma_reader_get_audio_properties(var sync_reader : wma_sync_reader; var channels, BitsPerSample : Word; var SampleRate : LongWord);
