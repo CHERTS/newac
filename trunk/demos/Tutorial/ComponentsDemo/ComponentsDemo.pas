@@ -475,8 +475,8 @@ const
     // input components can read data from them.
     if not FStreamAssigned then
     begin
-      if FFileName = '' then raise EAuException.Create('File name is not assigned.');
-      FStream := TFileStream.Create(FFileName, fmCreate or fmShareExclusive);
+      if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
+      FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive);
     end;
     // The FInput property holds a reference to an input component (TAuInput descendant)
     // where the output component reads data from.
