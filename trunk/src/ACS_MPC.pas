@@ -16,7 +16,7 @@
   Both libraies can be downloaded from the project site www.symmetrica.net.
 *)
 
-(* Title: ACS_FLAC
+(* Title: ACS_MPC
     NewAC interface to Musepack codec *)
 
 unit ACS_MPC;
@@ -69,7 +69,7 @@ type
 
   published
    (* Property: OutBitsPerSample
-        Regardless of an ecoder's input bits per sample value Musepack always encodes its data in 32-bit samples.
+        Regardless of an encoder's input bits per sample value Musepack always encodes its data in 32-bit samples.
         You can use this property to set output bits per sample value for the decoder (16, 24, or 32). *)
     property OutBitsPerSample: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
     property StartSample;
