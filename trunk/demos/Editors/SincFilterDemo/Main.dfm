@@ -155,18 +155,17 @@ object Form1: TForm1
     Top = 208
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 168
     Top = 208
   end
-  object AudioOut1: TAudioOut
+  object DXAudioOut1: TDXAudioOut
     Input = SincFilter1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
-    BaseChannel = 0
-    Volume = 255
-    Left = 232
+    DeviceNumber = 0
+    Left = 240
     Top = 208
   end
 end

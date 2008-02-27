@@ -11,8 +11,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Audio, ACS_Filters,
-  ExtCtrls, ACS_Types, ACS_Procs, Math, ACS_Wave;
+  Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Filters,
+  ExtCtrls, ACS_Types, ACS_Procs, Math, ACS_Wave, ACS_DXAudio;
 
 type
   TForm1 = class(TForm)
@@ -31,7 +31,7 @@ type
     Label4: TLabel;
     Button2: TButton;
     WaveIn1: TWaveIn;
-    AudioOut1: TAudioOut;
+    DXAudioOut1: TDXAudioOut;
     procedure Button1Click(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -61,7 +61,7 @@ begin
   begin
     WaveIn1.FileName := OpenDialog1.FileName;
     Button1.Enabled := False;
-    AudioOut1.Run;
+    DXAudioOut1.Run;
     SincFilter1.LowFreq := Round(TrackBar1.Position/100*SincFilter1.SampleRate);
     SincFilter1.HighFreq := Round(TrackBar2.Position/100*SincFilter1.SampleRate);
     DrawFreqResp;
@@ -75,7 +75,7 @@ end;
 
 procedure TForm1.AudioOut1Progress(Sender: TComponent);
 begin
-  ProgressBar1.Position := AudioOut1.Progress;
+  ProgressBar1.Position := DXAudioOut1.Progress;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -93,7 +93,7 @@ end;
 
 procedure TForm1.TrackBar2Change(Sender: TObject);
 begin
-  if AudioOut1.Status <> tosPlaying then Exit;
+  if DXAudioOut1.Status <> tosPlaying then Exit;
   if TrackBar2.Position < TrackBar1.Position then
   TrackBar2.Position := TrackBar1.Position;
   SincFilter1.HighFreq := Round(TrackBar2.Position/100*SincFilter1.SampleRate);
@@ -102,7 +102,7 @@ end;
 
 procedure TForm1.TrackBar1Change(Sender: TObject);
 begin
-  if AudioOut1.Status <> tosPlaying then Exit;
+  if DXAudioOut1.Status <> tosPlaying then Exit;
   if TrackBar2.Position < TrackBar1.Position then
   TrackBar2.Position := TrackBar1.Position;
   SincFilter1.LowFreq := Round(TrackBar1.Position/100*SincFilter1.SampleRate);
@@ -124,7 +124,7 @@ end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 begin
-  AudioOut1.Stop;
+  DXAudioOut1.Stop;
 end;
 
 procedure TForm1.DrawFreqResp;
@@ -133,7 +133,7 @@ var
   K : PDoubleArray;
   Size, Step, i : Integer;
 begin
-  if AudioOut1.Status <> tosPlaying then Exit;
+  if DXAudioOut1.Status <> tosPlaying then Exit;
   Size := 1 shl Ceil(Log2(SincFilter1.KernelWidth));
   SetLength(DA, Size);
   FillChar(DA[0], Size*8, 0);
@@ -170,7 +170,7 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  AudioOut1.Stop(False);
+  DXAudioOut1.Stop(False);
 end;
 
 end.
