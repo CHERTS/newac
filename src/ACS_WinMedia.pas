@@ -496,7 +496,7 @@ implementation
 //    Tag : TID3Tag;
     ch, bps : Word;
     sr : LongWord;
-    str : WideString;
+//    str : WideString;
   begin
     OpenCS.Enter;
     try
@@ -518,21 +518,21 @@ implementation
       FTotalSamples := Trunc((FDuration/100)*sr);
       FSize := FTotalSamples*ch*(bps shr 3);
       FSeekable := True;
-      SetLength(Str, 256);
-      lwma_reader_get_author(reader, Str);
-      _Id3v2Tags.Artist := Str;
-      lwma_reader_get_title(reader, Str);
-      _Id3v2Tags.Title := Str;
-      lwma_reader_get_album(reader, Str);
-      _Id3v2Tags.Album := Str;
-      lwma_reader_get_genre(reader, Str);
-      _Id3v2Tags.Genre := Str;
-      lwma_reader_get_track(reader, Str);
-      _Id3v2Tags.Track := Str;
-      lwma_reader_get_year(reader, Str);
-      _Id3v2Tags.Year := Str;
-      lwma_reader_get_copyright(reader, Str);
-      _Id3v2Tags.Comment := Str;
+//      SetLength(Str, 256);
+  //    lwma_reader_get_author(reader, Str);
+      _Id3v2Tags.Artist := lwma_reader_get_author(reader);
+      _Id3v2Tags.Title := lwma_reader_get_title(reader);
+//      _Id3v2Tags.Title := Str;
+ //     lwma_reader_get_album(reader, Str);
+      _Id3v2Tags.Album := lwma_reader_get_album(reader);
+//      lwma_reader_get_genre(reader, Str);
+      _Id3v2Tags.Genre := lwma_reader_get_genre(reader);
+//      lwma_reader_get_track(reader, Str);
+      _Id3v2Tags.Track := lwma_reader_get_track(reader);
+ //     lwma_reader_get_year(reader, Str);
+      _Id3v2Tags.Year := lwma_reader_get_year(reader);
+ //     lwma_reader_get_copyright(reader, Str);
+      _Id3v2Tags.Comment := lwma_reader_get_copyright(reader);
       Inc(FOpened);
     end;
     finally
@@ -721,9 +721,6 @@ implementation
   end;
 
   procedure TWMStreamedIn.OpenFile;
-  var
-//    Tag : TID3Tag;
-    str : WideString;
   begin
     OpenCS.Enter;
     try
@@ -760,21 +757,21 @@ implementation
       end else
         FSize := FTotalSamples*FChan*(FBPS shr 3);
       FSeekable := False;
-      SetLength(Str, 256);
-      lwma_async_reader_get_author(reader, Str);
-      _Id3v2Tags.Artist := Str;
-      lwma_async_reader_get_title(reader, Str);
-      _Id3v2Tags.Title := Str;
-      lwma_async_reader_get_album(reader, Str);
-      _Id3v2Tags.Album := Str;
-      lwma_async_reader_get_genre(reader, Str);
-      _Id3v2Tags.Genre := Str;
-      lwma_async_reader_get_track(reader, Str);
-      _Id3v2Tags.Track := Str;
-      lwma_async_reader_get_year(reader, Str);
-      _Id3v2Tags.Year := Str;
-      lwma_async_reader_get_copyright(reader, Str);
-      _Id3v2Tags.Comment := Str;
+//      SetLength(Str, 256);
+      //lwma_async_reader_get_author(reader, Str);
+      _Id3v2Tags.Artist := lwma_async_reader_get_author(reader);
+//      lwma_async_reader_get_title(reader, Str);
+      _Id3v2Tags.Title := lwma_async_reader_get_title(reader);
+      //lwma_async_reader_get_album(reader, Str);
+      _Id3v2Tags.Album := lwma_async_reader_get_album(reader);
+//      lwma_async_reader_get_genre(reader, Str);
+      _Id3v2Tags.Genre := lwma_async_reader_get_genre(reader);
+//      lwma_async_reader_get_track(reader, Str);
+      _Id3v2Tags.Track := lwma_async_reader_get_track(reader);
+//      lwma_async_reader_get_year(reader, Str);
+      _Id3v2Tags.Year := lwma_async_reader_get_year(reader);
+//      lwma_async_reader_get_copyright(reader, Str);
+      _Id3v2Tags.Comment := lwma_async_reader_get_copyright(reader);
       FFirstTime := True;
       Inc(FOpened);
     end;
