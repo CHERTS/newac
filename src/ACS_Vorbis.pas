@@ -272,7 +272,7 @@ implementation
       bitrate32 : Result := 32000;
       bitrate45 : Result := 45000;
       bitrate48 : Result := 48000;
-      bitrate56 : Result := 46000;
+      bitrate56 : Result := 56000;
       bitrate64 : Result := 64000;
       bitrate80 : Result := 80000;
       bitrate96 : Result := 96000;
