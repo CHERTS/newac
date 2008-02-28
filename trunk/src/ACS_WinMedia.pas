@@ -183,7 +183,7 @@ type
     (* Property: FormatsCount
         Returns the total number of formats supported by the codec, specified
         by its index, and the current encoding mode. The valid indices range
-        from 0 to <CodecsCount> -1. Please see <A Note on Windows Media Formats>.      
+        from 0 to <CodecsCount> -1. Please see <A Note on Windows Media Formats>.
     *)
     property FormatsCount[index : Word] : Word read GetFormatsCount;
   published
@@ -206,7 +206,7 @@ type
        bitrate lossy encoding modes. In VBR mode <DesiredBitrate> value is
        ignored. The quality of the output sound is defined by the <VBRQuality>
        property. If you encode data by directly selecting the codec and
-       format, note that the VBR setting affects <Formats> and <FormatCount>
+       format, note that the VBR setting affects <Formats> and <FormatsCount>
        values for every codec. In the lossless mode the this property's value
        is ignored. *)
     property VBR : Boolean read FVBR write FVBR;
@@ -218,14 +218,11 @@ type
   end;
 
   (* Topic: A Note on Windows Media Formats
-        The <VBR> and <Lossless> settings affect the number of available
-        formats. Conversely, Windows Media Voice codec exposes only CBR
-        formats. It won't expose any formats if <VBR> or <Lossless> are set to
-        True. For example, Windows Media Audio Lossless codec will return a
-        format only if <VBR> or <Lossless> property is set to True. You should
-        re-read the format related properties each time you change either the
+        The <VBR> and <Lossless> settings affect the values of <Formats> and <FormatsCount> properies. For example, Windows Media Audio Lossless codec (which is VBR) will show
+        any formats only if <VBR> or <Lossless> property is set to True. Conversely, Windows Media Voice codec exposes only CBR
+        formats. It will expose any formats only if <VBR> and <Lossless> are both False.  You should  re-read the format-related properties each time you change either the
         <VBR> or <Lossless> values. *)
-  
+
   (* Class: TWMATap
       Descends from <TAudioTap>. This is one of the "audio tap" components
       that sit between input and output in the audio chain and optionally
