@@ -51,6 +51,11 @@ procedure TForm1.Button1Click(Sender: TObject);
 var
   S : String;
 begin
+  if not TAuFileIn(VorbisOut1.Input).Valid then
+  begin
+    StatusBar1.Panels[0].Text := 'Cannot open input file';
+    Exit;
+  end;  
   If WaveIn1.WideFileName <> '' then
   begin
     S := OpenDialog1.FileName;

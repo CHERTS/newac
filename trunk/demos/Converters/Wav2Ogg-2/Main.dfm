@@ -13,10 +13,13 @@ object Form1: TForm1
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    250
+    158)
   PixelsPerInch = 96
   TextHeight = 13
   object Label4: TLabel
-    Left = -8
+    Left = 8
     Top = 72
     Width = 30
     Height = 13
@@ -36,12 +39,13 @@ object Form1: TForm1
     Top = 112
     Width = 233
     Height = 9
+    Anchors = [akLeft, akTop, akRight]
     Min = 0
     Max = 100
     TabOrder = 1
   end
   object ComboBox1: TComboBox
-    Left = 32
+    Left = 48
     Top = 64
     Width = 81
     Height = 21
@@ -73,7 +77,7 @@ object Form1: TForm1
     SimplePanel = False
   end
   object Button2: TButton
-    Left = 0
+    Left = 8
     Top = 8
     Width = 75
     Height = 25
