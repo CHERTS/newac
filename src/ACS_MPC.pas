@@ -55,6 +55,7 @@ type
 //    function GetBitrate : LongWord;
     function GetAverageBitrate: Cardinal;
     procedure SetBPS(Value: Cardinal);
+    function GetAPEv2Tags : TAPEv2Tags;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -63,6 +64,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 //    property CurrentBitrate : LongWord read GetBitrate;
+    property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
    (* Property: AverageBitrate
         Read this property to get the input file's average bitrate in kbps. *)
     property AverageBitrate : Cardinal read GetAverageBitrate;
@@ -175,7 +177,8 @@ begin
         else
           FStream := TAuFileStream.Create(
             FWideFileName, fmOpenRead or fmShareDenyWrite);
-
+      ReadApe2Tags(FStream, _APEv2Tags);
+      Stream.Seek(0, soFromBeginning);
       FDecoder := TMPCDecoder.Create(FStream);
 
       FValid := True;
@@ -494,6 +497,13 @@ begin
   FInput.Flush;
   if not FStreamAssigned then FStream.Free;
 end;
+
+function TMPCIn.GetAPEv2Tags;
+begin
+  OpenFile;
+  Result := _APEv2Tags;
+end;
+
 
   const
     CW = LongWord($133f);

@@ -105,6 +105,15 @@ type
   end;
   PWaveFormatExtensible = ^TWaveFormatExtensible;
 
+  TApev2TagsHeader = record
+    Preamble : array[0..7] of Char; //( 'A', 'P', 'E', 'T', 'A', 'G', 'E', 'X' )
+    Version : LongWord;
+    TagSize : LongWord;  //Tag size in bytes including footer and all tag items excluding the header
+    ItemsCount : LongWord; //Number of items in the Tag (n)
+    Flags : LongWord;
+    Reserved : array[0..7] of Byte;
+  end;
+
 const
 
   Pi = 3.14159265359;
