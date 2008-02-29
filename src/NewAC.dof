@@ -39,7 +39,7 @@ RemoteSymbols=0
 MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
-ExeDescription=New Audio Components v 1.6
+ExeDescription=New Audio Components v 1.7
 [Directories]
 OutputDir=
 UnitOutputDir=
@@ -64,26 +64,26 @@ RootDir=
 IncludeVerInfo=1
 AutoIncBuild=1
 MajorVer=1
-MinorVer=6
+MinorVer=7
 Release=0
-Build=6
+Build=2
 Debug=0
 PreRelease=0
 Special=0
 Private=0
 DLL=0
-Locale=1049
-CodePage=1251
+Locale=1033
+CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=
-FileVersion=1.6.0.6
+FileVersion=1.7.0.2
 InternalName=
 LegalCopyright=
 LegalTrademarks=
 OriginalFilename=
-ProductName=
-ProductVersion=1.6
+ProductName=New Audio Components
+ProductVersion=1.7
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
