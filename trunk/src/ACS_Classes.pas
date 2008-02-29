@@ -75,9 +75,7 @@ type
 
   TAuThread = class(TThread)
   private
-    ErrorMsg : String;
     PauseEvent : TEvent;
-    procedure CallOnException;
     procedure RaiseDoneEvent;
   public
     DoNotify : Boolean; // Flag that determines if OnDone should be raised a the end of output
@@ -88,7 +86,6 @@ type
 //    bSuspend : Boolean;
     Stop : Boolean;
     SetPause, Paused : Boolean;
-    HandleException : THandleException;
     Delay : Integer;
     constructor Create;
     destructor Destroy; override;
@@ -263,7 +260,6 @@ type
     function GetDelay : Integer;
     procedure SetDelay(Value : Integer);
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure HandleException(Sender : TComponent; const ErrorMessage : String);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1087,8 +1083,9 @@ end;
       except
         on E : Exception do
         begin
-          ErrorMsg := E.Message;
-          CallOnException;
+          (Parent as TAuOutput).FExceptionMessage := E.Message;
+          if Assigned((Parent as TAuOutput).FOnThreadException) then
+             EventHandler.PostGenericEvent(Parent, (Parent as TAuOutput).FOnThreadException);
         end;
       end;
       Stop := False;
@@ -1110,7 +1107,6 @@ end;
       Thread.Parent := Self;
       Thread.DoNotify := True;
       Thread.FreeOnTerminate := False;
-      Thread.HandleException := HandleException;
      CreateEventHandler;
     end;
   end;
@@ -1284,11 +1280,14 @@ end;
     begin
       Result := False;
     end else
-    if FSeekable then
     begin
-      OpenFile; // Open the file if it is not already opened
-      Result := FValid;
-    end else Result := FValid;
+      try
+        OpenFile; // Open the file if it is not already opened
+      except
+        FValid := False;
+      end;  
+    end;
+    Result := FValid;
   end;
 
   procedure TAuFileIn.InitInternal;
@@ -1441,14 +1440,6 @@ end;
     Busy := False;
   end;
 
-  procedure TAuOutput.HandleException;
-  begin
-   CanOutput := False;
-   Busy := False;
-   Self.FExceptionMessage := ErrorMessage;
-   if Assigned(FOnThreadException) then FOnThreadException(Self);
-  end;
-
   procedure TAuFileIn.Reset;
   begin
     inherited Reset;
@@ -1531,14 +1522,6 @@ end;
     CloseFile;
     OpenCS.Free;
     inherited Destroy;
-  end;
- 
-  procedure TAuThread.CallOnException;
-  begin
-    (Parent as TAuOutput).FExceptionMessage := ErrorMsg;
-    if Assigned((Parent as TAuOutput).FOnThreadException) then
-      EventHandler.PostGenericEvent(Parent, (Parent as TAuOutput).FOnThreadException);
-    //HandleException(Parent as TComponent, ErrorMsg);
   end;
 
 (*  procedure TAuThread.CallOnDone;
