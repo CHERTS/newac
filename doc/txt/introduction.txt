@@ -8,14 +8,15 @@ Author:
 Contributors:
 	Several people have made contributions to the NewAC code.
 
-	- Lev Amelin: improved and extended TMP3Out component.
+	- 	Lev Amelin: improved and extended TMP3Out component.
 	-	Thomas la Cour: Monkey Audio input/output components.
 	-	Jan Henrik Ejme: adding ACM-playing support.
 	-	Thomas Grelle: improving CDRip support.
 	-	Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany): some useful corrections and suggestions.
-	-	Sergei Borisov: quite a few contributions, including WavPack, TTA, OptimFrog support and much more. 
+	-	Sergei Borisov: quite a few contributions, including WavPack, TTA, TAK, Tags, OptimFrog support and much more. 
 	-	Eriks Aleksans: many useful suggestions.
-	- Wayne Thursby: preparing documentation and not breaking things (not entirely, at least)
+	- 	Wayne Thursby: preparing documentation and not breaking things (not entirely, at least)
+	-	Christophe De Vocht: updated ACS_LAME unit.
 
 Section: On the Web
 	
@@ -30,6 +31,13 @@ Section: On the Web
 
 Section: Version History
 	Short new features list for every NewAC version.
+
+
+Version: NewAC 1.6
+	- Musepack support (decoding/encoding).
+	- TAK support (decoding).
+	- Multi-channel audio support.
+	- Audio broadcasting support.
 
 
 Version: NewAC 1.5
