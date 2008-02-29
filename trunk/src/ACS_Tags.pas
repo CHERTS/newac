@@ -5,7 +5,8 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* This unit is written by Sergei Borisov, <jr_ross@mail.ru> *)
+(* This unit is written by Sergei Borisov, <jr_ross@mail.ru>
+   with some extensions by  A. borovsky. *)
 
 (* $Id$ *)
 
@@ -17,7 +18,7 @@ unit ACS_Tags;
 interface
 
 uses
-  Windows, Classes;
+  Windows, Classes, ACS_Types;
 
 type
 
@@ -591,6 +592,8 @@ type
     property Track : WideString read GetTrack write SetTrack;
   end;
 
+
+  procedure ReadApe2Tags(Stream : TStream; const Tags : TAPEv2Tags);
 
 implementation
 
@@ -1987,6 +1990,55 @@ end;
 procedure TVorbisTags.SetTrack;
 begin
   Values[_vorbis_Track] := Value;
+end;
+
+(* APE v 2 tags reading routine by A. Borovsky. *)
+
+procedure ReadApe2Tags(Stream : TStream; const Tags : TAPEv2Tags);
+var
+ Header : TApev2TagsHeader;
+ i, j, c : Integer;
+ key : array[0..511] of Char;
+ ValueLen, Flags : Integer;
+ S : String;
+begin
+  Stream.Seek(-SizeOf(TApev2TagsHeader), soFromEnd);
+  Stream.Read(Header, SizeOf(TApev2TagsHeader));
+  if (Header.Preamble <> 'APETAGEX') or (Header.Version <> 2000) then
+    Exit;
+  Stream.Seek(-Header.TagSize, soFromEnd);
+  for i := 0 to Header.ItemsCount - 1 do
+  begin
+    Stream.Read(ValueLen, 4);
+    Stream.Read(Flags, 4);
+    j := -1;
+    repeat
+      Inc(j);
+      Stream.Read(key[j], 1);
+    until key[j] = #0;
+    SetLength(S, ValueLen);
+    Stream.Read(S[1], ValueLen);
+    if PChar(@key[0]) = _ape_Artist then
+      Tags.SetArtist(Utf8Decode(Utf8String(S)))
+    else
+    if PChar(@key[0]) = _ape_Album then
+      Tags.SetAlbum(Utf8Decode(Utf8String(S)))
+    else
+    if PChar(@key[0]) = _ape_Copyright then
+      Tags.SetCopyright(Utf8Decode(Utf8String(S)))
+    else
+    if PChar(@key[0]) = _ape_Genre then
+      Tags.SetGenre(Utf8Decode(Utf8String(S)))
+    else
+    if PChar(@key[0]) = _ape_Year then
+      Tags.SetYear(Utf8Decode(Utf8String(S)))
+    else
+    if PChar(@key[0]) = _ape_Track then
+      Tags.SetTrack(Utf8Decode(Utf8String(S)))
+    else
+    if PChar(@key[0]) = _ape_Title then
+      Tags.SetTitle(Utf8Decode(Utf8String(S)));
+  end;
 end;
 
 end.
