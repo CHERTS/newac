@@ -1997,7 +1997,7 @@ end;
 procedure ReadApe2Tags(Stream : TStream; const Tags : TAPEv2Tags);
 var
  Header : TApev2TagsHeader;
- i, j, c : Integer;
+ i, j : Integer;
  key : array[0..511] of Char;
  ValueLen, Flags : Integer;
  S : String;
