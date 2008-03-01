@@ -170,7 +170,7 @@ begin
   try
     if FOpened = 0 then begin
       FValid := False;
-
+      _APEv2Tags.Clear;
       if not FStreamAssigned then
         if FWideFileName = '' then
           raise EAuException.Create('File name is not assigned')
