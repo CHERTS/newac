@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 505
   Top = 393
+  Width = 349
+  Height = 215
   Caption = 'WinMedia Player'
-  ClientHeight = 181
-  ClientWidth = 341
   Color = clSilver
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -52,6 +52,7 @@ object Form1: TForm1
       item
         Width = 50
       end>
+    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
@@ -62,6 +63,9 @@ object Form1: TForm1
     BevelOuter = bvNone
     Color = clBlack
     TabOrder = 4
+    DesignSize = (
+      341
+      81)
     object Label2: TLabel
       Left = 8
       Top = 8
@@ -187,6 +191,7 @@ object Form1: TForm1
       Top = 8
       Width = 62
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'samplerate'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -202,6 +207,7 @@ object Form1: TForm1
       Top = 24
       Width = 73
       Height = 17
+      Anchors = [akTop, akRight]
       AutoSize = False
       Caption = 'bitrate'
       Color = clBlack
@@ -218,6 +224,7 @@ object Form1: TForm1
       Top = 56
       Width = 57
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'Total time'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -233,6 +240,7 @@ object Form1: TForm1
       Top = 56
       Width = 39
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'Label7'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -248,6 +256,7 @@ object Form1: TForm1
       Top = 40
       Width = 31
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'mono'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -265,6 +274,8 @@ object Form1: TForm1
     Width = 341
     Height = 11
     Align = alBottom
+    Min = 0
+    Max = 100
     TabOrder = 5
   end
   object ForwardButton: TButton
@@ -300,8 +311,8 @@ object Form1: TForm1
     Top = 152
   end
   object WMIn1: TWMIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     HighPrecision = True
     OutputChannels = cnMaxAvailable
     Left = 8
