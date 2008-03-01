@@ -21,7 +21,7 @@ object Form1: TForm1
   object Label14: TLabel
     Left = 264
     Top = 56
-    Width = 25
+    Width = 3
     Height = 13
   end
   object BitBtn1: TBitBtn
@@ -74,6 +74,9 @@ object Form1: TForm1
     BevelOuter = bvNone
     Color = 2240534
     TabOrder = 4
+    DesignSize = (
+      361
+      81)
     object Label2: TLabel
       Left = 8
       Top = 8
@@ -199,6 +202,7 @@ object Form1: TForm1
       Top = 8
       Width = 62
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'samplerate'
       Color = 1716752
       Font.Charset = DEFAULT_CHARSET
@@ -214,6 +218,7 @@ object Form1: TForm1
       Top = 24
       Width = 73
       Height = 17
+      Anchors = [akTop, akRight]
       AutoSize = False
       Caption = 'bitrate'
       Color = 1716752
@@ -230,6 +235,7 @@ object Form1: TForm1
       Top = 56
       Width = 57
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'Total time'
       Color = 1716752
       Font.Charset = DEFAULT_CHARSET
@@ -245,6 +251,7 @@ object Form1: TForm1
       Top = 56
       Width = 39
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'Label7'
       Color = 1716752
       Font.Charset = DEFAULT_CHARSET
@@ -260,6 +267,7 @@ object Form1: TForm1
       Top = 40
       Width = 31
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'mono'
       Color = 1716752
       Font.Charset = DEFAULT_CHARSET
@@ -306,6 +314,7 @@ object Form1: TForm1
     Top = 152
   end
   object WMStreamedIn1: TWMStreamedIn
+    Loop = False
     BufferingTime = 2
     EnableHTTP = False
     EnableTCP = False
