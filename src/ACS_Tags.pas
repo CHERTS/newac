@@ -6,7 +6,7 @@
 *)
 
 (* This unit is written by Sergei Borisov, <jr_ross@mail.ru>
-   with some extensions by  A. borovsky. *)
+   with some extensions by  A. Borovsky. *)
 
 (* $Id$ *)
 
@@ -2018,6 +2018,8 @@ begin
     until key[j] = #0;
     SetLength(S, ValueLen);
     Stream.Read(S[1], ValueLen);
+    if (Flags and $6) <> 0 then
+      Continue; // This tag is not UTF-8 encoded text, skip it.
     if PChar(@key[0]) = _ape_Artist then
       Tags.SetArtist(Utf8Decode(Utf8String(S)))
     else
