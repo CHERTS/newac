@@ -21,3 +21,5 @@ Following is the short description of each demo:
 · Wav2WMA-2 - converts wav files to Windows Media Audio using direct codec/format selection.
 
 · Wav2WV - converts wav files to WavPack
+
+· WMA2Ogg - This converter demostrates how to select WMA output formats
