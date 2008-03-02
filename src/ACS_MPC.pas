@@ -11,13 +11,15 @@
 *)
 
 (*
-  This unit contains Musepack decoder and encoder components. You can learn more about Musepack at www.musepack.net.
-  The TMPCIn component requires libmpdec.dll library and TMPCOut requires libmppenc.dll library.
-  Both libraies can be downloaded from the project site www.symmetrica.net.
+
 *)
 
 (* Title: ACS_MPC
-    NewAC interface to Musepack codec *)
+    NewAC interface to the Musepack codec. This unit contains Musepack decoder
+    and encoder components. You can learn more about Musepack at
+    www.musepack.net. The TMPCIn component requires libmpdec.dll library and
+    TMPCOut requires libmppenc.dll library. Both libraies can be downloaded
+    from the project site www.symmetrica.net. *)
 
 unit ACS_MPC;
 
@@ -42,10 +44,9 @@ type
   TMPCInBuffer = array of Byte;
 
 (* Class: TMPCIn
-    Musepack decoder component.
-    Descends from <TAuTaggedFileIn>.
-    Requires libmpdec.dll.
-    You can learn more about Musepack audio compression format at http://www.musepack.net. *)
+    A descenant of <TAuTaggedFileIn> which decodes Musepack. Requires
+    libmpdec.dll. You can learn more about Musepack audio compression format
+    at http://www.musepack.net. *)
 
   TMPCIn = class(TAuTaggedFileIn)
   private
@@ -71,22 +72,23 @@ type
 
   published
    (* Property: OutBitsPerSample
-        Regardless of an encoder's input bits per sample value Musepack always encodes its data in 32-bit samples.
-        You can use this property to set output bits per sample value for the decoder (16, 24, or 32). *)
+        Regardless of an encoder's input bits per sample value Musepack always
+        encodes its data in 32-bit samples. You can use this property to set
+        output bits per sample value for the decoder (16, 24, or 32). *)
     property OutBitsPerSample: Cardinal read FBPS write SetBPS default DefaultMPCBitsPerSample;
     property StartSample;
     property EndSample;
   end;
 
 (* Class: TMPCOut
-    Musepack encoder component.
-    Descends from <TAuTaggedFileOut>.
-    Requires libmppenc.dll.
-    You can learn more about Musepack audio compression format at http://www.musepack.net.
+    Descendant of <TAuTaggedFileOut> which decodes Musepack. Requires
+    libmppenc.dll. You can learn more about Musepack audio compression format
+    at http://www.musepack.net.
 
-    *Important note:* Musepack supports encoding in the limited range of sample rates.
-    Currently only 32000, 37800, 44100, and 48000 Hz sample rates are supported.
-    Trying to use any other input sample rates will result in exception. *)
+    Important Note:
+    Musepack supports encoding in the limited range of sample rates. Currently
+    only 32000, 37800, 44100, and 48000 Hz sample rates are supported. Trying
+    to use any other input sample rates will result in exception. *)
 
   TMPCOut = class(TAuTaggedFileOut)
   private

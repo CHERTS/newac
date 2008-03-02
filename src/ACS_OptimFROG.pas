@@ -29,9 +29,8 @@ uses
 type
 
   (* Class: TOFRIn
-     OptimFROG decoder interface.
-     Descends from <TAuTaggedFileIn>
-     Requires OptimFROG.dll.
+     A descendant of <TAuTaggedFileIn> which decodes OptimFROG. Requires
+     OptimFROG.dll.
   *)
 
   TOFRIn = class(TAuTaggedFileIn)

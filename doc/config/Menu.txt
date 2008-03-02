@@ -51,12 +51,11 @@ Group: Documentation  {
    File: License  (doc\txt\license.txt)
    File: Tips &amp; Tricks  (doc\txt\tips and tricks.txt)
    File: About New Audio Components  (doc\txt\newac.txt)
-   File: Main NewAC Features List  (doc\txt\features.txt)
+   File: NewAC Main Features List  (doc\txt\features.txt)
    }  # Group: Documentation
 
 Group: Main Units  {
 
-   File: ACS_Audio  (src\ACS_Audio.pas)
    File: ACS_AudioMix  (src\ACS_AudioMix.pas)
    File: ACS_CDROM  (src\ACS_CDROM.pas)
    File: ACS_Classes  (src\ACS_Classes.pas)
@@ -67,6 +66,7 @@ Group: Main Units  {
    File: ACS_LAME  (src\ACS_LAME.pas)
    File: ACS_MAC  (src\ACS_MAC.pas)
    File: ACS_Misc  (src\ACS_Misc.pas)
+   File: ACS_MPC  (src\ACS_MPC.pas)
    File: ACS_OptimFROG  (src\ACS_OptimFROG.pas)
    File: ACS_SMPEG  (src\ACS_smpeg.pas)
    File: ACS_Streams  (src\ACS_Streams.pas)
