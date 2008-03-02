@@ -20,12 +20,15 @@ type
     VorbisOut1: TVorbisOut;
     ProgressBar1: TProgressBar;
     Label2: TLabel;
+    CheckBox1: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure VorbisOut1Progress(Sender: TComponent);
     procedure VorbisOut1Done(Sender: TComponent);
+    procedure CheckBox1Click(Sender: TObject);
   private
     { Private declarations }
+    procedure FillFormats;
   public
     { Public declarations }
   end;
@@ -38,9 +41,6 @@ implementation
 {$R *.dfm}
 
 procedure TForm1.Button1Click(Sender: TObject);
-var
-  i : Integer;
-  FS : TFormatSpec;
 begin
   if OpenDialog1.Execute then
   begin
@@ -52,13 +52,8 @@ begin
     end else
     begin
       StatusBar1.Panels[0].Text := 'File to convert: ' + WMIn1.FileName;
-      ListBox1.Clear;
-      for i := 0 to WMIn1.FormatsCount - 1 do
-      begin
-        FS := WMIn1.FormatSpec[i];
-        ListBox1.Items.Add(Format('%d channels, %d bps, %d Hz', [FS.Channels, FS.BitsPerSample, FS.SampleRate]));
-      end;
-      ListBox1.ItemIndex := 0;
+      WMIn1.HighPrecision := CheckBox1.Checked;
+      FillFormats;
     end;
   end;
 end;
@@ -100,6 +95,26 @@ begin
     StatusBar1.Panels[0].Text := 'Success';
   Button1.Enabled := True;
   Button2.Enabled := True;
+end;
+
+procedure TForm1.FillFormats;
+var
+  i : Integer;
+  FS : TFormatSpec;
+begin
+  ListBox1.Clear;
+  for i := 0 to WMIn1.FormatsCount - 1 do
+  begin
+    FS := WMIn1.FormatSpec[i];
+    ListBox1.Items.Add(Format('%d channels, %d bps, %d Hz', [FS.Channels, FS.BitsPerSample, FS.SampleRate]));
+  end;
+  ListBox1.ItemIndex := 0;
+end;
+
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+  WMIn1.HighPrecision := CheckBox1.Checked;
+  FillFormats;
 end;
 
 end.
