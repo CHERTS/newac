@@ -29,6 +29,12 @@ type
 
   TChannelsNumber = (cnMaxAvailable, cnMonoOrStereo, cn5dot1, cn7dot1);
 
+  TFormatSpec = record
+    BitsPerSample : LongWord;
+    Channels : LongWord;
+    SampleRate : LongWord;
+  end;
+
    (* Class: TWMIn
       Windows Media Audio file/stream decoder. This component can read not
       only WMA files but sound tracks from WMV files as well. It can also read
@@ -40,6 +46,7 @@ type
     FDuration : LongWord;
     FHighPrecision : Boolean;
     FOutputChannels : TChannelsNumber;
+    FFormat : Integer;
     procedure SetHighPrecision(Value : Boolean);
     procedure SetOutputChannels(Value : TChannelsNumber);
     function GetHasAudio : Boolean;
@@ -48,6 +55,9 @@ type
     function GetId3v2Tags : TId3v2Tags;
     function GetIsVBR : Boolean;
     function CNToShortInt : ShortInt;
+    function GetFormatsCount : LongWord;
+    function GetFormatSpec(Index : Integer) : TFormatSpec;
+    procedure SetFormat(AFormat : Integer);
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -56,6 +66,23 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    (* Property: FormatsCount
+     WMA decoders allow the program to read input data in several formats (each format is a set
+     of channels, bits per sample and sample rate numbers. Read this property to get the total number of formats available. *)
+    property FormatsCount : LongWord read GetFormatsCount;
+    (* Property: FormatSpec[Index : Integer]
+     Read this property to get the parameters of the format specified by its Index.
+     Valid Index values range from 0 to <FormatsCount> - 1. *)
+    property FormatSpec[Index : Integer] : TFormatSpec read GetFormatSpec;
+    (* Property: FormatSelected
+     Use this property to set the desired format for the decoder's output.
+     Valid values range from 0 to <FormatsCount> - 1.
+     This property affects the <Channels>, <BitsPerSample>, <SampleRate>, <Size>, and <TotalSamples> properties.
+     Setting this property value overrides <OutputChannels>'s value.
+     Set this property value before you call Run for the corresponding output component. *)
+    property FormatSelected : Integer read FFormat write SetFormat;
+
     (* Property: HasAudio
        Read this property to determine if the input file has an audio stream.
        The False value indicates that either an audio stream is missing (in
@@ -71,8 +98,8 @@ type
     property IsProtected : Boolean read GetProtected;
     (* Property: Bitrate
        Read this property to get the file's bitrate.
-       
-       Note: 
+
+       Note:
        For video and multi-streamed files the total bitrate is returned. *)
      property Bitrate : LongWord read GetBitrate;
     (* Property: Id3v2Tags
@@ -964,6 +991,40 @@ implementation
       cn7dot1 : Result := 8;
     end;
   end;
+
+  procedure TWMin.SetFormat;
+  begin
+    if Busy then Exit;
+    OpenFile;
+    if AFormat >= 0 then
+      lwma_reader_set_format(reader, FHighPrecision, LongWord(AFormat));
+    FDuration := lwma_reader_get_duration(reader);
+    FChan := reader.channels;
+    FBPS := reader.BitsPerSample;
+    FSR := reader.SampleRate;
+    FTotalSamples := Trunc((FDuration/100)*FSR);
+    FSize := FTotalSamples*FChan*(FBPS shr 3);
+  end;
+
+  function TWMin.GetFormatsCount;
+  begin
+    Result := 0;
+    if Busy then Exit;
+    OpenFile;
+    Result := lwma_reader_get_format_count(reader, FHighPrecision);
+  end;
+
+  function TWMin.GetFormatSpec;
+  begin
+    Result.BitsPerSample := 0;
+    Result.Channels := 0;
+    Result.SampleRate := 0;
+    if Busy then Exit;
+    OpenFile;
+    if Index >= 0 then
+      lwma_reader_get_format(reader, FHighPrecision, LongWord(Index), Result.Channels, Result.BitsPerSample, Result.SampleRate);
+  end;
+
 
   constructor TWMStreamedOut.Create;
   begin

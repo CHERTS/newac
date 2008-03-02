@@ -19,7 +19,7 @@ uses
   Windows, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types, SyncObjs;
 
 type
-
+                              
    TMediaType = (mtV8, mtV9, mtLossless);
 
    QWORD = Int64;
@@ -154,6 +154,12 @@ type
 //   function lwma_reader_is_protected(reader : Pointer) : Byte;
    function lwma_reader_get_duration(var sync_reader : wma_sync_reader) : LongWord;
    function lwma_reader_get_bitrate(var sync_reader : wma_sync_reader) : LongWord;
+
+   procedure lwma_reader_init1(var sync_reader : wma_sync_reader; Stream : TStream);
+   function lwma_reader_get_format_count(var sync_reader : wma_sync_reader; Descrete : Boolean) : LongWord;
+   procedure lwma_reader_get_format(var sync_reader : wma_sync_reader; Descrete : Boolean; FormatIndex : LongWord; var channels, bps, samplerate : LongWord);
+   procedure lwma_reader_set_format(var sync_reader : wma_sync_reader; Descrete : Boolean; FormatIndex : LongWord);
+
    function lwma_reader_get_is_vbr(var sync_reader : wma_sync_reader) : LongBool;
    function lwma_reader_get_author(var sync_reader : wma_sync_reader) : WideString;
    function lwma_reader_get_title(var sync_reader : wma_sync_reader) : WideString;
@@ -660,6 +666,7 @@ implementation
                 begin
                   Cond := (format.nChannels >= sync_reader.channels) and
                      (format.nSamplesPerSec >= LongWord(sync_reader.SampleRate))
+                     and (format.wBitsPerSample >= LongWord(sync_reader.BitsPerSample));
                 end;
                 if Cond then
                 begin
@@ -692,6 +699,146 @@ implementation
        if sync_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMDuration, datatype, PByte(@(sync_reader.duration)), len) <> S_OK then
          sync_reader.duration := 0;
      end;
+   end;
+
+   procedure lwma_reader_init1(var sync_reader : wma_sync_reader; Stream : TStream);
+   var
+     OutputCount : LongWord;
+     i, size : LongWord;
+     MediaProps : IWMOutputMediaProps;
+     OutputMediaType : PWMMEDIATYPE;
+     datatype : WMT_ATTR_DATATYPE;
+     len, astream : Word;
+     NP : Int64;
+   begin
+     CoInitialize(nil);
+     FillChar(sync_reader, SizeOf(sync_reader), 0);
+     if WMCreateSyncReader(nil, 0, sync_reader.reader) <> S_OK then
+     Exit;
+     sync_reader.AudioStream := TAudioStream.Create;
+     sync_reader.AudioStream.AssignStream(Stream);
+     sync_reader.AuStream := sync_reader.AudioStream as IStream;
+     if sync_reader.reader.OpenStream(sync_reader.AuStream) <> S_OK then
+     begin
+       sync_reader.AudioStream.Seek(30, 0, NP);
+       if sync_reader.reader.OpenStream(sync_reader.AuStream) <> S_OK then
+       begin
+         sync_reader.reader := nil;
+         sync_reader.AudioStream := nil;
+         Exit;
+       end;
+     end;
+     if sync_reader.reader.GetOutputCount(OutputCount) <> S_OK then
+     begin
+       sync_reader.reader := nil;
+       sync_reader.AudioStream := nil;
+       Exit;
+     end;
+     for i := 0 to OutputCount - 1 do
+     begin
+       sync_reader.reader.GetOutputProps(i, MediaProps);
+       MediaProps.GetMediaType(nil, size);
+       GetMem(OutputMediaType, size);
+       MediaProps.GetMediaType(OutputMediaType, size);
+       if GUIDSEqual(OutputMediaType.majortype, WMMEDIATYPE_Audio) then
+       begin
+         sync_reader.output := i;
+         sync_reader.has_audio := True;
+         FreeMem(OutputMediaType);
+         MediaProps := nil;
+         Break;
+       end;
+       FreeMem(OutputMediaType);
+       MediaProps := nil;
+     end; // for i := 0 to OutputCount - 1 do
+
+     if sync_reader.has_audio then
+     begin
+       sync_reader.reader.GetStreamNumberForOutput(sync_reader.output, sync_reader.stream);
+       if sync_reader.reader.SetReadStreamSamples(sync_reader.stream, false) = NS_E_PROTECTED_CONTENT then
+	 sync_reader._protected := True
+       else
+       sync_reader._protected := False;
+       len := 8;
+       astream := 0;
+       sync_reader.reader.QueryInterface(IID_IWMHeaderInfo, sync_reader.HeaderInfo);
+       if sync_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMDuration, datatype, PByte(@(sync_reader.duration)), len) <> S_OK then
+         sync_reader.duration := 0;
+     end;
+   end;
+
+   function lwma_reader_get_format_count(var sync_reader : wma_sync_reader; Descrete : Boolean) : LongWord;
+   var
+     Enable : LongBool;
+   begin
+     if Descrete then
+     begin
+       Enable := True;
+       sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
+     end;
+     sync_reader.reader.GetOutputFormatCount(sync_reader.output, Result);
+   end;
+
+   procedure lwma_reader_get_format(var sync_reader : wma_sync_reader; Descrete : Boolean; FormatIndex : LongWord; var channels, bps, samplerate : LongWord);
+   var
+     MediaProps : IWMOutputMediaProps;
+     FormatMediaType : PWMMEDIATYPE;
+     format : PWAVEFORMATEX;
+     Enable : LongBool;
+     size : LongWord;
+   begin
+     if Descrete then
+     begin
+       Enable := True;
+       sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
+     end;
+     sync_reader.reader.GetOutputFormat(sync_reader.output, FormatIndex, MediaProps);
+     MediaProps.GetMediaType(nil, size);
+     GetMem(FormatMediaType, size);
+     MediaProps.GetMediaType(FormatMediaType, size);
+     if GUIDSEqual(FormatMediaType.formattype, WMFORMAT_WaveFormatEx) then
+     begin
+       format := PWAVEFORMATEX(FormatMediaType.pbFormat);
+       channels := format.nChannels;
+       bps := format.wBitsPerSample;
+       samplerate := format.nSamplesPerSec;
+     end else
+     begin
+       channels := 0;
+       bps := 0;
+       samplerate := 0;
+     end;
+     FreeMem(FormatMediaType);
+     MediaProps := nil;
+   end;
+
+   procedure lwma_reader_set_format(var sync_reader : wma_sync_reader; Descrete : Boolean; FormatIndex : LongWord);
+   var
+     MediaProps : IWMOutputMediaProps;
+     FormatMediaType : PWMMEDIATYPE;
+     format : PWAVEFORMATEX;
+     Enable : LongBool;
+     size : LongWord;
+   begin
+     if Descrete then
+     begin
+       Enable := True;
+       sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
+     end;
+     sync_reader.reader.GetOutputFormat(sync_reader.output, FormatIndex, MediaProps);
+     MediaProps.GetMediaType(nil, size);
+     GetMem(FormatMediaType, size);
+     MediaProps.GetMediaType(FormatMediaType, size);
+     if GUIDSEqual(FormatMediaType.formattype, WMFORMAT_WaveFormatEx) then
+     begin
+       format := PWAVEFORMATEX(FormatMediaType.pbFormat);
+       sync_reader.channels := format.nChannels;
+       sync_reader.BitsPerSample := format.wBitsPerSample;
+       sync_reader.SampleRate := format.nSamplesPerSec;
+     end;
+     sync_reader.reader.SetOutputProps(sync_reader.output, MediaProps);
+     FreeMem(FormatMediaType);
+     MediaProps := nil;
    end;
 
    function lwma_reader_has_audio(reader : Pointer) : Byte;
