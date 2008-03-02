@@ -10,7 +10,7 @@
 unit ACS_Misc;
 
 (* Title: ACS_Misc
-    Some input components that descend directly from TAuInput or TAuOutput.  *)
+    Some input components which descend directly from <TAuInput> or <TAuOutput>.  *)
 
 interface
 
@@ -44,11 +44,10 @@ type
   TGetDataEvent = procedure(Sender : TComponent; var Buffer : Pointer; var Bytes : LongWord) of object;
 
   (* Class: TMemoryIn
-    Descends from <TAuInput>.
-    This input component reads audio data from a memory block that you
-    provide. It is analogous to TStreamIn when reading from TMemoryStream, the
-    only difference is that a pointer to a memory block is used instead of a
-    TMemoryStream object. *)
+    A descendant of <TAuInput> which reads audio data from a memory block that
+    you provide. It is analogous to TStreamIn when reading from TMemoryStream,
+    the only difference is that a pointer to a memory block is used instead of
+    a TMemoryStream object. *)
 
   TMemoryIn = class(TAuInput)
   private
