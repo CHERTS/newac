@@ -69,7 +69,9 @@ type
 
     (* Property: FormatsCount
      WMA decoders allow the program to read input data in several formats (each format is a set
-     of channels, bits per sample and sample rate numbers. Read this property to get the total number of formats available. *)
+     of channels, bits per sample and sample rate numbers. Read this property to get the total number of formats available.
+
+     Note: the number of formats provided by the encoder depends on the <HighPrecision> value (formats with 24 bps and more than 2 channels will be available only if HighPrecision is set to True). *)
     property FormatsCount : LongWord read GetFormatsCount;
     (* Property: FormatSpec[Index : Integer]
      Read this property to get the parameters of the format specified by its Index.
@@ -632,15 +634,29 @@ implementation
 
   procedure TWMIn.SetHighPrecision(Value: Boolean);
   begin
-    if Value or (FOutputChannels = cnMonoOrStereo) then
-        FHighPrecision := Value;
+    if Busy then Exit;
+    if FOutputChannels = cnMonoOrStereo then
+    begin
+      FHighPrecision := Value;
+      if FOpened > 0 then
+      begin
+        CloseFile;
+        OpenFile;
+      end;
+    end;
   end;
 
   procedure TWMIn.SetOutputChannels;
   begin
-     if Value <> cnMonoOrStereo then
-        FHighPrecision := True;
-     FOutputChannels := Value;
+    if Busy then Exit;
+    if Value <> cnMonoOrStereo then
+       FHighPrecision := True;
+    FOutputChannels := Value;
+    if FOpened > 0 then
+    begin
+      CloseFile;
+      OpenFile;
+    end;
   end;
 
   constructor TWMAOut.Create;
@@ -1010,8 +1026,11 @@ implementation
   begin
     Result := 0;
     if Busy then Exit;
-    OpenFile;
-    Result := lwma_reader_get_format_count(reader, FHighPrecision);
+    if (WideFileName <> '') or Assigned(FStream) then
+    begin
+      OpenFile;
+      Result := lwma_reader_get_format_count(reader, FHighPrecision);
+    end;
   end;
 
   function TWMin.GetFormatSpec;
@@ -1020,9 +1039,12 @@ implementation
     Result.Channels := 0;
     Result.SampleRate := 0;
     if Busy then Exit;
-    OpenFile;
-    if Index >= 0 then
-      lwma_reader_get_format(reader, FHighPrecision, LongWord(Index), Result.Channels, Result.BitsPerSample, Result.SampleRate);
+    if (WideFileName <> '') or Assigned(FStream) then
+    begin
+      OpenFile;
+      if Index >= 0 then
+        lwma_reader_get_format(reader, FHighPrecision, LongWord(Index), Result.Channels, Result.BitsPerSample, Result.SampleRate);
+    end;    
   end;
 
 

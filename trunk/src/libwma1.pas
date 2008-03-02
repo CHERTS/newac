@@ -607,11 +607,8 @@ implementation
        MediaProps.GetMediaType(OutputMediaType, size);
        if GUIDSEqual(OutputMediaType.majortype, WMMEDIATYPE_Audio) then
        begin
-         if Descrete then
-         begin
-           Enable := True;
-           sync_reader.reader.SetOutputSetting(i, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
-         end;
+         Enable := LongBool(Descrete);
+         sync_reader.reader.SetOutputSetting(i, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
          if Speakers = 0 then
          begin
            format := PWAVEFORMATEX(OutputMediaType.pbFormat);
@@ -771,11 +768,8 @@ implementation
    var
      Enable : LongBool;
    begin
-     if Descrete then
-     begin
-       Enable := True;
-       sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
-     end;
+     Enable := LongBool(Descrete);
+     sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
      sync_reader.reader.GetOutputFormatCount(sync_reader.output, Result);
    end;
 
@@ -787,11 +781,8 @@ implementation
      Enable : LongBool;
      size : LongWord;
    begin
-     if Descrete then
-     begin
-       Enable := True;
-       sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
-     end;
+     Enable := LongBool(Descrete);
+     sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
      sync_reader.reader.GetOutputFormat(sync_reader.output, FormatIndex, MediaProps);
      MediaProps.GetMediaType(nil, size);
      GetMem(FormatMediaType, size);
@@ -820,11 +811,8 @@ implementation
      Enable : LongBool;
      size : LongWord;
    begin
-     if Descrete then
-     begin
-       Enable := True;
-       sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
-     end;
+     Enable := LongBool(Descrete);
+     sync_reader.reader.SetOutputSetting(sync_reader.output, g_wszEnableDiscreteOutput, WMT_TYPE_BOOL, PByte(@Enable), 4);
      sync_reader.reader.GetOutputFormat(sync_reader.output, FormatIndex, MediaProps);
      MediaProps.GetMediaType(nil, size);
      GetMem(FormatMediaType, size);
