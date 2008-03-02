@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 192
   Top = 114
-  Width = 259
+  Width = 313
   Height = 302
   Caption = 'WMA to Ogg converter'
   Color = clBtnFace
@@ -12,12 +12,12 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   DesignSize = (
-    251
+    305
     268)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 160
+    Left = 214
     Top = 56
     Width = 55
     Height = 13
@@ -34,14 +34,14 @@ object Form1: TForm1
   object ListBox1: TListBox
     Left = 8
     Top = 80
-    Width = 137
+    Width = 191
     Height = 137
     Anchors = [akLeft, akTop, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 0
   end
   object SpinEdit1: TSpinEdit
-    Left = 160
+    Left = 214
     Top = 80
     Width = 65
     Height = 22
@@ -72,7 +72,7 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Top = 249
-    Width = 251
+    Width = 305
     Height = 19
     Panels = <
       item
@@ -83,12 +83,22 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 232
-    Width = 249
+    Width = 303
     Height = 9
     Anchors = [akLeft, akRight, akBottom]
     Min = 0
     Max = 100
     TabOrder = 5
+  end
+  object CheckBox1: TCheckBox
+    Left = 208
+    Top = 112
+    Width = 89
+    Height = 17
+    Anchors = [akTop, akRight]
+    Caption = 'High Precision'
+    TabOrder = 6
+    OnClick = CheckBox1Click
   end
   object OpenDialog1: TOpenDialog
     Filter = 'WMA files|*.wma'
