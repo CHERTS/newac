@@ -100,7 +100,7 @@ end;
 procedure TForm1.FillFormats;
 var
   i : Integer;
-  FS : TFormatSpec;
+  FS : TWMAFormatSpec;
 begin
   ListBox1.Clear;
   for i := 0 to WMIn1.FormatsCount - 1 do
