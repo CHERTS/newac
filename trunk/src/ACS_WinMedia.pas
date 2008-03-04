@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 1.5
+  This file is a part of New Audio Components package v. 1.7
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -29,7 +29,7 @@ type
 
   TChannelsNumber = (cnMaxAvailable, cnMonoOrStereo, cn5dot1, cn7dot1);
 
-  TFormatSpec = record
+  TWMAFormatSpec = record
     BitsPerSample : LongWord;
     Channels : LongWord;
     SampleRate : LongWord;
@@ -56,7 +56,7 @@ type
     function GetIsVBR : Boolean;
     function CNToShortInt : ShortInt;
     function GetFormatsCount : LongWord;
-    function GetFormatSpec(Index : Integer) : TFormatSpec;
+    function GetFormatSpec(Index : Integer) : TWMAFormatSpec;
     procedure SetFormat(AFormat : Integer);
   protected
     procedure OpenFile; override;
@@ -76,7 +76,7 @@ type
     (* Property: FormatSpec[Index : Integer]
      Read this property to get the parameters of the format specified by its Index.
      Valid Index values range from 0 to <FormatsCount> - 1. *)
-    property FormatSpec[Index : Integer] : TFormatSpec read GetFormatSpec;
+    property FormatSpec[Index : Integer] : TWMAFormatSpec read GetFormatSpec;
     (* Property: FormatSelected
      Use this property to set the desired format for the decoder's output.
      Valid values range from 0 to <FormatsCount> - 1.
@@ -491,6 +491,74 @@ type
       The OnClientDisconnected event is raised when a client disconnects from the transmitter. *)
     property OnClientDisconnected : TStreamedAudioEvent read FOnClientDisconnected write FOnClientDisconnected;
   end;
+
+  TWMADualPassOut = class(TAuTaggedFileOut)
+  private
+    FCodecs : TStringList;
+    FFormats : TStringList;
+    FCodecIndex, FFormatIndex : Integer;
+    EndOfStream : Boolean;
+    Buf : Pointer;
+    BufSize : Integer;
+    FVBR : Boolean;
+    Writer : wma_writer;
+    function GetCodecs : TStringList;
+    function GetCodecsCount : Word;
+    function GetCodecName(Index : Word) : String;
+    function GetFormats(Index : Word) : TStringList;
+    function GetFormatsCount(Index : Word) : Word;
+  protected
+    procedure Done; override;
+    function DoOutput(Abort : Boolean):Boolean; override;
+    procedure Prepare; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    (* Function: GetFormatDesc
+        This method returns a format description based on the CodecIndex and
+        FormatIndex parameters. *)
+    function GetFormatDesc(CodecIndex, FormatIndex : Word) : String;
+    (* Property: Codecs
+        Returns the names of all the WMA codecs installed in the system. *)
+    property Codecs : TStringList read GetCodecs;
+    (* Property: CodecsCount
+        Returns the total number of the WMA codecs available in the system. *)
+    property CodecsCount : Word read GetCodecsCount;
+    (* Property: CodecIndex
+        Use this property to set the index number of the codec to use when
+        encoding. The valid values for this property range from 0 to
+        <CodecsCount> - 1. *)
+    property CodecIndex : Integer read FCodecIndex write FCodecIndex;
+    (* Property: CodecName
+        Returns the name of the WMA codec specified by its index.
+        The valid indices range from 0 to <CodecsCount> -1. *)
+    property CodecName[Index : Word] : String read GetCodecName;
+    (* Property: FormatIndex
+        Use this property to set the index of the format to encode data. Valid
+         values range from 0 to <FormatsCount> -1. This property has an effect
+         only if <CodecIndex> is greater than -1. *)
+    property FormatIndex : Integer read FFormatIndex write FFormatIndex;
+    (* Property: Formats
+        Returns the names of all formats supported by the codec, specified by
+        the Index and the current encoding mode. See the Wav2WMA2 demo for an
+        example. *)
+    property Formats[Index : Word] : TStringList read GetFormats;
+    (* Property: FormatsCount
+        Returns the total number of formats supported by the codec, specified
+        by its index, and the current encoding mode. The valid indices range
+        from 0 to <CodecsCount> -1.
+    *)
+    property FormatsCount[index : Word] : Word read GetFormatsCount;
+  published
+    (* Property: Id3v2Tags
+        Set an output file's tags in Id3v2 format. *)
+    property Id3v2Tags;
+    (* Property: VBR
+       Use this property to switch between constant bitrate and variable
+       bitrate encoding modes. *)
+    property VBR : Boolean read FVBR write FVBR;
+  end;
+
 
 implementation
 
@@ -1079,5 +1147,128 @@ implementation
   begin
     Result := lwm_network_writer_get_url(Writer);
   end;
+
+  constructor TWMADualPassOut.Create;
+  begin
+    inherited Create(AOwner);
+    if not (csDesigning in ComponentState) then
+    begin
+      FCodecs := TStringList.Create;
+      lwma_enumerate_codecs(FCodecs);
+      FFormats := TStringList.Create;
+    end;
+  end;
+
+  destructor TWMADualPassOut.Destroy;
+  begin
+    if not (csDesigning in ComponentState) then
+    begin
+      FCodecs.Free;
+      FFormats.Free;
+    end;
+    inherited Destroy;
+  end;
+
+  function TWMADualPassOut.GetCodecName;
+  begin
+    if Index < FCodecs.Count then
+      Result := FCodecs.Strings[Index];
+  end;
+
+  function TWMADualPassOut.GetFormats;
+  begin
+    FFormats.Clear;
+    if Index < FCodecs.Count then
+      lwma_enumerate_codec_formats2(Index, FVBR, FFormats);
+    Result := FFormats;
+  end;
+
+  function TWMADualPassOut.GetCodecs;
+  begin
+    Result := FCodecs;
+  end;
+
+  function TWMADualPassOut.GetCodecsCount;
+  begin
+    Result := FCodecs.Count;
+  end;
+
+  function TWMADualPassOut.GetFormatsCount;
+  begin
+    GetFormats(Index);
+    Result := FFormats.Count;
+  end;
+
+  procedure TWMADualPassOut.Prepare;
+  var
+    Preprocessor : wma_preprocessor;
+    l : Integer;
+  begin
+    if not (Finput is TAuFileIn) then
+      raise EAuException.Create('Only files can be encoded in dual passes');
+    FInput.Init;
+    lwma_writer_init(Writer, PWideChar(FWideFileName));
+    if not Writer.Initialized then
+      raise Exception.Create('Cannot create file');
+    lwma_writer_set_audio_properties3(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FVBR, FCodecIndex, FFormatIndex);
+    BufSize := FInput.Channels*FInput.BitsPerSample*FInput.SampleRate div 100;
+    GetMem(Buf, BufSize);
+    if Id3v2Tags.Artist <> '' then
+      lwma_writer_set_author(Writer, Id3v2Tags.Artist);
+    if Id3v2Tags.Album <> '' then
+      lwma_writer_set_album(Writer, Id3v2Tags.Album);
+    if Id3v2Tags.Genre <> '' then
+      lwma_writer_set_genre(Writer, Id3v2Tags.Genre);
+    if Id3v2Tags.Year <> '' then
+      lwma_writer_set_year(Writer, Id3v2Tags.Year);
+    if Id3v2Tags.Track <> '' then
+      lwma_writer_set_track(Writer, Id3v2Tags.Track);
+    if Id3v2Tags.Title <> '' then
+      lwma_writer_set_title(Writer, Id3v2Tags.Title);
+    if Id3v2Tags.Comment <> '' then
+      lwma_writer_set_copyright(Writer, Id3v2Tags.Comment);
+    EndOfStream := false;
+    lwma_create_preprocessor(Writer, Preprocessor);
+    lwma_writer_begin_preprocess(Writer, Preprocessor);
+    while not EndOfStream do
+    begin
+      l := Finput.FillBuffer(Buf, BufSize, EndOfStream);
+      lwma_writer_preprocess(Writer, Preprocessor, Buf, l);
+    end;
+    lwma_preprocessor_free(Writer, Preprocessor);
+    FInput.Flush;
+    FInput.Init;
+    EndOfStream := false;
+  end;
+
+  function TWMADualPassOut.DoOutput;
+  var
+    l : Integer;
+  begin
+    Result := True;
+    if not CanOutput then Exit;
+    if Abort or EndOfStream then
+    begin
+      Result := False;
+      Exit;
+    end;
+    l := Finput.FillBuffer(Buf, BufSize, EndOfStream);
+    lwma_writer_write(Writer, Buf, l);
+  end;
+
+  procedure TWMADualPassOut.Done;
+  begin
+    lwma_writer_free(Writer);
+    FreeMem(Buf);
+  end;
+
+  function TWMADualPassOut.GetFormatDesc;
+  begin
+      GetFormats(CodecIndex);
+      if FormatIndex >= FFormats.Count then Result := ''
+      else
+        Result := FFormats.Strings[FormatIndex];
+  end;
+
 
 end.
