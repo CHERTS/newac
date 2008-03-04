@@ -65,6 +65,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 //    property CurrentBitrate : LongWord read GetBitrate;
+  (* Property: APEv2Tags
+     Read this property to get Apev2 tags from the input file. *)
     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
    (* Property: AverageBitrate
         Read this property to get the input file's average bitrate in kbps. *)
@@ -105,6 +107,8 @@ type
    (* Property: Quality
         The output file quality. Valid values range from 1.0 to 10.0. *)
     property Quality : Single read FQuality write FQuality;
+   (* Property: APEv2Tags
+        This property allows youto append Apev2 tags to the file being encoded. *)
     property APEv2Tags;
   end;
 
