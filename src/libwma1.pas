@@ -129,6 +129,13 @@ type
 
    pwma_writer = ^wma_writer;
 
+   wma_preprocessor = record
+     WMWriterPreprocess : IWMWriterPreprocess;
+   end;
+
+   pwma_preprocessor = ^wma_preprocessor;
+
+
    TWMStatusCallback = class(TInterfacedObject, IWMStatusCallback)
    private
       FWriter : pwma_writer;
@@ -148,6 +155,7 @@ type
 
    procedure lwma_enumerate_codecs(var Codecs : TStringList);
    procedure lwma_enumerate_codec_formats(CodecIndex : LongWord; VBR : LongBool; var Formats : TStringList);
+   procedure lwma_enumerate_codec_formats2(CodecIndex : LongWord; VBR : LongBool; var Formats : TStringList);
 
    procedure lwma_reader_init(var sync_reader : wma_sync_reader; Stream : TStream; Descrete : Boolean; Speakers : ShortInt);
 //   function lwma_reader_has_audio(reader : Pointer) : Byte;
@@ -180,7 +188,7 @@ type
    procedure lwma_async_reader_pause(var async_reader : wma_async_reader);
    procedure lwma_async_reader_resume(var async_reader : wma_async_reader);
    procedure lwma_async_reader_set_proxy(var async_reader : wma_async_reader; const Protocol, Host : WideString; Port : LongWord);
-   procedure lwma_async_reader_reset_stretch(var async_reader : wma_async_reader; new_stretch : Single); 
+   procedure lwma_async_reader_reset_stretch(var async_reader : wma_async_reader; new_stretch : Single);
    function lwma_async_reader_get_author(var async_reader : wma_async_reader) : WideString;
    function lwma_async_reader_get_title(var async_reader : wma_async_reader) : WideString;
    function lwma_async_reader_get_album(var async_reader : wma_async_reader) : WideString;
@@ -194,6 +202,7 @@ type
   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
   procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; Lossless, vbr : Boolean; DesiredBitrate : LongWord);
   procedure lwma_writer_set_audio_properties2(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
+  procedure lwma_writer_set_audio_properties3(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
   procedure lwma_writer_set_author(var writer : wma_writer; const value : WideString);
   procedure lwma_writer_set_title(var writer : wma_writer; const value : WideString);
   procedure lwma_writer_set_album(var writer : wma_writer; const value : WideString);
@@ -202,6 +211,10 @@ type
   procedure lwma_writer_set_copyright(var writer : wma_writer; const value : WideString);
   procedure lwma_writer_set_track(var writer : wma_writer; const value : WideString);
   procedure lwma_writer_begin(var writer : wma_writer);
+  procedure lwma_create_preprocessor(var writer : wma_writer; var preprocessor : wma_preprocessor);
+  procedure lwma_writer_begin_preprocess(var writer : wma_writer; var preprocessor : wma_preprocessor);
+  procedure lwma_writer_preprocess(var writer : wma_writer; var preprocessor : wma_preprocessor; Buffer : Pointer; len : LongWord);
+  procedure lwma_preprocessor_free(var writer : wma_writer; var preprocessor : wma_preprocessor);
   procedure lwma_writer_write(var writer : wma_writer; Buffer : Pointer; len : LongWord);
   procedure lwma_writer_free(var writer : wma_writer);
 
@@ -1286,7 +1299,9 @@ implementation
     i : LongWord;
   begin
     CoInitialize(nil);
-    WMCreateProfileManager(pProfileMgr);
+    pProfileMgr := nil;
+    pCodecInfo := nil;
+    WMCreateProfileManager(pProfileMgr); 
     pCodecInfo := pProfileMgr as IWMCodecInfo2;
     pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
     for i := 0 to cEntries - 1 do
@@ -1333,6 +1348,42 @@ implementation
     pCodecInfo := nil;
     pProfileMgr := nil;
   end;
+
+  procedure lwma_enumerate_codec_formats2(CodecIndex : LongWord; VBR : LongBool; var Formats : TStringList);
+  var
+    pProfileMgr : IWMProfileManager;
+    pCodecInfo : IWMCodecInfo3;
+    cEntries, cEntries2 : LongWord;
+    FormatDesc : WideString;
+    len : LongWord;
+    i : Integer;
+    Dummie : IWMStreamConfig;
+    Passes : LongWord;
+  begin
+    CoInitialize(nil);
+    WMCreateProfileManager(pProfileMgr);
+    pCodecInfo := pProfileMgr as IWMCodecInfo3;
+    pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+    if CodecIndex >= cEntries then Exit;
+    Passes := 2;
+    pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszNumPasses, WMT_TYPE_DWORD, PByte(@Passes), SizeOf(Passes));
+    if pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@VBR), SizeOf(VBR)) <> S_OK then
+          Exit;
+    pCodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, CodecIndex, cEntries2);
+    for i := 0 to cEntries2 - 1 do
+    begin
+      pCodecInfo.GetCodecFormatDesc(WMMEDIATYPE_Audio, CodecIndex, i, Dummie, nil, len);
+      Dummie := nil;
+      len := len * 2;
+      SetLength(FormatDesc, len);
+      pCodecInfo.GetCodecFormatDesc(WMMEDIATYPE_Audio, CodecIndex, i, Dummie, PWideChar(FormatDesc), len);
+      Dummie := nil;
+      Formats.Add(FormatDesc);
+    end;
+    pCodecInfo := nil;
+    pProfileMgr := nil;
+  end;
+
 
    procedure lwma_writer_set_audio_properties2(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
    var
@@ -1394,6 +1445,66 @@ implementation
      pCodecInfo := nil;
    end;
 
+   procedure lwma_writer_set_audio_properties3(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
+   var
+     Size : LongWord;
+     cInputs, inputIndex : LongWord;
+     pProps : IWMInputMediaProps;
+     MediaType : PWMMEDIATYPE;
+     format : PWAVEFORMATEX;
+     Config : IWMStreamConfig;
+     ProfileManager : IWMProfileManager;
+     Profile : IWMProfile;
+     pCodecInfo : IWMCodecInfo3;
+     cEntries, Passes : LongWord;
+   begin
+     WMCreateProfileManager(ProfileManager);
+     ProfileManager.CreateEmptyProfile(WMT_VER_9_0, Profile);
+     pCodecInfo := ProfileManager as IWMCodecInfo3;
+     pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+     if CodecIndex >= cEntries then Exit;
+     Passes := 2;
+     pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszNumPasses, WMT_TYPE_DWORD, PByte(@Passes), SizeOf(Passes));
+     if pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@VBR), SizeOf(VBR)) <> S_OK then
+        Exit;
+     pCodecInfo.GetCodecFormat(WMMEDIATYPE_Audio, CodecIndex, FormatIndex, Config);
+     Config.SetStreamNumber(1);
+     Config.SetStreamName('NAAudioStream');
+     Config.SetConnectionName('NAAudioConnection');
+     if Profile.AddStream(Config) <> S_OK then
+       raise exception.Create('fff');
+     writer.writer.SetProfile(Profile);
+     Config := nil;
+     Profile := nil;
+     writer.writer.GetInputCount(cInputs);
+     for inputIndex := 0 to cInputs - 1 do
+     begin
+       writer.writer.GetInputProps(inputIndex, pProps);
+       pProps.GetMediaType(nil, size);
+       GetMem(MediaType, size);
+       pProps.GetMediaType(MediaType, size);
+       if GUIDSEqual(MediaType.majortype, WMMEDIATYPE_Audio) and GUIDSEqual(MediaType.formattype, WMFORMAT_WaveFormatEx) then
+       begin
+   	 writer.input := inputIndex;
+	 format := PWAVEFORMATEX(MediaType.pbFormat);
+	 format.nChannels := channels;
+	 format.nSamplesPerSec := SampleRate;
+	 format.wBitsPerSample := BitsPerSample;
+	 format.wFormatTag := 1;
+	 format.nBlockAlign := (BitsPerSample*channels) div 8;
+	 format.nAvgBytesPerSec := SampleRate*format.nBlockAlign;
+	 writer.BytesPerSecond := format.nAvgBytesPerSec;
+	 pProps.SetMediaType(MediaType);
+	 writer.writer.SetInputProps(inputIndex, pProps);
+ 	 FreeMem(MediaType);
+	 pProps := nil;
+	 Exit;
+       end;
+       FreeMem(MediaType);
+       pProps := nil;
+     end;
+     pCodecInfo := nil;
+   end;
 
 
   function SeletBestConfig(pWaveLimits : pWAVEFORMATEX; dwMaxRate : LongWord; Lossless : Boolean; VBR : Boolean; out ppStreamConfig : IWMStreamConfig) : Boolean;
@@ -1796,5 +1907,61 @@ implementation
       Port := CP.dwPort;
     end;
   end;
+
+  procedure lwma_create_preprocessor(var writer : wma_writer; var preprocessor : wma_preprocessor);
+  var
+    res : HResult;
+    MaxPasses : LongWord;
+  begin
+    FillChar(preprocessor, SizeOf(preprocessor), 0);
+    res := writer.writer.BeginWriting;
+    if res <> S_OK then
+      raise EAuException.Create('Failed to set data writer: ' + IntToHex(res, 8));
+    preprocessor.WMWriterPreprocess := writer.writer as IWMWriterPreprocess;
+    res := preprocessor.WMWriterPreprocess.GetMaxPreprocessingPasses(writer.input, 0, MaxPasses);
+    if res <> S_OK then
+      raise EAuException.Create('Failed to get max passes: ' + IntToHex(res, 8));
+    if MaxPasses = 0 then
+      raise EAuException.Create('No double pass fr this format');
+    res := preprocessor.WMWriterPreprocess.SetNumPreprocessingPasses(writer.input, 0, 1);
+    if res <> S_OK then
+      raise EAuException.Create('Failed to start data preprocessor: ' + IntToHex(res, 8));
+  end;
+
+  procedure lwma_writer_begin_preprocess(var writer : wma_writer; var preprocessor : wma_preprocessor);
+  var
+    res : HResult;
+  begin
+    writer.TotalTime := 0;
+    res := preprocessor.WMWriterPreprocess.BeginPreprocessingPass(writer.input, 0);
+    if res <> S_OK then
+      raise EAuException.Create('Filed to start data preprocessor: ' + IntToHex(res, 8));
+
+  end;
+
+  procedure lwma_writer_preprocess(var writer : wma_writer; var preprocessor : wma_preprocessor; Buffer : Pointer; len : LongWord);
+  var
+    buf : PByte;
+    res : HResult;
+    Sample : INSSBuffer;
+  begin
+     writer.writer.AllocateSample(len, writer.buffer);
+     writer.buffer.GetBuffer(buf);
+     Move(Buffer^, Buf^, len);
+     writer.buffer.SetLength(len);
+     writer.TotalTime := writer.TotalTime + Round(len/writer.BytesPerSecond/0.1e-6);
+     res := preprocessor.WMWriterPreprocess.PreprocessSample(writer.input, writer.TotalTime, 0, writer.buffer);
+     if res < 0 then
+       raise EAuException.Create('Failed to preprocess data: ' + IntToHex(res, 8));
+     writer.buffer := nil;
+   end;
+
+   procedure lwma_preprocessor_free(var writer : wma_writer; var preprocessor : wma_preprocessor);
+   begin
+     preprocessor.WMWriterPreprocess.EndPreprocessingPass(writer.input, 0);
+     writer.TotalTime := 0;
+     preprocessor.WMWriterPreprocess := nil;
+   end;
+
 
 end.
