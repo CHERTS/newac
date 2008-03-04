@@ -53,7 +53,8 @@ const
   {$EXTERNALSYM IID_IWMRegisterCallback}
   IID_IWMClientConnections2     : TGUID = '{4091571e-4701-4593-bb3d-d5f5f0c74246}';
   {$EXTERNALSYM IID_IWMClientConnections2}
-
+    IID_IWMWriterPreprocess       : TGUID = '{fc54a285-38c4-45b5-aa23-85b9f7cb424b}';
+  {$EXTERNALSYM IID_IWMWriterPreprocess}
 
   WMMEDIASUBTYPE_WMAudioV9        : TGUID = '{00000162-0000-0010-8000-00AA00389B71}';
   {$EXTERNALSYM WMMEDIASUBTYPE_WMAudioV9}
@@ -1143,6 +1144,19 @@ type
     function Disconnect: HResult; stdcall;
     // Close and release the open port.
     function Close: HResult; stdcall;
+  end;
+
+    IWMWriterPreprocess = interface(IUnknown)
+    ['{FC54A285-38C4-45B5-AA23-85B9F7CB424B}']
+    (*** IWMWriterPreprocess methods ***)
+    function GetMaxPreprocessingPasses(dwInputNum: LongWord; dwFlags: LongWord;
+      out pdwMaxNumPasses: LongWord): HResult; stdcall;
+    function SetNumPreprocessingPasses(dwInputNum: LongWord; dwFlags: LongWord;
+      dwNumPasses: LongWord): HResult; stdcall;
+    function BeginPreprocessingPass(dwInputNum: LongWord; dwFlags: LongWord): HResult; stdcall;
+    function PreprocessSample(dwInputNum: LongWord; cnsSampleTime: Int64; dwFlags: LongWord;
+      pSample: INSSBuffer): HResult; stdcall;
+    function EndPreprocessingPass(dwInputNum: LongWord; dwFlags: LongWord): HResult; stdcall;
   end;
 
   PWMClientProperties = ^TWMClientProperties;
