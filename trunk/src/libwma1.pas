@@ -1943,7 +1943,6 @@ implementation
   var
     buf : PByte;
     res : HResult;
-    Sample : INSSBuffer;
   begin
      writer.writer.AllocateSample(len, writer.buffer);
      writer.buffer.GetBuffer(buf);
