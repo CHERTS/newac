@@ -16,7 +16,7 @@ unit libwma1;
 interface
 
 uses
-  Windows, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types, SyncObjs;
+  Windows, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types, ACS_Procs, SyncObjs;
 
 type
                               
@@ -228,24 +228,6 @@ type
   procedure create_configs(var List : TList);
 
 implementation
-
-
-   function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
-   begin
-     Result := False;
-     if g1.D1 <> g2.D1 then Exit;
-     if g1.D2 <> g2.D2 then Exit;
-     if g1.D3 <> g2.D3 then Exit;
-     if g1.D4[0] <> g2.D4[0] then Exit;
-     if g1.D4[1] <> g2.D4[1] then Exit;
-     if g1.D4[2] <> g2.D4[2] then Exit;
-     if g1.D4[3] <> g2.D4[3] then Exit;
-     if g1.D4[4] <> g2.D4[4] then Exit;
-     if g1.D4[5] <> g2.D4[5] then Exit;
-     if g1.D4[6] <> g2.D4[6] then Exit;
-     if g1.D4[7] <> g2.D4[7] then Exit;
-     Result := True;
-   end;
 
    procedure lwma_async_reader_init(var async_reader : wma_async_reader);
    begin
