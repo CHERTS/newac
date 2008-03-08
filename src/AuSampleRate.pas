@@ -1,20 +1,11 @@
 (*
-  This file is a part of New Audio Components package v 1.7
+  This file is a part of New Audio Components package v 1.4
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
 (* $Id$ *)
-
-(*
-  Currently TResampler cannot perform resampling at 24 bps.
-  The component can accept 24 bit input but it will produce only 16 bit output.
-  For 8, 16, and 32 bit input 8, 16, and 32 bit output will be produced respectively.  
-  This doesn't apply to the pass through mode (when the input sample rate
-  is the same as the output sample rate) in which the audio data is passed
-  unmodified.
-*)
 
 unit AuSampleRate;
 
@@ -29,8 +20,8 @@ uses
 
 const
 
-  InitialBufferSize = $100000;
-  IOBufSize = $200000;
+  InitialBufferSize = $180000;
+  IOBufSize = $300000;
 
 type
 
@@ -41,12 +32,10 @@ type
      Descends from <TAuConverter>.
      Requires libsamplerate.dll.
      More information on this resampler can be found at http://www.mega-nerd.com/SRC/.
-     Currently TResampler cannot perform resampling at 24 bps.
-     The component can accept 24 bit input but it will produce only 16 bit output.
-     For 8, 16, and 32 bit input 8, 16, and 32 bit output will be produced respectively.
-     This doesn't apply to the pass through mode (when the input sample rate
-     is the same as the output sample rate) in which the audio data is passed
-     unmodified.*)
+     This component can convert 8, 16, 24, 32 bps audio with one or more channels.
+     If <OutSampleRate> proprty is set to the same value as the input sample rate,
+     the component switches into pass-through mode when all the input is passed unmodified.
+*)
 
   TResampler = class(TAuConverter)
   private
@@ -118,9 +107,9 @@ implementation
   begin
     if not Assigned(FInput) then
       raise EAuException.Create('Input not assigned');
-    if (FInput.BitsPerSample = 24) and (not FPassThrough) then
-      Result := 16
-    else
+//    if (FInput.BitsPerSample = 24) and (not FPassThrough) then
+//      Result := 16
+//    else
       Result := FInput.BitsPerSample;
   end;
 
@@ -200,6 +189,18 @@ implementation
       _out[i] := Floor(_in[i] * $80000000);
   end;
 
+  procedure SingleToInt24(_in : PFLOATARRAY; _out : PBuffer8; len : Integer);
+  var
+    i, Sample : Integer;
+  begin
+    for i := 0 to len - 1 do
+    begin
+      Sample := Floor(_in[i] * $c000);
+      _out[i*3] := Sample and $ff;
+      PSmallInt(@(_out[i*3 + 1]))^ := SmallInt(Sample shr 8);
+    end;
+  end;
+
 
   procedure SmallIntToSingle(_in : PSHORTARRAY; _out : PFLOATARRAY; len : Integer);
   var
@@ -215,6 +216,14 @@ implementation
   begin
     for i := 0 to len - 1 do
       _out[i] := _in[i]/$80000000;
+  end;
+
+  procedure Int24ToSingle(_in : PBuffer8; _out : PFLOATARRAY; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+      _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))/$c000;
   end;
 
 
@@ -233,22 +242,16 @@ implementation
     if OBufferStart >= OBufferEnd then
     begin
       OBufferStart := 0;
+//      IOBufSize := IOBufSize - (IOBufSize mod ((Finput.BitsPerSample div 8) * FInput.Channels));
       if (IBufferEnd < IOBufSize) and (not EndOfInput) then
       begin
-        if (FInput.BitsPerSample = 16) or (FInput.BitsPerSample = 32) then
-          l := FInput.CopyData(@InputBuffer[IBufferEnd], IOBufSize - IBufferEnd);
-        if FInput.BitsPerSample = 8 then
+        if FInput.BitsPerSample <>8 then
+          l := FInput.CopyData(@InputBuffer[IBufferEnd], IOBufSize - IBufferEnd)
+        else
         begin
           l := FInput.CopyData(@InputBuffer[IBufferEnd], (IOBufSize - IBufferEnd) div 2);
           Convert8To16(@InputBuffer[IBufferEnd], l);
           l := l*2;
-        end;
-        if FInput.BitsPerSample = 24 then
-        begin
-          l := (IOBufSize - IBufferEnd) - ((IOBufSize - IBufferEnd) mod 6);
-          l := FInput.CopyData(@InputBuffer[IBufferEnd], l);
-          Convert24To16(@InputBuffer[IBufferEnd], l);
-          l := (l div 3)*2;
         end;
         if l = 0 then
            EndOfInput := True;
@@ -267,11 +270,17 @@ implementation
         ilen := IBufferEnd;
         if IBufferEnd > InitialBufferSize then
           ilen := InitialBufferSize;
-        if FInput.BitsPerSample < 32 then
+        if FInput.BitsPerSample < 24 then
         begin
           src_short_to_float_array(@InputBuffer, @IFloatBuffer, ilen);
           Data.input_frames := (ilen div 2) div FInput.Channels;
           Data.output_frames := (IOBufSize div 2) div FInput.Channels;
+        end else
+        if FInput.BitsPerSample = 24 then
+        begin
+          Int24ToSingle(@InputBuffer, @IFloatBuffer, ilen div 3);
+          Data.input_frames := (ilen div 3) div FInput.Channels;
+          Data.output_frames := (IOBufSize div 3) div FInput.Channels;
         end else
         begin
           Int32ToSingle(@InputBuffer, @IFloatBuffer, ilen div 4);
@@ -290,7 +299,7 @@ implementation
           Bytes := 0;
           raise EAuException.Create(src_strerror(res));
         end;
-        if FInput.BitsPerSample < 32 then
+        if FInput.BitsPerSample < 24 then
         begin
           SingleToSmallInt(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
           //src_float_to_short_array(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
@@ -304,6 +313,15 @@ implementation
             Convert16To8(@OutputBuffer, OBufferEnd);
             OBufferEnd := OBufferEnd div 2;
           end;
+        end else
+        if FInput.BitsPerSample = 24 then
+        begin
+          SingleToInt24(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
+          OBufferEnd := Data.output_frames_gen * FInput.Channels * 3;
+          ilen := Data.nput_frames_used  * FInput.Channels * 3;
+          for i := ilen to IBufferEnd - 1 do
+            InputBuffer[i - ilen] := InputBuffer[i];
+          Dec(IBufferEnd, ilen);
         end else
         begin
           SingleToInt32(@OFloatBuffer, @OutputBuffer, Data.output_frames_gen * FInput.Channels);
