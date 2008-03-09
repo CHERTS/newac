@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.4
+  This file is a part of New Audio Components package 1.7
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -121,7 +121,7 @@ type
     property Mode : TMSConverterMode read FMode write FMode;
     (* Property: OutBitsPerSample
        Use this property to set the number of bits per sample in the resulting
-       audio stream. The valid values are 0, 8, 16, 24. If the property is set
+       audio stream. The valid values are 0, 8, 16, 24, and 32. If the property is set
        to 0 (the default) the converter preserves the original stream's number
        of bits per sample.*)
     property OutBitsPerSample : Integer read FOutBitsPerSample write FOutBitsPerSample;
@@ -129,7 +129,8 @@ type
        Use this property to set the number of channels in the resulting audio
        stream. The valid values are 0,  1 (mono), and 2 (stereo). If the
        property is set to 0 (the default value) the converter preserves the
-       original stream's number of channels. *)
+       original stream's number of channels. If the number of input channels is greater than 2
+       the component cannot change it. Only number of bits per sample can be changed in this case. *)
     property OutChannels : Integer read FOutChannels write FOutChannels;
   end;
 
@@ -706,13 +707,15 @@ implementation
 
   function TAudioConverter.GetCh;
   begin
-    if FOutChannels <> 0 then
+    if not Assigned(FInput) then
+    begin
+      Result := 0;
+      Exit;
+    end;
+    if (FOutChannels in [1..2]) and (FInput.Channels in [1..2]) then
       Result := FOutChannels
     else
-      if Assigned(FInput) then
-        Result := FInput.Channels
-      else
-        Result := 0;
+      Result := FInput.Channels;
   end;
 
   function TAudioConverter.GetSR;
@@ -809,6 +812,8 @@ implementation
           ConvertStereoToMono16(@InOutBuf[0], BufEnd);
         if FInput.BitsPerSample = 24 then
           ConvertStereoToMono24(@InOutBuf[0], BufEnd);
+        if FInput.BitsPerSample = 32 then
+          ConvertStereoToMono32(@InOutBuf[0], BufEnd);
         BufEnd := BufEnd shr 1;
       end else
       if (FInput.Channels = 1) and (ICh = 2) then
@@ -819,10 +824,18 @@ implementation
           ConvertMonoToStereo16(@InOutBuf[0], BufEnd, FMode);
         if FInput.BitsPerSample = 24 then
           ConvertMonoToStereo24(@InOutBuf[0], BufEnd, FMode);
+        if FInput.BitsPerSample = 32 then
+          ConvertMonoToStereo32(@InOutBuf[0], BufEnd, FMode);
         BufEnd := BufEnd shl 1;
       end;
 
-      if (FInput.BitsPerSample = 24) and (IBPS <> 24) then
+      if (FInput.BitsPerSample = 32) and (IBPS <> 32) then
+      begin
+        Convert32To24(@InOutBuf[0], BufEnd);
+        BufEnd := (BufEnd div 4)*3;
+      end;
+
+      if (FInput.BitsPerSample >= 24) and (IBPS < 24) then
       begin
         Convert24To16(@InOutBuf[0], BufEnd);
         BufEnd := (BufEnd div 3)*2;
@@ -839,11 +852,19 @@ implementation
         BufEnd := BufEnd shr 1;
       end;
 
-      if (FInput.BitsPerSample <> 24) and (IBPS = 24) then
+      if (FInput.BitsPerSample < 24) and (IBPS >= 24) then
       begin
         Convert16To24(@InOutBuf[0], BufEnd);
         BufEnd := (BufEnd shr 1)*3;
       end;
+
+      if (FInput.BitsPerSample < 32) and (IBPS = 32) then
+      begin
+        Convert24To32(@InOutBuf[0], BufEnd);
+        BufEnd := (BufEnd div 3)*4;
+      end;
+
+
     end;
 
     if Bytes > (BufEnd - BufStart) then
