@@ -1,11 +1,11 @@
 (*
-  This file is a part of New Audio Components package v 1.0
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 1.7
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.4 $ $Date: 2007/08/19 11:01:16 $ *)
+(* $Id$ *)
 
 unit ACS_Procs;
 
@@ -110,6 +110,14 @@ type
 
   // Convert stereo 8-bit audio stream to mono
   procedure ConvertStereoToMono8(InOutBuf : PBuffer8; InSize : Integer);
+
+  procedure ConvertStereoToMono32(InOutBuf : PBuffer32; InSize : Integer);
+
+  procedure ConvertMonoToStereo32(InOutBuf : PBuffer32; InSize : Integer; Mode : TMSConverterMode);
+
+  procedure Convert32To24(InOutBuf : PBuffer8; InSize : Integer);
+
+  procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
 
   function GetRightOf(Delim : Char; const S : String) : String;
 
@@ -590,6 +598,66 @@ end;
         end;
     end;
   end;
+
+procedure ConvertStereoToMono32(InOutBuf : PBuffer32; InSize : Integer);
+var
+  i : Integer;
+begin
+  for i := 0 to (InSize div 8) - 1 do
+  begin
+    InOutBuf[i] := (InOutBuf[i*2] + InOutBuf[i*2+1]) div 2;
+  end;
+end;
+
+  procedure ConvertMonoToStereo32(InOutBuf : PBuffer32; InSize : Integer; Mode : TMSConverterMode);
+  var
+    i : Integer;
+  begin
+    case Mode of
+    msmMonoToBoth :
+        for i := (Insize div 4) - 1 downto 0 do
+        begin
+          InOutBuf[i*2] := InOutBuf[i];
+          InOutBuf[i*2 + 1] := InOutBuf[i];
+        end;
+    msmMonoToLeft :
+        for i := (Insize div 4) - 1 downto 0 do
+        begin
+          InOutBuf[i*2] := 0;
+          InOutBuf[i*2 + 1] := InOutBuf[i];
+        end;
+    msmMonoToRight :
+        for i := (Insize div 4) - 1 downto 0 do
+        begin
+          InOutBuf[i*2] := InOutBuf[i];
+          InOutBuf[i*2 + 1] := 0;
+        end;
+    end;
+  end;
+
+procedure Convert32To24(InOutBuf : PBuffer8; InSize : Integer);
+var
+  i : Integer;
+begin
+  for i := 0 to (InSize div 4) - 1 do
+  begin
+    InOutBuf^[i*3] := InOutBuf^[i*4 + 1];
+    PSmallInt(@(InOutBuf[i*3+1]))^ := PSmallInt(@(InOutBuf[i*4 + 2]))^;
+  end;
+end;
+
+procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
+var
+  i : Integer;
+begin
+  for i := (InSize div 3) - 1 downto 0 do
+  begin
+    InOutBuf[i*4] := 0;
+    InOutBuf[i*4+1] := InOutBuf[i*3];
+    PSmallInt(@(InOutBuf[i*4+2]))^ := PSmallInt(@(InOutBuf[i*3 + 1]))^;
+  end;
+end;
+
 
    function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
    begin
