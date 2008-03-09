@@ -71,10 +71,10 @@ type
     property Quality : TResamplerQuality read FQuality write FQuality;
     (* Property: OutSampleRate
       Use this property to set the sample rate for the resulting audio stream.
-      The valid values range from 2000 to 120000 and include special value 0.
-      If you set the output sample rate to the same value as the input sample rate, or set it to 0, the componentss will switch
-      to a pass-through mode. In this mode all the input will be passed on unchanged. This help chaining the TResampler component wih others
-      that may not always need resampled data.*)
+      The valid values range from 2000 to 120000 and include special value of 0.
+      If you set the output sample rate to the same value as the input sample rate, or set it to 0, the component will switch
+      to a pass-through mode. In this mode all the input will be passed on unchanged. This feature is useful when chaining the TResampler component wih other
+      components in the chain that may not always need resampled data.*)
     property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
   end;
 
