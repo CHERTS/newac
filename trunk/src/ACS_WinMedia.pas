@@ -18,6 +18,9 @@ interface
 uses
   Windows, Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Tags, libwma1;
 
+const
+   wmfDefault = -2;
+
 type
 
   TStreamedAudioEvent = procedure(Sender : TComponent) of object;
@@ -79,7 +82,9 @@ type
     property FormatSpec[Index : Integer] : TWMAFormatSpec read GetFormatSpec;
     (* Property: FormatSelected
      Use this property to set the desired format for the decoder's output.
-     Valid values range from 0 to <FormatsCount> - 1.
+     Valid values range from 0 to <FormatsCount> - 1. There is also a special constant - wmfDefault.
+     If you set the property value to wmfDefault the output audio format will be the "main format", the one that was used
+     when the file was encoded.
      This property affects the <Channels>, <BitsPerSample>, <SampleRate>, <Size>, and <TotalSamples> properties.
      Setting this property value overrides <OutputChannels>'s value.
      Set this property value before you call Run for the corresponding output component. *)
@@ -1080,8 +1085,16 @@ implementation
   begin
     if Busy then Exit;
     OpenFile;
+    if AFormat = wmfDefault then
+    begin
+      lwma_reader_set_format(reader, True, 0);
+      FFormat := 0;
+    end;
     if AFormat >= 0 then
+    begin
       lwma_reader_set_format(reader, FHighPrecision, LongWord(AFormat));
+      FFormat := AFormat;
+    end;
     FDuration := lwma_reader_get_duration(reader);
     FChan := reader.channels;
     FBPS := reader.BitsPerSample;
