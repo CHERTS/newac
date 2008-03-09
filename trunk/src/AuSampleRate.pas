@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.4
+  This file is a part of New Audio Components package v 1.7
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -71,8 +71,8 @@ type
     property Quality : TResamplerQuality read FQuality write FQuality;
     (* Property: OutSampleRate
       Use this property to set the sample rate for the resulting audio stream.
-      The output sample rate may be 256 times greater or 256 times less than the input stream sample rate.
-      If you set the output sample rate to the same value as the input sample rate, the componentss will switch
+      The valid values range from 2000 to 120000 and include special value 0.
+      If you set the output sample rate to the same value as the input sample rate, or set it to 0, the componentss will switch
       to a pass-through mode. In this mode all the input will be passed on unchanged. This help chaining the TResampler component wih others
       that may not always need resampled data.*)
     property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
@@ -116,11 +116,13 @@ implementation
   function  TResampler.GetSR;
   begin
     Result := FOutSampleRate;
+    if FOutSampleRate = 0 then
+       Result := FInput.SampleRate;
   end;
 
   procedure TResampler.SetOutSampleRate;
   begin
-    if (aSR > 2000) and (aSR < 1000000) then
+    if ((aSR >= 2000) and (aSR <= 120000)) or (aSR = 0) then
       FOutSampleRate := aSR
     else
       FOutSampleRate := 44100;
@@ -139,7 +141,7 @@ implementation
     Busy := True;
     FInput.Init;
     FPosition := 0;
-    Data.src_ratio := FOutSampleRate/Finput.SampleRate;
+    Data.src_ratio := GetSR/Finput.SampleRate;
     if src_is_valid_ratio(Data.src_ratio) = 0 then
       raise EAuException.Create(Format('Frequences ratio %d is invalid', [Data.src_ratio]));
     Data.data_in := @IFloatBuffer;
@@ -154,7 +156,7 @@ implementation
     if error <> 0 then
       raise EAuException.Create('Failed to initialize the resampler');
    // src_set_ratio(_State, FOutSampleRate/Finput.SampleRate);
-   if FOutSampleRate = FInput.SampleRate then
+   if GetSR = FInput.SampleRate then
      FPassThrough := True
    else
     FPassThrough := False;
@@ -162,7 +164,7 @@ implementation
       FSize := FInput.Size
     else
     begin
-      FSize := Round(FInput.Size * FOutSampleRate/Finput.SampleRate);
+      FSize := Round(FInput.Size * GetSR/Finput.SampleRate);
       if FInput.BitsPerSample = 24 then
       begin
         FSize := Round(FSize*2/3);
