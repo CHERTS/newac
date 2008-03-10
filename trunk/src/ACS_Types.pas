@@ -1,11 +1,11 @@
 (*
-  This file is a part of New Audio Components package v 1.2
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 1.7
+  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Revision: 1.6 $ $Date: 2007/09/07 13:10:03 $ *)
+(* $Id$ *)
 
 unit ACS_Types;
 
@@ -95,8 +95,6 @@ type
 
   TMSConverterMode = (msmMonoToBoth, msmMonoToLeft, msmMonoToRight);
 
-
-
   TWaveFormatExtensible = packed record
     Format : TWaveFormatEx;
     wValidBitsPerSample : WORD;
@@ -122,6 +120,7 @@ const
 
   WAVE_FORMAT_EXTENSIBLE = $FFFE;
   KSDATAFORMAT_SUBTYPE_PCM : TGuid = '{00000001-0000-0010-8000-00aa00389b71}';
+  KSDATAFORMAT_SUBTYPE_IEEE_FLOAT : TGuid = '{00000003-0000-0010-8000-00aa00389b71}';
 
 implementation
 

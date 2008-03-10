@@ -119,6 +119,8 @@ type
 
   procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
 
+  procedure ConvertIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
+
   function GetRightOf(Delim : Char; const S : String) : String;
 
   function GetLeftOf(Delim : Char; const S : String) : String;
@@ -658,6 +660,15 @@ begin
   end;
 end;
 
+
+
+procedure ConvertIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
+var
+  i : Integer;
+begin
+  for i := 0 to (InSize div 8) - 1 do
+    InOutBuf[i] := Floor(PDouble(@InOutBuf[i*2])^ * High(Integer));
+end;
 
    function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
    begin

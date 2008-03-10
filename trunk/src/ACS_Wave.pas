@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.4
+  This file is a part of New Audio Components package v 1.7
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -30,7 +30,7 @@ uses
   Math, MAD,
   {$ENDIF}
 
-  Classes, SysUtils, ACS_Types, ACS_Classes;
+  Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Procs;
 
 const
 
@@ -47,7 +47,7 @@ type
     wtACM - an MP3 packed inside a WAV
   *)
 
-  TWavType = (wtUnsupported, wtPCM, wtDVIADPCM, wtMSADPCM, wtACM);
+  TWavType = (wtUnsupported, wtPCM, wtDVIADPCM, wtMSADPCM, wtACM, wtIEEEFloat, wtExtPCM, wtExtIEEEFloat);
 
   (* Record: TWaveHeader
       Represents a RIFF file header.
@@ -87,6 +87,21 @@ type
     DataChunkId: array [0..3] of Char;   // = 'data'
     DataSize: Integer;   // Data size in bytes
   end;
+
+  TWaveHeaderExt = record
+    // RIFF file header
+    RIFF: array [0..3] of Char;          // = 'RIFF'
+    FileSize: Integer;                   // = FileSize - 8
+    RIFFType: array [0..3] of Char;      // = 'WAVE'
+    // Format chunk
+    FmtChunkId: array [0..3] of Char;    // = 'fmt'
+    FmtChunkSize: Integer;               // = 16
+    Format : TWaveFormatExtensible;
+    // Data Chunk
+    DataChunkId: array [0..3] of Char;   // = 'data'
+    DataSize: Integer;   // Data size in bytes
+  end;
+
 
 (* Record: TDVIADPCMHeader
     RIFF file header for DVIADPCM (version NNFCAIWFLDL).
@@ -255,6 +270,7 @@ type
     procedure SetWavType(WT : TWavType);
     procedure ReadRIFFHeader;
     procedure FillHeaderPCM(var Header : TWaveHeader);
+    procedure FillHeaderExtPCM(var Header : TWaveHeaderExt);
     procedure FillHeaderDVIADPCM(var Header : TDVIADPCMHeader);
     procedure SetBlockSize(BS : Word);
     procedure EncodeDVIADPCMMono(InData : PBuffer16; OutData : PBuffer8);
@@ -310,6 +326,7 @@ const
   DataSizeOffs = 40;
   WAVE_FORMAT_PCM = 1;
   WAVE_FORMAT_ADPCM = 2;
+  WAVE_FORMAT_IEEE_FLOAT = 3;
   WAVE_FORMAT_ALAW = 6;
   WAVE_FORMAT_MULAW = 7;
   WAVE_FORMAT_DVI_IMA_ADPCM = 17;
@@ -721,6 +738,11 @@ const
           FBPS := 16;
           FSize := MS_ADPCM_INFO.DataSize*2*FChan;
         end;
+        wtIEEEFloat, wtExtIEEEFloat :
+        begin
+          FBPS := 32;
+          FSize := FSize div 2;
+        end;
         wtACM :
         begin
 
@@ -894,12 +916,20 @@ const
             end else BufEnd := 0;
           end;
         end;
-        wtPCM:
+        wtPCM, wtExtPCM:
         begin
           BufStart := 1;
           Aligned := BUF_SIZE - (BUF_SIZE mod (FChan * FBPS shr 3));
           l := FStream.Read(Buf, Aligned);
           BufEnd := l;
+        end;
+        wtExtIEEEFloat, wtIEEEFloat:
+        begin
+          BufStart := 1;
+          Aligned := BUF_SIZE - (BUF_SIZE mod (FChan * 8));
+          l := FStream.Read(Buf, Aligned);
+          ConvertIEEEFloatTo32(@Buf, l);
+          BufEnd := l div 2;
         end;
         wtACM:
         begin
@@ -958,6 +988,34 @@ begin
   Header.BitsPerSample := FInput.BitsPerSample;
   Header.BlockAlign := (Header.BitsPerSample * Header.Channels) shr 3;
   Header.BytesPerSecond := Header.SampleRate * Header.BlockAlign;
+  Header.DataChunkId := 'data';
+  Header.DataSize := FInput.Size;
+end;
+
+procedure TWaveOut.FillHeaderExtPCM;
+begin
+  Header.RIFF := 'RIFF';
+  Header.FileSize := FInput.Size + SizeOf(Header);
+  Header.RIFFType := 'WAVE';
+  Header.FmtChunkId := 'fmt ';
+  Header.FmtChunkSize := SizeOf(Header.Format);
+  Header.Format.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+  Header.Format.Format.nChannels := FInput.Channels;
+  Header.Format.Format.nSamplesPerSec := FInput.SampleRate;
+  Header.Format.Format.wBitsPerSample := FInput.BitsPerSample;
+  Header.Format.Format.nBlockAlign := (Header.Format.Format.wBitsPerSample * Header.Format.Format.nChannels) shr 3;
+  Header.Format.Format.nAvgBytesPerSec := Header.Format.Format.nSamplesPerSec * Header.Format.Format.nBlockAlign;
+  Header.Format.wValidBitsPerSample := Header.Format.Format.wBitsPerSample;
+  if Header.Format.Format.nChannels = 2 then
+    Header.Format.dwChannelMask := 3
+  else
+    if Header.Format.Format.nChannels = 6 then
+      Header.Format.dwChannelMask := $3F
+    else
+      if Header.Format.Format.nChannels = 8 then
+        Header.Format.dwChannelMask := $FF;
+  Header.Format.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
+  Header.Format.Format.cbSize := 22;
   Header.DataChunkId := 'data';
   Header.DataSize := FInput.Size;
 end;
@@ -1168,6 +1226,7 @@ end;
   procedure TWaveOut.Prepare;
   var
     Header : TWaveHeader;
+    HeaderExt : TWaveHeaderExt;
     DVIADPCMHeader : TDVIADPCMHeader;
   begin
     EndOfInput := False;
@@ -1179,6 +1238,8 @@ end;
       else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or fmShareExclusive, FAccessMask);
     end;
     FInput.Init;
+    if (FInput.Channels > 2) or (FInput.BitsPerSample = 24) then
+      FWavType := wtExtPCM;
     if (FFileMode = foAppend) and (FStream.Size <> 0) then
     begin
       ReadRIFFHeader;
@@ -1217,6 +1278,11 @@ end;
           FillHeaderPCM(Header);
           FStream.Write(Header, WaveHeaderOffs);
         end;
+      end;
+      wtExtPCM:
+      begin
+        FillHeaderExtPCM(HeaderExt);
+        FStream.Write(HeaderExt, SizeOf(HeaderExt));
       end;
       wtDVIADPCM :
       begin
@@ -1281,6 +1347,12 @@ end;
             FStream.Write(Size, 4);
           end;
         end;
+        wtExtPCM:
+        begin
+          Size := FStream.Size - SizeOf(TWaveHeaderExt);
+          FStream.Seek(SizeOf(TWaveHeaderExt) - 4, soFromBeginning);
+          FStream.Write(Size, 4);
+        end;
         wtDVIADPCM:
         begin
           if FFileMode = foAppend then
@@ -1308,17 +1380,22 @@ end;
       FStream.Write(Size, 4);
     end else  // if ((FInput.Size < 0) or (FFileMode = foAppend) or (FStopped = True)) then
     begin
+      BlockSize := 0;
       if FWavType = wtPCM then
       begin
         BlockSize := FInput.Size + 44 - FStream.Position;
-        if BlockSize > 0 then
-        begin
-          GetMem(P, BlockSize);
-          FillChar(P^, BlockSize, 0);
-          FStream.Write(P^, BlockSize);
-          FreeMem(P);
-        end;
-      end;  
+      end;
+      if FWavType = wtExtPCM then
+      begin
+        BlockSize := FInput.Size + SizeOf(TWaveHeaderExt) - FStream.Position;
+      end;
+      if BlockSize > 0 then
+      begin
+        GetMem(P, BlockSize);
+        FillChar(P^, BlockSize, 0);
+        FStream.Write(P^, BlockSize);
+        FreeMem(P);
+      end;
     end;
     if (not FStreamAssigned) and (FStream <> nil) then FStream.Free;
     FInput.Flush;
@@ -1351,7 +1428,7 @@ end;
       Exit;
     end;
     case FWavType of
-      wtPCM :
+      wtPCM, wtExtPCM :
       begin
         try
           Len := BUF_SIZE;
@@ -1490,7 +1567,12 @@ end;
     Buff : array[0..$fff] of Char;
     State : Integer;
     ChunkSize : Integer;
+    SubType : TGuid;
   begin
+    FSize := 0;
+    FBPS := 0;
+    FChan := 0;
+    FSR := 0;
     _WavType := wtUnsupported;
     State := LookingForRIFF;
     i := 4;
@@ -1548,6 +1630,8 @@ end;
               WAVE_FORMAT_IMA_ADPCM : _WavType := wtDVIADPCM;
               WAVE_FORMAT_ADPCM : _WavType := wtMSADPCM;
               WAVE_FORMAT_MP3 : _WavType := wtACM;
+              WAVE_FORMAT_IEEE_FLOAT : _WavType := wtIEEEFloat;
+              WAVE_FORMAT_EXTENSIBLE : _WavType := wtExtPCM;
               else Exit;
             end;
             Move(Buff[i+2-ChunkSize], WordVal, 2);
@@ -1560,6 +1644,16 @@ end;
             MS_ADPCM_INFO.BlockLength := WordVal;
             Move(Buff[i+14-ChunkSize], WordVal, 2);
             FBPS := WordVal;
+            if _WavType = wtExtPCM then
+            begin
+              Move(Buff[i-16], SubType, 16);
+             if GUIDSEqual(SubType, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT) then
+             begin
+                _WavType := wtExtIEEEFLOAT;
+             end else
+             if not GUIDSEqual(SubType, KSDATAFORMAT_SUBTYPE_PCM) then
+                _WavType := wtUnsupported;
+            end;
             if _WavType in [wtDVIADPCM, wtMSADPCM, wtACM] then
             begin
               Move(Buff[i+18-ChunkSize], WordVal, 2);
@@ -1620,7 +1714,7 @@ end;
           end else
           begin
             FStream.Read(Buff[i], 4);
-            if _WavType = wtPCM then
+            if _WavType in [wtPCM, wtExtPCM, wtIEEEFloat, wtExtIEEEFloat] then
               Move(Buff[i], FSize, 4);
             Inc(i, 4);
             HeaderSize := i;
