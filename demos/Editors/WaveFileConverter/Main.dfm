@@ -189,7 +189,7 @@ object Form1: TForm1
       Width = 36
       Height = 22
       Increment = 8
-      MaxValue = 24
+      MaxValue = 32
       MinValue = 8
       TabOrder = 1
       Value = 8
