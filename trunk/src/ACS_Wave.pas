@@ -41,10 +41,13 @@ type
   (* Enum: TWavType
       The format of the WAV.
     
-    wtUnsupported - a WAV format that isn't supported
-    wtPCM - a WAV which is PCM (the normal format, use this if you're unsure)
-    wtDVIADPCM - a WAV which is MS DVI IMA ADPCM
-    wtACM - an MP3 packed inside a WAV
+    - wtUnsupported - a WAV format that isn't supported
+    - wtPCM - a WAV which is raw PCM (the normal format, use this if you're unsure)
+    - wtDVIADPCM - a WAV which is MS DVI IMA ADPCM
+    - wtACM - an MP3 packed inside a WAV
+    - wtIEEEFloat - floating point encoding (32 or 64 bits)
+    - wtExtPCM - raw PCM encoding with WaveFormatExtensible header.
+    - wtExtIEEEFloat - floating point encoding with WaveFormatExtensible header.
   *)
 
   TWavType = (wtUnsupported, wtPCM, wtDVIADPCM, wtMSADPCM, wtACM, wtIEEEFloat, wtExtPCM, wtExtIEEEFloat);
@@ -289,7 +292,8 @@ type
       Use this <TWavType> property to specify output .wav file encoding. When
       you append data to an existing file (with data in either raw PCM or MS
       DVI IMA ADPCM encoding) this property will be automatically set to the
-      file encoding. *)
+      file encoding. Only wtPCM, wtExtPCM, and wtDVIADPCM formats are supported for encoding.
+      Do not set wtExtPCM directly. This format is chosen automatically if you encode audio with 24 bits per sample or more than 2 channels. *)
     property WavType : TWavType read FWavType write SetWavType;
     (*Property: BlockSize
       Use this property to set the size of the DVI IMA ADPCM block in bytes
