@@ -215,6 +215,7 @@ type
     _MS : TMemoryStream;
     OldStream : TStream;
     OldStreamAssigned : Boolean;
+    ShortIEEEFloat : Boolean;
     {$IFDEF LINUX}
     // MS ACM stuff
     HasFirstFrame : Boolean;
@@ -715,6 +716,7 @@ const
     OpenCS.Enter;
     try
     FValid := True;
+    ShortIEEEFloat := False;
     if FOpened = 0 then
     begin
       _WavType := wtUnsupported;
@@ -740,8 +742,11 @@ const
         end;
         wtIEEEFloat, wtExtIEEEFloat :
         begin
+          if FBPS = 32 then
+            ShortIEEEFloat := True
+          else
+            FSize := FSize div 2;
           FBPS := 32;
-          FSize := FSize div 2;
         end;
         wtACM :
         begin
@@ -928,8 +933,15 @@ const
           BufStart := 1;
           Aligned := BUF_SIZE - (BUF_SIZE mod (FChan * 8));
           l := FStream.Read(Buf, Aligned);
-          ConvertIEEEFloatTo32(@Buf, l);
-          BufEnd := l div 2;
+          if ShortIEEEFloat then
+          begin
+            ConvertShortIEEEFloatTo32(@Buf, l);
+            BufEnd := l;
+          end else
+          begin
+            ConvertIEEEFloatTo32(@Buf, l);
+            BufEnd := l div 2;
+          end;
         end;
         wtACM:
         begin

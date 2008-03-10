@@ -121,6 +121,8 @@ type
 
   procedure ConvertIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
 
+  procedure ConvertShortIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
+
   function GetRightOf(Delim : Char; const S : String) : String;
 
   function GetLeftOf(Delim : Char; const S : String) : String;
@@ -667,7 +669,27 @@ var
   i : Integer;
 begin
   for i := 0 to (InSize div 8) - 1 do
+  begin
+    if PDouble(@InOutBuf[i*2])^ > 1 then PDouble(@InOutBuf[i*2])^ := 1;
+    if PDouble(@InOutBuf[i*2])^ < -1 then PDouble(@InOutBuf[i*2])^ := -1;
+    if PDouble(@InOutBuf[i*2])^ = 0 then InOutBuf[i] := 0
+    else
     InOutBuf[i] := Floor(PDouble(@InOutBuf[i*2])^ * High(Integer));
+  end;  
+end;
+
+procedure ConvertShortIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
+var
+  i : Integer;
+begin
+  for i := 0 to (InSize div 4) - 1 do
+  begin
+    if PSingle(@InOutBuf[i*2])^ > 1 then PDouble(@InOutBuf[i*2])^ := 1;
+    if PSingle(@InOutBuf[i*2])^ < -1 then PDouble(@InOutBuf[i*2])^ := -1;
+    if PSingle(@InOutBuf[i*2])^ = 0 then InOutBuf[i] := 0
+    else
+    InOutBuf[i] := Floor(PSingle(@InOutBuf[i])^ * High(Integer));
+  end;
 end;
 
    function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
