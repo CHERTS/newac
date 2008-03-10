@@ -130,6 +130,9 @@ begin
       wtDVIADPCM : Label15.Caption := 'DVI IMA ADPCM';
       wtMSADPCM : Label15.Caption := 'Microsoft ADPCM';
       wtACM : Label15.Caption := 'ACM';
+      wtExtPCM : Label15.Caption := 'WaveFormatExt (PCM)';
+      wtExtIEEEFloat : Label15.Caption := 'WaveFormatExt (IEEE Float)';
+      wtIEEEFloat  : Label15.Caption := 'IEEE Float';
       wtUnsupported : Label15.Caption := 'Unsupported';
     end;
   end;

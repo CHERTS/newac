@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 210
   Top = 206
-  Width = 471
+  Width = 483
   Height = 313
   Caption = 'Wave File Converter'
   Color = clBtnFace
@@ -22,9 +22,9 @@ object Form1: TForm1
   end
   object GroupBox1: TGroupBox
     Left = 7
-    Top = 55
-    Width = 202
-    Height = 154
+    Top = 48
+    Width = 234
+    Height = 161
     Caption = 'Input File Parameters'
     TabOrder = 0
     object Label1: TLabel
@@ -50,7 +50,7 @@ object Form1: TForm1
     end
     object Label4: TLabel
       Left = 7
-      Top = 90
+      Top = 98
       Width = 77
       Height = 13
       Caption = 'Bits Per Sample:'
@@ -78,28 +78,28 @@ object Form1: TForm1
     end
     object Label8: TLabel
       Left = 91
-      Top = 91
+      Top = 99
       Width = 42
       Height = 19
       AutoSize = False
     end
     object Label14: TLabel
       Left = 7
-      Top = 111
+      Top = 135
       Width = 45
       Height = 13
       Caption = 'Encoding'
     end
     object Label15: TLabel
       Left = 91
-      Top = 111
+      Top = 135
       Width = 3
       Height = 13
     end
   end
   object Button1: TButton
     Left = 7
-    Top = 21
+    Top = 13
     Width = 70
     Height = 21
     Caption = 'Input File...'
@@ -107,8 +107,8 @@ object Form1: TForm1
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 222
-    Top = 21
+    Left = 246
+    Top = 13
     Width = 77
     Height = 21
     Caption = 'Output File...'
@@ -125,9 +125,9 @@ object Form1: TForm1
     OnClick = Button3Click
   end
   object GroupBox2: TGroupBox
-    Left = 216
+    Left = 248
     Top = 48
-    Width = 233
+    Width = 217
     Height = 161
     Caption = ' Output File Parameters '
     TabOrder = 4
@@ -161,14 +161,14 @@ object Form1: TForm1
     end
     object Label13: TLabel
       Left = 7
-      Top = 90
+      Top = 98
       Width = 77
       Height = 13
       Caption = 'Bits Per Sample:'
     end
     object Label16: TLabel
       Left = 7
-      Top = 125
+      Top = 133
       Width = 45
       Height = 13
       Caption = 'Encoding'
@@ -185,7 +185,7 @@ object Form1: TForm1
     end
     object SpinEdit3: TSpinEdit
       Left = 90
-      Top = 88
+      Top = 96
       Width = 36
       Height = 22
       Increment = 8
@@ -204,7 +204,7 @@ object Form1: TForm1
     end
     object ComboBox1: TComboBox
       Left = 90
-      Top = 118
+      Top = 126
       Width = 105
       Height = 21
       Style = csDropDownList
@@ -229,7 +229,7 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 262
-    Width = 463
+    Width = 475
     Height = 17
     Align = alBottom
     Min = 0
@@ -238,8 +238,8 @@ object Form1: TForm1
     TabOrder = 6
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 288
     Top = 224
   end
