@@ -332,8 +332,8 @@ var
         Buffer := nil;
         Exit;
       end;
+      BufStart := 0;
     end;
-    BufStart := 0;
     if Bytes > (BufEnd - BufStart) then
       Bytes := BufEnd - BufStart;
     Buffer := @FBuffer[BufStart];
