@@ -281,19 +281,18 @@ var
 
   function TMemoryIn.GetBPS;
   begin
-    if (FBPS in [8, 16]) = False  then FBPS := 16;
+    if (FBPS in [8, 16, 24, 32]) = False  then FBPS := 16;
     Result := FBPS;
   end;
 
   function TMemoryIn.GetCh;
   begin
-    if (FChan in [1..2]) = False then FChan := 1;
     Result := FChan;
   end;
 
   function TMemoryIn.GetSR;
   begin
-    if (FSR < 4000) or (FSR > 48000) then FSR := 8000;
+    if (FSR < 2000) or (FSR > 96000) then FSR := 8000;
     Result := FSR;
   end;
 
