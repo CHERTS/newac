@@ -28,6 +28,8 @@ const
 
   MaxAudioInput = 2048*6; // To handle 24 bps streams;
 
+  LPCoeff : array[0..4] of Single = (2.033, -2.165, 1.959, -1.590, 0.6149);
+
 type
 
   TDA = array[0..63] of Double;
@@ -86,6 +88,36 @@ type
   published
     property Balance : Single read FBalance write SetBalance;
   end;
+
+  TDitheringAlgorithm = (dtaRectangular, dtaTriangular, dtaLPShaped);
+
+  TDitherer = class(TAuConverter)
+  private
+    _BytesPerSample : Integer;
+    FDitheringDepth : Word;
+    FDitheringAlgorithm : TDitheringAlgorithm;
+    TriState : array[0..7] of Integer;
+    LPState : array[0..7] of array [0..4] of Integer;
+    function GetSample(Buffer : PBuffer8; Count : Integer) : Int64;
+    procedure SetSample(var Sample : Int64; Buffer : PBuffer8; Count : Integer);
+    procedure SetDitheringDepth(value : Word);
+    procedure SetDitheringAlgorithm(value : TDitheringAlgorithm);
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property DitheringDepth : Word read FDitheringDepth write SetDitheringDepth;
+    property DitheringAlgorithm : TDitheringAlgorithm read FDitheringAlgorithm write SetDitheringAlgorithm;
+  end;
+
+
 
   (* Class: TAudioConverter
      Descends from <TAuConverter>. TAudioConverter component may be used for
@@ -1025,6 +1057,159 @@ implementation
     if Bytes > OBufEnd - OBufStart then Bytes := OBufEnd - OBufStart;
     Buffer := @OBuf[OBufStart];
     Inc(OBufStart, Bytes);
+  end;
+
+  constructor TDitherer.Create;
+  begin
+    inherited Create(AOwner);
+  end;
+
+  destructor TDitherer.Destroy;
+  begin
+    inherited;
+  end;
+
+  function TDitherer.GetBPS;
+  begin
+    if Assigned(FInput) then
+      Result := FInput.BitsPerSample
+    else
+      Result := 0;
+  end;
+
+  function TDitherer.GetCh;
+  begin
+    if Assigned(FInput) then
+      Result := FInput.Channels
+    else
+      Result := 0;
+  end;
+
+  function TDitherer.GetSR;
+  begin
+    if Assigned(FInput) then
+      Result := FInput.SampleRate
+    else
+      Result := 0;
+  end;
+
+  procedure TDitherer.SetDitheringDepth;
+  begin
+    if not Busy then FDitheringDepth := value;
+  end;
+
+  procedure TDitherer.SetDitheringAlgorithm;
+  begin
+    if not Busy then FDitheringAlgorithm := value;
+  end;
+
+  procedure TDitherer.InitInternal;
+  var
+    i, j : Integer;
+  begin
+    if not Assigned(FInput) then
+    raise EAuException.Create('Input not assigned');
+    Busy := True;
+    FInput.Init;
+    FPosition := 0;
+    FSize := FInput.Size;
+    _BytesPerSample := GetBPS div 8;
+    Randomize;
+    if FDitheringAlgorithm = dtaTriangular then
+      for i := 0 to 7 do TriState[i] := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
+    if FDitheringAlgorithm = dtaLPShaped then
+      for i := 0 to 7 do
+        for j := 0 to 4 do
+          LPState[i][j] := 0;
+  end;
+
+  function TDitherer.GetSample;
+  begin
+    case _BytesPerSample of
+      1 : Result := Buffer[Count];
+      2 : Result := PSmallInt(@Buffer[Count*2])^;
+      3 : Result := (PSmallInt(@Buffer[Count*3 + 1])^ * 256) + ShortInt(Buffer[Count*3]);
+      4 : Result := PInteger(@Buffer[Count*4])^;
+    end;
+  end;
+
+  procedure TDitherer.SetSample;
+  begin
+    if Sample > ((1 shl ((_BytesPerSample-1)*8))-1) then
+      Sample := (1 shl ((_BytesPerSample-1)*8))-1;
+    if Sample < -(1 shl ((_BytesPerSample-1)*8)) then
+      Sample := -(1 shl ((_BytesPerSample-1)*8));
+    case _BytesPerSample of
+      1 : Buffer[Count] := Sample;
+      2 : PSmallInt(@Buffer[Count*2])^ := Sample;
+      3 :
+      begin
+        Buffer[Count*3] := Sample and $ff;
+        PSmallInt(@Buffer[Count*3 + 1])^ := SmallInt(Sample shr 8);
+      end;
+      4 : PInteger(@Buffer[Count*4])^ := Sample;
+    end;
+  end;
+
+  procedure TDitherer.GetDataInternal;
+  var
+    i, j, k, samples, cursample, ch, frames, Noise : Integer;
+    Sample : int64;
+  begin
+    FInput.GetData(Buffer, Bytes);
+    if FDitheringDepth = 0 then
+      Exit;
+    cursample := 0;
+    samples := Bytes div _BytesPerSample;
+    ch := FInput.Channels;
+    frames := samples div ch;
+    case FDitheringAlgorithm of
+      dtaRectangular:
+      begin
+        for i := 0 to frames -1 do
+          for j := 0 to ch - 1 do
+          begin
+            Sample := GetSample(Buffer, cursample);
+            Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
+            Sample := Sample + Noise;
+            SetSample(Sample, Buffer, cursample);
+            Inc(cursample);
+          end;
+      end;
+      dtaTriangular:
+      begin
+        for i := 0 to frames -1 do
+          for j := 0 to ch - 1 do
+          begin
+            Sample := GetSample(Buffer, cursample);
+            Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
+            Sample := Sample + Noise - TriState[j];
+            TriState[j] := Noise;
+            SetSample(Sample, Buffer, cursample);
+            Inc(cursample);
+          end;
+      end;
+      dtaLPShaped:
+      begin
+        for i := 0 to frames -1 do
+          for j := 0 to ch - 1 do
+          begin
+            Sample := GetSample(Buffer, cursample);
+            Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth)) + Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
+            Sample := Round(Sample + LPState[j][0]*LPcoeff[0] + LPState[j][1]*LPcoeff[1] + LPState[j][2]*LPcoeff[2] + LPState[j][3]*LPcoeff[3] + LPState[j][4]*LPcoeff[4] + Noise);
+            SetSample(Sample, Buffer, cursample);
+            for k := 4 downto 1 do LPState[j][k] := LPState[j][k-1];
+            LPState[j][0] := Sample;
+            Inc(cursample);
+          end;
+      end;
+    end;
+  end;
+
+  procedure TDitherer.FlushInternal;
+  begin
+    FInput.Flush;
+    Busy := False;
   end;
 
 {$WARNINGS ON}
