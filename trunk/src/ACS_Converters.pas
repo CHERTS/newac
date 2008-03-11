@@ -28,7 +28,7 @@ const
 
   MaxAudioInput = 2048*6; // To handle 24 bps streams;
 
-  LPCoeff : array[0..4] of Single = (2.033, -2.165, 1.959, -1.590, 0.6149);
+  LPCoeff : array[0..4] of Single = (0.31831, 0, 0.07503, 0, 0.06366);
 
 type
 
@@ -1135,10 +1135,10 @@ implementation
 
   procedure TDitherer.SetSample;
   begin
-    if Sample > ((1 shl ((_BytesPerSample-1)*8))-1) then
-      Sample := (1 shl ((_BytesPerSample-1)*8))-1;
-    if Sample < -(1 shl ((_BytesPerSample-1)*8)) then
-      Sample := -(1 shl ((_BytesPerSample-1)*8));
+    if Sample > Integer(((1 shl (_BytesPerSample*8-1))-1)) then
+      Sample := Integer((1 shl (_BytesPerSample*8-1))-1);
+    if Sample < Integer(-(1 shl (_BytesPerSample*8-1))) then
+      Sample := Integer(-(1 shl (_BytesPerSample*8-1)));
     case _BytesPerSample of
       1 : Buffer[Count] := Sample;
       2 : PSmallInt(@Buffer[Count*2])^ := Sample;
@@ -1196,10 +1196,11 @@ implementation
           begin
             Sample := GetSample(Buffer, cursample);
             Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth)) + Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
-            Sample := Round(Sample + LPState[j][0]*LPcoeff[0] + LPState[j][1]*LPcoeff[1] + LPState[j][2]*LPcoeff[2] + LPState[j][3]*LPcoeff[3] + LPState[j][4]*LPcoeff[4] + Noise);
+            Sample := Round(Sample + LPState[j][0]*LPcoeff[0] + LPState[j][1]*LPcoeff[1] + LPState[j][2]*LPcoeff[2] + LPState[j][3]*LPcoeff[3] + LPState[j][4]*LPcoeff[4]);
+            //Sample := X + Noise;
             SetSample(Sample, Buffer, cursample);
             for k := 4 downto 1 do LPState[j][k] := LPState[j][k-1];
-            LPState[j][0] := Sample;
+            LPState[j][0] := Noise;
             Inc(cursample);
           end;
       end;
