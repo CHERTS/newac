@@ -234,7 +234,6 @@ implementation
     l, ilen, i : LongWord;
     res : Integer;
   begin
-    l := 0;
     if FPassThrough then
     begin
     // Pass through.
