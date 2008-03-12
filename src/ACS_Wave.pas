@@ -1022,6 +1022,9 @@ begin
   Header.Format.Format.nBlockAlign := (Header.Format.Format.wBitsPerSample * Header.Format.Format.nChannels) shr 3;
   Header.Format.Format.nAvgBytesPerSec := Header.Format.Format.nSamplesPerSec * Header.Format.Format.nBlockAlign;
   Header.Format.wValidBitsPerSample := Header.Format.Format.wBitsPerSample;
+  if Header.Format.Format.nChannels = 1 then
+    Header.Format.dwChannelMask := 1
+  else  
   if Header.Format.Format.nChannels = 2 then
     Header.Format.dwChannelMask := 3
   else
