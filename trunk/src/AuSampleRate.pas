@@ -165,12 +165,7 @@ implementation
     else
     begin
       FSize := Round(FInput.Size * GetSR/Finput.SampleRate);
-      if FInput.BitsPerSample = 24 then
-      begin
-        FSize := Round(FSize*2/3);
-        FSize := FSize - (FSize mod (2*FInput.Channels));
-      end else
-        FSize := FSize - (FSize mod (Finput.BitsPerSample* FInput.Channels div 8));
+      FSize := FSize - (FSize mod (Finput.BitsPerSample* FInput.Channels div 8));
     end;
   end;
 
@@ -180,7 +175,15 @@ implementation
     i : Integer;
   begin
     for i := 0 to len - 1 do
+    begin
+      if _in[i] >= 1 then
+        _out[i] := 32767
+      else
+      if _in[i] <= -1 then
+        _out[i] := -32768
+      else
       _out[i] := Floor(_in[i] * $8000);
+    end;
   end;
 
   procedure SingleToInt32(_in : PFLOATARRAY; _out : PBuffer32; len : Integer);
@@ -188,7 +191,15 @@ implementation
     i : Integer;
   begin
     for i := 0 to len - 1 do
+    begin
+      if _in[i] >= 1 then
+        _out[i] := 2147483647
+      else
+      if _in[i] <= -1 then
+        _out[i] := -2147483648
+      else
       _out[i] := Floor(_in[i] * $80000000);
+    end;
   end;
 
   procedure SingleToInt24(_in : PFLOATARRAY; _out : PBuffer8; len : Integer);
@@ -197,7 +208,13 @@ implementation
   begin
     for i := 0 to len - 1 do
     begin
-      Sample := Floor(_in[i] * $c000);
+      if _in[i] >= 1 then
+        Sample := $800000 - 1
+      else
+      if _in[i] <= -1 then
+        Sample := -$800000
+      else
+      Sample := Floor(_in[i] * $800000);
       _out[i*3] := Sample and $ff;
       PSmallInt(@(_out[i*3 + 1]))^ := SmallInt(Sample shr 8);
     end;
@@ -225,7 +242,7 @@ implementation
     i : Integer;
   begin
     for i := 0 to len - 1 do
-      _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))/$c000;
+      _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))/$800000;
   end;
 
 
