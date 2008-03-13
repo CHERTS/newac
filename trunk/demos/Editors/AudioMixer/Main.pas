@@ -17,7 +17,6 @@ type
   TForm1 = class(TForm)
     WaveIn1: TWaveIn;
     WaveIn2: TWaveIn;
-    AudioMixer1: TAudioMixer;
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
@@ -30,17 +29,16 @@ type
     RadioGroup1: TRadioGroup;
     RadioGroup2: TRadioGroup;
     Button4: TButton;
-    CheckBox1: TCheckBox;
     DXAudioOut1: TDXAudioOut;
     WaveOut1: TWaveOut;
+    AudioMixer1: TAudioMixer;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
+    procedure Button4Click(Sender: TObject);
     procedure TrackBar2Change(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
-    procedure CheckBox1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -71,8 +69,6 @@ begin
   Button1.Enabled := False;
   Button2.Enabled := False;
   Button3.Enabled := False;
-  AudioMixer1.Volume1 := TrackBar1.Position * 5;
-  AudioMixer1.Volume2 := TrackBar2.Position * 5;
   if RadioGroup1.ItemIndex = 0 then
     AudioMixer1.Mode := amMix
   else
@@ -101,25 +97,20 @@ begin
   Button3.Enabled := True;
 end;
 
-procedure TForm1.TrackBar2Change(Sender: TObject);
-begin
-  AudioMixer1.Volume2 := TrackBar2.Position * 5;
-end;
-
-procedure TForm1.TrackBar1Change(Sender: TObject);
-begin
-  AudioMixer1.Volume1 := TrackBar1.Position * 5;
-end;
-
 procedure TForm1.Button4Click(Sender: TObject);
 begin
   if DXAudioOut1.Status = tosPlaying then DXAudioOut1.Stop;
   if WaveOut1.Status = tosPlaying then WaveOut1.Stop;
 end;
 
-procedure TForm1.CheckBox1Click(Sender: TObject);
+procedure TForm1.TrackBar2Change(Sender: TObject);
 begin
-  AudioMixer1.Normalize := CheckBox1.Checked;
+  AudioMixer1.Volume2 := TrackBar2.Position
+end;
+
+procedure TForm1.TrackBar1Change(Sender: TObject);
+begin
+  AudioMixer1.Volume1 := TrackBar1.Position
 end;
 
 end.
