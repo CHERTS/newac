@@ -15,37 +15,35 @@ unit ACS_AudioMix;
 interface
 
 uses
-  Classes, SysUtils, ACS_Types, ACS_Classes, SyncObjs, Math;
+  Classes, SysUtils, ACS_Types, ACS_Procs, ACS_Classes, SyncObjs, Math;
 
 const
-  BUF_SIZE = $10000;
+  BUF_SIZE = $1000;
 
 type
 
-  TAudioMixerMode = (amMix, amConcatenate, amRTMix, amCustomMix);
+  TAudioMixerMode = (amMix, amConcatenate);
 
   (* Class: TAudioMixer
      This component can mix or concatenate twoinput audio streams.
      Unlike other stream converter components, TAudioMixer component has two input properties: Input1 and Input2.
-     The input streams should have the same number of channels, bits per sample and sample rates.
+     The input streams should have the same number of channels and sample rates (butmay have the different number of bits per sample).
      Note that input streams may be of different size. In amMix mode the streams start at the same time, but the longer stream will play alone after the shorter stream has ended.
-     In amRTMix mode you can add second stream to the first stream at any time, but the whole playback will end when the first stream ends.
+     In amConcatenate mode the second input will play after the first input has ended.
      Decends from <TAuInput>.*)
 
   TAudioMixer = class(TAuInput)
   private
     FInput1, FInput2 : TAuInput;
-    BufStart, BufEnd : LongWord;
-    ByteCount : Cardinal;                // add by leozhang
-    FVolume1, FVolume2 : Byte;
     EndOfInput1, EndOfInput2 : Boolean;
-    InBuf1, InBuf2 : array[1..BUF_SIZE] of Byte;
+    FVolume1, FVolume2 : Word;
+    InBuf1, InBuf2 : PBuffer8;
+    FloatBuf1, FloatBuf2 : PBufferSingle;
+    BytesPerSample1, BytesPerSample2 : Byte;
     Busy : Boolean;
     FMode : TAudioMixerMode;
-    FInput2Start: Cardinal;
-    CS : TCriticalSection;
-    FFgPlaying : Boolean;
-    FNormalize : Boolean;
+    FInput2Start: Int64;
+    SamplesCount : Int64;
     procedure SetInput1(aInput : TAuInput);
     procedure SetInput2(aInput : TAuInput);
   protected
@@ -58,10 +56,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (* Property: FgPlaying
-      Use this property in amRTMix mode to check if the forground sound is currently playing.*)
-    property FgPlaying : Boolean read FFgPlaying;
-    property Normalize : Boolean read FNormalize write FNormalize;
   published
     (*Property: Input1
     Use this property to set the first input stream to be mixed or concatenated.*)
@@ -75,104 +69,27 @@ type
      If it is set to amMix (default) the mixer mixes input streams and the size of the resulting stream is equal to the size of longest input stream.
      If this property is set to amConcatenate, the two streams are concatenated together and the size of the resulting stream is the sum of the sizes of the input streams.
      When the mode is amConcatenate the stream from the Input1 is put before the stream from the Input2.
-     In amRTMix mode you can add Input2 (forground) to Input1 (background) at any time while the mixer is playing. To add forground sound to the background just assign an input to Input2 property.
-     Note the following: after forground sound is done with the Input2 pointer becomes nil.
-     The total length of the playback is equal to the background sound length, with any forground sound still playing being aborted.
-     You can assign new forground sound while another forground sound is playing (in which case the new sound will replace the old one) but you cannot use the same input component in this case.
-     When the AudioMixer is playing you can tell if the forground sound is playing by checking the value of FgPlaying property.
-     The following code illustrates this:
-> var
->   InputVar1 : TACSInput;
->   InputVar2 : TACSInput;
-> begin
->   AudioMixer1.Input2 := InputVar1;
->   ...
->   if AudioMixer1.FgPlaying then
->   AudioMixer1.Input2 := InputVar2; // Cannot assign InputVar1 here
->   ...
->   if not AudioMixer1.FgPlaying then
->   AudioMixer1.Input2 := InputVar2; // Can assign the same input component again
-*)
+    *)
     property Mode : TAudioMixerMode read FMode write FMode;
-    property Input2Start :Cardinal read FInput2Start write FInput2Start;
-    (*Property: Volume1
-      Use Volume1 to set the volume of the first stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
-    property Volume1 : Byte read FVolume1 write FVolume1;
-    (*Property: Volume2
-      Use Volume2 to set the volume of the second stream in the resulting mixed stream. The maximum value is 255 (default) the minimum value is 0.*)
-    property Volume2 : Byte read FVolume2 write FVolume2;
+    property Input2StartSample : Int64 read FInput2Start write FInput2Start;
+    (*property Volume1:
+      The volume of the first input (in the amMix mode) *)
+    property Volume1 : Word read FVolume1 write FVolume1;
+    (*property Volume2:
+      The volume of the second input (in the amMix mode) *)
+    property Volume2 : Word read FVolume2 write FVolume2;
   end;
 
 implementation
 
-procedure MixChannels(Buf1, Buf2 : Pointer; Vol1, Vol2, InSize, BPS : Integer; Norm : Boolean);
-var
-  i : Integer;
-  V1, V2, BUF : Double;
-  Buf16_1, Buf16_2 : PBuffer16;
-  S1, S2 : Integer;
-  Buf8_1, Buf8_2 : PBuffer8;
-  BE : Extended;
-begin
-  if (Vol1 + Vol2) <> 0 then
-  begin
-    V1 := Vol1 / (Vol1 + Vol2);
-    V2 := Vol2 / (Vol1 + Vol2);
-  end else
-  begin
-    V1 := 0;
-    V2 := 0;
-  end;
-  if BPS = 16 then
-  begin
-    Buf16_1 := Buf1;
-    Buf16_2 := Buf2;
-    for i := 0 to (Insize shr 1) -1  do
-    begin
-      BUF := (Buf16_1[i]*V1 + Buf16_2[i]*V2);
-      //if Norm then BUF := BUF * N;
-      Buf16_2[i] := Floor(BUF);
-    end;
-  end else
-  if BPS = 8 then
-  begin
-    Buf8_1 := Buf1;
-    Buf8_2 := Buf2;
-    for i := 0 to Insize - 1 do
-    begin
-      BUF := (Buf8_1[i]*V1 + Buf8_2[i]*V2);
-      //if Norm then BUF := BUF * N;
-      Buf8_2[i] := Floor(BUF);
-    end;
-  end else
-  if BPS = 24 then
-  begin
-    Buf8_1 := Buf1;
-    Buf8_2 := Buf2;
-    for i := 0 to (Insize div 3) - 1 do
-    begin
-      S1 := (PSmallInt(@Buf8_1[i*3 + 1])^ shl 8) + Buf8_1[i*3];
-      S2 := (PSmallInt(@Buf8_2[i*3 + 1])^ shl 8) + Buf8_2[i*3];
-      BE:= (S1*V1 + S2*V2);
-      //if Norm then BE := BE * N;
-      S1 := Floor(BE);
-      Move(S1, Buf8_2[i*3], 3);
-    end;
-  end;
-end;
-
 constructor TAudioMixer.Create;
 begin
   inherited Create(AOwner);
-  FVolume1 := 255;
-  FVolume2 := 255;
   FInput2Start := 0;
-  CS := TCriticalSection.Create;
 end;
 
   destructor TAudioMixer.Destroy;
   begin
-    CS.Free;
     inherited Destroy;
   end;
 
@@ -197,285 +114,161 @@ end;
     Result := FInput1.SampleRate;
   end;
 
+  function _Min(X, Y : Int64) : Int64;
+  begin
+    if X < Y then Result := X
+    else Result := Y;
+  end;
+
   procedure TAudioMixer.InitInternal;
   var
-    In2StartByte : Cardinal;     // add by zhangl.
+    SamplesCount1, SamplesCount2  : Int64;
   begin
     Busy := True;
     FPosition := 0;
-    BufStart := 1;
-    BufEnd := 0;
+    SamplesCount := 0;
     EndOfInput1 := False;
     EndOfInput2 := False;
-    if not Assigned(FInput1) then
-    raise EAuException.Create('Input1 not assigned');
-    if FMode = amRTMix then
+    if not Assigned(FInput1) then raise
+      EAuException.Create('Input1 is not assigned');
+    if not Assigned(FInput2) then raise
+      EAuException.Create('Input2 is not assigned');
+    FInput1.Init;
+    FInput2.Init;
+    BytesPerSample1 := (FInput1.BitsPerSample div 8);
+    BytesPerSample2 := (FInput2.BitsPerSample div 8);
+    SamplesCount1 := FInput1.Size div BytesPerSample1;
+    if FMode = amMix then
     begin
-      FInput1.Init;
-      FSize := FInput1.Size;
-      if Assigned(FInput2) then
-      begin
-        FInput2.Init;
-        FFgPlaying := True;
-      end else EndOfInput2 := True;
+      SamplesCount2 := FInput2.Size div BytesPerSample2 + FInput2Start;
+      FSize := SamplesCount1 + SamplesCount2 - _Min(SamplesCount1, SamplesCount2)
     end else
     begin
-      if not Assigned(FInput2) then
-      raise EAuException.Create('Input2 not assigned');
-      FInput1.Init;
-      FInput2.Init;
-      case FMode of
-        amMix :
-          if FInput1.Size > FInput2.Size then FSize := FInput1.Size
-          else FSize := FInput2.Size;
-          amConcatenate :
-          FSize := FInput1.Size + FInput2.Size;     //determine the size of the output stream in bytes
-          amCustomMix:
-          // add by leozhang
-          begin
-             In2StartByte :=  Round(Int((FInput2Start * FInput2.SampleRate) /1000) *
-                              (FInput2.Channels) * ((FInput2.BitsPerSample) shr 3));
-             ByteCount := In2StartByte;
-             if Cardinal(FInput1.Size) > In2StartByte + FInput2.Size then
-                  FSize := FInput1.Size
-             else
-                  FSize := In2StartByte + FInput2.Size;
-          end;
-         // leozhang
-      end;
+      SamplesCount2 := FInput2.Size div BytesPerSample2;
+      FSize := SamplesCount1 + SamplesCount2;
     end;
+    FSize := FSize * BytesPerSample1;
+    GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
+    GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
+    GetMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
+    GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
   end;
 
   procedure TAudioMixer.FlushInternal;
   begin
     FInput1.Flush;
-    if (FMode <> amRTMix) or Assigned(FInput2) then
     FInput2.Flush;
+    FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
+    FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
+    FreeMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
+    FreeMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
     Busy := False;
   end;
 
   procedure TAudioMixer.GetDataInternal;
   var
-    l1, l2 : LongWord;
-    InSize, Aligned : LongWord;
+    l : LongWord;
+    i : Integer;
+    Bytes1, Samples1 : LongWord;
+    Bytes2, Samples2 : LongWord;
+    SamplesReq : LongWord;
+    v1, v2 : Single;
   begin
-    Aligned := BUF_SIZE - (BUF_SIZE mod (Channels * (BitsPerSample div 8)));
-    if not Busy then  raise EAuException.Create('The Stream is not opened');
-    if BufStart > BufEnd then
+    if EndOfInput1 and EndOfInput2 then
     begin
-      if EndOfInput1 and  EndOfInput2 then
-      begin
-        Buffer := nil;
-        Bytes := 0;
-        Exit;
+      Bytes := 0;
+      Buffer := nil;
+      Exit;
+    end;
+    SamplesReq := BUF_SIZE;
+    if Bytes div BytesPerSample1 < SamplesReq then SamplesReq := Bytes div BytesPerSample1;
+    Bytes1 := SamplesReq * BytesPerSample1;
+    Bytes2 := SamplesReq * BytesPerSample2;
+    if FMode = amMix then
+    begin
+      v1 := FVolume1 / High(Word);
+      v2 := FVolume2 / High(Word);
+      FillChar(InBuf1^, Bytes1, 0);
+      FillChar(FloatBuf1^, SamplesReq * SizeOf(Single), 0);
+      FillChar(FloatBuf2^, SamplesReq * SizeOf(Single), 0);
+      l := 0;
+      if not EndOfInput1 then
+       l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
+      Samples1 := l div BytesPerSample1;
+      Inc(SamplesCount, Samples1);
+      FillChar(InBuf2^, Bytes2, 0);
+      l := 0;
+      if SamplesCount >= FInput2Start then
+        if not EndOfInput2 then
+          l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
+      Samples2 := l div BytesPerSample2;
+      case BytesPerSample1 of
+        1 : ByteToSingle(Pointer(InBuf1), FloatBuf1, BUF_SIZE);
+        2 : SmallIntToSingle(Pointer(InBuf1), FloatBuf1, BUF_SIZE);
+        3 : Int24ToSingle(Pointer(InBuf1), FloatBuf1, BUF_SIZE);
+        4 : Int32ToSingle(Pointer(InBuf1), FloatBuf1, BUF_SIZE);
       end;
-      if (FMode = amRTMix) and  EndOfInput1 then
-      begin
-        Buffer := nil;
-        Bytes := 0;
-        Exit;
+      case BytesPerSample2 of
+        1 : ByteToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+        2 : SmallIntToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+        3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+        4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
       end;
-      BufStart := 1;
-      case Mode of
-        amMix :
-        begin
-          l1 := 0;
-          l2 := 0;
-          if Finput1.BitsPerSample = 16 then
-          begin
-            FillChar(InBuf1[1], Aligned, 0);
-            FillChar(InBuf2[1], Aligned, 0);
-          end else
-          if Finput1.BitsPerSample = 8 then
-          begin
-            FillChar(InBuf1[1], Aligned, 127);
-            FillChar(InBuf2[1], Aligned, 127);
-          end;
-          if not EndOfInput1 then
-          begin
-            l1 := FInput1.CopyData(@InBuf1[1], Aligned);
-            InSize := l1;
-            while (InSize <> 0) and (l1 < Aligned) do
-            begin
-              InSize := FInput1.CopyData(@InBuf1[l1+1], Aligned - l1);
-              Inc(l1, InSize);
-            end;
-            if InSize = 0 then EndOfInput1 := True;
-          end;
-          if not EndOfInput2 then
-          begin
-            l2 := FInput2.CopyData(@InBuf2[1], Aligned);
-            InSize := l2;
-            while (InSize <> 0) and (l2 < Aligned) do
-            begin
-              InSize := FInput2.CopyData(@InBuf2[l2+1], Aligned - l2);
-              Inc(l2, InSize);
-            end;
-            if InSize = 0 then EndOfInput2 := True;
-          end;
-          if (l1 = 0) and (l2 = 0) then
-          begin
-            Buffer := nil;
-            Bytes := 0;
-            Exit;
-          end;
-          if l1 > l2 then BufEnd := l1 else BufEnd := l2;
-          MixChannels(@InBuf1[1], @InBuf2[1], FVolume1, FVolume2, BufEnd,
-            FInput1.BitsPerSample, FNormalize);
+      for i := 0 to BUF_SIZE - 1 do
+        FloatBuf1[i] := (FloatBuf1[i]*v1 + FloatBuf2[i]*v2)/2;
+      case BytesPerSample1 of
+        1 : SingleToByte(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
+        2 : SingleToSmallInt(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
+        3 : SingleToInt24(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
+        4 : SingleToInt32(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
+      end;
+      if Samples1 > Samples2 then Bytes := Samples1*BytesPerSample1
+      else Bytes := Samples2*BytesPerSample1;
+      Buffer := InBuf1;
+    end else
+    begin
+      l := 0;
+      if not EndOfInput1 then
+      begin
+        l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
+        Bytes := l;
+        Buffer := InBuf1;
+        if l <> 0 then Exit;
+      end;
+      if not EndOfInput2 then
+      begin
+        l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
+        Samples2 := l div BytesPerSample2;
+        case BytesPerSample2 of
+          1 : ByteToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+          2 : SmallIntToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+          3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+          4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
         end;
-        amConcatenate :
-        begin
-          if not EndOfInput1 then
-          begin
-            l1 := FInput1.CopyData(@InBuf2[1], Aligned);
-            if l1 = 0 then EndOfInput1 := True
-            else BufEnd := l1;
-          end;
-          if EndOfInput1 then
-          begin
-            l2 := FInput2.CopyData(@InBuf2[1], Aligned);
-            if l2 = 0 then
-            begin
-              Buffer := nil;
-              Bytes := 0;
-              Exit;
-            end
-            else BufEnd := l2;
-          end;
+        case BytesPerSample1 of
+          1 : SingleToByte(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+          2 : SingleToSmallInt(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+          3 : SingleToInt24(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+          4 : SingleToInt32(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
         end;
-        // add by leo.zhang
-        amCustomMix:
-        begin
-          l1 := 0;
-          l2 := 0;
-          FillChar(InBuf1[1], Aligned, 0);
-          FillChar(InBuf2[1], Aligned, 0);
-          if not EndOfInput1 then
-          begin
-            l1 := FInput1.CopyData(@InBuf1[1], Aligned);
-            InSize := l1;
-            while (InSize <> 0) and (l1 < BUF_SIZE) do
-            begin
-              InSize := FInput1.CopyData(@InBuf1[l1+1], Aligned - l1);
-              Inc(l1, InSize);
-            end;
-            if InSize = 0 then EndOfInput1 := True;
-          end;
-          CS.Enter;
-          if not EndOfInput2 then
-          begin
-             if ByteCount > Aligned then
-             begin
-                ByteCount := ByteCount - Aligned;
-                l2 := BUF_SIZE; InSize := l2;
-             end else
-             begin
-                  l2 := FInput2.CopyData(@InBuf2[ByteCount+1],Aligned - ByteCount);
-                  InSize := l2;
-                  if ByteCount <> 0 then
-                  begin
-                    Inc(l2,ByteCount);
-                    InSize := l2;
-                    ByteCount := 0;
-                  end;
-                  while (InSize <> 0) and (l2 < Aligned) do
-                  begin
-                     InSize := FInput2.CopyData(@InBuf2[l2+1], Aligned - l2);
-                     Inc(l2, InSize);
-                  end;
-             end;
-             if InSize = 0 then EndOfInput2 := True;
-          end;
-          CS.Leave;
-          if (l1 = 0) and (l2 = 0) then
-          begin
-            Buffer := nil;
-            Bytes := 0;
-            Exit;
-          end;
-          if l1 > l2 then BufEnd := l1 else BufEnd := l2;
-          MixChannels(@InBuf1[1], @InBuf2[1], FVolume1, FVolume2, BufEnd,
-          FInput1.BitsPerSample, FNormalize);
-        end;
-        // leo.zhang.
-        amRTMix :
-        begin
-          l1 := 0;
-          l2 := 0;
-          FillChar(InBuf1[1], BUF_SIZE, 0);
-          FillChar(InBuf2[1], BUF_SIZE, 0);
-          if not EndOfInput1 then
-          begin
-            l1 := FInput1.CopyData(@InBuf1[1], BUF_SIZE);
-            InSize := l1;
-            while (InSize <> 0) and (l1 < BUF_SIZE) do
-            begin
-              InSize := FInput1.CopyData(@InBuf1[l1+1], BUF_SIZE - l1);
-              Inc(l1, InSize);
-            end;
-            if InSize = 0 then EndOfInput1 := True;
-          end;
-          CS.Enter;
-          if not EndOfInput2 then
-          begin
-            l2 := FInput2.CopyData(@InBuf2[1], BUF_SIZE);
-            InSize := l2;
-            while (InSize <> 0) and (l2 < BUF_SIZE) do
-            begin
-              InSize := FInput2.CopyData(@InBuf2[l2+1], BUF_SIZE - l2);
-              Inc(l2, InSize);
-            end;
-            if InSize = 0 then
-            begin
-              EndOfInput2 := True;
-              FFGPlaying := False;
-              FInput2.Flush;
-              FInput2 := nil;
-            end;
-          end;
-          CS.Leave;
-          if (l1 = 0) and (l2 = 0) then
-          begin
-            Buffer := nil;
-            Bytes := 0;
-            Exit;
-          end;
-          if l1 > l2 then BufEnd := l1 else BufEnd := l2;
-          MixChannels(@InBuf1[1], @InBuf2[1], FVolume1, FVolume2, BufEnd,
-          FInput1.BitsPerSample, FNormalize);
-        end;
-      end;       // case end.
-    end;  // endif.
-    if Bytes > (BufEnd - BufStart + 1) then
-      Bytes := BufEnd - BufStart + 1;
-    Buffer := @InBuf2[BufStart];
-    Inc(BufStart, Bytes);
-    Inc(FPosition, Bytes);
+        Bytes := Samples2*BytesPerSample1;
+        Buffer := InBuf1;
+      end;
+    end;
   end;
 
   procedure TAudioMixer.SetInput1;
   begin
     if Busy then
-    raise EAuException.Create('The component is buisy.');
+    raise EAuException.Create('The component is busy.');
     FInput1 := aInput;
   end;
 
   procedure TAudioMixer.SetInput2;
   begin
-    if not Busy then  FInput2 := aInput
-    else
-    if (FMode = amRTMix) or (FMode = amCustomMix) then
-    begin
-      CS.Enter;
-      if FFgPlaying then
-        Input2.Flush;
-      FInput2 := aInput;
-      Finput2.Init;
-      FFgPlaying := True;
-      EndOfInput2 := False;
-      CS.Leave;
-    end else
-    raise EAuException.Create('The component is not in amFB mode.');
+    if Busy then
+    raise EAuException.Create('The component is busy.');
+    FInput2 := aInput;
   end;
 
 end.
