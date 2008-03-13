@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 192
-  Top = 109
+  Left = 194
+  Top = 110
   Width = 385
   Height = 200
   Caption = 'Mixer Demo'
@@ -59,10 +59,10 @@ object Form1: TForm1
     Top = 16
     Width = 150
     Height = 25
-    Max = 51
+    Max = 65535
     Orientation = trHorizontal
     Frequency = 1
-    Position = 25
+    Position = 0
     SelEnd = 0
     SelStart = 0
     TabOrder = 3
@@ -76,10 +76,10 @@ object Form1: TForm1
     Top = 40
     Width = 150
     Height = 25
-    Max = 51
+    Max = 65535
     Orientation = trHorizontal
     Frequency = 1
-    Position = 25
+    Position = 0
     SelEnd = 0
     SelStart = 0
     TabOrder = 4
@@ -121,35 +121,16 @@ object Form1: TForm1
     TabOrder = 7
     OnClick = Button4Click
   end
-  object CheckBox1: TCheckBox
-    Left = 248
-    Top = 136
-    Width = 89
-    Height = 17
-    Caption = 'Normalize'
-    TabOrder = 8
-    OnClick = CheckBox1Click
-  end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 16
     Top = 128
   end
   object WaveIn2: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 48
-    Top = 128
-  end
-  object AudioMixer1: TAudioMixer
-    Input1 = WaveIn1
-    Input2 = WaveIn2
-    Mode = amMix
-    Input2Start = 0
-    Volume1 = 255
-    Volume2 = 255
-    Left = 80
     Top = 128
   end
   object OpenDialog1: TOpenDialog
@@ -172,10 +153,19 @@ object Form1: TForm1
   object WaveOut1: TWaveOut
     Input = AudioMixer1
     OnDone = WaveOut1Done
-    FileMode = foRewrite
     WavType = wtPCM
     BlockSize = 512
+    FileMode = foRewrite
     Left = 128
+    Top = 128
+  end
+  object AudioMixer1: TAudioMixer
+    Input1 = WaveIn1
+    Input2 = WaveIn2
+    Mode = amMix
+    Volume1 = 0
+    Volume2 = 0
+    Left = 88
     Top = 128
   end
 end
