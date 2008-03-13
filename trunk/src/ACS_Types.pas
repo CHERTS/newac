@@ -74,6 +74,8 @@ type
   TBuffer24 = packed array[0..0] of Sample24;
   PBuffer24 = ^TBuffer24;
 
+  TBufferSingle = array[0..0] of Single;
+  PBufferSingle = ^TBufferSingle;
 
   TSample8 = array[0..0] of Byte;
   PSample8 = ^TSample8;

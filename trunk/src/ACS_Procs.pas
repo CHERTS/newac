@@ -123,6 +123,22 @@ type
 
   procedure ConvertShortIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
 
+  procedure SingleToByte(_in : PBufferSingle; _out : PBuffer8; len : Integer);
+
+  procedure SingleToSmallInt(_in : PBufferSingle; _out : PBuffer16; len : Integer);
+
+  procedure SingleToInt32(_in : PBufferSingle; _out : PBuffer32; len : Integer);
+
+  procedure SingleToInt24(_in : PBufferSingle; _out : PBuffer8; len : Integer);
+
+  procedure ByteToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
+
+  procedure SmallIntToSingle(_in : PBuffer16; _out : PBufferSingle; len : Integer);
+
+  procedure Int24ToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
+
+  procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
+
   function GetRightOf(Delim : Char; const S : String) : String;
 
   function GetLeftOf(Delim : Char; const S : String) : String;
@@ -695,6 +711,105 @@ begin
     InOutBuf[i] := Floor(PSingle(@InOutBuf[i])^ * High(Integer));
   end;
 end;
+
+  procedure SingleToByte(_in : PBufferSingle; _out : PBuffer8; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+    begin
+      if _in[i] >= 1 then
+        _out[i] := 255
+      else
+      if _in[i] <= -1 then
+        _out[i] := 0
+      else
+      _out[i] := Floor((_in[i]+1) * 128);
+    end;
+  end;
+
+  procedure SingleToSmallInt(_in : PBufferSingle; _out : PBuffer16; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+    begin
+      if _in[i] >= 1 then
+        _out[i] := 32767
+      else
+      if _in[i] <= -1 then
+        _out[i] := -32768
+      else
+      _out[i] := Floor(_in[i] * $8000);
+    end;
+  end;
+
+  procedure SingleToInt32(_in : PBufferSingle; _out : PBuffer32; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+    begin
+      if _in[i] >= 1 then
+        _out[i] := 2147483647
+      else
+      if _in[i] <= -1 then
+        _out[i] := -2147483648
+      else
+      _out[i] := Floor(_in[i] * $80000000);
+    end;
+  end;
+
+  procedure SingleToInt24(_in : PBufferSingle; _out : PBuffer8; len : Integer);
+  var
+    i, Sample : Integer;
+  begin
+    for i := 0 to len - 1 do
+    begin
+      if _in[i] >= 1 then
+        Sample := $800000 - 1
+      else
+      if _in[i] <= -1 then
+        Sample := -$800000
+      else
+      Sample := Floor(_in[i] * $800000);
+      _out[i*3] := Sample and $ff;
+      PSmallInt(@(_out[i*3 + 1]))^ := SmallInt(Sample shr 8);
+    end;
+  end;
+
+  procedure ByteToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+      _out[i] := _in[i]/128 - 1;
+  end;
+  
+  procedure SmallIntToSingle(_in : PBuffer16; _out : PBufferSingle; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+      _out[i] := _in[i]/$8000;
+  end;
+
+  procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+      _out[i] := _in[i]/$80000000;
+  end;
+
+  procedure Int24ToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to len - 1 do
+      _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))/$800000;
+  end;
+
 
    function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
    begin
