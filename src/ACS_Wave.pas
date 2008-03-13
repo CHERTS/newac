@@ -1257,7 +1257,7 @@ end;
       else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or fmShareExclusive, FAccessMask);
     end;
     FInput.Init;
-    if (FInput.Channels > 2) or (FInput.BitsPerSample = 24) then
+    if (FInput.Channels > 2) or (FInput.BitsPerSample > 16) then
       FWavType := wtExtPCM;
     if (FFileMode = foAppend) and (FStream.Size <> 0) then
     begin
