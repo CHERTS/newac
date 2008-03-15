@@ -198,7 +198,7 @@ end;
       Inc(SamplesCount, Samples1);
       FillChar(InBuf2^, Bytes2, 0);
       l := 0;
-      if SamplesCount >= FInput2Start then
+      if SamplesCount >= FInput2Start*FInput2.Channels then
         if not EndOfInput2 then
           l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
       Samples2 := l div BytesPerSample2;
