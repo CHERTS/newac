@@ -81,7 +81,10 @@ implementation
 
   function TMSResampler.GetSR;
   begin
-    Result := FOutSampleRate;
+    Result := 0;
+    if not Assigned(FInput) then Exit;
+    if FOutSampleRate = 0 then Result := FInput.SampleRate
+    else Result := FOutSampleRate;
   end;
 
   procedure TMSResampler.InitInternal;
@@ -90,15 +93,15 @@ implementation
       raise EAuException.Create('Input not assigned');
     FInput.Init;
     Busy := True;
-    FSize := Round(FInput.Size*FOutSampleRate/FInput.SampleRate);
+    FSize := Round(FInput.Size*GetSR/FInput.SampleRate);
     FPosition := 0;
-    if FOutSampleRate <> FInput.SampleRate then
+    if GetSR <> FInput.SampleRate then
     begin
       dmo_resampler_init(resampler);
       resampler.input_spec.sample_rate := FInput.SampleRate;
       resampler.input_spec.channels := FInput.Channels;
       resampler.input_spec.bps := FInput.BitsPerSample;
-      resampler.output_sr := FOutSampleRate;
+      resampler.output_sr := GetSR;
       dmo_resampler_set_formats(resampler);
     end;
     FEndOfInput := False;
@@ -112,7 +115,7 @@ implementation
     InBuf : Pointer;
     l : LongWord;
   begin
-    if FOutSampleRate = FInput.SampleRate then
+    if GetSR = FInput.SampleRate then
     begin
       FInput.GetData(Buffer, Bytes);
       Exit;
