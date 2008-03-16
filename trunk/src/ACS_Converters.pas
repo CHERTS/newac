@@ -28,7 +28,13 @@ const
 
   MaxAudioInput = 2048*6; // To handle 24 bps streams;
 
-  LPCoeff : array[0..4] of Single = (0.31831, 0, 0.07503, 0, 0.06366);
+  KL = 15;
+
+  // Noise shaping constants
+
+  LPCoeff : array[0..KL-1] of Single = (0.903696, -0.474938, -0.189386, 0.298093, -0.0818197, 0.0645497, -0.153755, 0.139183, 0, 0, 0, 0, 0, 0, 0);
+  LPCoeff1 : array[0..KL-1] of Single =(0.00650087, 0.0254105, -0.119435, 0.245838, -0.358504, 0.418265, -0.409635,
+  0.91, -0.686898, 0.411852, -0.170389, 0.0206225, 0.0282275, -0.013329, -0.00536082);
 
 type
 
@@ -56,7 +62,6 @@ type
     procedure SetKernelWidth(aKW : LongWord);
   protected
     function GetBPS : LongWord; override;
-    function GetCh : LongWord; override;
     function GetSR : LongWord; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -76,9 +81,7 @@ type
     FBalance : Single;
     procedure SetBalance(a : Single);
   protected
-    function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
-    function GetSR : LongWord; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
@@ -89,7 +92,35 @@ type
     property Balance : Single read FBalance write SetBalance;
   end;
 
-  TDitheringAlgorithm = (dtaRectangular, dtaTriangular, dtaLPShaped);
+  TNormalizerStoreMode = (nsmFile, nsmMemory, nsmNone);
+
+  TNormalizer = class(TAuConverter)
+  private
+    TmpOutput : TStream;
+    FStoreMode : TNormalizerStoreMode;
+    _k : Double;
+    _BytesPerSample : Word;
+    InBuf : PBuffer8;
+    _BufSize : LongWord;
+    FTmpFileName : String;
+    FEnabled, _Enabled : Boolean;
+    procedure SetStoreMode(value : TNormalizerStoreMode);
+    function GetSample(Buffer : PBuffer8; Count : Integer) : Int64;
+    procedure SetSample(var Sample : Int64; Buffer : PBuffer8; Count : Integer);
+  protected
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property StoreMode : TNormalizerStoreMode read FStoreMode write SetStoreMode;
+    property TmpFileName : String read FTmpFileName write FTmpFileName;
+    property Enabled : Boolean read FEnabled write FEnabled;
+  end;
+
+  TDitheringAlgorithm = (dtaRectangular, dtaTriangular, dtaShaped1, dtaShaped2);
 
   TDitherer = class(TAuConverter)
   private
@@ -97,15 +128,12 @@ type
     FDitheringDepth : Word;
     FDitheringAlgorithm : TDitheringAlgorithm;
     TriState : array[0..7] of Integer;
-    LPState : array[0..7] of array [0..4] of Integer;
+    LPState : array[0..7] of array [0..kl] of Integer;
     function GetSample(Buffer : PBuffer8; Count : Integer) : Int64;
     procedure SetSample(var Sample : Int64; Buffer : PBuffer8; Count : Integer);
     procedure SetDitheringDepth(value : Word);
     procedure SetDitheringAlgorithm(value : TDitheringAlgorithm);
   protected
-    function GetBPS : LongWord; override;
-    function GetCh : LongWord; override;
-    function GetSR : LongWord; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
@@ -416,13 +444,6 @@ implementation
     Result := 16;
   end;
 
-  function TRateConverter.GetCh;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    Result := FInput.Channels;
-  end;
-
   function TRateConverter.GetSR;
   begin
     Result := FOutSampleRate;
@@ -436,6 +457,8 @@ implementation
     if not Assigned(FInput) then
     raise EAuException.Create('Input not assigned');
     FInput.Init;
+    if FInput.BitsPerSample <> 16 then
+      raise EAuException.Create('This resampler can hanndle 16 bps input only');
     Busy := True;
     FPosition := 0;
     BufStart := 1;
@@ -563,13 +586,6 @@ implementation
     if (a >= 0) and (a <=1) then FBalance := a;
   end;
 
-  function TStereoBalance.GetBPS;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    Result := FInput.BitsPerSample;
-  end;
-
   function TStereoBalance.GetCh;
   begin
     if not Assigned(FInput) then
@@ -578,13 +594,6 @@ implementation
       Result := 2
     else
       Result := FInput.Channels;
-  end;
-
-  function TStereoBalance.GetSR;
-  begin
-    if not Assigned(FInput) then
-    raise EAuException.Create('Input not assigned');
-    Result := FInput.SampleRate;
   end;
 
   procedure TStereoBalance.InitInternal;
@@ -1069,30 +1078,6 @@ implementation
     inherited;
   end;
 
-  function TDitherer.GetBPS;
-  begin
-    if Assigned(FInput) then
-      Result := FInput.BitsPerSample
-    else
-      Result := 0;
-  end;
-
-  function TDitherer.GetCh;
-  begin
-    if Assigned(FInput) then
-      Result := FInput.Channels
-    else
-      Result := 0;
-  end;
-
-  function TDitherer.GetSR;
-  begin
-    if Assigned(FInput) then
-      Result := FInput.SampleRate
-    else
-      Result := 0;
-  end;
-
   procedure TDitherer.SetDitheringDepth;
   begin
     if not Busy then FDitheringDepth := value;
@@ -1117,9 +1102,9 @@ implementation
     Randomize;
     if FDitheringAlgorithm = dtaTriangular then
       for i := 0 to 7 do TriState[i] := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
-    if FDitheringAlgorithm = dtaLPShaped then
+    if FDitheringAlgorithm in [dtaShaped1, dtaShaped2] then
       for i := 0 to 7 do
-        for j := 0 to 4 do
+        for j := 0 to kl do
           LPState[i][j] := 0;
   end;
 
@@ -1155,6 +1140,8 @@ implementation
   var
     i, j, k, samples, cursample, ch, frames, Noise : Integer;
     Sample : int64;
+    //OldSample : int64;
+    X : Single;
   begin
     FInput.GetData(Buffer, Bytes);
     if FDitheringDepth = 0 then
@@ -1189,17 +1176,42 @@ implementation
             Inc(cursample);
           end;
       end;
-      dtaLPShaped:
+      dtaShaped1:
       begin
         for i := 0 to frames -1 do
           for j := 0 to ch - 1 do
           begin
             Sample := GetSample(Buffer, cursample);
-            Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth)) + Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
-            Sample := Round(Sample + LPState[j][0]*LPcoeff[0] + LPState[j][1]*LPcoeff[1] + LPState[j][2]*LPcoeff[2] + LPState[j][3]*LPcoeff[3] + LPState[j][4]*LPcoeff[4]);
-            //Sample := X + Noise;
+            Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth)); //+ Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
+            X := 0;
+            for k := 0 to kl do
+              X := X + LPState[j][k]*LPcoeff[k];
+//            OldSample := Sample;
+//            if X > 1 shl FDitheringDepth then
+//            X := 1 shl FDitheringDepth
+//            else
+//            if X < -(1 shl FDitheringDepth) then
+//            X := -(1 shl FDitheringDepth);
+            Sample := Round(Sample + X); //LPState[j][0]*LPcoeff[0] + LPState[j][1]*LPcoeff[1] + LPState[j][2]*LPcoeff[2] + LPState[j][3]*LPcoeff[3] + LPState[j][4]*LPcoeff[4]);
             SetSample(Sample, Buffer, cursample);
-            for k := 4 downto 1 do LPState[j][k] := LPState[j][k-1];
+            for k := kl downto 1 do LPState[j][k] := LPState[j][k-1];
+            LPState[j][0] := Noise;
+            Inc(cursample);
+          end;
+      end;
+      dtaShaped2:
+      begin
+        for i := 0 to frames -1 do
+          for j := 0 to ch - 1 do
+          begin
+            Sample := GetSample(Buffer, cursample);
+            Noise := Round((Random - 0.5) * 2 * (1 shl FDitheringDepth));
+            X := 0;
+            for k := 0 to kl do
+              X := X + LPState[j][k]*LPcoeff1[k];
+            Sample := Round(Sample + X);
+            SetSample(Sample, Buffer, cursample);
+            for k := kl downto 1 do LPState[j][k] := LPState[j][k-1];
             LPState[j][0] := Noise;
             Inc(cursample);
           end;
@@ -1210,6 +1222,155 @@ implementation
   procedure TDitherer.FlushInternal;
   begin
     FInput.Flush;
+    Busy := False;
+  end;
+
+  constructor TNormalizer.Create(AOwner: TComponent);
+  begin
+    inherited Create(AOwner);
+    FTmpFileName := 'norm.tmp';
+    FEnabled := True;
+  end;
+
+  destructor TNormalizer.Destroy;
+  begin
+    inherited Destroy;
+  end;
+
+  procedure TNormalizer.SetStoreMode;
+  begin
+    if not Busy then
+      FStoreMode := value;
+  end;
+
+  function TNormalizer.GetSample;
+  begin
+    case _BytesPerSample of
+      1 : Result := Buffer[Count];
+      2 : Result := PSmallInt(@Buffer[Count*2])^;
+      3 : Result := (PSmallInt(@Buffer[Count*3 + 1])^ * 256) + ShortInt(Buffer[Count*3]);
+      4 : Result := PInteger(@Buffer[Count*4])^;
+    end;
+  end;
+
+  procedure TNormalizer.SetSample;
+  begin
+    if Sample > Integer(((1 shl (_BytesPerSample*8-1))-1)) then
+      Sample := Integer((1 shl (_BytesPerSample*8-1))-1);
+    if Sample < Integer(-(1 shl (_BytesPerSample*8-1))) then
+      Sample := Integer(-(1 shl (_BytesPerSample*8-1)));
+    case _BytesPerSample of
+      1 : Buffer[Count] := Sample;
+      2 : PSmallInt(@Buffer[Count*2])^ := Sample;
+      3 :
+      begin
+        Buffer[Count*3] := Sample and $ff;
+        PSmallInt(@Buffer[Count*3 + 1])^ := SmallInt(Sample shr 8);
+      end;
+      4 : PInteger(@Buffer[Count*4])^ := Sample;
+    end;
+  end;
+
+  procedure TNormalizer.InitInternal;
+  var
+    sc, i : Integer;
+    Buf : Pointer;
+    Bytes : LongWord;
+    MaxVal, MaxSample, TmpSample : Int64;
+  begin
+    if not Assigned(FInput) then
+    raise EAuException.Create('Input not assigned');
+    Busy := True;
+    FInput.Init;
+    FPosition := 0;
+    FSize := FInput.Size;
+    _Enabled := FEnabled
+    if not _Enabled then Exit;
+    _BytesPerSample := GetBPS div 8;
+    MaxVal := 1 shl (GetBPS - 1);
+    MaxSample := 0;
+    if FStoreMode in [nsmFile, nsmMemory] then
+    begin
+      if FStoreMode = nsmFile then
+        TmpOutput := TFileStream.Create(FTmpFileName, fmCreate)
+      else
+        TmpOutput := TMemoryStream.Create;
+      _BufSize := $10000*_BytesPerSample;
+      GetMem(InBuf, _BufSize);
+    end;
+    FInput.GetData(Buf, Bytes);
+    while Bytes <> 0 do
+    begin
+      SC := Bytes div _BytesPerSample;
+      for i := 0 to SC -1 do
+      begin
+        TmpSample := Abs(GetSample(Buf, i));
+        if TmpSample > MaxSample then MaxSample := TmpSample;
+      end;
+      if FStoreMode in [nsmFile, nsmMemory] then
+        TmpOutput.Write(Buf^, Bytes);
+    end;
+    if MaxSample = 0 then
+      _k := 1
+    else
+      _k := MaxVal/MaxSample;
+    if FStoreMode = nsmNone then
+    begin
+      FInput.Flush;
+      FInput.Init;
+    end
+    else
+      TmpOutput.Seek(0, soFromBeginning)
+  end;
+
+  procedure TNormalizer.GetDataInternal;
+  var
+    i, SC : Integer;
+    Sample : Int64;
+  begin
+    if not _Enabled then
+    begin
+      Finput.GetData(Buffer, Bytes);
+      Exit;
+    end;
+    if  FStoreMode = nsmNone then
+    begin
+      Finput.GetData(Buffer, Bytes);
+      if Bytes = 0 then Exit;
+    end else
+    begin
+      SC := Bytes div _BytesPerSample;
+      if SC > $10000 then
+        Bytes := $10000 * _BytesPerSample;
+      if TmpOutput.Size <= TmpOutput.Position then
+      begin
+        Bytes := 0;
+        Buffer := nil;
+        Exit;
+      end;
+      if TmpOutput.Size - TmpOutput.Position < Integer(Bytes) then
+        Bytes := TmpOutput.Size - TmpOutput.Position;
+      Bytes := TmpOutput.Read(InBuf^, Bytes);
+      Buffer := InBuf;
+    end;
+    SC := Bytes div _BytesPerSample;
+    for i := 0 to SC - 1 do
+    begin
+      Sample := GetSample(Buffer, i);
+      Sample := Round(Sample * _k);
+      SetSample(Sample, Buffer, i);
+    end;
+  end;
+
+  procedure TNormalizer.FlushInternal;
+  begin
+    FInput.Flush;
+    if FStoreMode in [nsmFile, nsmMemory] then
+    begin
+      TmpOutput.Free;
+      FreeMem(InBuf);
+      if FStoreMode = nsmFile then DeleteFile(PChar(FTmpFileName));
+    end;
     Busy := False;
   end;
 
