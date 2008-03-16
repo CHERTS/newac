@@ -227,7 +227,6 @@ end;
       Buffer := InBuf1;
     end else
     begin
-      l := 0;
       if not EndOfInput1 then
       begin
         l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
