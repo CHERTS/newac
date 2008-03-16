@@ -29,8 +29,6 @@ type
     FOutSampleRate : LongWord;
     resampler : dmo_resampler;
   protected
-    function GetBPS : LongWord; override;
-    function GetCh : LongWord; override;
     function GetSR : LongWord; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
@@ -61,22 +59,6 @@ implementation
   destructor TMSResampler.Destroy;
   begin
     inherited Destroy;
-  end;
-
-  function TMSResampler.GetBPS;
-  begin
-    if Assigned(FInput) then
-      Result := FInput.BitsPerSample
-    else
-      Result := 0;
-  end;
-
-  function TMSResampler.GetCh;
-  begin
-    if Assigned(FInput) then
-      Result := FInput.Channels
-    else
-      Result := 0;
   end;
 
   function TMSResampler.GetSR;

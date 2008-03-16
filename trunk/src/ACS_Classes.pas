@@ -652,6 +652,9 @@ type
     FInput : TAuInput;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetInput(aInput : TAuInput); virtual;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
   public
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
@@ -2083,6 +2086,31 @@ begin
   FWritePtr := 0;
   FWrap := False;
 end;
+
+function TAuConverter.GetBPS;
+begin
+  if Assigned(FInput) then
+    Result := FInput.BitsPerSample
+  else
+    Result := 0;
+end;
+
+function TAuConverter.GetCh;
+begin
+  if Assigned(FInput) then
+    Result := FInput.Channels
+  else
+    Result := 0;
+end;
+
+function TAuConverter.GetSR;
+begin
+  if Assigned(FInput) then
+    Result := FInput.SampleRate
+  else
+    Result := 0;
+end;
+
 
 initialization
 
