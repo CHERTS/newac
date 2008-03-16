@@ -1284,7 +1284,7 @@ implementation
     FInput.Init;
     FPosition := 0;
     FSize := FInput.Size;
-    _Enabled := FEnabled
+    _Enabled := FEnabled;
     if not _Enabled then Exit;
     _BytesPerSample := GetBPS div 8;
     MaxVal := 1 shl (GetBPS - 1);
