@@ -25,9 +25,9 @@ type
   TAudioMixerMode = (amMix, amConcatenate);
 
   (* Class: TAudioMixer
-     This component can mix or concatenate twoinput audio streams.
+     This component can mix or concatenate two input audio streams.
      Unlike other stream converter components, TAudioMixer component has two input properties: Input1 and Input2.
-     The input streams should have the same number of channels and sample rates (butmay have the different number of bits per sample).
+     The input streams should have the same number of channels and sample rates (but may have the different number of bits per sample).
      Note that input streams may be of different size. In amMix mode the streams start at the same time, but the longer stream will play alone after the shorter stream has ended.
      In amConcatenate mode the second input will play after the first input has ended.
      Decends from <TAuInput>.*)
