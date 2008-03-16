@@ -54,8 +54,6 @@ type
     EndOfInput : Boolean;
     procedure SetOutSampleRate(aSR : LongWord);
   protected
-    function GetBPS : LongWord; override;
-    function GetCh : LongWord; override;
     function GetSR : LongWord; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
@@ -96,22 +94,6 @@ implementation
     inherited Destroy;
   end;
 
-  function TResampler.GetCh;
-  begin
-    if not Assigned(FInput) then
-      raise EAuException.Create('Input not assigned');
-    Result := FInput.Channels;
-  end;
-
-  function TResampler.GetBPS;
-  begin
-    if not Assigned(FInput) then
-      raise EAuException.Create('Input not assigned');
-//    if (FInput.BitsPerSample = 24) and (not FPassThrough) then
-//      Result := 16
-//    else
-      Result := FInput.BitsPerSample;
-  end;
 
   function  TResampler.GetSR;
   begin
