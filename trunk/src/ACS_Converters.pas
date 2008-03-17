@@ -1309,6 +1309,7 @@ implementation
       end;
       if FStoreMode in [nsmFile, nsmMemory] then
         TmpOutput.Write(Buf^, Bytes);
+      FInput.GetData(Buf, Bytes);  
     end;
     if MaxSample = 0 then
       _k := 1
@@ -1330,6 +1331,7 @@ implementation
   begin
     if not _Enabled then
     begin
+      Bytes := Bytes - (Bytes mod _BytesPerSample);
       Finput.GetData(Buffer, Bytes);
       Exit;
     end;
@@ -1340,8 +1342,8 @@ implementation
     end else
     begin
       SC := Bytes div _BytesPerSample;
-      if SC > $10000 then
-        Bytes := $10000 * _BytesPerSample;
+      if SC > $10000 then SC := $10000;
+      Bytes := SC * _BytesPerSample;
       if TmpOutput.Size <= TmpOutput.Position then
       begin
         Bytes := 0;
