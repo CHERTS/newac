@@ -31,7 +31,10 @@ type
 
   (* Class: TDXAudioOut
       Performs audio playback using the DirectX API.
-      Descends from <TAuOutput>. *)
+      Descends from <TAuOutput>.
+      TDXAudioOut component buffers its output in order to make it more smooth. This buffering introduces some delay at the beginning of the audio playback with TDXAudioOut.
+      You can decrease the delay by decreasing the size of the TDXAudioOut buffer. The size of this buffer is set up by the DS_BUFFER_SIZE constant in the ACS_DxAudio.pas file.
+      If you decrease the buffer size you may also want to decrease the DS_POLLING_INTERVAL value which determines how often the component requests data from its input. *)
 
   TDXAudioOut = class(TAuOutput)
   private
