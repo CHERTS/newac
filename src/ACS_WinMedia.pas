@@ -497,6 +497,11 @@ type
     property OnClientDisconnected : TStreamedAudioEvent read FOnClientDisconnected write FOnClientDisconnected;
   end;
 
+  (* Class: TWMADualPassOut
+      This component implements Windows Media Audio 2-pass encoder. TWMADualPassOut supports
+      CBR/VBR lossy encoding in formats available for the 2-pass encoder. This component descends from
+      <TAuTaggedFileOut>. *)
+
   TWMADualPassOut = class(TAuTaggedFileOut)
   private
     FCodecs : TStringList;
