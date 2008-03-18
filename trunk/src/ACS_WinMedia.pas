@@ -499,8 +499,10 @@ type
 
   (* Class: TWMADualPassOut
       This component implements Windows Media Audio 2-pass encoder. TWMADualPassOut supports
-      CBR/VBR lossy encoding in formats available for the 2-pass encoder. This component descends from
-      <TAuTaggedFileOut>. *)
+      CBR/VBR lossy encoding in formats available for the 2-pass encoder.
+      In order o perform 2-pass encoding TWMADualPassOut reads audio data from its input component twice.
+      This puts some constraints on what TWMADualPassOut's input may be (it should be a TAuFileIn-descending component).
+      This component descends from <TAuTaggedFileOut>. *)
 
   TWMADualPassOut = class(TAuTaggedFileOut)
   private
