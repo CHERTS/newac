@@ -40,6 +40,37 @@ type
     property OutSampleRate : LongWord read FOutSampleRate write FOutSampleRate;
   end;
 
+  TVoiceFilter = class(TAuConverter)
+  private
+    FBuffer : PBuffer8;
+    Offset : LongWord;
+    FBufSize : LongWord;
+    FEndOfInput : Boolean;
+    HasMoreOutput : Boolean;
+    FOutSampleRate : Word;
+    FEnableAGC : Boolean;
+    FEnableNoiseReduction : Boolean;
+    FEnableVAD : Boolean;
+    filter : dmo_vcfilter;
+    procedure SetOutSampleRate(value : Word);
+  protected
+    function GetSR : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetBPS : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
+    property EnableAGC : Boolean read FEnableAGC write FEnableAGC;
+    property EnableNoiseReduction : Boolean read FEnableNoiseReduction write FEnableNoiseReduction;
+    property EnableVAD : Boolean read FEnableVAD write FEnableVAD;
+  end;
+
+
 implementation
 
   constructor TMSResampler.Create(AOwner: TComponent);
@@ -145,5 +176,129 @@ implementation
       dmo_resampler_free(resampler);
     end;
   end;
+
+  constructor TVoiceFilter.Create(AOwner: TComponent);
+  var
+    VersionInfo : TOSVersionInfo;
+  begin
+    inherited Create(AOwner);
+    FOutSampleRate := 8000;
+    if not (csDesigning in ComponentState) then
+    begin
+      VersionInfo.dwOSVersionInfoSize := SizeOf(VersionInfo);
+      GetVersionEx(VersionInfo);
+      if VersionInfo.dwMajorVersion < 6 then
+        raise EAuException.Create('TVoiceFilter component requires Windows Vista or later version');
+    end;
+  end;
+
+  destructor TVoiceFilter.Destroy;
+  begin
+    inherited Destroy;
+  end;
+
+  function TVoiceFilter.GetSR;
+  begin
+    Result := 0;
+    if not Assigned(FInput) then Exit;
+    Result := FOutSampleRate;
+  end;
+
+  function TVoiceFilter.GetCh;
+  begin
+    Result := 0;
+    if not Assigned(FInput) then Exit;
+    Result := 1;
+  end;
+
+  function TVoiceFilter.GetBPS;
+  begin
+    Result := 0;
+    if not Assigned(FInput) then Exit;
+    Result := 16;
+  end;
+
+  procedure TVoiceFilter.InitInternal;
+  begin
+    if not Assigned(FInput) then
+      raise EAuException.Create('Input not assigned');
+    FInput.Init;
+    Busy := True;
+    FPosition := 0;
+    //filter.EnableAES := True;
+    filter.EnableAGC := FEnableAGC;
+    filter.EnableNoiseSuppression := FEnableNoiseReduction;
+    filter.EnableVAD := FEnableVAD;
+    filter.input_spec.sample_rate := FInput.SampleRate;
+    filter.input_spec.channels := FInput.Channels;
+    filter.input_spec.bps := FInput.BitsPerSample;
+    filter.output_spec.sample_rate := FOutSampleRate;
+    filter.output_spec.bps := 16;
+    filter.output_spec.channels := 1;
+    FSize := Round(FOutSampleRate*16*FInput.Size/(FInput.SampleRate*Finput.Channels*FInput.BitsPerSample));
+    dmo_vcfilter_init(filter);
+//      dmo_vcfilter_set_formats(filter);
+    FEndOfInput := False;
+    Offset := 0;
+    FBufSize := 0;
+    HasMoreOutput := False;
+    if not dmo_vcfilter_accepts_data(filter) then
+      raise EAuException.Create('Cannot process data');
+  end;
+
+  procedure TVoiceFilter.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+  var
+    InBuf : Pointer;
+    l : LongWord;
+  begin
+    if Offset = FBufSize then
+    begin
+      if not HasMoreOutput then
+      begin
+        if not FEndOfInput then
+        begin
+          l := RESAMPLER_INPUT_BUF_SIZE -
+            (RESAMPLER_INPUT_BUF_SIZE mod (filter.input_spec.channels*filter.input_spec.bps div 8));
+          dmo_vcfilter_prepare_input(filter, InBuf, l);
+          l := FInput.FillBuffer(InBuf, l, FEndOfInput);
+          if FEndOfInput then
+            dmo_vcfilter_reset_input(filter, l);
+          dmo_vcfilter_write_input(filter);
+        end else //if not FEndOfInput then
+        begin
+          Buffer := nil;
+          Bytes := 0;
+          Exit;
+        end; // if not FEndOfInput then... else
+      end; // if not HasMoreOutput then
+      dmo_vcfilter_free_output(filter);
+      HasMoreOutput := not dmo_vcfilter_get_output(filter, Pointer(FBuffer), FBufSize);
+      HasMoreOutput := HasMoreOutput or (not dmo_vcfilter_accepts_data(filter));
+      Offset := 0;
+    end; // if Offset = FBufSize
+    if Bytes > FBufSize - Offset then
+      Bytes := FBufSize - Offset;
+    Buffer := @FBuffer[Offset];
+    Inc(Offset, Bytes);
+  end;
+
+  procedure TVoiceFilter.FlushInternal;
+  begin
+    FInput.Flush;
+    dmo_vcfilter_free_output(filter);
+    dmo_vcfilter_free(filter);
+  end;
+
+  procedure TVoiceFilter.SetOutSampleRate(value: Word);
+  begin
+    FOutSampleRate := 8000;
+    if value > 8000 then
+      FOutSampleRate := 11025;
+    if value > 11025 then
+      FOutSampleRate := 16000;
+    if value > 16000 then
+      FOutSampleRate := 22050;
+  end;
+
 
 end.
