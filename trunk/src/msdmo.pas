@@ -221,48 +221,33 @@ type
   procedure dmo_vcfilter_set_formats(var filter : dmo_vcfilter);
   var
     res : HResult;
-//    i : LongWord;
     MT : TAMMediaType;
     pWave  : PWAVEFORMATEX;
     Wave : TWAVEFORMATEX;
     SC1, SC2 : LongWord;
   begin
-//    i := 0;
     filter.filter.GetStreamCount(SC1, SC2);
- //   if SC1 <> SC2 then
- //   raise Exception.Create('');
-    //res := filter.filter.GetInputType(0, i, MT);
-    //while res <> DMO_E_NO_MORE_ITEMS do
-mt.majortype := MEDIATYPE_Audio;
-mt.subtype := MEDIASUBTYPE_PCM;
-mt.lSampleSize := 0;
-mt.bFixedSizeSamples := TRUE;
-mt.bTemporalCompression := FALSE;
-mt.formattype := FORMAT_WaveFormatEx;
+    MT.majortype := MEDIATYPE_Audio;
+    MT.subtype := MEDIASUBTYPE_PCM;
+    MT.lSampleSize := 0;
+    MT.bFixedSizeSamples := True;
+    MT.bTemporalCompression := False;
+    MT.formattype := FORMAT_WaveFormatEx;
     MoInitMediaType(@MT, SizeOf(TWAVEFORMATEX));
-    begin
-      //if GUIDSEqual(MT.subtype, MEDIASUBTYPE_PCM) then
-      MT.subtype := MEDIASUBTYPE_PCM;
-      begin
-        MT.cbFormat := SizeOf(Wave);
-        MT.pbFormat := @Wave;
-        Wave.wFormatTag := 1;
-        Wave.nChannels := filter.input_spec.channels;
-        Wave.nSamplesPerSec := filter.input_spec.sample_rate;
-        Wave.wBitsPerSample := filter.input_spec.bps;
-        Wave.nBlockAlign := Wave.wBitsPerSample*Wave.nChannels div 8;
-        Wave.nAvgBytesPerSec := Wave.nSamplesPerSec * Wave.nBlockAlign;
-        Wave.cbSize := 0;
-        res := filter.filter.SetInputType(0, @MT, 0);
-        if res <> S_OK then
-         raise EAuException.Create('Failed to set up input: ' + IntToHex(res, 8));
-        MoFreeMediaType(@MT);
-        //Break;
-      end;
-//      MoFreeMediaType(@MT);
-//      Inc(i);
-      //res := filter.filter.GetInputType(0, i, MT);
-    end;
+    MT.subtype := MEDIASUBTYPE_PCM;
+    MT.cbFormat := SizeOf(Wave);
+    MT.pbFormat := @Wave;
+    Wave.wFormatTag := 1;
+    Wave.nChannels := filter.input_spec.channels;
+    Wave.nSamplesPerSec := filter.input_spec.sample_rate;
+    Wave.wBitsPerSample := filter.input_spec.bps;
+    Wave.nBlockAlign := Wave.wBitsPerSample*Wave.nChannels div 8;
+    Wave.nAvgBytesPerSec := Wave.nSamplesPerSec * Wave.nBlockAlign;
+    Wave.cbSize := 0;
+    res := filter.filter.SetInputType(0, @MT, 0);
+    if res <> S_OK then
+      raise EAuException.Create('Failed to set up input: ' + IntToHex(res, 8));
+      MoFreeMediaType(@MT);
     res := filter.filter.GetInputCurrentType(0,MT);
     if res <> S_OK then
       raise EAuException.Create('Failed to set up input: ' + IntToHex(res, 8));
@@ -275,37 +260,24 @@ mt.formattype := FORMAT_WaveFormatEx;
     end;
     MoFreeMediaType(@MT);
 
-//    i := 0;
-//    res := filter.filter.GetOutputType(0, i, MT);
-//    while res <> DMO_E_NO_MORE_ITEMS do
-
-mt.majortype := MEDIATYPE_Audio;
-mt.subtype := MEDIASUBTYPE_PCM;
-mt.lSampleSize := 0;
-mt.bFixedSizeSamples := TRUE;
-mt.bTemporalCompression := FALSE;
-mt.formattype := FORMAT_WaveFormatEx;
+    MT.majortype := MEDIATYPE_Audio;
+    MT.subtype := MEDIASUBTYPE_PCM;
+    MT.lSampleSize := 0;
+    MT.bFixedSizeSamples := True;
+    MT.bTemporalCompression := False;
+    MT.formattype := FORMAT_WaveFormatEx;
     MoInitMediaType(@MT, SizeOf(TWAVEFORMATEX));
-    begin
- //     if GUIDSEqual(MT.subtype, MEDIASUBTYPE_PCM) then
-      begin
-        MT.cbFormat := SizeOf(Wave);
-        MT.pbFormat := @Wave;
-        Wave.wFormatTag := 1;
-        Wave.nChannels := filter.output_spec.channels;
-        Wave.nSamplesPerSec := filter.output_spec.sample_rate;
-        Wave.wBitsPerSample := filter.output_spec.bps;
-        Wave.nBlockAlign := Wave.wBitsPerSample*Wave.nChannels div 8;
-        Wave.nAvgBytesPerSec := Wave.nSamplesPerSec * Wave.nBlockAlign;
-        Wave.cbSize := 0;
-        filter.filter.SetOutputType(0, @MT, 0);
-        MoFreeMediaType(@MT);
-      end;
-//      MoFreeMediaType(@MT);
-//      Inc(i);
-//      res := filter.filter.GetOutputType(0, i, MT);
-    end;
-
+    MT.cbFormat := SizeOf(Wave);
+    MT.pbFormat := @Wave;
+    Wave.wFormatTag := 1;
+    Wave.nChannels := filter.output_spec.channels;
+    Wave.nSamplesPerSec := filter.output_spec.sample_rate;
+    Wave.wBitsPerSample := filter.output_spec.bps;
+    Wave.nBlockAlign := Wave.wBitsPerSample*Wave.nChannels div 8;
+    Wave.nAvgBytesPerSec := Wave.nSamplesPerSec * Wave.nBlockAlign;
+    Wave.cbSize := 0;
+    filter.filter.SetOutputType(0, @MT, 0);
+    MoFreeMediaType(@MT);
     res := filter.filter.GetOutputCurrentType(0, MT);
     if res <> S_OK then
       raise EAuException.Create('Failed to set up output: ' + IntToHex(res, 8));
@@ -317,7 +289,6 @@ mt.formattype := FORMAT_WaveFormatEx;
       filter.output_spec.bps := pWave.wBitsPerSample;
     end;
     MoFreeMediaType(@MT);
-
   end;
 
   function dmo_vcfilter_accepts_data(var filter : dmo_vcfilter) : Boolean;
