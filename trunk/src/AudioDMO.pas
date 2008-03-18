@@ -16,7 +16,7 @@ uses
 
 const
   RESAMPLER_INPUT_BUF_SIZE = $300000;
-
+  VOICEFILTER_INPUT_BUF_SIZE = $3000;
 type
 
   TMSResampler = class(TAuConverter)
@@ -235,7 +235,10 @@ implementation
     filter.output_spec.sample_rate := FOutSampleRate;
     filter.output_spec.bps := 16;
     filter.output_spec.channels := 1;
-    FSize := Round(FOutSampleRate*16*FInput.Size/(FInput.SampleRate*Finput.Channels*FInput.BitsPerSample));
+    if not FEnableVAD then
+      FSize := Round(FOutSampleRate*16*FInput.Size/(FInput.SampleRate*Finput.Channels*FInput.BitsPerSample))
+    else
+      FSize := -1;
     dmo_vcfilter_init(filter);
 //      dmo_vcfilter_set_formats(filter);
     FEndOfInput := False;
@@ -250,6 +253,10 @@ implementation
   var
     InBuf : Pointer;
     l : LongWord;
+    cb : Integer;
+    i : Integer;
+    B : PBuffer16;
+
   begin
     if Offset = FBufSize then
     begin
@@ -257,8 +264,8 @@ implementation
       begin
         if not FEndOfInput then
         begin
-          l := RESAMPLER_INPUT_BUF_SIZE -
-            (RESAMPLER_INPUT_BUF_SIZE mod (filter.input_spec.channels*filter.input_spec.bps div 8));
+          l := VOICEFILTER_INPUT_BUF_SIZE -
+            (VOICEFILTER_INPUT_BUF_SIZE mod (filter.input_spec.channels*filter.input_spec.bps div 8));
           dmo_vcfilter_prepare_input(filter, InBuf, l);
           l := FInput.FillBuffer(InBuf, l, FEndOfInput);
           if FEndOfInput then
@@ -273,6 +280,21 @@ implementation
       end; // if not HasMoreOutput then
       dmo_vcfilter_free_output(filter);
       HasMoreOutput := not dmo_vcfilter_get_output(filter, Pointer(FBuffer), FBufSize);
+      if FEnableVAD then
+      begin
+        B := Pointer(FBuffer);
+        cb := 0;
+        while (cb < Integer(FBufSize) div 2 - 1) and (FBufSize > 2*filter.FrameSize) do
+        begin
+          if not Odd(B[cb]) then
+          begin
+            for i := cb to FBufSize div 2 - filter.FrameSize - 1 do
+              B[i] := B[i+Integer(filter.FrameSize)];
+            Dec(FBufSize, filter.FrameSize*2);
+          end else
+          Inc(cb, filter.FrameSize)
+        end;
+      end;
       HasMoreOutput := HasMoreOutput or (not dmo_vcfilter_accepts_data(filter));
       Offset := 0;
     end; // if Offset = FBufSize
