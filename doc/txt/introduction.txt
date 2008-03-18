@@ -32,6 +32,10 @@ Section: On the Web
 Section: Version History
 	Short new features list for every NewAC version.
 
+Version: NewAC 1.7
+	- New Audio processing components: TDitherer, TNormalizer, TMSResampler, TVoiceFilter.
+	- Improved 32-bit and multichannel sound support.
+	- Two-pass WMA encoder added. 
 
 Version: NewAC 1.6
 	- Musepack support (decoding/encoding).
@@ -222,9 +226,13 @@ Several sound-editing operations can be performed with NewAC. Converter componen
 
 All input components that descend from TAuFileIn allow you to specify StartSample and EndSample properties. If you set these properties' values, the actual data reading will start from the StartSample and will stop at EndSample value (the total number of samples in the input stream is returned via TotalSamples property, and since it is read from the file, you should check the Valid property value before reading TotalSamples). This way you can select a fragment of an input audio file, rather than a whole file, for further processing. AudioCutter demo shows how to play back and save selected fragments of audio files. The StartSample and EndSample properties allow to select audio file fragments with the maximum possible precision. If you don't need that precision you can use SetStartTime and SetEndTime methods that specify start and end time for the selection in minutes:seconds format.
 
-Section: Handling Thread Exceptions
+Section: Handling I/O Errors
 
-NewAC does its best to recover from any error that might occur. If an exception is raised within NewAC after you have called an output component's Run method it is not propagated. The OnThreadException event is generated instead and the exception's text is stored in the output component's ExceptionMessage property. After that an OnDone event is generated as usual. You can determine if an error has happened during the NewAC operation by assigning a handler to the OnThreadException event or by checking the ExceptionMessage value in an OnDone event handler (it should be an empty string if no error took place). See CDRipper and Wave2Ogg-2 demos for how error-handling is done.
+Programs operating in real world have to provide means to handle input and output errors. NewAC tries to handle errors in such a way that if an error occurs the components are not left in unrecoverable state. There are two main types of errors in NewAC: erros that arise when the program tries to open corrupt audio source and errors that arise during the sound-processing chain operation.
+
+The first rule is this: before starting to process some input file check the Valid property. TAuFileIn class end its descendants expose this property. If the Valid propertys value is False, it means that the input file could not be opened and the program should not try to process it.
+
+If an exception is raised within NewAC after you have called an output component's Run method it is not propagated. When such an exception occurs the operation is stopped and the OnThreadException event is generated. The exception's text is stored in the output component's ExceptionMessage property. After that an OnDone event is generated as usual. You can determine if an error has happened during the NewAC operation by assigning a handler to the OnThreadException event or by checking the ExceptionMessage value in an OnDone event handler (it should be an empty string if  error took place during audio-processing operation). See CDRipper and Wave2Ogg-2 demos for how error-handling is done.
 
 Section: Input Switching
 
