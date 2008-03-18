@@ -28,10 +28,17 @@ const
 
 type
 
+  {$EXTERNALSYM _tagpropertykey}
+  _tagpropertykey = packed record
+    fmtid: TGUID;
+    pid: DWORD;
+  end;
 
- PPROPERTYKEY = ^PROPERTYKEY;
- REFPROPERTYKEY = PROPERTYKEY;
- REFPROPVARIANT = TPropVariant;
+  {$EXTERNALSYM PROPERTYKEY}
+  PROPERTYKEY = _tagpropertykey;
+  PPropertyKey = ^TPropertyKey;
+  TPropertyKey = _tagpropertykey;
+
 
 const
   MFPKEY_WMAAECMA_SYSTEM_MODE : TPropertyKey = ( fmtid: '{6f52c567-0360-4bd2-9617-ccbf1421c939}'; pid: PID_FIRST_USABLE + 0);
@@ -148,7 +155,7 @@ type
   var
     res : HResult;
     ps : IPropertyStore;
-    propvar : REFPROPVARIANT;
+    propvar : TPropVariant;
   begin
     //FillChar(filter, SizeOf(filter), 0);
     filter.filter := nil;
