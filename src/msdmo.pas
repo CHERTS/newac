@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* C-style DMO management API. Copyright (c) 2007 Andrei Borovsky *)
+(* C-style DMO management API. Copyright (c) 2008 Andrei Borovsky *)
 
 (* $Id$ *)
 
@@ -101,6 +101,7 @@ type
     input_spec : dmo_resampler_spec;
     output_spec : dmo_resampler_spec;
     InputBuffer, OutputBuffer : IMediaBuffer;
+    FrameSize : LongWord;
   end;
 
   procedure dmo_resampler_init(var resampler : dmo_resampler);
@@ -205,6 +206,12 @@ type
     res := ps.SetValue(MFPKEY_WMAAECMA_FEATR_VAD, propvar);
     if res <> S_OK then
       raise EAuException.Create('Failed to set up DSP Class: ' + IntToHex(res, 8));
+    propvar.vt := VT_I4;
+    propvar.ulVal := 160;
+    res := ps.SetValue(MFPKEY_WMAAECMA_FEATR_FRAME_SIZE, propvar);
+    if res <> S_OK then
+      raise EAuException.Create('Failed to set up DSP Class: ' + IntToHex(res, 8));
+    filter.FrameSize := 160; //propvar.ulVal;
     res := filter.filter.AllocateStreamingResources;
     if res <> S_OK then
       raise EAuException.Create('Failed to allocate resources: ' + IntToHex(res, 8));
@@ -301,7 +308,7 @@ mt.formattype := FORMAT_WaveFormatEx;
 
     res := filter.filter.GetOutputCurrentType(0, MT);
     if res <> S_OK then
-      raise EAuException.Create('Failed to set up input: ' + IntToHex(res, 8));
+      raise EAuException.Create('Failed to set up output: ' + IntToHex(res, 8));
     if GUIDSEqual(MT.subtype, MEDIASUBTYPE_PCM) then
     begin
       pWave := MT.pbFormat;
