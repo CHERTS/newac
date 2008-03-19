@@ -5,6 +5,10 @@
   You can contact me at anb@symmetrica.net
 *)
 
+(* Title: AudioDMO
+    THis unit contains component wrappers around several DMOs. *)
+
+
 (* $Id$ *)
 
 unit AudioDMO;
@@ -18,6 +22,12 @@ const
   RESAMPLER_INPUT_BUF_SIZE = $300000;
   VOICEFILTER_INPUT_BUF_SIZE = $3000;
 type
+
+ (* Class: TMSResampler
+     Descends from <TAuConverter>.
+
+     TMSResampler is a fast high-quality resampler based on Windows Vista resampler DMO.
+     *This component only works under Windows Vista or later version.*  *)
 
   TMSResampler = class(TAuConverter)
   private
@@ -37,8 +47,19 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: OutSampleRate
+      Use this property to set the component's output sample rate.
+      If OutSampleRate is set to 0 the component switches to the pass-through mode. *)
     property OutSampleRate : LongWord read FOutSampleRate write FOutSampleRate;
   end;
+
+   (* Class: TVoiceFilter
+     Descends from <TAuConverter>.
+
+     TVoiceFilter is a wrapper around Windows DMO that implements several voice-related DSPs.
+     TVoiceFilter can perform automatic level ajustement (automatic gain control),
+     noise removal, voice activity detection.
+     *This component only works under Windows Vista or later version.*  *)
 
   TVoiceFilter = class(TAuConverter)
   private
@@ -64,9 +85,18 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: OutSampleRate
+       TVoiceFilter can accept incming data in many formats but the output will always be mono 16 bits per sample.
+       You can select output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
+    (* Property: EnableAGC
+       This property enables or disables the automatic gain control. *)
     property EnableAGC : Boolean read FEnableAGC write FEnableAGC;
+    (* Property: EnableNoiseReduction
+       This property enables or disables noise filtering.*)
     property EnableNoiseReduction : Boolean read FEnableNoiseReduction write FEnableNoiseReduction;
+    (* Property: EnableVAD
+       This property enables or disables voice detection. If VAD is enabled, the silent periods are removed from the component's output. *)
     property EnableVAD : Boolean read FEnableVAD write FEnableVAD;
   end;
 
