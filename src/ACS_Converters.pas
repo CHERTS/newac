@@ -41,6 +41,11 @@ type
   TDA = array[0..63] of Double;
   PDA = ^TDA;
 
+ (* Class: TRateConverter
+     Descends from <TAuConverter>. TRateConverter is an audio resampler.
+     It uses windowed sinc kernel for changing audio sample rate and supports only 16-bit input.
+     This component is kept for backward compatibility. In new projects it is recommended to use other resampler components instead.
+  *)
 
   TRateConverter = class(TAuConverter)
   private
@@ -70,8 +75,14 @@ type
     procedure InitInternal; override;
     procedure FlushInternal; override;
   published
+    (* Property: FilterWindow
+      Use this property to set the window type for the filter. *)
     property FilterWindow : TFilterWindowType read FFilterWindow write FFilterWindow;
+    (* Property: KernelWidth
+      Use this property to set the width of the sinc kernel in points. *)
     property KernelWidth : LongWord read FKernelWidth write SetKernelWidth;
+    (* Property: OutSampleRate
+      Use this property to set the output sample rate. *)
     property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
   end;
 
@@ -94,6 +105,9 @@ type
 
   TNormalizerStoreMode = (nsmFile, nsmMemory, nsmNone);
 
+   (* Class: TNormalizer
+     Descends from <TAuConverter>. TNormalizer scales audio data so that the highest peak in data is mapped to the maximum sample value avaiable. *)
+
   TNormalizer = class(TAuConverter)
   private
     TmpOutput : TStream;
@@ -115,12 +129,27 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: StoreMode
+       TNormalizer needs a preprocessing data stage. Depending on the StoreMode value the component can work in several modes.
+       - nsmFile - the intermediate data is stored in a disc file (see the <TmpFileName> property).
+       - nsmMemory - the intermediate data is stored in RAM.
+       - nsmNone - no intermediate data is stored. In this mode the component reads the data from its input twice. This mode works only for inputs that can reproduce its data (TSreamedIn descendants). *)
     property StoreMode : TNormalizerStoreMode read FStoreMode write SetStoreMode;
+    (* Property: TmpFileName
+       The name of the temporary file that stores intermediate data in the nsmFile mode.  *)
     property TmpFileName : String read FTmpFileName write FTmpFileName;
+    (* Property: Enabled
+       If this property is set to False the component passes data through without scaling.  *)
     property Enabled : Boolean read FEnabled write FEnabled;
   end;
 
   TDitheringAlgorithm = (dtaRectangular, dtaTriangular, dtaShaped1, dtaShaped2);
+
+ (* Class: TDitherer
+     Descends from <TAuConverter>. TDitherer converter adds dithering noise to the audio data passing through it.
+     Dithering is usefull when performing audio samples truncation (with <TAudioConverter> for example) and other DSP operatins that involve rounding off.
+     TDitherer uses seeveral dithering algorithms but none of them is perfect. I will be grateful for any dithering algorithms additions.
+     If you want to use TDitherer together with <TAudioConverter> you should place it before <TAudioConverter> in the audio-processing chain. *)
 
   TDitherer = class(TAuConverter)
   private
@@ -141,7 +170,18 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    (* Property: DitheringDepth
+    Use this property to set the number of bits that will contain the dithering noise.
+    For example, if you want to truncate audio samples from 24 bits per sample to 16 bits, set this value to 8.
+    If the DitheringDepth value is set to 0 (the default  value), the component switches to pass-through mode
+    in which audio data will be passed through unmodified. *)
     property DitheringDepth : Word read FDitheringDepth write SetDitheringDepth;
+    (* Property: DitheringAlgorithm
+    Use this property to set the dithering algorithm. Possible values are:
+    - dtaRectangular (rectangle noise)
+    - dtaTriangular (triangle noise)
+    - dtaShaped1
+    - dtaShaped2 *)
     property DitheringAlgorithm : TDitheringAlgorithm read FDitheringAlgorithm write SetDitheringAlgorithm;
   end;
 
@@ -1367,6 +1407,7 @@ implementation
   procedure TNormalizer.FlushInternal;
   begin
     FInput.Flush;
+    if FEnabled then
     if FStoreMode in [nsmFile, nsmMemory] then
     begin
       TmpOutput.Free;
