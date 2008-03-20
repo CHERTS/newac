@@ -74,6 +74,7 @@ type
     FEnableNoiseReduction : Boolean;
     FEnableVAD : Boolean;
     filter : dmo_vcfilter;
+    TailBuf : Pointer;
     procedure SetOutSampleRate(value : Word);
   protected
     function GetSR : LongWord; override;
@@ -87,7 +88,7 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       TVoiceFilter can accept incoming data in 16 bps mono or stereo at deifferentsample rates. The output will always be mono 16 with bits per sample.
+       Use this property to set output sample rate. TVoiceFilter can accept 16 bit mono or stereo audio at deifferent sample rates. The output will always be mono 16 with bits per sample.
        You can select output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
@@ -97,7 +98,7 @@ type
        This property enables or disables noise filtering.*)
     property EnableNoiseReduction : Boolean read FEnableNoiseReduction write FEnableNoiseReduction;
     (* Property: EnableVAD
-       This property enables or disables voice detection. If VAD is enabled, the silent periods are removed from the component's output.
+       This property enables or disables voice activity detection. If VAD is enabled, the silent periods are removed from the component's output.
        If VAD mode is enabled the component cannot report its output size and progress. *)
     property EnableVAD : Boolean read FEnableVAD write FEnableVAD;
   end;
@@ -300,6 +301,7 @@ implementation
     Offset := 0;
     FBufSize := 0;
     HasMoreOutput := False;
+    TailBuf := nil;
     if not dmo_vcfilter_accepts_data(filter) then
       raise EAuException.Create('Cannot process data');
   end;
@@ -328,9 +330,23 @@ implementation
           dmo_vcfilter_write_input(filter);
         end else //if not FEndOfInput then
         begin
-          Buffer := nil;
-          Bytes := 0;
-          Exit;
+          if FPosition < FSize then
+          begin
+            if Bytes > FSize - FPosition then
+              Bytes := FSize - FPosition;
+            if TailBuf <> nil then FreeMem(TailBuf);
+            GetMem(TailBuf, Bytes);
+            FillChar(TailBuf^, Bytes, 0);
+            Buffer := TailBuf;
+            Exit;
+          end else
+          begin
+            if TailBuf <> nil then FreeMem(TailBuf);
+            TailBuf := nil;
+            Buffer := nil;
+            Bytes := 0;
+            Exit;
+          end;
         end; // if not FEndOfInput then... else
       end; // if not HasMoreOutput then
       dmo_vcfilter_free_output(filter);
