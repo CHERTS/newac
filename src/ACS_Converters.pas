@@ -826,8 +826,12 @@ implementation
     k1 := IBPS*ICh;
     InBytesPerSample := FInput.BitsPerSample div 8;
     OutBytesPerSample := IBPS div 8;
-    FSize := Round(FInput.Size*k1/k);
-    FSize := FSize - (FSize mod (k1 shr 3));
+    if FInput.Size >= 0 then
+    begin
+      FSize := Round(FInput.Size*k1/k);
+      FSize := FSize - (FSize mod (k1 shr 3));
+    end else
+      FSize := -1;
     OutFrames := 0;
     OutBuf := nil;
     FloatBuf := nil;
