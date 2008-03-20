@@ -1767,7 +1767,14 @@ begin
       begin
         Inc(FPosition, Bytes);
         if (FSize > 0) and (FPosition >= FSize) then
+        begin
           _EndOfStream := True;
+          if FPosition > FSize then
+          begin
+            Bytes := Bytes - (FPosition - FSize);
+            FPosition := FSize;
+          end;
+        end;
       end;
       if _EndOfStream and FLoop then
       begin

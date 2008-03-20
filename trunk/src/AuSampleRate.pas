@@ -142,7 +142,7 @@ implementation
      FPassThrough := True
    else
     FPassThrough := False;
-    if FPassThrough then
+    if FPassThrough or (FInput.Size = -1) then
       FSize := FInput.Size
     else
     begin

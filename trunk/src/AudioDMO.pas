@@ -38,6 +38,7 @@ type
     HasMoreOutput : Boolean;
     FOutSampleRate : LongWord;
     resampler : dmo_resampler;
+    TailBuf : Pointer;
   protected
     function GetSR : LongWord; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
@@ -86,8 +87,8 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       Use this property to set the output sample rate. TVoiceFilter can accept 16 bit sampled mono or stereo audio data at different sample rates. The output will always be mono with 16 bits per sample.
-       You can select the output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
+       TVoiceFilter can accept incoming data in 16 bps mono or stereo at deifferentsample rates. The output will always be mono 16 with bits per sample.
+       You can select output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
        This property enables or disables the automatic gain control. *)
@@ -96,7 +97,8 @@ type
        This property enables or disables noise filtering.*)
     property EnableNoiseReduction : Boolean read FEnableNoiseReduction write FEnableNoiseReduction;
     (* Property: EnableVAD
-       This property enables or disables voice activity detection. If VAD is enabled, the silent periods are removed from the component's output. *)
+       This property enables or disables voice detection. If VAD is enabled, the silent periods are removed from the component's output.
+       If VAD mode is enabled the component cannot report its output size and progress. *)
     property EnableVAD : Boolean read FEnableVAD write FEnableVAD;
   end;
 
@@ -131,12 +133,20 @@ implementation
   end;
 
   procedure TMSResampler.InitInternal;
+  var
+    BytePerFrame : Word;
   begin
     if not Assigned(FInput) then
       raise EAuException.Create('Input not assigned');
     FInput.Init;
     Busy := True;
-    FSize := Round(FInput.Size*GetSR/FInput.SampleRate);
+    if FInput.Size = -1 then FSize := -1
+    else
+    begin
+      FSize := Round(FInput.Size*GetSR/FInput.SampleRate);
+      BytePerFrame := (Finput.Channels * FInput.BitsPerSample) shr 3;
+      FSize := FSize - (FSize mod BytePerFrame);
+    end;
     FPosition := 0;
     if GetSR <> FInput.SampleRate then
     begin
@@ -151,6 +161,7 @@ implementation
     Offset := 0;
     FBufSize := 0;
     HasMoreOutput := False;
+    TailBuf := nil;
   end;
 
   procedure TMSResampler.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
@@ -169,21 +180,32 @@ implementation
       begin
         if not FEndOfInput then
         begin
-//          if dmo_resampler_accepts_data(resampler) then
-//          begin
-            l := RESAMPLER_INPUT_BUF_SIZE -
+          l := RESAMPLER_INPUT_BUF_SIZE -
               (RESAMPLER_INPUT_BUF_SIZE mod (resampler.input_spec.channels*resampler.input_spec.bps div 8));
-            dmo_resampler_prepare_input(resampler, InBuf, l);
-            l := FInput.FillBuffer(InBuf, l, FEndOfInput);
-            if FEndOfInput then
-              dmo_resampler_reset_input(resampler, l);
-            dmo_resampler_write_input(resampler);
-//          end;
+          dmo_resampler_prepare_input(resampler, InBuf, l);
+          l := FInput.FillBuffer(InBuf, l, FEndOfInput);
+          if FEndOfInput then
+            dmo_resampler_reset_input(resampler, l);
+          dmo_resampler_write_input(resampler);
         end else //if not FEndOfInput then
         begin
-          Buffer := nil;
-          Bytes := 0;
-          Exit;
+          if FPosition < FSize then
+          begin
+            if Bytes > FSize - FPosition then
+              Bytes := FSize - FPosition;
+            if TailBuf <> nil then FreeMem(TailBuf);
+            GetMem(TailBuf, Bytes);
+            FillChar(TailBuf^, Bytes, 0);
+            Buffer := TailBuf;
+            Exit;
+          end else
+          begin
+            if TailBuf <> nil then FreeMem(TailBuf);
+            TailBuf := nil;
+            Buffer := nil;
+            Bytes := 0;
+            Exit;
+          end;
         end; // if not FEndOfInput then... else
       end; // if not HasMoreOutput then
       dmo_resampler_free_output(resampler);
@@ -265,8 +287,11 @@ implementation
     filter.output_spec.sample_rate := FOutSampleRate;
     filter.output_spec.bps := 16;
     filter.output_spec.channels := 1;
-    if not FEnableVAD then
-      FSize := Round(FOutSampleRate*16*FInput.Size/(FInput.SampleRate*Finput.Channels*FInput.BitsPerSample))
+    if (not FEnableVAD) and (FInput.Size >= 0) then
+    begin
+      FSize := Round(FOutSampleRate*16*FInput.Size/(FInput.SampleRate*Finput.Channels*FInput.BitsPerSample));
+      FSize := FSize - (FSize mod 2);
+    end
     else
       FSize := -1;
     dmo_vcfilter_init(filter);
