@@ -78,6 +78,7 @@ begin
     if WMIn1.IsProtected then
       raise Exception.Create('DRM-protected files are not supported.');
     BitBtn1.Enabled := False;
+    WMIn1.FormatSelected := wmfDefault; // Play audio in default format
     DXAudioOut1.Run;
     Label3.Caption :=  WMIn1.Id3v2Tags.Artist;
     Label9.Caption :=  WMIn1.Id3v2Tags.Album;
@@ -95,7 +96,7 @@ begin
       Label8.Caption := '5.1 channels'
     else
     if WMIn1.Channels = 8 then
-      Label8.Caption := 'Multi-channel: 7.1 channels';
+      Label8.Caption := '7.1 channels';
     Secs := IntToStr(WMIn1.TotalTime mod 60);
     if WMIn1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label7.Caption := Format('%d:%s', [WMIn1.TotalTime div 60, Secs]);
