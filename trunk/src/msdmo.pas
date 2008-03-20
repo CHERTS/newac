@@ -204,9 +204,9 @@ type
     propvar.vt := VT_I4;
     if filter.EnableVAD then
     begin
-      if filter.EnableAGC or filter.EnableNoiseSuppression then
-         propvar.lVal := AEC_VAD_FOR_AGC
-      else
+//      if filter.EnableAGC or filter.EnableNoiseSuppression then
+//         propvar.lVal := AEC_VAD_FOR_AGC
+//      else
         propvar.lVal := AEC_VAD_FOR_SILENCE_SUPPRESSION;
     end else
       propvar.lVal := AEC_VAD_DISABLED;
