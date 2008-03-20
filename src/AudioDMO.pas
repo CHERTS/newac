@@ -86,7 +86,7 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       TVoiceFilter can accept incming data in many formats but the output will always be mono 16 bits per sample.
+       TVoiceFilter can accept incoming data in 16 bps mono or stereo at deifferentsample rates. The output will always be mono 16 with bits per sample.
        You can select output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
@@ -200,7 +200,7 @@ implementation
   procedure TMSResampler.FlushInternal;
   begin
     FInput.Flush;
-    if FOutSampleRate <> FInput.SampleRate then
+    if GetSR <> FInput.SampleRate then
     begin
       dmo_resampler_free_output(resampler);
       dmo_resampler_free(resampler);
