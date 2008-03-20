@@ -86,8 +86,8 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       TVoiceFilter can accept incoming data in 16 bps mono or stereo at deifferentsample rates. The output will always be mono 16 with bits per sample.
-       You can select output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
+       TVoiceFilter can accept 16 bit sampled mono or stereo audio data at different sample rates. The output will always be mono with 16 bits per sample.
+       You can select the output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
        This property enables or disables the automatic gain control. *)
@@ -96,7 +96,7 @@ type
        This property enables or disables noise filtering.*)
     property EnableNoiseReduction : Boolean read FEnableNoiseReduction write FEnableNoiseReduction;
     (* Property: EnableVAD
-       This property enables or disables voice detection. If VAD is enabled, the silent periods are removed from the component's output. *)
+       This property enables or disables voice activity detection. If VAD is enabled, the silent periods are removed from the component's output. *)
     property EnableVAD : Boolean read FEnableVAD write FEnableVAD;
   end;
 
