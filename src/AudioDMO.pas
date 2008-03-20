@@ -86,7 +86,7 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       TVoiceFilter can accept 16 bit sampled mono or stereo audio data at different sample rates. The output will always be mono with 16 bits per sample.
+       Use this property to set the output sample rate. TVoiceFilter can accept 16 bit sampled mono or stereo audio data at different sample rates. The output will always be mono with 16 bits per sample.
        You can select the output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
