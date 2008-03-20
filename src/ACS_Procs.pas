@@ -139,6 +139,10 @@ type
 
   procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
 
+  procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer);
+
+  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer);
+
   function GetRightOf(Delim : Char; const S : String) : String;
 
   function GetLeftOf(Delim : Char; const S : String) : String;
@@ -808,6 +812,25 @@ end;
   begin
     for i := 0 to len - 1 do
       _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))/$800000;
+  end;
+
+  procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to frames - 1 do
+      _inout[i] := (_inout[i*2] + _inout[i*2 + 1])/2;
+  end;
+
+  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer);
+  var
+    i : Integer;
+  begin
+    for i := frames - 1 downto 0 do
+    begin
+      _inout[i*2 + 1] := _inout[i];
+      _inout[i*2] := _inout[i];
+    end;
   end;
 
 

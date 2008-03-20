@@ -194,9 +194,10 @@ type
 
   TAudioConverter = class(TAuConverter)
   private
-    FInPlace : Boolean;
-    WantedSize, OutputSize : LongWord;
-    InOutBuf : PBuffer8;
+    OutBuf : PBuffer8;
+    FloatBuf : PBufferSingle;
+    OutFrames : Integer;
+    InBytesPerSample, OutBytesPerSample : Integer;
     FMode : TMSConverterMode;
     FOutBitsPerSample : Integer;
     FOutChannels : Integer;
@@ -821,137 +822,89 @@ implementation
     BufEnd := 0;
     IBPS := GetBPS;
     ICh := GetCh;
-    WantedSize := MaxAudioInput - (MaxAudioInput mod (FInput.Channels * (FInput.BitsPerSample shr 3)));
     k := FInput.BitsPerSample*FInput.Channels;
     k1 := IBPS*ICh;
-    if (k1 < k) and (FInput.BitsPerSample <> 24) then FInPlace := True
-    else
-    begin
-      FInPlace := False;
-      OutputSize := ((k1 div k) + 1)*WantedSize;
-      GetMem(InOutBuf, OutputSize);
-    end;
+    InBytesPerSample := FInput.BitsPerSample div 8;
+    OutBytesPerSample := IBPS div 8;
     FSize := Round(FInput.Size*k1/k);
     FSize := FSize - (FSize mod (k1 shr 3));
+    OutFrames := 0;
+    OutBuf := nil;
+    FloatBuf := nil;
   end;
 
   procedure TAudioConverter.FlushInternal;
   begin
     FInput.Flush;
-    if not FInPlace then
-      FreeMem(InOutBuf);
+    if OutBuf <> nil then FreeMem(OutBuf);
+    if FloatBuf <> nil then FreeMem(FloatBuf);    
     Busy := False;
   end;
 
   procedure TAudioConverter.GetDataInternal;
   var
-    l : LongWord;
-    InSize : LongWord;
-    Ptr : Pointer;
+    SamplesReq : Integer;
+    FramesReq : Integer;
+    BytesReq : LongWord;
+    B : Pointer;
   begin
-    if not Busy then  raise EAuException.Create('The Stream is not opened');
-    if BufStart >= BufEnd then
+    if (FOutBitsPerSample = 0) and (FOutChannels = 0) then
     begin
-      BufStart := 0;
-      BufEnd := 0;
-      if FInPlace then
-      begin
-        l := WantedSize;
-        FInput.GetData(Ptr, l);
-        InOutBuf := Ptr;
-        if l = 0 then
-        begin
-          Buffer := nil;
-          Bytes := 0;
-          Exit;
-        end;
-        InSize := l;
-      end else // if FInPlace
-      begin
-        l := Finput.CopyData(@InOutBuf[0], WantedSize);
-        if l = 0 then
-        begin
-          Buffer := nil;
-          Bytes := 0;
-          Exit;
-        end;
-        InSize := l;
-        while (l<>0) and (InSize < WantedSize) do
-        begin
-          l := Finput.CopyData(@InOutBuf[InSize], WantedSize - InSize);
-          Inc(InSize, l);
-        end;
-        //if l = 0 then _EndOfStream := True;
-      end; //  if FInPlace ... else
-      BufEnd := InSize;
-
-      if (FInput.Channels = 2) and (ICh = 1) then
-      begin
-        if FInput.BitsPerSample = 8 then
-           ConvertStereoToMono8(@InOutBuf[0], BufEnd);
-        if FInput.BitsPerSample = 16 then
-          ConvertStereoToMono16(@InOutBuf[0], BufEnd);
-        if FInput.BitsPerSample = 24 then
-          ConvertStereoToMono24(@InOutBuf[0], BufEnd);
-        if FInput.BitsPerSample = 32 then
-          ConvertStereoToMono32(@InOutBuf[0], BufEnd);
-        BufEnd := BufEnd shr 1;
-      end else
-      if (FInput.Channels = 1) and (ICh = 2) then
-      begin
-        if FInput.BitsPerSample = 8 then
-          ConvertMonoToStereo8(@InOutBuf[0], BufEnd, FMode);
-        if FInput.BitsPerSample = 16 then
-          ConvertMonoToStereo16(@InOutBuf[0], BufEnd, FMode);
-        if FInput.BitsPerSample = 24 then
-          ConvertMonoToStereo24(@InOutBuf[0], BufEnd, FMode);
-        if FInput.BitsPerSample = 32 then
-          ConvertMonoToStereo32(@InOutBuf[0], BufEnd, FMode);
-        BufEnd := BufEnd shl 1;
-      end;
-
-      if (FInput.BitsPerSample = 32) and (IBPS <> 32) then
-      begin
-        Convert32To24(@InOutBuf[0], BufEnd);
-        BufEnd := (BufEnd div 4)*3;
-      end;
-
-      if (FInput.BitsPerSample >= 24) and (IBPS < 24) then
-      begin
-        Convert24To16(@InOutBuf[0], BufEnd);
-        BufEnd := (BufEnd div 3)*2;
-      end;
-
-      if (FInput.BitsPerSample = 8) and (IBPS <> 8) then
-      begin
-        Convert8To16(@InOutBuf[0], BufEnd);
-        BufEnd := BufEnd shl 1;
-      end else
-      if (FInput.BitsPerSample <> 8) and (IBPS = 8) then
-      begin
-        Convert16To8(@InOutBuf[0], BufEnd);
-        BufEnd := BufEnd shr 1;
-      end;
-
-      if (FInput.BitsPerSample < 24) and (IBPS >= 24) then
-      begin
-        Convert16To24(@InOutBuf[0], BufEnd);
-        BufEnd := (BufEnd shr 1)*3;
-      end;
-
-      if (FInput.BitsPerSample < 32) and (IBPS = 32) then
-      begin
-        Convert24To32(@InOutBuf[0], BufEnd);
-        BufEnd := (BufEnd div 3)*4;
-      end;
-
-
+      FInput.GetData(Buffer, Bytes);
+      Exit;
     end;
-
-    if Bytes > (BufEnd - BufStart) then
-      Bytes := BufEnd - BufStart;
-    Buffer := @InOutBuf[BufStart];
-    Inc(BufStart, Bytes);
+    SamplesReq := Bytes div OutBytesPerSample;
+    FramesReq := SamplesReq div ICh;
+    BytesReq := FramesReq*InBytesPerSample*Finput.Channels;
+    FInput.GetData(B, BytesReq);
+    if BytesReq = 0 then
+    begin
+      Buffer := nil;
+      Bytes := 0;
+      Exit;
+    end;
+    SamplesReq := BytesReq div InBytesPerSample;
+    FramesReq := SamplesReq div Finput.Channels;
+    Bytes := FramesReq*OutBytesPerSample*ICh;
+    if FramesReq > OutFrames then
+    begin
+      if OutBuf <> nil then FreeMem(OutBuf);
+      if FloatBuf <> nil then FreeMem(FloatBuf);
+      OutFrames := FramesReq;
+      GetMem(OutBuf, OutFrames*OutBytesPerSample*ICh);
+      if ICh > FInput.Channels then
+        GetMem(FloatBuf, OutFrames*SizeOf(Single)*ICh)
+      else
+        GetMem(FloatBuf, OutFrames*SizeOf(Single)*FInput.Channels);
+    end;
+    if Finput.BitsPerSample = 8 then
+      ByteToSingle(B, FloatBuf, FramesReq*FInput.Channels)
+    else
+    if Finput.BitsPerSample = 16 then
+      SmallIntToSingle(B, FloatBuf, FramesReq*FInput.Channels)
+    else
+    if Finput.BitsPerSample = 24 then
+      Int24ToSingle(B, FloatBuf, FramesReq*FInput.Channels)
+    else
+    if Finput.BitsPerSample = 32 then
+      Int32ToSingle(B, FloatBuf, FramesReq*FInput.Channels);
+    if (ICh = 2) and (FInput.Channels = 1) then
+      SingleMonoToStereo(FloatBuf, FramesReq)
+    else
+    if (ICh = 1) and (FInput.Channels = 2) then
+      SingleStereoToMono(FloatBuf, FramesReq);
+    if IBPS = 8 then
+      SingleToByte(FloatBuf, OutBuf, FramesReq*ICh)
+    else
+    if IBPS = 16 then
+      SingleToSmallInt(FloatBuf, Pointer(OutBuf), FramesReq*ICh)
+    else
+    if IBPS = 24 then
+      SingleToInt24(FloatBuf, OutBuf, FramesReq*ICh)
+    else
+    if IBPS = 32 then
+      SingleToInt32(FloatBuf, Pointer(OutBuf), FramesReq*ICh);
+    Buffer := OutBuf;
   end;
 
 
@@ -1371,7 +1324,7 @@ implementation
   begin
     if not _Enabled then
     begin
-      Bytes := Bytes - (Bytes mod _BytesPerSample);
+//      Bytes := Bytes - (Bytes mod _BytesPerSample);
       Finput.GetData(Buffer, Bytes);
       Exit;
     end;
