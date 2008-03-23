@@ -22,6 +22,7 @@ package NewAC;
 {$R 'ACS_OptimFROG.dcr'}
 {$R 'ACS_MPC.dcr'}
 {$R 'ACS_TAK.dcr'}
+{$R 'AudioDMO.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -98,6 +99,10 @@ contains
   ACS_MPC in 'ACS_MPC.pas',
   ACS_TAK in 'ACS_TAK.pas',
   tak_decoder in 'tak_decoder.pas',
-  libmppenc in 'libmppenc.pas';
+  libmppenc in 'libmppenc.pas',
+  AudioDMO in 'AudioDMO.pas',
+  _Direct3D9 in '_Direct3D9.pas',
+  _DirectShow9 in '_DirectShow9.pas',
+  msdmo in 'msdmo.pas';
 
 end.
