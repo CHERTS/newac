@@ -6,7 +6,7 @@
 *)
 
 (* Title: AudioDMO
-    THis unit contains component wrappers around several DMOs. *)
+    This unit contains component wrappers around several DMOs. *)
 
 
 (* $Id$ *)
@@ -88,18 +88,23 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       Use this property to set output sample rate. TVoiceFilter can accept 16 bit mono or stereo audio at deifferent sample rates. The output will always be mono 16 with bits per sample.
-       You can select output sample rate though. The values allowed for OutSampleRate are 8000, 11025, 16000, and 22050. *)
+       Use this property to set output sample rate. TVoiceFilter can accept 16
+       bit mono or stereo audio at deifferent sample rates. The output will
+       always be mono 16 with bits per sample. You can select output sample
+       rate though. The values allowed for OutSampleRate are 8000, 11025,
+       16000, and 22050. *) 
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
        This property enables or disables the automatic gain control. *)
     property EnableAGC : Boolean read FEnableAGC write FEnableAGC;
     (* Property: EnableNoiseReduction
-       This property enables or disables noise filtering.*)
+       This property enables or disables noise filtering. *)
     property EnableNoiseReduction : Boolean read FEnableNoiseReduction write FEnableNoiseReduction;
     (* Property: EnableVAD
-       This property enables or disables voice activity detection. If VAD is enabled, the silent periods are removed from the component's output.
-       If VAD mode is enabled the component cannot report its output size and progress. *)
+       This property enables or disables voice activity detection. If VAD is
+       enabled, the silent periods are removed from the component's output. If
+       VAD mode is enabled the component cannot report its output size and
+       progress. *)
     property EnableVAD : Boolean read FEnableVAD write FEnableVAD;
   end;
 

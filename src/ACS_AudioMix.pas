@@ -22,15 +22,30 @@ const
 
 type
 
+  (* Enum: TAudioMixerMode
+    This enumeration represents the different modes of operation for a 
+    <TAudioMixer>.
+      
+      amMix - the mixer mixes input streams and the size of the resulting
+      stream is equal to the size of the longest input stream. 
+      
+      amConcatenate - the two streams are concatenated together and the size
+      of the resulting stream is the sum of the sizes of the input streams.
+      Input1 is written before Input2.
+  *)
+
   TAudioMixerMode = (amMix, amConcatenate);
 
   (* Class: TAudioMixer
-     This component can mix or concatenate two input audio streams.
-     Unlike other stream converter components, TAudioMixer component has two input properties: Input1 and Input2.
-     The input streams should have the same number of channels and sample rates (but may have the different number of bits per sample).
-     Note that input streams may be of different size. In amMix mode the streams start at the same time, but the longer stream will play alone after the shorter stream has ended.
-     In amConcatenate mode the second input will play after the first input has ended.
-     Decends from <TAuInput>.*)
+     This component can mix or concatenate two input audio streams. Unlike
+     other stream converter components, TAudioMixer component has two input
+     properties: Input1 and Input2. The input streams should have the same
+     number of channels and sample rates (but may have a different number of
+     bits per sample). Note that input streams may be of different sizes. In
+     amMix mode the streams start at the same time, but the longer stream will
+     play alone after the shorter stream has ended. In amConcatenate mode the
+     second input will play after the first input has ended. Decends from
+     <TAuInput>. *)
 
   TAudioMixer = class(TAuInput)
   private
@@ -57,18 +72,15 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-    (*Property: Input1
-    Use this property to set the first input stream to be mixed or concatenated.*)
+    (* Property: Input1
+    Use this property to set the first input stream to be mixed or concatenated. *)
     property Input1 : TAuInput read FInput1 write SetInput1;
-    (*Property: Input2
-    Use this property to set the second input stream to be mixed or concatenated.*)
+    (* Property: Input2
+    Use this property to set the second input stream to be mixed or concatenated. *)
     property Input2 : TAuInput read FInput2 write SetInput2;
-    (*Property: Mode
+    (* Property: Mode
      This property sets the mode for the TAudioMixer.
-     The possible values for this property are amMix, amConcatenate, amRTMix.
-     If it is set to amMix (default) the mixer mixes input streams and the size of the resulting stream is equal to the size of longest input stream.
-     If this property is set to amConcatenate, the two streams are concatenated together and the size of the resulting stream is the sum of the sizes of the input streams.
-     When the mode is amConcatenate the stream from the Input1 is put before the stream from the Input2.
+     The possible values for this property are <amMix> and <amConcatenate>.
     *)
     property Mode : TAudioMixerMode read FMode write FMode;
     property Input2StartSample : Int64 read FInput2Start write FInput2Start;

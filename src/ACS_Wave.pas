@@ -21,7 +21,7 @@ interface
 
 uses
 
-// This is required to enable TWaveIn read MS ACM (MP3-encoded) files.
+// This is required to allow TWaveIn to read MS ACM (MP3-encoded) files.
   {$IFDEF WIN32}
   MMSYSTEM, _MSAcm, waveconverter,
   {$ENDIF}
@@ -90,6 +90,21 @@ type
     DataChunkId: array [0..3] of Char;   // = 'data'
     DataSize: Integer;   // Data size in bytes
   end;
+(*
+  Record: TWaveHeaderExt
+    Represents a WaveFormatExtensible header.
+    
+  Properties:
+    RIFF: array [0..3] of Char - 'RIFF'
+    FileSize: Integer - FileSize - 8
+    RIFFType: array [0..3] of Char - 'WAVE'
+    FmtChunkId: array [0..3] of Char - 'fmt' marks the beginning of the format chunk
+    FmtChunkSize: Integer - 16, the size of the format chunk  
+    Format: <TWaveFormatExtensible> - see <TWaveFormatExtensible>
+    DataChunkId: array [0..3] of Char; - 'data' marks the beginning of the data chunk
+    DataSize: Integer; - Data size in bytes
+*)
+
 
   TWaveHeaderExt = record
     // RIFF file header

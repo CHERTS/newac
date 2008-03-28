@@ -20,7 +20,14 @@ uses
 {$DEFINE USE_EXTENDED_SPEC_FOR_24_BPS }
 
 const
-
+  (* Constants: DirectX Buffers
+      These constants determine the buffer size of DX and thus the delay heard
+      when beginning audio playback.
+    
+    DS_BUFFER_SIZE - $10000; Size in frames, not bytes
+    DS_POLLING_INTERVAL - 200; in milliseconds
+  *)
+  
   DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
   DS_POLLING_INTERVAL = 200; //milliseconds
 
