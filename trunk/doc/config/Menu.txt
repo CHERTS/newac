@@ -2,7 +2,7 @@ Format: Development Release 01-12-2008 (1.35 base)
 
 
 Title: NewAC
-SubTitle: v1.5
+SubTitle: v1.7
 
 Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
