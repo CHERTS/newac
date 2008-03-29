@@ -20,18 +20,11 @@ uses
 
 const
 
-  InitialBufferSize = $180000; // comments?
-  IOBufSize = $300000; // comments?
+  InitialBufferSize = $180000; // Internal constants
+  IOBufSize = $300000;
 
 type
 
-  (* Enum: TResamplerQuality
-    
-      rqBest - High quality, but slowest resampling time.
-      rqMedium - Medium quality
-      rqFastest - Lowest quality, but still not too bad. Also the fastest resampling time.
-  *)
-  
   TResamplerQuality = (rqBest, rqMedium, rqFastest);
 
   (* Class: TResampler
@@ -70,20 +63,16 @@ type
     destructor Destroy; override;
   published
     (* Property: Quality
-       Use this property to set the trade-off between resampling quality and
-       speed. Possible values are <rqBest>, <rqMedium>, and <rqFastest>, of
-       which rqBest sets the best quality but slow resampling time and
-       rqFastest sets the lower (but still very good) quality and the fastest
-       resampling time. *)
+       Use this property to set the trade-off between resampling quality and speed.
+       Possible values are rqBest, rqMedium, and rqFastest, of which rqBest sets the best quality but slow resampling time
+       and rqFastest sets the lower (but still very good) quality and the fastest resampling time.*)
     property Quality : TResamplerQuality read FQuality write FQuality;
     (* Property: OutSampleRate
       Use this property to set the sample rate for the resulting audio stream.
-      Valid values range from 2000 to 120000 and include the special value of
-      0. If you set the output sample rate to the same value as the input
-      sample rate, or set it to 0, the component will switch to a pass-through
-      mode. In this mode all the input will be passed on unchanged. This
-      feature is useful when chaining the TResampler component wih other
-      components in the chain that may not always need resampled data. *)
+      The valid values range from 2000 to 120000 and include special value of 0.
+      If you set the output sample rate to the same value as the input sample rate, or set it to 0, the component will switch
+      to a pass-through mode. In this mode all the input will be passed on unchanged. This feature is useful when chaining the TResampler component wih other
+      components in the chain that may not always need resampled data.*)
     property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
   end;
 
@@ -93,7 +82,7 @@ implementation
   constructor TResampler.Create;
   begin
     inherited Create(AOwner);
-    if not (csDesigning in ComponentState) then
+    if not (csDesigning	in ComponentState) then
     begin
       if not LibsamplerateLoaded then
         raise EAuException.Create(LibsampleratePath + ' library could not be loaded.');
@@ -188,7 +177,11 @@ implementation
           l := l*2;
         end;
         if l = 0 then
-           EndOfInput := True;
+        begin
+          l := IOBufSize - IBufferEnd;
+          FillChar(InputBuffer[IBufferEnd], l, 0);
+        end;
+           //EndOfInput := True;
         Inc(IBufferEnd, l);
       end;
       if IBufferEnd = 0 then
