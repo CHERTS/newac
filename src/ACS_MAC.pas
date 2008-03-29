@@ -190,7 +190,7 @@ begin
   if FFileName <> '' then
   begin
     if not APEv2Tags.Empty then
-        macTagFileSimple(PChar(FFileName), PChar(Utf8Encode(APEv2Tags.Artist)), PChar(Utf8Encode(APEv2Tags.Album)), PChar(Utf8Encode(APEv2Tags.Title)),
+        macTagFileSimple(PChar(String(FWideFileName)), PChar(Utf8Encode(APEv2Tags.Artist)), PChar(Utf8Encode(APEv2Tags.Album)), PChar(Utf8Encode(APEv2Tags.Title)),
           PChar(Utf8Encode(APEv2Tags.Comment)), PChar(Utf8Encode(APEv2Tags.Genre)), PChar(Utf8Encode(APEv2Tags.Year)), PChar(Utf8Encode(APEv2Tags.Track)), True, False);
   end;
 end;
@@ -276,9 +276,9 @@ begin
   FValid := True;
   if FOpened = 0 then
   begin
-    if FFileName <> '' then
+    _APEv2Tags.Clear;
+    if macGetID3Tag(PChar(String(FWideFileName)), @Tag) = 0 then
     begin
-      macGetID3Tag(PChar(FFileName), @Tag);
       _APEv2Tags.Album := Tag.Album;
       _APEv2Tags.Artist := Tag.Artist;
       _APEv2Tags.Title := Tag.Title;
