@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 488
   Top = 378
   Width = 334
-  Height = 158
+  Height = 209
   Caption = 'Monkey'#39's Audio Player'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -63,6 +63,27 @@ object Form1: TForm1
     Font.Style = []
     ParentFont = False
   end
+  object Label1: TLabel
+    Left = 8
+    Top = 72
+    Width = 23
+    Height = 13
+    Caption = 'Artist'
+  end
+  object Label2: TLabel
+    Left = 8
+    Top = 88
+    Width = 29
+    Height = 13
+    Caption = 'Album'
+  end
+  object Label3: TLabel
+    Left = 8
+    Top = 104
+    Width = 20
+    Height = 13
+    Caption = 'Title'
+  end
   object BitBtn1: TBitBtn
     Left = 8
     Top = 40
@@ -94,7 +115,7 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 105
+    Top = 156
     Width = 326
     Height = 19
     Panels = <
@@ -105,7 +126,7 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 91
+    Top = 142
     Width = 326
     Height = 14
     Align = alBottom
@@ -114,7 +135,7 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 80
+    Top = 131
     Width = 326
     Height = 11
     Align = alBottom
@@ -151,21 +172,21 @@ object Form1: TForm1
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Monkey'#39's Audio Files|*.ape'
-    Left = 112
-    Top = 80
+    Left = 80
+    Top = 120
   end
   object MACIn1: TMACIn
-    EndSample = -1
     Loop = False
-    Left = 16
-    Top = 80
+    EndSample = -1
+    Left = 8
+    Top = 120
   end
   object DXAudioOut1: TDXAudioOut
     Input = MACIn1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
-    Left = 56
-    Top = 80
+    Left = 48
+    Top = 120
   end
 end
