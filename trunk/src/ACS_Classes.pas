@@ -1816,6 +1816,11 @@ begin
     begin
       GetDataInternal(Buffer, Bytes);
       Inc(FPosition, Bytes);
+      if (FSize > 0) and (FPosition > FSize) then
+      begin
+        Dec(Bytes, FPosition - FSize);
+        _EndOfStream := True
+      end;
       if Bytes = 0 then
         _EndOfStream := True
     end;
