@@ -21,7 +21,7 @@ unit ACS_MAC;
 interface
 
 uses
-  Classes, SysUtils, Windows, ACS_Classes, MACDll;
+  Classes, SysUtils, Windows, ACS_Classes, ACS_Tags, MACDll;
 
 const
 
@@ -42,7 +42,7 @@ type
      Descends from <TAuFileOut>.
      Requires MACDll.dll. *)
 
-  TMACOut = class(TAuFileOut)
+  TMACOut = class(TAuTaggedFileOut)
   private
     buf: array[0..OUT_BUF_SIZE - 1] of Byte;
     APECompress: TAPECompress;
@@ -59,6 +59,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    property APEv2Tags;
     (* Property: CompressionLevel
        Use this property to set the compression level for the APE file being created.
        The pssible values are 1000 (fastest time, lowest compression rate), 2000 (the default), 3000, 4000 (slowest comression time, maximum compression rate). *)
@@ -77,7 +78,7 @@ type
      Descends from <TAuFileIn>.
      Requires MACDll.dll. *)
 
-  TMACIn = class(TAuFileIn)
+  TMACIn = class(TAuTaggedFileIn)
   private
     //buf: array[1..IN_BUF_SIZE] of Byte;
     buf: array[0..IN_BUF_SIZE - 1] of Byte;
@@ -88,6 +89,7 @@ type
     function GetCurrentMS: Integer;
     function GetLengthMS: Integer;
     function GetTotalBlocks: Integer;
+    function GetAPEv2Tags : TAPEv2Tags;
   protected
     function GetBPS: LongWord; override;
     function GetCh: LongWord; override;
@@ -102,6 +104,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GetDataInternal(var Buffer: Pointer; var Bytes : LongWord); override;
+    property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
     (* Property: AverageBitrate
        This property shows the average bitrate for the ape file being played.*)
     property AverageBitrate: Integer read GetAverageBitrate;
@@ -184,6 +187,12 @@ begin
   APECompress.Free;
   APECompress := nil;
   FInput.Flush;
+  if FFileName <> '' then
+  begin
+    if not APEv2Tags.Empty then
+        macTagFileSimple(PChar(FFileName), PChar(Utf8Encode(APEv2Tags.Artist)), PChar(Utf8Encode(APEv2Tags.Album)), PChar(Utf8Encode(APEv2Tags.Title)),
+          PChar(Utf8Encode(APEv2Tags.Comment)), PChar(Utf8Encode(APEv2Tags.Genre)), PChar(Utf8Encode(APEv2Tags.Year)), PChar(Utf8Encode(APEv2Tags.Track)), True, False);
+  end;
 end;
 
 function TMACOut.DoOutput;
@@ -259,12 +268,24 @@ begin
 end;
 
 procedure TMACIn.OpenFile;
+var
+  Tag : ID3_TAG;
 begin
   OpenCS.Enter;
   try
   FValid := True;
   if FOpened = 0 then
   begin
+    if FFileName <> '' then
+    begin
+      macGetID3Tag(PChar(FFileName), @Tag);
+      _APEv2Tags.Album := Tag.Album;
+      _APEv2Tags.Artist := Tag.Artist;
+      _APEv2Tags.Title := Tag.Title;
+//      _APEv2Tags.Genre := Tag.Genre;
+      _APEv2Tags.Year := Tag.Year;
+      _APEv2Tags.Comment := Tag.Comment;
+    end;
 
 {Ross---
     APEDecompress := TAPEDecompress.Create(FileName);
@@ -454,6 +475,12 @@ function TMACIn.SeekInternal;
 begin
   Result := True;
   APEDecompress.Seek(Sample);
+end;
+
+function TMACIn.GetAPEv2Tags;
+begin
+  OpenFile;
+  Result := _APEv2Tags;
 end;
 
 end.
