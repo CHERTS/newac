@@ -90,7 +90,7 @@ type
     (* Property: OutSampleRate
        Use this property to set output sample rate. TVoiceFilter can accept 16
        bit mono or stereo audio at deifferent sample rates. The output will
-       always be mono 16 with bits per sample. You can select output sample
+       always be mono with 16 bits per sample. You can select output sample
        rate though. The values allowed for OutSampleRate are 8000, 11025,
        16000, and 22050. *) 
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
@@ -172,8 +172,8 @@ implementation
 
   procedure TMSResampler.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
   var
-    InBuf : Pointer;
-    l : LongWord;
+    InBuf : PBuffer8;
+    l, s : LongWord;
   begin
     if GetSR = FInput.SampleRate then
     begin
@@ -188,10 +188,11 @@ implementation
         begin
           l := RESAMPLER_INPUT_BUF_SIZE -
               (RESAMPLER_INPUT_BUF_SIZE mod (resampler.input_spec.channels*resampler.input_spec.bps div 8));
-          dmo_resampler_prepare_input(resampler, InBuf, l);
-          l := FInput.FillBuffer(InBuf, l, FEndOfInput);
+          dmo_resampler_prepare_input(resampler, Pointer(InBuf), l);
+          s := FInput.FillBuffer(InBuf, l, FEndOfInput);
           if FEndOfInput then
-            dmo_resampler_reset_input(resampler, l);
+            FillChar(InBuf[s], l-s, 0);
+ //            dmo_resampler_reset_input(resampler, l);
           dmo_resampler_write_input(resampler);
         end else //if not FEndOfInput then
         begin
