@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 192
   Top = 109
-  Width = 280
-  Height = 152
-  Caption = 'APE2MP3 Converter'
+  Width = 285
+  Height = 275
+  Caption = 'Wav2Ape'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,6 +13,9 @@ object Form1: TForm1
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    277
+    241)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -43,6 +46,42 @@ object Form1: TForm1
     Height = 13
     Caption = 'Compression'
   end
+  object Label5: TLabel
+    Left = 8
+    Top = 80
+    Width = 23
+    Height = 13
+    Caption = 'Artist'
+  end
+  object Label6: TLabel
+    Left = 8
+    Top = 104
+    Width = 29
+    Height = 13
+    Caption = 'Album'
+  end
+  object Label7: TLabel
+    Left = 8
+    Top = 152
+    Width = 29
+    Height = 13
+    Caption = 'Genre'
+  end
+  object Label8: TLabel
+    Left = 8
+    Top = 128
+    Width = 20
+    Height = 13
+    Caption = 'Title'
+  end
+  object Label9: TLabel
+    Left = 8
+    Top = 176
+    Width = 22
+    Height = 13
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'Year'
+  end
   object Button1: TButton
     Left = 8
     Top = 8
@@ -54,9 +93,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 8
-    Top = 72
+    Top = 200
     Width = 257
     Height = 9
+    Anchors = [akLeft, akTop, akRight]
     Min = 0
     Max = 100
     TabOrder = 1
@@ -81,8 +121,8 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 99
-    Width = 272
+    Top = 222
+    Width = 277
     Height = 19
     Panels = <
       item
@@ -101,21 +141,60 @@ object Form1: TForm1
     TabOrder = 4
     Value = 2000
   end
+  object Edit1: TEdit
+    Left = 56
+    Top = 72
+    Width = 209
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 5
+  end
+  object Edit2: TEdit
+    Left = 56
+    Top = 96
+    Width = 209
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 6
+  end
+  object Edit3: TEdit
+    Left = 56
+    Top = 120
+    Width = 209
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 7
+  end
+  object Edit4: TEdit
+    Left = 56
+    Top = 144
+    Width = 209
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 8
+  end
+  object Edit5: TEdit
+    Left = 56
+    Top = 168
+    Width = 209
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 9
+  end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
-    Left = 72
-    Top = 88
+    EndSample = -1
+    Left = 64
+    Top = 208
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wav files|*.wav'
-    Left = 8
-    Top = 88
+    Top = 208
   end
   object SaveDialog1: TSaveDialog
-    DefaultExt = 'ogg'
-    Left = 40
-    Top = 88
+    DefaultExt = 'ape'
+    Left = 32
+    Top = 208
   end
   object MACOut1: TMACOut
     Input = WaveIn1
@@ -123,7 +202,7 @@ object Form1: TForm1
     OnProgress = MACOut1Progress
     CompressionLevel = 2000
     MaxAudioBytes = -1
-    Left = 104
-    Top = 88
+    Left = 96
+    Top = 208
   end
 end

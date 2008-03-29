@@ -1,8 +1,8 @@
 (*
- NewAC Wav to Ogg file converter.
+ NewAC Wav to Monkey Audio file converter.
  Copyright (c) Andrei Borovsky
  You can contact me at anb@symmetrica.net
- You will need Ogg Vorbis codec libraries to
+ You will need Monkey Audio codec libraries to
  run this demo.
 *)
 
@@ -29,6 +29,16 @@ type
     Label4: TLabel;
     SpinEdit1: TSpinEdit;
     MACOut1: TMACOut;
+    Label5: TLabel;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Edit3: TEdit;
+    Edit4: TEdit;
+    Label9: TLabel;
+    Edit5: TEdit;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
@@ -60,12 +70,17 @@ begin
     WaveIn1.FileName := OpenDialog1.FileName;
     S := OpenDialog1.FileName;
     SetLength(S, Length(S) - 4);
-    SaveDialog1.FileName := S + '.ape';
+    SaveDialog1.FileName := ChangeFileExt(OpenDialog1.FileName, '.ape');
     if SaveDialog1.Execute then
     begin
       Button1.Enabled := False;
       Self.StatusBar1.Panels[0].Text := 'Converting...';
       MACOut1.FileName := SaveDialog1.FileName;
+      MACOut1.APEv2Tags.Artist := Edit1.Text;
+      MACOut1.APEv2Tags.Album := Edit2.Text;
+      MACOut1.APEv2Tags.Title := Edit3.Text;
+      MACOut1.APEv2Tags.Genre := Edit4.Text;
+      MACOut1.APEv2Tags.Year := Edit5.Text;
       MACOut1.Run;
     end;
   end;
