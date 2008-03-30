@@ -4,8 +4,7 @@
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 
-   The original version of this file is written by Thomas la Cour,
-   http://www.top-house.dk/~nr161/delphi/
+  The original version of this file is written by Thomas la Cour.
 
   Updated by Sergei Borisov < jr_ross@mail.ru >
 
