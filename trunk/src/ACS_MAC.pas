@@ -186,12 +186,9 @@ begin
   APECompress.Free;
   APECompress := nil;
   FInput.Flush;
-  if FFileName <> '' then
-  begin
-    if not APEv2Tags.Empty then
-        macTagFileSimple(PChar(String(FWideFileName)), PChar(Utf8Encode(APEv2Tags.Artist)), PChar(Utf8Encode(APEv2Tags.Album)), PChar(Utf8Encode(APEv2Tags.Title)),
-          PChar(Utf8Encode(APEv2Tags.Comment)), PChar(Utf8Encode(APEv2Tags.Genre)), PChar(Utf8Encode(APEv2Tags.Year)), PChar(Utf8Encode(APEv2Tags.Track)), True, False);
-  end;
+  if not APEv2Tags.Empty then
+      macTagFileSimple(PChar(String(FWideFileName)), PChar(Utf8Encode(APEv2Tags.Artist)), PChar(Utf8Encode(APEv2Tags.Album)), PChar(Utf8Encode(APEv2Tags.Title)),
+        PChar(Utf8Encode(APEv2Tags.Comment)), PChar(Utf8Encode(APEv2Tags.Genre)), PChar(Utf8Encode(APEv2Tags.Year)), PChar(Utf8Encode(APEv2Tags.Track)), True, False);
 end;
 
 function TMACOut.DoOutput;
