@@ -880,7 +880,7 @@ implementation
     Sect2 := TE.dwStartSector;
     Sect2 := Sect2 + MSF2Frames(FEndPos.MSF);
     CloseCD;
-    Result := (Sect2 - Sect1)*CD_FRAMESIZE_RAW;
+    Result := (Sect2 - Sect1 + 1)*CD_FRAMESIZE_RAW;
   end;
 
   procedure TCDIn.InitInternal;
