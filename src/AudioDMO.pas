@@ -24,9 +24,9 @@ const
 type
 
  (* Class: TMSResampler
-     Descends from <TAuConverter>.
-
-     TMSResampler is a fast high-quality resampler based on Windows Vista resampler DMO.
+     A fast high-quality resampler based on Windows Vista resampler DMO.
+     Descends from <TAuConverter>. 
+     
      *This component only works under Windows Vista or later version.*  *)
 
   TMSResampler = class(TAuConverter)
@@ -55,12 +55,12 @@ type
   end;
 
    (* Class: TVoiceFilter
-     Descends from <TAuConverter>.
+     A wrapper around Windows DMO that implements several voice-related DSPs.
+     TVoiceFilter can perform automatic level adjustment (automatic gain
+     control), noise removal, voice activity detection. Descends from
+     <TAuConverter>.
 
-     TVoiceFilter is a wrapper around Windows DMO that implements several voice-related DSPs.
-     TVoiceFilter can perform automatic level ajustement (automatic gain control),
-     noise removal, voice activity detection.
-     *This component only works under Windows Vista or later version.*  *)
+     *This component only works under Windows Vista or later.*  *)
 
   TVoiceFilter = class(TAuConverter)
   private
@@ -88,11 +88,11 @@ type
     destructor Destroy; override;
   published
     (* Property: OutSampleRate
-       Use this property to set output sample rate. TVoiceFilter can accept 16
-       bit mono or stereo audio at deifferent sample rates. The output will
-       always be mono with 16 bits per sample. You can select output sample
-       rate though. The values allowed for OutSampleRate are 8000, 11025,
-       16000, and 22050. *) 
+       Use this property to set the output sample rate. TVoiceFilter can
+       accept 16 bit mono or stereo audio at different sample rates. The
+       output will always be mono with 16 bits per sample. You can select
+       output sample rate though. The values allowed for OutSampleRate are
+       8000, 11025, 16000, and 22050. *)
     property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
        This property enables or disables the automatic gain control. *)
