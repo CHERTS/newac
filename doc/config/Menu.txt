@@ -88,6 +88,7 @@ Group: Main Units  {
    File: WaveConverter.pas  (src\WaveConverter.pas)
    File: WavPackDLL  (src\WavPackDLL.pas)
    File: wmfintf.pas  (src\wmfintf.pas)
+   File: ACS_Wave  (src\ACS_WA~2.PAS)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
