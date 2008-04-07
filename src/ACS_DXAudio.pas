@@ -19,7 +19,7 @@ uses
 
 {$DEFINE USE_EXTENDED_SPEC_FOR_24_BPS }
 
-const
+//const
   (* Constants: DirectX Buffers
       These constants determine the buffer size of DX and thus the delay heard
       when beginning audio playback.
@@ -28,8 +28,8 @@ const
     DS_POLLING_INTERVAL - 200; in milliseconds
   *)
   
-  DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
-  DS_POLLING_INTERVAL = 200; //milliseconds
+//  DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
+//  DS_POLLING_INTERVAL = 200; //milliseconds
 
 type
 
@@ -46,6 +46,8 @@ type
   TDXAudioOut = class(TAuOutput)
   private
     Freed : Boolean;
+    FFramesInBuffer : LongWord;
+    FPollingInterval : LongWord;
     DSW : DSoundWrapper;
     Devices : DSW_Devices;
     Chan, SR, BPS : Integer;
@@ -54,7 +56,6 @@ type
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
     _BufSize : Integer;
-    FBufferSize : Integer;
     FillByte : Byte;
     FUnderruns, _TmpUnderruns : LongWord;
     FOnUnderrun : TUnderrunEvent;
@@ -62,6 +63,7 @@ type
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
     procedure SetVolume(value : Integer);
+    procedure SetFramesInBuffer(value : LongWord);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -83,10 +85,6 @@ type
          This read only property returns the number of internal buffer
          underruns that have occurred during playback. *)
     property Underruns : LongWord read FUnderruns;
-    (* Property: BufferSize
-         Use this property to set the component's internal buffer size if the
-         default one doesn't suit you. *)
-    property BufferSize : Integer read FBufferSize write FBufferSize;
     (* Property: Volume
          Use this property to set or get the volume of the sound being played.
          The default value is 0 which corresponds to the original volume of
@@ -101,6 +99,8 @@ type
          device in your system. Valid numbers range from 0 to <DeviceCount> -
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
+    property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
          This can happen if the component receives data at slow rate from a
@@ -122,6 +122,8 @@ type
   private
     DSW : DSoundWrapper;
     Devices : DSW_Devices;
+    FFramesInBuffer : LongWord;
+    FPollingInterval : LongWord;
     _BufSize : Integer;
     Buf : PBuffer8;
     FDeviceNumber : Integer;
@@ -137,6 +139,7 @@ type
     procedure OpenAudio;
     procedure CloseAudio;
     procedure SetRecTime(aRecTime : Integer);
+    procedure SetFramesInBuffer(value : LongWord);
   protected
     function GetTotalTime : LongWord; override;
     function GetTotalSamples : Int64; override;
@@ -165,6 +168,8 @@ type
          overruns that have occurred during recording. *)
     property Overruns : LongWord read FOverruns;
   published
+    property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
+    property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
     (* Property: SamplesToRead
          Use this property to set the number of samples (frames) the component
          should record. If you set this property value to -1 the component
@@ -237,7 +242,9 @@ begin
     Form := Owner as TForm;
     Wnd := Form.Handle;
   end else Wnd := 0;
-  _BufSize := FBufferSize*(BPS shr 3)*Chan;
+  {$WARNINGS OFF}
+  _BufSize := Integer(FFramesInBuffer*(BPS shr 3)*Chan);
+  {$WARNINGS ON}
   GetMem(Buf, _BufSize);
   if BPS <> 8 then
     FillByte := 0
@@ -341,7 +348,7 @@ begin
   end;
   counter := 0;
   repeat
-    Sleep(DS_POLLING_INTERVAL);
+    Sleep(FPollingInterval);
     DSW_QueryOutputSpace(DSW, lb);
     lb := lb - (lb mod DSW.dsw_BytesPerFrame);
     Inc(counter);
@@ -373,7 +380,8 @@ end;
 constructor TDXAudioOut.Create;
 begin
   inherited Create(AOwner);
-  FBufferSize := DS_BUFFER_SIZE;
+  FFramesInBuffer := $10000;
+  FPollingInterval := 200;
   DSW_EnumerateOutputDevices(@Devices);
   FDeviceCount := Devices.devcount;
 end;
@@ -417,6 +425,8 @@ begin
   FSize := -1;
   FRecTime := -1;
   FSamplesToRead := -1;
+  FFramesInBuffer := $10000;
+  FPollingInterval := 200;
 //  if not (csDesigning in ComponentState) then
 //  begin
 //    if not LibdswLoaded then
@@ -457,7 +467,7 @@ begin
       end;
       raise EAuException.Create('Failed to create DirectSound device: ' + S);
     end;
-    _BufSize := DS_BUFFER_SIZE*(FBPS shr 3)*FChan;
+    _BufSize := FFramesInBuffer*(FBPS shr 3)*FChan;
     GetMem(Buf, _BufSize);
     Res := DSW_InitInputBuffer(DSW, FBPS, FFreq, FChan, _BufSize);
     if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer');
@@ -531,7 +541,7 @@ begin
   if BufStart >= BufEnd then
   begin
     BufStart := 0;
-    Sleep(DS_POLLING_INTERVAL);
+    Sleep(FPollingInterval);
     DSW_QueryInputFilled(DSW, l);
     if l > _BufSize then
     begin
@@ -609,6 +619,18 @@ end;
 function TDXAudioOut.GetVolume;
 begin
   dsw_GetVolume(DSW, Result);
+end;
+
+procedure TDXAudioOut.SetFramesInBuffer;
+begin
+  if not Busy then
+    FFramesInBuffer := value;
+end;
+
+procedure TDXAudioIn.SetFramesInBuffer;
+begin
+  if not Busy then
+    FFramesInBuffer := value;
 end;
 
 end.
