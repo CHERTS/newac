@@ -90,9 +90,24 @@ type
     dsw_ReadOffset : UINT;      ///* last read position */
     dsw_InputSize : UINT;
     {$ENDIF} // SUPPORT_AUDIO_CAPTURE */
+    dsw_PrimaryBuffer : IDIRECTSOUNDBUFFER;
   end;
 
   PDSoundWrapper = ^DSoundWrapper;
+
+  XDSoundWrapper = record
+    dsw_pDirectSound : IDIRECTSOUND;
+    dsw_PrimaryBuffer : IDIRECTSOUNDBUFFER;
+    dsw_OutputBuffer : IDIRECTSOUNDBUFFER;
+    dsw_WriteOffset : DWORD;
+    dsw_OutputSize : LongWord;
+    dsw_BytesPerFrame : LongWord;
+    dsw_OutputUnderflows : UINT;
+    dsw_OutputRunning : BOOL;
+    events : array[0..3] of THandle;
+    offsets : array[0..3] of LongWord;
+  end;
+
 
   DSW_DeviceInfo = record
     guid : TGUID;
@@ -153,7 +168,8 @@ begin
 //    dsw.dsw_OutputBuffer._Release;
     dsw.dsw_OutputBuffer := nil;
   end;
-{$IFDEF SUPPORT_AUDIO_CAPTURE}
+  dsw.dsw_PrimaryBuffer := nil;
+ {$IFDEF SUPPORT_AUDIO_CAPTURE}
   if dsw.dsw_InputBuffer <> nil then
   begin
     dsw.dsw_InputBuffer.Stop;
@@ -190,7 +206,6 @@ function DSW_InitOutputBuffer(var dsw  : DSoundWrapper; Wnd : HWND; bps : LongWo
 var
   dwDataLen : DWORD;
   playCursor : DWORD;
-  pPrimaryBuffer : IDIRECTSOUNDBUFFER;
   _hWnd : HWND;
   hr : HRESULT;
   wfFormat : TWaveFormatEx;
@@ -232,7 +247,7 @@ begin
   primaryDesc.lpwfxFormat := nil;
   // Create the buffer
   Result := dsw.dsw_pDirectSound.CreateSoundBuffer(
-        primaryDesc, pPrimaryBuffer, nil);  // ATTENTION
+        primaryDesc, dsw.dsw_PrimaryBuffer, nil);  // ATTENTION
   if (Result <> DS_OK) then Exit;
     // Define the buffer format
   wfFormat.wFormatTag := WAVE_FORMAT_PCM;
@@ -243,7 +258,7 @@ begin
   wfFormat.nAvgBytesPerSec := wfFormat.nSamplesPerSec * wfFormat.nBlockAlign;
   wfFormat.cbSize := 0;  // No extended format info.
   // Set the primary buffer's format
-  Result := pPrimaryBuffer.SetFormat(@wfFormat);
+  Result := dsw.dsw_PrimaryBuffer.SetFormat(@wfFormat);
   if Result <> DS_OK then Exit;
     // ----------------------------------------------------------------------
     // Setup the secondary buffer description
@@ -291,7 +306,6 @@ function DSW_InitOutputBufferEx(var dsw  : DSoundWrapper; Wnd : HWND; var WaveFo
 var
   dwDataLen : DWORD;
   playCursor : DWORD;
-  pPrimaryBuffer : IDIRECTSOUNDBUFFER;
   _hWnd : HWND;
   hr : HRESULT;
   primaryDesc : TDSBufferDesc;
@@ -332,10 +346,10 @@ begin
   primaryDesc.lpwfxFormat := nil; //PWaveFormatEx(@WaveFormat);
   // Create the buffer
   Result := dsw.dsw_pDirectSound.CreateSoundBuffer(
-        primaryDesc, pPrimaryBuffer, nil);  // ATTENTION
+        primaryDesc, dsw.dsw_PrimaryBuffer, nil);  // ATTENTION
   if (Result <> DS_OK) then Exit;
 //  Set the primary buffer's format
-Result := pPrimaryBuffer.SetFormat(PWaveFormatEx(@WaveFormat));
+Result := dsw.dsw_PrimaryBuffer.SetFormat(PWaveFormatEx(@WaveFormat));
   if (Result <> DS_OK) then Exit;
     // ----------------------------------------------------------------------
     // Setup the secondary buffer description
@@ -380,6 +394,76 @@ Result := pPrimaryBuffer.SetFormat(PWaveFormatEx(@WaveFormat));
 end;
 
 
+(*
+function XDSW_InitPrimaryBuffer(var dsw : XDSoundWrapper; Device : PGUID; Wnd : HWND; DSLevel : LongWord) : HRESULT;
+var
+  primaryDesc : TDSBufferDesc;
+  _hWnd : HWND;
+  hr : HResult;
+begin
+  Result := DirectSoundCreate(Device, dsw.dsw_pDirectSound, nil);
+  if hr <> DS_OK then
+  begin
+    Result := hr;
+    Exit;
+  end;
+  _hWnd := Wnd;
+  if _hWnd = 0 then
+    _hWnd := GetDesktopWindow();
+  hr := dsw.dsw_pDirectSound.SetCooperativeLevel(_hWnd, DSLevel);
+  if hr <> DS_OK then
+  begin
+    Result := hr;
+    Exit;
+  end;
+  FillChar(primaryDesc, sizeof(TDSBUFFERDESC), 0);
+  primaryDesc.dwSize := sizeof(DSBUFFERDESC);
+  primaryDesc.dwFlags := DSBCAPS_PRIMARYBUFFER; // all panning, mixing, etc done by synth
+  primaryDesc.dwBufferBytes := 0;
+  primaryDesc.lpwfxFormat := nil; //PWaveFormatEx(@WaveFormat);
+  // Create the buffer
+   Result := dsw.dsw_pDirectSound.CreateSoundBuffer(
+        primaryDesc, dsw.dsw_PrimaryBuffer, nil);  // ATTENTION
+end;
+
+function XDSW_SetPrimaryFormat(var dsw : XDSoundWrapper; var WaveFormat : TWaveFormatExtensible) : HRESULT;
+begin
+  Result := dsw.dsw_PrimaryBuffer.SetFormat(PWaveFormatEx(@WaveFormat));
+end;
+
+function XDSW_InitSecondaryBuffer(var dsw : XDSoundWrapper; bytesPerBuffer : LongWord; var WaveFormat : TWaveFormatExtensible) : HRESULT;
+var
+  dwDataLen : DWORD;
+  playCursor : DWORD;
+  hr : HRESULT;
+  secondaryDesc : TDSBufferDesc;
+  pDSBuffData : PByte;
+begin
+  dsw.dsw_OutputSize := bytesPerBuffer;
+  dsw.dsw_OutputUnderflows := 0;
+  dsw.dsw_BytesPerFrame := WaveFormat.Format.nBlockAlign;
+
+  ZeroMemory(@secondaryDesc, sizeof(TDSBUFFERDESC));
+  secondaryDesc.dwSize := sizeof(TDSBUFFERDESC);
+  secondaryDesc.dwFlags :=  DSBCAPS_CTRLPAN or DSBCAPS_CTRLFREQUENCY or DSBCAPS_GLOBALFOCUS or DSBCAPS_GETCURRENTPOSITION2 or DSBCAPS_CTRLVOLUME;
+  secondaryDesc.dwBufferBytes := bytesPerBuffer;
+  secondaryDesc.lpwfxFormat := PWaveFormatEx(@WaveFormat);
+    // Create the secondary buffer
+  Result := dsw.dsw_pDirectSound.CreateSoundBuffer(secondaryDesc, dsw.dsw_OutputBuffer, nil);
+  if Result <> DS_OK then Exit;
+    // Lock the DS buffer
+
+  Result := dsw.dsw_OutputBuffer.Lock(0, dsw.dsw_OutputSize, @pDSBuffData,
+            @dwDataLen, nil, nil, 0);
+  if Result <> DS_OK then Exit;
+    // Zero the DS buffer
+  ZeroMemory(pDSBuffData, dwDataLen);
+    // Unlock the DS buffer
+  Result := dsw.dsw_OutputBuffer.Unlock(pDSBuffData, dwDataLen, nil, 0);
+  if Result <> DS_OK then Exit;
+  Result := DS_OK;
+end;
+*)
 
 function DSW_StartOutput(var dsw : DSoundWrapper) : HRESULT;
 begin
