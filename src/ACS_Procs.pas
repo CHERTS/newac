@@ -755,10 +755,10 @@ end;
     for i := 0 to len - 1 do
     begin
       if _in[i] >= 1 then
-        _out[i] := int64(2147483647)
+        _out[i] := High(Integer)
       else
       if _in[i] <= -1 then
-        _out[i] := -int64(2147483648)
+        _out[i] := Low(Integer)
       else
       _out[i] := Floor(_in[i] * $80000000);
     end;
