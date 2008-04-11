@@ -129,7 +129,7 @@ type
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+    destructor Destroy;// override;
     (* Property: HasAudio
        Read this property to determine if the input file has an audio stream.
        The False value indicates that either an audio stream is missing (in
@@ -177,6 +177,7 @@ implementation
       AVIFileInit;
       if AVIFileOpen(AVIFile, PWideChar(FWideFileName), OF_READ or OF_SHARE_DENY_WRITE, nil) <> AVIERR_OK then
         raise EAuException.Create('Failed to open input file');
+      AVIFile._AddRef;
       FValid := True;
       if AVIFile.GetStream(AVIStream, streamtypeAUDIO, 0) = AVIERR_OK then
         FHasAudio := True
@@ -214,6 +215,7 @@ implementation
     begin
       AVIStream := nil;
       AVIFileRelease(AVIFile);
+      AVIFile := nil;
       AVIFileExit;
       if _Buf <> nil then FreeMem(_Buf);
       FOpened := 0;
