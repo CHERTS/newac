@@ -196,7 +196,6 @@ implementation
     wf : TWaveFormatExtensible;
     wfl : Integer;
     StreamInfo : TAVIStreamInfoW;
-    Res : Integer;
     fs : LongWord;
   begin
     OpenCS.Enter;
@@ -287,7 +286,7 @@ implementation
       if (FSize > 0) and (FSize - FPosition < Bytes) then
         Bytes := FSize - FPosition;
       Bytes := Bytes - (Bytes mod _SampleSize);
-      if Bytes > _BufSize then
+      if Bytes > LongWord(_BufSize) then
       begin
         if _Buf <> nil then FreeMem(_Buf);
         GetMem(_Buf, Bytes);
@@ -314,8 +313,6 @@ implementation
   end;
 
   function TAVIIn.SeekInternal(var SampleNum : Int64) : Boolean;
-  var
-    Offset : LongWord;
   begin
     Result := False;
     if Busy then

@@ -23,6 +23,7 @@ package NewAC;
 {$R 'ACS_MPC.dcr'}
 {$R 'ACS_TAK.dcr'}
 {$R 'AudioDMO.dcr'}
+{$R 'NewAC_AVI.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -44,7 +45,7 @@ package NewAC;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'New Audio Components v 1.7'}
+{$DESCRIPTION 'New Audio Components v 1.8'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -103,6 +104,7 @@ contains
   AudioDMO in 'AudioDMO.pas',
   _Direct3D9 in '_Direct3D9.pas',
   _DirectShow9 in '_DirectShow9.pas',
-  msdmo in 'msdmo.pas';
+  msdmo in 'msdmo.pas',
+  NewAC_AVI in 'NewAC_AVI.pas';
 
 end.
