@@ -7,6 +7,10 @@
 
 (* $Id$ *)
 
+(* Title: NewAC_AVI
+    This Unit contains the TAVIIn component that extracts audio streams from AVI files. *)
+
+
 unit NewAC_AVI;
 
 interface
@@ -112,6 +116,14 @@ type
   end;
   PAVIFile = ^IAVIFile;
 
+
+  (* Class: TAVIIn
+    This component extracts audio streams from AVI files.
+    AVI format is actually a container that can contain video, audio, and text data in different formats.
+    TAVIIn decodes audio data contained in an AVI file using audio codecs installed in the Windows system (these may be built-in or third-party Windows codecs).
+    The component is able to decode any AVI file playable on the system.
+    Descends from <TAuFileIn>.  *)
+
   TAVIIn = class(TAuFileIn)
   private
     AVIFile : IAVIFile;
@@ -128,6 +140,8 @@ type
     OutBufSize : Integer;
     Offset, BufEnd : Integer;
     FReportSize : Boolean;
+    BytesToRead : Integer;
+    TotalChunks : Integer;
     function GetHasAudio : Boolean;
     procedure ACMInit;
     procedure ACMDecode;
@@ -214,6 +228,9 @@ implementation
         wf := OutFormat;
         acmStreamSize(ACMStream, StreamInfo.dwLength*StreamInfo.dwSampleSize, fs, ACM_STREAMSIZEF_SOURCE);
         FSize := fs;
+        TotalChunks := StreamInfo.dwLength;
+        BytesToRead := StreamInfo.dwSuggestedBufferSize;
+        if BytesToRead = 0 then BytesToRead := 8192;
         NeedsDecoding := True;
       end else
       begin
@@ -230,7 +247,11 @@ implementation
       Inc(FOpened);
       _Buf := nil;
       _BufSize := 0;
-      if not FReportSize then FSize := -1;
+      if not FReportSize then
+      begin
+        FSize := -1;
+        FSeekable := False;
+      end;  
     end;
     finally
       OpenCS.Leave;
@@ -299,7 +320,10 @@ implementation
     Result := False;
     if Busy then
     begin
-      _StartSample := SampleNum + _StartFrom;
+      if not NeedsDecoding then
+        _StartSample := SampleNum + _StartFrom
+      else
+        _StartSample := Round (TotalChunks*SampleNum/FSize);
       Result := True;
     end;
   end;
@@ -331,7 +355,7 @@ implementation
     br, sr, res : Integer;
     sh : ACMSTREAMHEADER;
   begin
-    AVIStream.Read(_StartSample, 8192, nil, 0, br, sr);
+    AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
     if br > _BufSize then
     begin
       if _Buf <> nil then FreeMem(_Buf);
@@ -360,7 +384,7 @@ implementation
     res := acmStreamPrepareHeader(ACMStream, sh, 0);
     if res <> 0 then
       raise EAuException.Create('Decoding failed : ' + IntToStr(res));
-    res := acmStreamConvert(ACMStream, sh, ACM_STREAMCONVERTF_BLOCKALIGN or ACM_STREAMCONVERTF_START);
+    res := acmStreamConvert(ACMStream, sh, ACM_STREAMCONVERTF_BLOCKALIGN {or ACM_STREAMCONVERTF_START});
     if res <> 0 then
       raise EAuException.Create('Decoding failed : ' + IntToStr(res));
     BufEnd := sh.cbDstLengthUsed;
