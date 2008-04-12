@@ -12,7 +12,7 @@ unit NewAC_AVI;
 interface
 
 uses
-  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ActiveX, MMSystem, _DXTypes;
+  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs,ACS_Types,  ActiveX, MMSystem, _MSACM, _DXTypes;
 
 type
   TStreamType = packed array[0..3] of Char;
@@ -121,7 +121,17 @@ type
     _SampleSize : Word;
     _StartSample, _StartFrom : LongWord;
     FHasAudio : Boolean;
+    InFormat, OutFormat : TWaveFormatExtensible;
+    NeedsDecoding : Boolean;
+    ACMStream : HACMSTREAM;
+    OutBuf : PBuffer8;
+    OutBufSize : Integer;
+    Offset, BufEnd : Integer;
+    FReportSize : Boolean;
     function GetHasAudio : Boolean;
+    procedure ACMInit;
+    procedure ACMDecode;
+    procedure ACMDone;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -129,15 +139,19 @@ type
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy;// override;
+    destructor Destroy; override;
+   (* Property: ReportSize
+       Due to internal limitations the component cannot report the exact audio stream size when dealing with some compresstion formats.
+       Setting ReportSize to False forces the component not to report the audio stream size at all.
+       Set this property to False if you are saving AVI audio data as a .wav file. *)
+    property ReportSize : Boolean read FReportSize write FReportSize;
     (* Property: HasAudio
        Read this property to determine if the input file has an audio stream.
-       The False value indicates that either an audio stream is missing (in
-       WMV file) or the input file is corrupt.
-
-       Note:
-       Windows Media files may contain several audio streams. In the current
-       version TWMIn reads data only from the first audio stream it finds. *)
+       The False value indicates that either an audio stream is missing or the input file is corrupt.
+       If HasAudio repots True and TAuFileIn.Valid repots False, it means that an audio stream was found in the input file
+       but the system couldn't find a codec to decode the audio compression format.
+       You should proceed with the file only if both TAuFileIn.Valid and HasAudio retur True.
+  *)
     property HasAudio : Boolean read GetHasAudio;
   published
     property EndSample;
@@ -155,6 +169,7 @@ implementation
   constructor TAVIIn.Create;
   begin
     inherited Create(AOwner);
+    FReportSize := True;
   end;
 
   destructor TAVIIn.Destroy;
@@ -164,9 +179,11 @@ implementation
 
   procedure TAVIIn.OpenFile;
   var
-    wf : TWaveFormatEx;
+    wf : TWaveFormatExtensible;
     wfl : Integer;
     StreamInfo : TAVIStreamInfoW;
+    Res : Integer;
+    fs : LongWord;
   begin
     OpenCS.Enter;
     try
@@ -178,7 +195,6 @@ implementation
       if AVIFileOpen(AVIFile, PWideChar(FWideFileName), OF_READ or OF_SHARE_DENY_WRITE, nil) <> AVIERR_OK then
         raise EAuException.Create('Failed to open input file');
       AVIFile._AddRef;
-      FValid := True;
       if AVIFile.GetStream(AVIStream, streamtypeAUDIO, 0) = AVIERR_OK then
         FHasAudio := True
       else
@@ -187,20 +203,34 @@ implementation
         Exit;
       end;
       AVIStream.Info(StreamInfo, SizeOf(StreamInfo));
-      FTotalSamples := StreamInfo.dwLength;
       _StartSample := StreamInfo.dwStart;
       _StartFrom := _StartSample;
       wfl := SizeOf(wf);
       AVIStream.ReadFormat(0, @wf, wfl);
-      _SampleSize := (wf.wBitsPerSample div 8) * wf.nChannels;
-      FSize := _SampleSize * FTotalSamples;
-      FChan := wf.nChannels;
-      FBPS := wf.wBitsPerSample;
-      FSR := wf.nSamplesPerSec;
+      if wf.Format.wFormatTag <> 1 then
+      begin
+        InFormat := wf;
+        ACMInit;
+        wf := OutFormat;
+        acmStreamSize(ACMStream, StreamInfo.dwLength*StreamInfo.dwSampleSize, fs, ACM_STREAMSIZEF_SOURCE);
+        FSize := fs;
+        NeedsDecoding := True;
+      end else
+      begin
+        FSize := StreamInfo.dwSampleSize * StreamInfo.dwLength;
+        NeedsDecoding := False;
+      end;
+      FValid := True;
+      FChan := wf.Format.nChannels;
+      FBPS := wf.Format.wBitsPerSample;
+      FSR := wf.Format.nSamplesPerSec;
+      _SampleSize := (FBPS div 8) * wf.Format.nChannels;
+      FTotalSamples := FSize div _SampleSize;
       FSeekable := True;
       Inc(FOpened);
       _Buf := nil;
       _BufSize := 0;
+      if not FReportSize then FSize := -1;
     end;
     finally
       OpenCS.Leave;
@@ -213,6 +243,8 @@ implementation
     try
     if FOpened > 0 then
     begin
+      if NeedsDecoding then
+        ACMDone;
       AVIStream := nil;
       AVIFileRelease(AVIFile);
       AVIFile := nil;
@@ -229,18 +261,35 @@ implementation
   var
     br, sr : Integer;
   begin
-    if (FSize > 0) and (FSize - FPosition < Bytes) then
-      Bytes := FSize - FPosition;
-    Bytes := Bytes - (Bytes mod _SampleSize);
-    if Bytes > _BufSize then
+    if not NeedsDecoding then
     begin
-      if _Buf <> nil then FreeMem(_Buf);
-      GetMem(_Buf, Bytes);
-      _BufSize := Bytes;
+      if (FSize > 0) and (FSize - FPosition < Bytes) then
+        Bytes := FSize - FPosition;
+      Bytes := Bytes - (Bytes mod _SampleSize);
+      if Bytes > _BufSize then
+      begin
+        if _Buf <> nil then FreeMem(_Buf);
+        GetMem(_Buf, Bytes);
+        _BufSize := Bytes;
+      end;
+      AVIStream.Read(_StartSample, Bytes div _SampleSize, _Buf, Integer(Bytes), br, sr);
+      Inc(_StartSample, Bytes div _SampleSize);
+      Buffer := _Buf;
+    end else
+    begin
+      if Offset >= BufEnd then
+        ACMDecode;
+      if _EndOfStream then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;  
+      if Bytes > LongWord(BufEnd - Offset) then
+         Bytes := BufEnd - Offset;
+      Buffer := @OutBuf[Offset];
+      Inc(Offset, Bytes);
     end;
-    AVIStream.Read(_StartSample, Bytes div _SampleSize, _Buf, Integer(Bytes), br, sr);
-    Inc(_StartSample, Bytes div _SampleSize);
-    Buffer := _Buf;
   end;
 
   function TAVIIn.SeekInternal(var SampleNum : Int64) : Boolean;
@@ -259,6 +308,72 @@ implementation
   begin
     OpenFile;
     Result := Self.FHasAudio;
+  end;
+
+  procedure TAVIIn.ACMInit;
+  begin
+    FillChar(OutFormat, 0, SizeOf(OutFormat));
+    OutFormat.Format.wFormatTag := 1;
+    if acmFormatSuggest(nil, InFormat.Format, OutFormat.Format, SizeOf(OutFormat), ACM_FORMATSUGGESTF_WFORMATTAG) <> 0 then
+      raise EAuException.Create('Cannot set up decoder');
+    if acmStreamOpen(ACMStream, nil, InFormat.Format, OutFormat.Format, nil, 0, 0, ACM_STREAMOPENF_NONREALTIME)  <> 0 then
+      raise EAuException.Create('Cannot set up decoder');
+    _Buf := nil;
+    _BufSize := 0;
+    OutBuf := nil;
+    OutBufSize := 0;
+    Offset := 0;
+    BufEnd := 0;
+  end;
+
+  procedure TAVIIn.ACMDecode;
+  var
+    br, sr, res : Integer;
+    sh : ACMSTREAMHEADER;
+  begin
+    AVIStream.Read(_StartSample, 8192, nil, 0, br, sr);
+    if br > _BufSize then
+    begin
+      if _Buf <> nil then FreeMem(_Buf);
+      GetMem(_Buf, br);
+      _BufSize := br;
+    end;
+    AVIStream.Read(_StartSample, sr, _Buf, br, br, sr);
+    if sr = 0 then
+    begin
+      _EndOfStream := True;
+      Exit;
+    end;  
+    Inc(_StartSample, sr);
+    acmStreamSize(ACMStream, br, LongWord(BufEnd), ACM_STREAMSIZEF_SOURCE);
+    if BufEnd > OutBufSize then
+    begin
+      if OutBuf <> nil then FreeMem(OutBuf);
+      GetMem(OutBuf, BufEnd);
+      OutBufSize := BufEnd;
+    end;
+    sh.cbStruct := SizeOf(sh);
+    sh.pbSrc := _Buf;
+    sh.cbSrcLength := br;
+    sh.pbDst := PByte(OutBuf);
+    sh.cbDstLength := OutBufSize;
+    res := acmStreamPrepareHeader(ACMStream, sh, 0);
+    if res <> 0 then
+      raise EAuException.Create('Decoding failed : ' + IntToStr(res));
+    res := acmStreamConvert(ACMStream, sh, ACM_STREAMCONVERTF_BLOCKALIGN or ACM_STREAMCONVERTF_START);
+    if res <> 0 then
+      raise EAuException.Create('Decoding failed : ' + IntToStr(res));
+    BufEnd := sh.cbDstLengthUsed;
+    acmStreamUnprepareHeader(ACMStream, sh, 0);
+    Offset := 0;
+  end;
+
+  procedure TAVIIn.ACMDone;
+  begin
+    acmStreamClose(ACMStream, 0);
+    if _Buf <> nil then FreeMem(_Buf);
+    _Buf := nil;
+    if OutBuf <> nil then FreeMem(OutBuf);
   end;
 
 end.
