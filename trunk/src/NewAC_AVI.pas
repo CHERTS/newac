@@ -16,7 +16,7 @@ unit NewAC_AVI;
 interface
 
 uses
-  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs,ACS_Types,  ActiveX, MMSystem, _MSACM, _DXTypes;
+  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, ActiveX, MMSystem, _MSACM;
 
 type
   TStreamType = packed array[0..3] of Char;
@@ -352,7 +352,7 @@ implementation
   var
     br, sr, res : Integer;
   begin
-    res := AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
+    AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
     if br > _BufSize then
     begin
       if _Buf <> nil then FreeMem(_Buf);
