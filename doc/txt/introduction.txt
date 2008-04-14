@@ -278,7 +278,7 @@ Note:
 	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your country.
 
 Note on Ogg Vorbis libraries:
-	The original libraries available at http://www.xiph.org are not fully compatible with Delphi. You should use alternative aoTuV Ogg Vorbis suite instead. You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
+	Don't use Ogg Vorbis v 1.1 libraries with NewAC. You can use aoTuV Ogg Vorbis suite or Ogg Vorbis v 1.2 codec (or, possibly, a later version). You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. Ogg Vorbis 1.2 codec is available at http://www.vorbis.com/. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
 
 Section: Installation
 
