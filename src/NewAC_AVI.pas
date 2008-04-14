@@ -128,6 +128,7 @@ type
   private
     AVIFile : IAVIFile;
     AVIStream : IAVIStream;
+    sh : ACMSTREAMHEADER;
     _Buf : Pointer;
     _BufSize : Integer;
     _SampleSize : Word;
@@ -228,8 +229,8 @@ implementation
         acmStreamSize(ACMStream, StreamInfo.dwLength*StreamInfo.dwSampleSize, fs, ACM_STREAMSIZEF_SOURCE);
         FSize := fs;
         TotalChunks := StreamInfo.dwLength;
-        BytesToRead := StreamInfo.dwSuggestedBufferSize;
-        if BytesToRead = 0 then BytesToRead := 8192;
+        BytesToRead := StreamInfo.dwSuggestedBufferSize div StreamInfo.dwSampleSize;
+        if BytesToRead = 0 then BytesToRead := 1;
         NeedsDecoding := True;
       end else
       begin
@@ -350,9 +351,8 @@ implementation
   procedure TAVIIn.ACMDecode;
   var
     br, sr, res : Integer;
-    sh : ACMSTREAMHEADER;
   begin
-    AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
+    res := AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
     if br > _BufSize then
     begin
       if _Buf <> nil then FreeMem(_Buf);
@@ -364,33 +364,39 @@ implementation
     begin
       _EndOfStream := True;
       Exit;
-    end;  
+    end;
     Inc(_StartSample, sr);
     acmStreamSize(ACMStream, br, LongWord(BufEnd), ACM_STREAMSIZEF_SOURCE);
     if BufEnd > OutBufSize then
     begin
-      if OutBuf <> nil then FreeMem(OutBuf);
+      if OutBuf <> nil then
+      begin
+        acmStreamUnprepareHeader(ACMStream, sh, 0);
+        FreeMem(OutBuf);
+      end;
       GetMem(OutBuf, BufEnd);
       OutBufSize := BufEnd;
+      sh.cbStruct := SizeOf(sh);
+      sh.fdwStatus := 0;
+      sh.pbSrc := _Buf;
+      sh.cbSrcLength := br;
+      sh.pbDst := PByte(OutBuf);
+      sh.cbDstLength := OutBufSize;
+      res := acmStreamPrepareHeader(ACMStream, sh, 0);
+      if res <> 0 then
+        raise EAuException.Create('Decoding failed : ' + IntToStr(res));
     end;
-    sh.cbStruct := SizeOf(sh);
-    sh.pbSrc := _Buf;
-    sh.cbSrcLength := br;
-    sh.pbDst := PByte(OutBuf);
-    sh.cbDstLength := OutBufSize;
-    res := acmStreamPrepareHeader(ACMStream, sh, 0);
-    if res <> 0 then
-      raise EAuException.Create('Decoding failed : ' + IntToStr(res));
     res := acmStreamConvert(ACMStream, sh, ACM_STREAMCONVERTF_BLOCKALIGN {or ACM_STREAMCONVERTF_START});
     if res <> 0 then
       raise EAuException.Create('Decoding failed : ' + IntToStr(res));
     BufEnd := sh.cbDstLengthUsed;
-    acmStreamUnprepareHeader(ACMStream, sh, 0);
+    if BufEnd = 0 then EAuException.Create('Decoding failed');  // Reason unknown.
     Offset := 0;
   end;
 
   procedure TAVIIn.ACMDone;
   begin
+    acmStreamUnprepareHeader(ACMStream, sh, 0);
     acmStreamClose(ACMStream, 0);
     if _Buf <> nil then FreeMem(_Buf);
     _Buf := nil;
