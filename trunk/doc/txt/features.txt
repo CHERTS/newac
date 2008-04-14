@@ -33,6 +33,7 @@ Topic: Additional Features
 
 Section: Additional Features
 
+- Extracting audio tracks from WMV and AVI files.
 - 8, 16, 24, 32 bit sound support
 - multi-channel audio support.
 - Unicode support Unicode file names and Unicode tags are support.
