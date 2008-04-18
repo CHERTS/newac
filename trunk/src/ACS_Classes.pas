@@ -1284,12 +1284,26 @@ end;
       Result := False;
     end else
     begin
+      if not FStreamAssigned then FStream := nil;
       try
         OpenFile; // Open the file if it is not already opened
       except
         FValid := False;
-      end;  
-    end;
+      end;
+      if not FValid then
+      begin
+        if Self.FOpened = 0 then
+        begin
+          if (not FStreamAssigned) and (FStream <> nil) then FStream.Free;
+        end else // if Self.FOpened = 0
+        begin
+          try
+            CloseFile;
+          except;
+          end;
+        end;  // if Self.FOpened = 0 then ... else
+      end; // if not FValid then
+    end; // else
     Result := FValid;
   end;
 
