@@ -352,7 +352,14 @@ implementation
   var
     br, sr, res : Integer;
   begin
-    AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
+    res := AVIStream.Read(_StartSample, BytesToRead, nil, 0, br, sr);
+    if (res <> 0) and (_StartSample = 0) then
+      raise EAuException.Create('Error reading from AVI file: ' + IntToHex(res, 8));
+    if sr = 0  then
+    begin
+       sr :=1;
+       br := 2048;
+    end;
     if br > _BufSize then
     begin
       if _Buf <> nil then FreeMem(_Buf);
