@@ -765,7 +765,7 @@ type
       Residue := 0;
       if (not FStreamAssigned) and (FWideFileName = '') then
       raise EAuException.Create('File name is not assigned');
-      if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead, fmShareDenyNone);
+      if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead or fmShareDenyWrite);
       FValid := True;
       _decoder := FLAC__stream_decoder_new;
       if _decoder = nil then
