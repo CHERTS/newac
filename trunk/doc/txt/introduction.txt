@@ -8,15 +8,15 @@ Author:
 Contributors:
 	Several people have made contributions to the NewAC code.
 
-	- 	Lev Amelin: improved and extended TMP3Out component.
-	-	Thomas la Cour: Monkey Audio input/output components.
-	-	Jan Henrik Ejme: adding ACM-playing support.
-	-	Thomas Grelle: improving CDRip support.
-	-	Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany): some useful corrections and suggestions.
-	-	Sergei Borisov: quite a few contributions, including WavPack, TTA, TAK, Tags, OptimFrog support and much more. 
-	-	Eriks Aleksans: many useful suggestions.
-	- 	Wayne Thursby: preparing documentation and not breaking things (not entirely, at least)
-	-	Christophe De Vocht: updated ACS_LAME unit.
+	- Lev Amelin: improved and extended TMP3Out component.
+	- Thomas la Cour: Monkey Audio input/output components.
+	- Jan Henrik Ejme: adding ACM-playing support.
+	- Thomas Grelle: improving CDRip support.
+	- Jan Bartels (ATR Industrie-Elektronik GmbH & Co. KG, Viersen, Germany): some useful corrections and suggestions.
+	- Sergei Borisov: quite a few contributions, including WavPack, TTA, TAK, Tags, OptimFrog support and much more. 
+	- Eriks Aleksans: many useful suggestions.
+	- Wayne Thursby: preparing documentation and not breaking things (not entirely, at least)
+	- Christophe De Vocht: updated ACS_LAME unit.
 
 Section: On the Web
 	
@@ -30,26 +30,24 @@ Section: On the Web
 		The source code for NewAC is now hosted on Google Code http://code.google.com/p/newac/.
 
 Section: Version History
-	Short new features list for every NewAC version.
+	Short list of new features for each NewAC version.
 
 Version: NewAC 1.7
 	- New Audio processing components: TDitherer, TNormalizer, TMSResampler, TVoiceFilter.
 	- Improved 32-bit and multichannel sound support.
-	- Two-pass WMA encoder added. 
+	- Two pass WMA encoder added. 
 
 Version: NewAC 1.6
 	- Musepack support (decoding/encoding).
 	- TAK support (decoding).
-	- Multi-channel audio support.
+	- Multichannel audio support.
 	- Audio broadcasting support.
 
-
 Version: NewAC 1.5
-	- TWMStreamedIn for reading live mp3 and wma network streams.
+	- TWMStreamedIn for reading live MP3 and WMA network streams.
 	- WMA lossless encoding support.
 	- TWaveTap and TWMATap components.
 	- Many smaller fixes and improvements.  
-
 	
 Version: NewAC 1.4
 	- FLAC tags support (reading/writing).
@@ -111,7 +109,7 @@ Topic: Basic Operation
 
 The New Audio Components package is a set of components designed to handle different sound processing tasks, such as reading and storing data in different audio formats, working with sound hardware, audio streams mixing and so on.
 
-Most of the components in the New Audio Components package belong to one of three categories: input components, output components, converter components.
+Most of the components in the New Audio Components package belong in one of three categories: input components, output components, or converter components.
 
 The input components acquire audio input from some source (device, disk file, etc.) and convert it into a digital audio stream which is the internal audio representation in NewAC. The output components take in the digital audio produced by input components and send it to some audio output device or store it on disk in a specified audio file format. Converter components perform different operations on audio streams. These components take in a digital audio stream and output a stream which is modified according to the function of the component. The following diagram illustrates the flow of audio data in the NewAC processing chain.
 
@@ -121,9 +119,9 @@ All components are linked via their Input properties. Arrows show connections be
 
 The converter component is not a necessary element in this chain. In many cases you will just connect input and output components together to convert data from one format to the other or to perform I/O with some particular device. As you can see NewAC isn't just a collection of components implementing interfaces to some hardware or file formats. It is rather a set of building blocks with which you can construct a complete sound-processing application.
 
-Note that an audio processing chain may have more than one input (if you use the TAudioMixer component) and more than one output (if you use TAudioPass or TAudioTap-descending components).
+Note that an audio processing chain may have more than one input (by using TAudioMixer) and more than one output (by using TAudioPass or TAudioTap descendents).
 
-The driving force of this sound processing chain is an output component. Output components use internal thread objects that call data-retrieving functions of the input/converter components attached to the output component. Note that NewAC provides you with several ways to set the amount of CPU time consumed by these threads: TheradPriority and Delay properties. You can use this features to set the best performance/CPU usage ratio in your NewAC applications.
+The driving force of this sound processing chain is an output component. Output components use internal thread objects that call data retrieving functions of the input/converter components attached to the output component. Note that NewAC provides you with two ways to set the amount of CPU time consumed by these threads: <ThreadPriority> and <Delay>. You can use these properties to set the desired performance/CPU usage ratio for your application.
 
 Topic: Ripping a CD to OGG
 
@@ -228,11 +226,11 @@ All input components that descend from TAuFileIn allow you to specify StartSampl
 
 Section: Handling I/O Errors
 
-Programs operating in real world have to provide means to handle input and output errors. NewAC tries to handle errors in such a way that if an error occurs the components are not left in unrecoverable state. There are two main types of errors in NewAC: erros that arise when the program tries to open corrupt audio source and errors that arise during the sound-processing chain operation.
+Programs operating in real world have to provide means to handle input and output errors. NewAC tries to handle errors in such a way that if an error occurs the components are not left in unrecoverable state. There are two main types of errors in NewAC: errors that arise when the program tries to open corrupt audio sources and errors that arise during the sound processing chain operation.
 
-The first rule is this: before starting to process some input file check the Valid property. TAuFileIn class end its descendants expose this property. If the Valid propertys value is False, it means that the input file could not be opened and the program should not try to process it.
+The first rule is this: before starting to process an input file, check the Valid property. The TAuFileIn class and its descendants expose this property. If the Valid property's value is False, it means that the input file could not be opened and the program should not try to process it.
 
-If an exception is raised within NewAC after you have called an output component's Run method it is not propagated. When such an exception occurs the operation is stopped and the OnThreadException event is generated. The exception's text is stored in the output component's ExceptionMessage property. After that an OnDone event is generated as usual. You can determine if an error has happened during the NewAC operation by assigning a handler to the OnThreadException event or by checking the ExceptionMessage value in an OnDone event handler (it should be an empty string if  error took place during audio-processing operation). See CDRipper and Wave2Ogg-2 demos for how error-handling is done.
+If an exception is raised within NewAC after you have called an output component's Run method it is not propagated. When such an exception occurs the operation is stopped and the OnThreadException event is generated. The exception's text is stored in the output component's ExceptionMessage property. After that an OnDone event is generated as usual. You can determine if an error has happened during the NewAC operation by assigning a handler to the OnThreadException event or by checking the ExceptionMessage value in an OnDone event handler (it should be an empty string if the error took place during an audio processing operation). See the CDRipper and Wave2Ogg-2 demos for how error handling is done.
 
 Section: Input Switching
 
@@ -278,7 +276,7 @@ Note:
 	LAME is an encoder created for educational purposes only. It may be illegal to use LAME in your country.
 
 Note on Ogg Vorbis libraries:
-	Don't use Ogg Vorbis v 1.1 libraries with NewAC. You can use aoTuV Ogg Vorbis suite or Ogg Vorbis v 1.2 codec (or, possibly, a later version). You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. Ogg Vorbis 1.2 codec is available at http://www.vorbis.com/. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
+	Don't use Ogg Vorbis v1.1 libraries with NewAC. You can use the aoTuV Ogg Vorbis suite or the Ogg Vorbis v1.2 codec (or, possibly a later version). You can get precompiled aoTuV Ogg Vorbis libraries from the NewAC site along with other libraries. The Ogg Vorbis 1.2 codec is available at http://www.vorbis.com/. The official aoTuV site is http://www.geocities.jp/aoyoume/aotuv/.
 
 Section: Installation
 

@@ -81,6 +81,7 @@ Group: Main Units  {
    File: lame.pas  (src\lame.pas)
    File: libsamplerate.pas  (src\libsamplerate.pas)
    File: MACDll.pas  (src\MACDll.pas)
+   File: NewAC_AVI  (src\NewAC_AVI.pas)
    File: ogg.pas  (src\ogg.pas)
    File: ovencode  (src\ovencode.pas)
    File: VorbisEnc.pas  (src\VorbisEnc.pas)
@@ -88,7 +89,6 @@ Group: Main Units  {
    File: WaveConverter.pas  (src\WaveConverter.pas)
    File: WavPackDLL  (src\WavPackDLL.pas)
    File: wmfintf.pas  (src\wmfintf.pas)
-   File: ACS_Wave  (src\ACS_WA~2.PAS)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {

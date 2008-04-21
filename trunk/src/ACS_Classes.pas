@@ -291,6 +291,9 @@ type
          is called in blocking mode. In this mode it returns only after the output
          is actually done. No event is raised in this case.*)
     procedure Stop(Async : Boolean = True);
+    // Please describe Delay.
+    (* Property: Delay
+        Sets the delay, affects CPU usage. *)
     property Delay : Integer read GetDelay write SetDelay;
     (* Property: ThreadPriority
         This property allows you to set the priority of the output thread.*)
