@@ -8,8 +8,7 @@
 (* $Id$ *)
 
 (* Title: NewAC_AVI
-    This Unit contains the TAVIIn component that extracts audio streams from AVI files. *)
-
+    This Unit contains the TAVIIn component which extracts audio streams from AVI files. *)
 
 unit NewAC_AVI;
 
@@ -118,10 +117,12 @@ type
 
 
   (* Class: TAVIIn
-    This component extracts audio streams from AVI files.
-    AVI format is actually a container that can contain video, audio, and text data in different formats.
-    TAVIIn decodes audio data contained in an AVI file using audio codecs installed in the Windows system (these may be built-in or third-party Windows codecs).
-    The component is able to decode any AVI file playable on the system.
+    This component extracts audio streams from AVI files. The AVI format is
+    actually a container which can contain video, audio, and text data in
+    different formats. TAVIIn decodes audio data contained in an AVI file
+    using audio codecs installed in the Windows system (these may be built in
+    or third party Windows codecs). The component is able to decode any AVI
+    file playable on the system.
     Descends from <TAuFileIn>.  *)
 
   TAVIIn = class(TAuFileIn)
@@ -156,17 +157,21 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
    (* Property: ReportSize
-       Due to internal limitations the component cannot report the exact audio stream size when dealing with some compresstion formats.
-       Setting ReportSize to False forces the component not to report the audio stream size at all.
-       Set this property to False if you are saving AVI audio data as a .wav file. *)
+       Due to internal limitations the component cannot report the exact audio
+       stream size when dealing with some compression formats. Setting
+       ReportSize to False forces the component not to report the audio stream
+       size at all. Set this property to False if you are saving AVI audio
+       data as a .wav file. *)
     property ReportSize : Boolean read FReportSize write FReportSize;
     (* Property: HasAudio
        Read this property to determine if the input file has an audio stream.
-       The False value indicates that either an audio stream is missing or the input file is corrupt.
-       If HasAudio repots True and TAuFileIn.Valid repots False, it means that an audio stream was found in the input file
-       but the system couldn't find a codec to decode the audio compression format.
-       You should proceed with the file only if both TAuFileIn.Valid and HasAudio retur True.
-  *)
+       A False value indicates that either an audio stream is missing or the
+       input file is corrupt. If HasAudio repots True and TAuFileIn.Valid
+       reports False, it means that an audio stream was found in the input
+       file but the system couldn't find a codec to decode the audio
+       compression format. You should proceed with the file only if both
+       TAuFileIn.Valid and HasAudio return True.
+    *)
     property HasAudio : Boolean read GetHasAudio;
   published
     property EndSample;
