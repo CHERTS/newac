@@ -2,7 +2,7 @@ Format: Development Release 01-12-2008 (1.35 base)
 
 
 Title: NewAC
-SubTitle: v1.7
+SubTitle: v1.7.1
 
 Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
@@ -78,6 +78,7 @@ Group: Main Units  {
    File: AudioDMO  (src\AudioDMO.pas)
    File: AudioPass  (src\AudioPass.pas)
    File: AuSampleRate  (src\AuSampleRate.pas)
+   File: NewAC_AVI  (src\NewAC_AVI.pas)
    File: lame.pas  (src\lame.pas)
    File: libsamplerate.pas  (src\libsamplerate.pas)
    File: MACDll.pas  (src\MACDll.pas)
