@@ -38,7 +38,7 @@ type
 
   (* Class: TMACOut
      Monkey's Audio (APE) encoder.
-     Descends from <TAuFileOut>.
+     Descends from <TAuTaggedFileOut>.
      Requires MACDll.dll. *)
 
   TMACOut = class(TAuTaggedFileOut)
@@ -58,6 +58,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+   (* Property: APEv2Tags
+       Use this property to add APE v. 2 tags to the file *)
     property APEv2Tags;
     (* Property: CompressionLevel
        Use this property to set the compression level for the APE file being created.
@@ -74,7 +76,7 @@ type
 
   (* Class: TMACIn
      Monkey's Audio (APE) decoder.
-     Descends from <TAuFileIn>.
+     Descends from <TAuTaggedFileIn>.
      Requires MACDll.dll. *)
 
   TMACIn = class(TAuTaggedFileIn)
@@ -103,7 +105,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GetDataInternal(var Buffer: Pointer; var Bytes : LongWord); override;
-    property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
+    (* Property: APEv2Tags
+       Use this property to read APE v. 2 tags from the file *)
+     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
     (* Property: AverageBitrate
        This property shows the average bitrate for the ape file being played.*)
     property AverageBitrate: Integer read GetAverageBitrate;
