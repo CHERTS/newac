@@ -106,7 +106,7 @@ type
 *)
 
 
-  TWaveHeaderExt = record
+  TWaveHeaderExt = packed record
     // RIFF file header
     RIFF: array [0..3] of Char;          // = 'RIFF'
     FileSize: Integer;                   // = FileSize - 8
@@ -286,6 +286,7 @@ type
     FPrevWavType : TWavType;
     HeaderSize : Integer;
     FBlockAlign : Word;
+    FNonMsHeaders : Boolean;
     procedure SetWavType(WT : TWavType);
     procedure ReadRIFFHeader;
     procedure FillHeaderPCM(var Header : TWaveHeader);
@@ -308,7 +309,7 @@ type
       you append data to an existing file (with data in either raw PCM or MS
       DVI IMA ADPCM encoding) this property will be automatically set to the
       file encoding. Only wtPCM, wtExtPCM, and wtDVIADPCM formats are supported for encoding.
-      Do not set wtExtPCM directly. This format is chosen automatically if you encode audio with 24 bits per sample or more than 2 channels. *)
+      Do not set wtExtPCM directly. This format is chosen automatically if you encode audio with more than 24 bits per sample or more than 2 channels and <CreateNonMsHeaders> is set to False. *)
     property WavType : TWavType read FWavType write SetWavType;
     (*Property: BlockSize
       Use this property to set the size of the DVI IMA ADPCM block in bytes
@@ -317,6 +318,14 @@ type
       size, the size of the block will be set automatically when appending
       data to the existing MS DVI IMA ADPCM encoded file.*)
     property BlockSize : Word read FBlockAlign write SetBlockSize;
+    (* Property: CreateNonMsHeaders
+      Use this property to specify the headers format for output files with more than 16 bits per sample and more than 2 channels.
+      Microsoft uses its own headers format for these files and this format is the only one supported by Windows Media Player 9 (although later versions of the player seem to support both types of headers).
+      WinAmp and many other programs can also play it.
+      On the other hand such programs as Sound Forge understand only conventional headers.
+      The default value for this property is False which makes the component to produce files readable by WM Player 9, but not by Sound Forge.
+      Set it to True to force the component to write non-MS headers. *)
+    property CreateNonMsHeaders : Boolean read FNonMsHeaders write FNonMsHeaders;
     property FileMode;
   end;
 
@@ -1273,7 +1282,8 @@ end;
     end;
     FInput.Init;
     if (FInput.Channels > 2) or (FInput.BitsPerSample > 16) then
-      FWavType := wtExtPCM;
+      if not FNonMsHeaders then
+        FWavType := wtExtPCM;
     if (FFileMode = foAppend) and (FStream.Size <> 0) then
     begin
       ReadRIFFHeader;
