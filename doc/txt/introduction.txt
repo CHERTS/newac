@@ -32,6 +32,10 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
+Version: NewAC 1.7.1
+	- AVI files reader added (TAVIIn component).
+	- Some bugs are fixed.
+
 Version: NewAC 1.7
 	- New Audio processing components: TDitherer, TNormalizer, TMSResampler, TVoiceFilter.
 	- Improved 32-bit and multichannel sound support.
