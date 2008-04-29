@@ -399,17 +399,17 @@ type
     property BufferingTime : Word read FBufferingTime write SetBufferingTime;
   (* Property: EnableHTTP
        Use this property to enable or disable HTTP support. This property's
-       value matters only if the URL supplied to <FileName> has no protocol
+       value matters only if the URL supplied to <TAuFileIn.FileName> has no protocol
        prefix, such as "http:", "mms:" or "rtsp:". *)
     property EnableHTTP : Boolean read FEnableHTTP write FEnableHTTP;
   (* Property: EnableTCP
        Use this property to enable or disable TCP support. This property's
-       value matters only if the URL supplied to <FileName> has no protocol
+       value matters only if the URL supplied to <TAuFileIn.FileName> has no protocol
        prefix, such as "http:", "mms:" or "rtsp:". *)
     property EnableTCP : Boolean read FEnableTCP write FEnableTCP;
   (* Property: EnableUDP
        Use this property to enable or disable UDP support. This property's
-       value matters only if the URL supplied to <FileName> has no protocol
+       value matters only if the URL supplied to <TAuFileIn.FileName> has no protocol
        prefix, such as "http:", "mms:" or "rtsp:". *)
     property EnableUDP : Boolean read FEnableUDP write FEnableUDP;
   (* Property: LoggingURL
