@@ -259,6 +259,11 @@ type
 
 implementation
 
+  var
+    adPath : array[0..512] of Char;
+
+  function SHGetFolderPathA(hwndOwner : HWND; nFolder : Integer; hToken : THANDLE; dwFlags : DWORD; pszPath : PChar) : HResult; stdcall; external 'shell32.dll';
+
   function MSFToStr(const MSF : TCDMSF) : String;
   var
     sep : String;
@@ -829,10 +834,13 @@ implementation
   constructor TCDIn.Create;
   begin
     inherited Create(AOwner);
-    AppPath := ExtractFilePath(ParamStr(0));
-    if AppPath[length(AppPath)] <> '\' then AppPath := AppPath + '\';
     if not (csDesigning in ComponentState) then
     begin
+      if SHGetFolderPathA(0, $1a, 0, 0, @adPath[0]) <> 0 then
+        AppPath := ExtractFilePath(ParamStr(0))
+      else
+        AppPath := PChar(@adPath[0]);
+      if AppPath[length(AppPath)] <> '\' then AppPath := AppPath + '\';
       CDRIPInit(AppPath);
       if not CDRipLoaded then
         raise EAuException.Create(CDRipPath + ' could not be loaded.');
