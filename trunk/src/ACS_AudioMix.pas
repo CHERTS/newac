@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package 1.8
-  Copyright (c) 2002-2008 Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 1.4
+  Copyright (c) 2002-2007 Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -34,7 +34,7 @@ type
       Input1 is written before Input2.
   *)
 
-  TAudioMixerMode = (amMix, amRTMix, amConcatenate);
+  TAudioMixerMode = (amMix, amConcatenate);
 
   (* Class: TAudioMixer
      This component can mix or concatenate two input audio streams. Unlike
@@ -46,7 +46,7 @@ type
      play alone after the shorter stream has ended. In amConcatenate mode the
      second input will play after the first input has ended. Decends from
      <TAuInput>. *)
-
+   
   TAudioMixer = class(TAuInput)
   private
     FInput1, FInput2 : TAuInput;
@@ -61,7 +61,6 @@ type
     SamplesCount : Int64;
     procedure SetInput1(aInput : TAuInput);
     procedure SetInput2(aInput : TAuInput);
-    procedure SetMode(aMode : TAudioMixerMode);
   protected
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
@@ -83,15 +82,13 @@ type
      This property sets the mode for the TAudioMixer.
      The possible values for this property are <amMix> and <amConcatenate>.
     *)
-    property Mode : TAudioMixerMode read FMode write SetMode;
-    (*property Input2StartSample:
-       The delay (in samples) before the second input starts (in the amMix mode) *)
+    property Mode : TAudioMixerMode read FMode write FMode;
     property Input2StartSample : Int64 read FInput2Start write FInput2Start;
     (*property Volume1:
-      The volume of the first input (in the amMix and amRTMix modes) *)
+      The volume of the first input (in the amMix mode) *)
     property Volume1 : Word read FVolume1 write FVolume1;
     (*property Volume2:
-      The volume of the second input (in the amMix and amRTMix modes) *)
+      The volume of the second input (in the amMix mode) *)
     property Volume2 : Word read FVolume2 write FVolume2;
   end;
 
@@ -144,52 +141,39 @@ end;
     SamplesCount := 0;
     EndOfInput1 := False;
     EndOfInput2 := False;
-    FInput1.Init;
-    BytesPerSample1 := (FInput1.BitsPerSample div 8);
     if not Assigned(FInput1) then raise
       EAuException.Create('Input1 is not assigned');
-    if FMode in [amMix, amConcatenate] then
+    if not Assigned(FInput2) then raise
+      EAuException.Create('Input2 is not assigned');
+    FInput1.Init;
+    FInput2.Init;
+    BytesPerSample1 := (FInput1.BitsPerSample div 8);
+    BytesPerSample2 := (FInput2.BitsPerSample div 8);
+    SamplesCount1 := FInput1.Size div BytesPerSample1;
+    if FMode = amMix then
     begin
-      if not Assigned(FInput2) then raise
-        EAuException.Create('Input2 is not assigned');
-      FInput2.Init;
-      BytesPerSample2 := (FInput2.BitsPerSample div 8);
-      SamplesCount1 := FInput1.Size div BytesPerSample1;
-      if FMode = amMix then
-      begin
-        SamplesCount2 := FInput2.Size div BytesPerSample2 + FInput2Start;
-        FSize := SamplesCount1 + SamplesCount2 - _Min(SamplesCount1, SamplesCount2)
-      end else
-      begin
-        SamplesCount2 := FInput2.Size div BytesPerSample2;
-        FSize := SamplesCount1 + SamplesCount2;
-      end;
-      FSize := FSize * BytesPerSample1;
-      GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
-      GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
+      SamplesCount2 := FInput2.Size div BytesPerSample2 + FInput2Start;
+      FSize := SamplesCount1 + SamplesCount2 - _Min(SamplesCount1, SamplesCount2)
     end else
     begin
-      FSize := FInput1.Size;
-      BytesPerSample2 := 1;
-      GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
-      GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
+      SamplesCount2 := FInput2.Size div BytesPerSample2;
+      FSize := SamplesCount1 + SamplesCount2;
     end;
+    FSize := FSize * BytesPerSample1;
     GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
+    GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
     GetMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
-   end;
-
+    GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
+  end;
 
   procedure TAudioMixer.FlushInternal;
   begin
     FInput1.Flush;
+    FInput2.Flush;
     FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
+    FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
     FreeMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
     FreeMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
-    FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
-    if Assigned(FInput2) then
-    begin
-      FInput2.Flush;
-    end;
     Busy := False;
   end;
 
@@ -212,7 +196,7 @@ end;
     if Bytes div BytesPerSample1 < SamplesReq then SamplesReq := Bytes div BytesPerSample1;
     Bytes1 := SamplesReq * BytesPerSample1;
     Bytes2 := SamplesReq * BytesPerSample2;
-    if FMode in [amMix, amRTMix] then
+    if FMode = amMix then
     begin
       v1 := FVolume1 / High(Word);
       v2 := FVolume2 / High(Word);
@@ -226,8 +210,8 @@ end;
       Inc(SamplesCount, Samples1);
       FillChar(InBuf2^, Bytes2, 0);
       l := 0;
-      if (not EndOfInput2) and (Assigned(FInput2)) then
-        if SamplesCount >= FInput2Start*FInput2.Channels then
+      if SamplesCount >= FInput2Start*FInput2.Channels then
+        if not EndOfInput2 then
           l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
       Samples2 := l div BytesPerSample2;
       case BytesPerSample1 of
@@ -253,7 +237,7 @@ end;
       if Samples1 > Samples2 then Bytes := Samples1*BytesPerSample1
       else Bytes := Samples2*BytesPerSample1;
       Buffer := InBuf1;
-    end else // if FMode in [amMix, amRTMix] then
+    end else
     begin
       if not EndOfInput1 then
       begin
@@ -293,34 +277,9 @@ end;
 
   procedure TAudioMixer.SetInput2;
   begin
-    if (FMode <> amRTMix) then
-    begin
-      if not Busy then
-        FInput2 := aInput;
-    end else
-    begin
-      DataCS.Enter;
-      FreeMem(InBuf2);
-      FreeMem(FloatBuf2);
-      if Assigned(FInput2) then
-      begin
-        FInput2.Flush;
-      end;
-      FInput2 := aInput;
-      FInput2.Init;
-      BytesPerSample2 := (FInput2.BitsPerSample div 8);
-      GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
-      GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
-      EndOfInput2 := False;
-      FInput2Start := 0;
-      DataCS.Leave;
-    end; // if (FMode <> amRTMix) then ... else
-  end;
-
-  procedure TAudioMixer.SetMode(aMode : TAudioMixerMode);
-  begin
-    if not Busy then
-      FMode := aMode;
+    if Busy then
+    raise EAuException.Create('The component is busy.');
+    FInput2 := aInput;
   end;
 
 end.
