@@ -19,6 +19,7 @@ uses
 
 const
   BUF_SIZE = $1000;
+  amMaxVolume = High(Word);
 
 type
 
@@ -44,8 +45,10 @@ type
      bits per sample). Note that input streams may be of different sizes. In
      amMix mode the streams start at the same time, but the longer stream will
      play alone after the shorter stream has ended. In amConcatenate mode the
-     second input will play after the first input has ended. Decends from
-     <TAuInput>. *)
+     second input will play after the first input has ended. Volume1 and Volume2 properties
+     can contronl level of the first and second input respectively in both mixing and concatenation modes.
+
+     This cpmonent decends from <TAuInput>. *)
    
   TAudioMixer = class(TAuInput)
   private
@@ -83,14 +86,61 @@ type
      The possible values for this property are <amMix> and <amConcatenate>.
     *)
     property Mode : TAudioMixerMode read FMode write FMode;
-    property Input2StartSample : Int64 read FInput2Start write FInput2Start;
+   (*property Input2StartSample:
+      The delay in samples before the second input starts playing (in the amMix mode) *)
+     property Input2StartSample : Int64 read FInput2Start write FInput2Start;
+    (*property Volume1:
+      The volume of the first input. The value of 0 means silence. The maximum possible integer for this property
+       corresponds to playback at the original level. There is the amMaxVolume constant that holds this value. *)
+    property Volume1 : Word read FVolume1 write FVolume1;
+    (*property Volume2:
+      The volume of the second input. The value of 0 means silence. The maximum possible integer for this property
+       corresponds to playback at the original level. There is the amMaxVolume constant that holds this value. *)
+    property Volume2 : Word read FVolume2 write FVolume2;
+  end;
+
+{  TRealTimeMixer = class(TAuInput)
+  private
+    FInput1, FInput2 : TAuInput;
+    EndOfInput1, EndOfInput2 : Boolean;
+    FVolume1, FVolume2 : Word;
+    InBuf1, InBuf2 : PBuffer8;
+    FloatBuf1, FloatBuf2 : PBufferSingle;
+    BytesPerSample1, BytesPerSample2 : Byte;
+    Busy : Boolean;
+    FMode : TAudioMixerMode;
+    SamplesCount : Int64;
+    procedure SetInput1(aInput : TAuInput);
+    procedure SetInput2(aInput : TAuInput);
+  protected
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    (* Property: Input1
+    Use this property to set the first input stream to be mixed or concatenated. *)
+    property Input1 : TAuInput read FInput1 write SetInput1;
+    (* Property: Input2
+    Use this property to set the second input stream to be mixed or concatenated. *)
+    property Input2 : TAuInput read FInput2 write SetInput2;
+    (* Property: Mode
+     This property sets the mode for the TAudioMixer.
+     The possible values for this property are <amMix> and <amConcatenate>.
+    *)
+    property Mode : TAudioMixerMode read FMode write FMode;
     (*property Volume1:
       The volume of the first input (in the amMix mode) *)
     property Volume1 : Word read FVolume1 write FVolume1;
     (*property Volume2:
       The volume of the second input (in the amMix mode) *)
     property Volume2 : Word read FVolume2 write FVolume2;
-  end;
+   end; }
 
 implementation
 
@@ -196,10 +246,10 @@ end;
     if Bytes div BytesPerSample1 < SamplesReq then SamplesReq := Bytes div BytesPerSample1;
     Bytes1 := SamplesReq * BytesPerSample1;
     Bytes2 := SamplesReq * BytesPerSample2;
+    v1 := FVolume1 / High(Word);
+    v2 := FVolume2 / High(Word);
     if FMode = amMix then
     begin
-      v1 := FVolume1 / High(Word);
-      v2 := FVolume2 / High(Word);
       FillChar(InBuf1^, Bytes1, 0);
       FillChar(FloatBuf1^, SamplesReq * SizeOf(Single), 0);
       FillChar(FloatBuf2^, SamplesReq * SizeOf(Single), 0);
@@ -241,8 +291,23 @@ end;
     begin
       if not EndOfInput1 then
       begin
-        l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
-        Bytes := l;
+        l := FInput1.FillBuffer(InBuf2, Bytes2, EndOfInput1);
+        Samples1 := l div BytesPerSample1;
+        case BytesPerSample1 of
+          1 : ByteToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+          2 : SmallIntToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+          3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+          4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
+        end;
+        for i := 0 to BUF_SIZE - 1 do
+          FloatBuf2[i] := FloatBuf2[i]*v1;
+        case BytesPerSample1 of
+          1 : SingleToByte(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+          2 : SingleToSmallInt(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+          3 : SingleToInt24(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+          4 : SingleToInt32(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
+        end;
+        Bytes := Samples1*BytesPerSample1;
         Buffer := InBuf1;
         if l <> 0 then Exit;
       end;
@@ -256,6 +321,8 @@ end;
           3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
           4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
         end;
+        for i := 0 to BUF_SIZE - 1 do
+          FloatBuf2[i] := FloatBuf2[i]*v2;
         case BytesPerSample1 of
           1 : SingleToByte(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
           2 : SingleToSmallInt(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
