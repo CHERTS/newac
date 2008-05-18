@@ -99,6 +99,20 @@ type
     property Volume2 : Word read FVolume2 write FVolume2;
   end;
 
+  (* Class: TRealTimeMixer
+     This component can mix two input audio streams in real timr. Unlike
+     other stream converter components, TRealTime component has two input
+     properties: Input1 and Input2. The input streams should have the same
+     number of channels and sample rates (but may have a different number of
+     bits per sample).
+
+     The difference between TRealTimeMixer and TAudioMixer is that you can change the inputs while the mixer is running.
+     In fact once the real time mixer is started it will be generating output untill it is stopped explicitly.
+     The mixer will generate silens if it has no input currently. See the docs below on how to assign inputs to the real time mixer.
+     Volume1 and Volume2 properties  can contronl level of the first and second input respectively.
+
+     This cpmonent decends from <TAuInput>. *)
+
   TRealTimeMixer = class(TAuInput)
   private
     FInput1, FInput2 : TAuInput;
@@ -108,7 +122,6 @@ type
     FloatBuf1, FloatBuf2 : PBufferSingle;
     BytesPerSample1, BytesPerSample2 : Byte;
     Busy : Boolean;
-    FMode : TAudioMixerMode;
     SamplesCount : Int64;
     FOutSampleRate : LongWord;
     FOutBitsPerSample : Byte;
@@ -127,13 +140,32 @@ type
     destructor Destroy; override;
   published
     (* Property: Input1
-    Use this property to set the first input stream to be mixed or concatenated. *)
+    Use this property to set the first input stream to be mixed.
+    Assigning input to the real time mixer is tricky. The component assigned to the mixer as an input should be ready to provide data at once.
+    For example if you assign a file input component as a mixing input, the file name should be assigned first to that input component.
+    If you want to change the file to be mixed on the fly without changing the input component t could lok like this:
+
+    > WaveIn1.FileName := 'File.wav';
+    > RealTimeMixer1.Input1 := WaveIn1;
+    ...
+    > RealTimeMixer1.Input1 := nil;
+    > WaveIn1.FileName := 'NewFile.wav';
+    > RealTimeMixer1.Input1 := WaveIn1;
+
+    Assigning nil to Input1 or Input2 makes the correspondent channel silent until you assign to it something else. *)
     property Input1 : TAuInput read FInput1 write SetInput1;
     (* Property: Input2
-    Use this property to set the second input stream to be mixed or concatenated. *)
+    Use this property to set the second input stream to be mixed or concatenated.
+    See the note at <Input1> *)
     property Input2 : TAuInput read FInput2 write SetInput2;
+    (* Property: OutSampleRate
+    Use this property to set the output sample rate for the mixer. All the mixer inputs should have this sample rate. *)
     property OutSampleRate : LongWord read FOutSampleRate write FOutSampleRate;
+    (* Property: OutBitsPerSample
+    Use this property to set the output number of bits per sample for the mixer. The mixer inputs may have different bit depths. *)
     property OutBitsPerSample : Byte read FOutBitsPerSample write FOutBitsPerSample;
+    (* Property: OutChannels
+    Use this property to set the number of channels for the mixer. All the mixer inputs should have the same number of channels. *)
     property OutChannels : Byte read FOutChannels write FOutChannels;
     (*property Volume1:
       The volume of the first input (in the amMix mode) *)
@@ -353,8 +385,6 @@ end;
   end;
 
   procedure TRealTimeMixer.InitInternal;
-  var
-    SamplesCount1, SamplesCount2  : Int64;
   begin
     Busy := True;
     FPosition := 0;
@@ -414,13 +444,17 @@ end;
     FillChar(FloatBuf2^, SamplesReq * SizeOf(Single), 0);
     l := 0;
     if Assigned(FInput1) then
-       l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
+       l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1)
+    else
+       l := Bytes1;
     Samples1 := l div BytesPerSample1;
     Inc(SamplesCount, Samples1);
     FillChar(InBuf2^, Bytes2, 0);
     l := 0;
     if Assigned(FInput2) then
-        l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
+        l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2)
+    else
+       l := Bytes2;
     Samples2 := l div BytesPerSample2;
     case BytesPerSample1 of
       1 : ByteToSingle(Pointer(InBuf1), FloatBuf1, BUF_SIZE);
@@ -462,18 +496,79 @@ end;
     Busy := False;
   end;
 
-  procedure TAudioMixer.SetInput1;
+  procedure TRealTimeMixer.SetInput1;
   begin
-    if Busy then
-    raise EAuException.Create('The component is busy.');
-    FInput1 := aInput;
+    if not (csDesigning in ComponentState) then
+    begin
+      DataCS.Enter;
+      if Assigned(FInput1) then
+      begin
+        FInput1.Flush;
+        FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
+      end;
+      FInput1 := aInput;
+      if Assigned(FInput1) then
+      begin
+        FInput1.Init;
+        EndOfInput1 := False;
+        BytesPerSample1 := FInput1.BitsPerSample div 8;
+      end else
+      BytesPerSample1 := 1;
+      GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
+      DataCS.Leave;
+    end else
+      FInput1 := aInput;
   end;
 
-  procedure TAudioMixer.SetInput2;
+  procedure TRealTimeMixer.SetInput2;
   begin
-    if Busy then
-    raise EAuException.Create('The component is busy.');
-    FInput2 := aInput;
+    if not (csDesigning in ComponentState) then
+    begin
+      DataCS.Enter;
+      if Assigned(FInput2) then
+      begin
+        FInput2.Flush;
+        FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
+      end;
+      FInput2 := aInput;
+      if Assigned(FInput2) then
+      begin
+        FInput2.Init;
+        EndOfInput2 := False;
+        BytesPerSample2 := FInput2.BitsPerSample div 8;
+      end else
+      BytesPerSample2 := 1;
+      GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
+      DataCS.Leave;
+    end else
+      FInput2 := aInput;
+  end;
+
+  function TRealTimeMixer.GetBPS;
+  begin
+    Result := FOutBitsPerSample;
+  end;
+
+  function TRealTimeMixer.GetCh;
+  begin
+    Result:= FOutChannels;
+  end;
+
+  function TRealTimeMixer.GetSR;
+  begin
+    Result := FOutSampleRate;
+  end;
+
+  constructor TRealTimeMixer.Create;
+  begin
+    inherited Create(AOwner);
+    FVolume1 := amMaxVolume;
+    FVolume2 := amMaxVolume;
+  end;
+
+  destructor TRealTimeMixer.Destroy;
+  begin
+    inherited Destroy;
   end;
 
 
