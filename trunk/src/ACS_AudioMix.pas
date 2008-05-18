@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package 1.4
-  Copyright (c) 2002-2007 Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 1.8
+  Copyright (c) 2002-2008 Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -148,6 +148,8 @@ constructor TAudioMixer.Create;
 begin
   inherited Create(AOwner);
   FInput2Start := 0;
+  FVolume1 := amMaxVolume;
+  FVolume2 := amMaxVolume;
 end;
 
   destructor TAudioMixer.Destroy;
@@ -299,7 +301,7 @@ end;
           3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
           4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
         end;
-        for i := 0 to BUF_SIZE - 1 do
+        for i := 0 to Samples1 - 1 do
           FloatBuf2[i] := FloatBuf2[i]*v1;
         case BytesPerSample1 of
           1 : SingleToByte(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
@@ -321,7 +323,7 @@ end;
           3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
           4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
         end;
-        for i := 0 to BUF_SIZE - 1 do
+        for i := 0 to Samples2 - 1 do
           FloatBuf2[i] := FloatBuf2[i]*v2;
         case BytesPerSample1 of
           1 : SingleToByte(FloatBuf2, Pointer(InBuf1), BUF_SIZE);
