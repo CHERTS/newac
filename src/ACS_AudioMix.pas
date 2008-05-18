@@ -124,7 +124,7 @@ type
     Busy : Boolean;
     SamplesCount : Int64;
     FOutSampleRate : LongWord;
-    FOutBitsPerSample : Byte;
+    FOutBitsPerSample, FOutBytesPerSample : Byte;
     FOutChannels : Byte;
     procedure SetInput1(aInput : TAuInput);
     procedure SetInput2(aInput : TAuInput);
@@ -392,16 +392,17 @@ end;
     EndOfInput1 := False;
     EndOfInput2 := False;
     FSize := -1;
+    FOutBytesPerSample := FOutBitsPerSample div 8;
     if Assigned(FInput1) then
     begin
       BytesPerSample1 := (FInput1.BitsPerSample div 8);
     end else
-      BytesPerSample1 := 1;
+      BytesPerSample1 := FOutBytesPerSample;
     if Assigned(FInput2) then
     begin
       BytesPerSample2 := (FInput2.BitsPerSample div 8);
     end else
-      BytesPerSample2 := 1;
+      BytesPerSample2 := FOutBytesPerSample;
     GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
     GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
     GetMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
@@ -417,44 +418,42 @@ end;
     SamplesReq : LongWord;
     v1, v2 : Single;
   begin
-    SamplesReq := BUF_SIZE;
-    if Bytes div BytesPerSample1 < SamplesReq then SamplesReq := Bytes div BytesPerSample1;
-    Bytes1 := SamplesReq * BytesPerSample1;
-    Bytes2 := SamplesReq * BytesPerSample2;
-    v1 := FVolume1 / High(Word);
-    v2 := FVolume2 / High(Word);
     if EndOfInput1 then
     begin
+      EndOfInput1 := False;
       FInput1.Flush;
       FreeMem(InBuf1);
       FInput1 := nil;
-      BytesPerSample1 := 1;
+      BytesPerSample1 := FOutBytesPerSample;
       GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
     end;
     if EndOfInput2 then
     begin
+      EndOfInput2 := False;
       FInput2.Flush;
       FreeMem(InBuf2);
       FInput2 := nil;
-      BytesPerSample2 := 1;
+      BytesPerSample2 := FOutBytesPerSample;
       GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
     end;
+    SamplesReq := Bytes div FOutBytesPerSample;
+    if SamplesReq > BUF_SIZE then SamplesReq := BUF_SIZE;
+    Bytes1 := SamplesReq * BytesPerSample1;
+    Bytes2 := SamplesReq * BytesPerSample2;
+    v1 := FVolume1 / High(Word);
+    v2 := FVolume2 / High(Word);
     FillChar(InBuf1^, Bytes1, 0);
     FillChar(FloatBuf1^, SamplesReq * SizeOf(Single), 0);
     FillChar(FloatBuf2^, SamplesReq * SizeOf(Single), 0);
-    l := 0;
+    l := Bytes1;
     if Assigned(FInput1) then
-       l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1)
-    else
-       l := Bytes1;
+       l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
     Samples1 := l div BytesPerSample1;
     Inc(SamplesCount, Samples1);
     FillChar(InBuf2^, Bytes2, 0);
-    l := 0;
+    l := Bytes2;
     if Assigned(FInput2) then
-        l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2)
-    else
-       l := Bytes2;
+        l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
     Samples2 := l div BytesPerSample2;
     case BytesPerSample1 of
       1 : ByteToSingle(Pointer(InBuf1), FloatBuf1, BUF_SIZE);
@@ -470,14 +469,14 @@ end;
     end;
     for i := 0 to BUF_SIZE - 1 do
       FloatBuf1[i] := (FloatBuf1[i]*v1 + FloatBuf2[i]*v2)/2;
-    case BytesPerSample1 of
+    case FOutBytesPerSample of
       1 : SingleToByte(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
       2 : SingleToSmallInt(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
       3 : SingleToInt24(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
       4 : SingleToInt32(FloatBuf1, Pointer(InBuf1), BUF_SIZE);
     end;
-    if Samples1 > Samples2 then Bytes := Samples1*BytesPerSample1
-    else Bytes := Samples2*BytesPerSample1;
+    if Samples1 > Samples2 then Bytes := Samples1*FOutBytesPerSample
+    else Bytes := Samples2*FOutBytesPerSample;
     Buffer := InBuf1;
   end;
 
@@ -513,7 +512,7 @@ end;
         EndOfInput1 := False;
         BytesPerSample1 := FInput1.BitsPerSample div 8;
       end else
-      BytesPerSample1 := 1;
+      BytesPerSample1 := FOutBytesPerSample;
       GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
       DataCS.Leave;
     end else
@@ -537,7 +536,7 @@ end;
         EndOfInput2 := False;
         BytesPerSample2 := FInput2.BitsPerSample div 8;
       end else
-      BytesPerSample2 := 1;
+      BytesPerSample2 := FOutBytesPerSample;
       GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
       DataCS.Leave;
     end else
