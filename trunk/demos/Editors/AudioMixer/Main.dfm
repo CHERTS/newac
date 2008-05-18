@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -147,6 +148,8 @@ object Form1: TForm1
     Input = AudioMixer1
     OnDone = WaveOut1Done
     DeviceNumber = 0
+    FramesInBuffer = 65536
+    PollingInterval = 200
     Left = 168
     Top = 128
   end
@@ -155,6 +158,7 @@ object Form1: TForm1
     OnDone = WaveOut1Done
     WavType = wtPCM
     BlockSize = 512
+    CreateNonMsHeaders = False
     FileMode = foRewrite
     Left = 128
     Top = 128
