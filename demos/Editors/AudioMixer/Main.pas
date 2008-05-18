@@ -39,6 +39,7 @@ type
     procedure Button4Click(Sender: TObject);
     procedure TrackBar2Change(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -111,6 +112,12 @@ end;
 procedure TForm1.TrackBar1Change(Sender: TObject);
 begin
   AudioMixer1.Volume1 := TrackBar1.Position
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  TrackBar1 := amMaxVolume;
+  TrackBar2 := amMaxVolume;
 end;
 
 end.
