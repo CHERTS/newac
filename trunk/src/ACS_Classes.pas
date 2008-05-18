@@ -200,6 +200,7 @@ type
     (* Property: BitsPerSample
        The number of bits per sample in the input stream. Possible values are 8, 16, and 24.*)
     property BitsPerSample : LongWord read GetBPS;
+    property IsBusy : Boolean read Busy;
     (* Property: Position
        The current reading position in the input stream in bytes.*)
     property Position : Int64 read FPosition;
@@ -1284,7 +1285,7 @@ end;
     if (not FStreamAssigned) and (WideFileName = '') then
 (* ---Ross *)
     begin
-      Result := False;
+//      Result := False;
     end else
     begin
       if not FStreamAssigned then FStream := nil;
@@ -1608,15 +1609,19 @@ end;
       CreateFileW(PWideChar(FileName), GENERIC_READ or GENERIC_WRITE,
       0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
       if FHandle < 0 then
-        raise EAuException.Create(Format('Cannot create file %s', [FileName]));
+        raise EAuException.Create(SysErrorMessage(GetLastError));
+ //     if FHandle < 0 then
+//        raise EAuException.Create(Format('Cannot create file %s', [FileName]));
     end
     else
     begin
       inherited Create(CreateFileW(PWideChar(FileName), AccessMode[Mode and 3],
         ShareMode[(Mode and $F0) shr 4], nil, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, 0));
-      if FHandle < 0 then
-        raise EAuException.Create(Format('Cannot open file %s', [FileName]));
+        if FHandle < 0 then
+          raise EAuException.Create(SysErrorMessage(GetLastError));
+ //      if FHandle < 0 then
+ //        raise EAuException.Create(Format('Cannot open file %s', [FileName]));
     end;
   end;
 
