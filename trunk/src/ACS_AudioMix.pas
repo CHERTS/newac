@@ -395,15 +395,19 @@ end;
     FOutBytesPerSample := FOutBitsPerSample div 8;
     if Assigned(FInput1) then
     begin
-      BytesPerSample1 := (FInput1.BitsPerSample div 8);
+      FInput1.Init;
+      EndOfInput1 := False;
+      BytesPerSample1 := FInput1.BitsPerSample div 8;
     end else
       BytesPerSample1 := FOutBytesPerSample;
+    GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
     if Assigned(FInput2) then
     begin
-      BytesPerSample2 := (FInput2.BitsPerSample div 8);
+      FInput2.Init;
+      EndOfInput2 := False;
+      BytesPerSample2 := FInput2.BitsPerSample div 8;
     end else
       BytesPerSample2 := FOutBytesPerSample;
-    GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
     GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
     GetMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
     GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
@@ -500,23 +504,30 @@ end;
     if not (csDesigning in ComponentState) then
     begin
       DataCS.Enter;
-      if Assigned(FInput1) then
+      try
+      if Busy then
       begin
-        FInput1.Flush;
-        FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
-      end;
-      FInput1 := aInput;
-      if Assigned(FInput1) then
-      begin
-        FInput1.Init;
-        EndOfInput1 := False;
-        BytesPerSample1 := FInput1.BitsPerSample div 8;
-      end else
-      BytesPerSample1 := FOutBytesPerSample;
-      GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
+        if Assigned(FInput1) then
+        begin
+          FInput1.Flush;
+        end;
+        FreeMem(InBuf1);
+        FInput1 := aInput;
+        if Assigned(FInput1) then
+        begin
+          FInput1.Init;
+          EndOfInput1 := False;
+          BytesPerSample1 := FInput1.BitsPerSample div 8;
+        end else
+        BytesPerSample1 := FOutBytesPerSample;
+        GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
+      end else // if Busy then
+        FInput1 := aInput;
+      finally
       DataCS.Leave;
-    end else
-      FInput1 := aInput;
+      end;
+    end else // if not (csDesigning in ComponentState) then
+      FInput2 := aInput;
   end;
 
   procedure TRealTimeMixer.SetInput2;
@@ -524,23 +535,30 @@ end;
     if not (csDesigning in ComponentState) then
     begin
       DataCS.Enter;
-      if Assigned(FInput2) then
+      try
+      if Busy then
       begin
-        FInput2.Flush;
-        FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
-      end;
-      FInput2 := aInput;
-      if Assigned(FInput2) then
-      begin
-        FInput2.Init;
-        EndOfInput2 := False;
-        BytesPerSample2 := FInput2.BitsPerSample div 8;
-      end else
-      BytesPerSample2 := FOutBytesPerSample;
-      GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
+        if Assigned(FInput2) then
+        begin
+          FInput2.Flush;
+        end;
+        FreeMem(InBuf2);
+        FInput2 := aInput;
+        if Assigned(FInput2) then
+        begin
+          FInput2.Init;
+          EndOfInput2 := False;
+          BytesPerSample2 := FInput2.BitsPerSample div 8;
+        end else
+          BytesPerSample2 := FOutBytesPerSample;
+        GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
+      end else // if Busy then
+        FInput2 := aInput;
+      finally
       DataCS.Leave;
-    end else
-      FInput2 := aInput;
+      end;
+    end else // if not (csDesigning in ComponentState) then
+    FInput2 := aInput;
   end;
 
   function TRealTimeMixer.GetBPS;
