@@ -39,6 +39,7 @@ type
     procedure TrackBar2Change(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
   public
@@ -115,6 +116,12 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   TrackBar1.Position := amMaxVolume;
   TrackBar2.Position := amMaxVolume;
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if DXAudioOut1.Status = tosPlaying then DXAudioOut1.Stop;
+  if WaveOut1.Status = tosPlaying then WaveOut1.Stop;
 end;
 
 end.
