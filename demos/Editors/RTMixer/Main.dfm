@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
@@ -111,14 +112,12 @@ object Form1: TForm1
     OnClick = Button4Click
   end
   object WaveIn1: TWaveIn
-    FileName = 'E:\TestAudio\01-Cluster One.wav'
     Loop = False
     EndSample = -1
     Left = 16
     Top = 128
   end
   object WaveIn2: TWaveIn
-    FileName = 'E:\TestAudio\I'#39've seen this face before.wav'
     Loop = False
     EndSample = -1
     Left = 48
@@ -154,8 +153,6 @@ object Form1: TForm1
     Top = 128
   end
   object RealTimeMixer1: TRealTimeMixer
-    Input1 = WaveIn1
-    Input2 = WaveIn2
     OutSampleRate = 44100
     OutBitsPerSample = 16
     OutChannels = 2
