@@ -744,9 +744,9 @@ const
     OpenCS.Enter;
     try
     FValid := True;
-    ShortIEEEFloat := False;
     if FOpened = 0 then
     begin
+      ShortIEEEFloat := False;
       _WavType := wtUnsupported;
       if not FStreamAssigned then
       FStream := TAuFileStream.Create(FWideFileName, fmOpenRead  or fmShareDenyWrite);
