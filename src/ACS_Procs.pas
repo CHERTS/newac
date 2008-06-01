@@ -706,11 +706,11 @@ var
 begin
   for i := 0 to (InSize div 4) - 1 do
   begin
-    if PSingle(@InOutBuf[i*2])^ >= 1 then InOutBuf[i] := High(Integer)
+    if PSingle(@InOutBuf[i])^ >= 1 then InOutBuf[i] := High(Integer)
     else
-    if PSingle(@InOutBuf[i*2])^ <= -1 then InOutBuf[i] := Low(Integer)
+    if PSingle(@InOutBuf[i])^ <= -1 then InOutBuf[i] := Low(Integer)
     else
-    if PSingle(@InOutBuf[i*2])^ = 0 then InOutBuf[i] := 0
+    if PSingle(@InOutBuf[i])^ = 0 then InOutBuf[i] := 0
     else
     InOutBuf[i] := Floor(PSingle(@InOutBuf[i])^ * High(Integer));
   end;
