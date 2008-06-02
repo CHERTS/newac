@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.5
+  This file is a part of New Audio Components package v 1.8
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -26,6 +26,9 @@ const
 
 type
 
+  (* Class: TStreamOut
+    This component stores raw audio samples to a TStream-compatible object you provide.*)
+
   TStreamOut = class(TAuStreamedOutput)
   private
     function GetSR : Integer;
@@ -38,9 +41,15 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+   (* Property: OutSampleRate
+      Read this property to get the output data sample rate. *)
     property OutSampleRate : Integer read GetSR;
+   (* Property: OutBitsPerSample
+      Read this property to get the number of bits per sample in the output data. *)
     property OutBitsPerSample : Integer read GetBPS;
-    property OutChannles : Integer read GetCh;
+   (* Property: OutChannels
+      Read this property to get the number of channels in the output data. *)
+    property OutChannels : Integer read GetCh;
   end;
 
   (* Class: TStreamIn
@@ -64,7 +73,7 @@ type
   published
    (* Property: InBitsPerSample
       Since raw audio has no descriptive headers providing information about its parameters you should provide this information yourself.
-      InBitsPerSample property lets you set the number of bits per sample (8, 16, or 24) for the incoming audio data.*)
+      InBitsPerSample property lets you set the number of bits per sample (8, 16, 24, 32) for the incoming audio data.*)
     property InBitsPerSample : LongWord read FBPS write FBPS;
    (* Property: InChannels
       Since raw audio has no descriptive headers providing information about its parameters you should provide this information yourself.
