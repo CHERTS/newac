@@ -6,7 +6,7 @@
   by the XIPHOPHORUS Company http://www.xiph.org/
 *)
 
-(* $Revision: 1.1 $ $Date: 2007/06/20 00:42:14 $ *)
+(* $Id$ *)
 
 unit VorbisEnc;
 
@@ -109,56 +109,16 @@ var
 
   vorbis_encode_ctl : vorbis_encode_ctl_t;
 
+  procedure LoadVorbisEncLib;
+  procedure UnloadVorbisEncLib;
 
 implementation
-
-{$IFDEF LINUX}
-
-var
-  Libhandle : Pointer;
-
-{$IFDEF SEARCH_LIBS}
-  Path : String;
-{$ENDIF}
-
-initialization
-
-{$IFDEF SEARCH_LIBS}
-
-  Libhandle := nil;
-  Path := FindLibs(LibvorbisencPath);
-  if Path <> '' then Libhandle := dlopen(@Path[1], RTLD_NOW or RTLD_GLOBAL);
-
-{$ELSE}
-
-  Libhandle := dlopen(LibvorbisencPath, RTLD_NOW or RTLD_GLOBAL);
-
-{$ENDIF}
-
-  if Libhandle <> nil then
-  begin
-    LibvorbisencLoaded := True;
-    vorbis_encode_init := dlsym(Libhandle, 'vorbis_encode_init');
-    vorbis_encode_setup_managed := dlsym(Libhandle, 'vorbis_encode_setup_managed');
-    vorbis_encode_setup_vbr := dlsym(Libhandle, 'vorbis_encode_setup_vbr');
-    vorbis_encode_init_vbr := dlsym(Libhandle, 'vorbis_encode_init_vbr');
-    vorbis_encode_setup_init := dlsym(Libhandle, 'vorbis_encode_setup_init');
-    vorbis_encode_ctl := dlsym(Libhandle, 'vorbis_encode_ctl');
-  end;
-
-finalization
-
-  if libhandle <> nil then dlclose(Libhandle);
-
-{$ENDIF}
-
-{$IFDEF WIN32}
 
 var
   Libhandle : HMODULE;
 
-initialization
-
+procedure LoadVorbisEncLib;
+begin
   Libhandle := LoadLibraryEx(LibvorbisencPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -170,11 +130,19 @@ initialization
     vorbis_encode_setup_init := GetProcAddress(Libhandle, 'vorbis_encode_setup_init');
     vorbis_encode_ctl := GetProcAddress(Libhandle, 'vorbis_encode_ctl');
   end;
+end;
+
+procedure UnloadVorbisEncLib;
+begin
+  if libhandle <> 0 then FreeLibrary(Libhandle);
+end;
+
+initialization
+
+  LoadVrbisEncLib;
 
 finalization
 
-  if libhandle <> 0 then FreeLibrary(Libhandle);
-
-{$ENDIF}
+  UnloadVorbisEncLib;
 
 end.

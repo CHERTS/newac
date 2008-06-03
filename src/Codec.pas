@@ -1,12 +1,12 @@
 (*
   Delphi/Kylix headers for OggVorbis software codec.
   Translated from codec.h header
-  by Andrei Borovsky, acs@compiler4.net
+  by Andrei Borovsky, anb@symmetrica.net
   The original C/C++ headers and libraries (C) COPYRIGHT 1994-2001
   by the XIPHOPHORUS Company http://www.xiph.org/
 *)
 
-(* $Revision: 1.1 $ $Date: 2007/06/20 00:41:53 $ *)
+(* $Id$ *)
 
 unit Codec;
 
@@ -344,76 +344,17 @@ const
   OV_EBADLINK = -137;
   OV_ENOSEEK = -138;
 
+procedure LoadCodecLib;
+procedure UnloadCodecLib;
+
 implementation
 
-{$IFDEF LINUX}
-
-var
-  Libhandle : Pointer;
-
-{$IFDEF SEARCH_LIBS}
-  Path : String;
-{$ENDIF}
-
-initialization
-
-{$IFDEF SEARCH_LIBS}
-
-  Libhandle := nil;
-  Path := FindLibs(LibvorbisPath);
-  if Path <> '' then Libhandle := dlopen(@Path[1], RTLD_NOW or RTLD_GLOBAL);
-
-{$ELSE}
-
-  Libhandle := dlopen(LibvorbisPath, RTLD_NOW or RTLD_GLOBAL);
-
-{$ENDIF}
-
-  if Libhandle <> nil then
-  begin
-    LibvorbisLoaded := True;
-    vorbis_info_init := dlsym(Libhandle, 'vorbis_info_init');
-    vorbis_info_clear := dlsym(Libhandle, 'vorbis_info_clear');
-    vorbis_info_blocksize := dlsym(Libhandle, 'vorbis_info_blocksize');
-    vorbis_comment_init := dlsym(Libhandle, 'vorbis_comment_init');
-    vorbis_comment_add := dlsym(Libhandle, 'vorbis_comment_add');
-    vorbis_comment_add_tag := dlsym(Libhandle, 'vorbis_comment_add_tag');
-    vorbis_comment_query := dlsym(Libhandle, 'vorbis_comment_query');
-    vorbis_comment_query_count := dlsym(Libhandle, 'vorbis_comment_query_count');
-    vorbis_comment_clear := dlsym(Libhandle, 'vorbis_comment_clear');
-    vorbis_block_init := dlsym(Libhandle, 'vorbis_block_init');
-    vorbis_block_clear := dlsym(Libhandle, 'vorbis_block_clear');
-    vorbis_dsp_clear := dlsym(Libhandle, 'vorbis_dsp_clear');
-    vorbis_analysis_init := dlsym(Libhandle, 'vorbis_analysis_init');
-    vorbis_commentheader_out := dlsym(Libhandle, 'vorbis_commentheader_out');
-    vorbis_analysis_headerout := dlsym(Libhandle, 'vorbis_analysis_headerout');
-    vorbis_analysis_buffer := dlsym(Libhandle, 'vorbis_analysis_buffer');
-    vorbis_analysis_wrote := dlsym(Libhandle, 'vorbis_analysis_wrote');
-    vorbis_analysis_blockout := dlsym(Libhandle, 'vorbis_analysis_blockout');
-    vorbis_analysis := dlsym(Libhandle, 'vorbis_analysis');
-    vorbis_bitrate_addblock := dlsym(Libhandle, 'vorbis_bitrate_addblock');
-    vorbis_bitrate_flushpacket := dlsym(Libhandle, 'vorbis_bitrate_flushpacket');
-    vorbis_synthesis_headerin := dlsym(Libhandle, 'vorbis_synthesis_headerin');
-    vorbis_synthesis_init := dlsym(Libhandle, 'vorbis_synthesis_init');
-    vorbis_synthesis := dlsym(Libhandle, 'vorbis_synthesis');
-    vorbis_synthesis_blockin := dlsym(Libhandle, 'vorbis_synthesis_blockin');
-    vorbis_synthesis_pcmout := dlsym(Libhandle, 'vorbis_synthesis_pcmout');
-    vorbis_synthesis_read := dlsym(Libhandle, 'vorbis_synthesis_read');
-    vorbis_packet_blocksize := dlsym(Libhandle, 'vorbis_packet_blocksize');
-  end;
-
-  finalization
-    if libhandle <> nil then dlclose(libhandle);
-
-{$ENDIF}
-
-{$IFDEF WIN32}
 
 var
   Libhandle : HMODULE;
 
-initialization
-
+procedure LoadCodecLib;
+begin
   Libhandle := LoadLibraryEx(LibvorbisPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -447,11 +388,19 @@ initialization
     vorbis_synthesis_read := GetProcAddress(Libhandle, 'vorbis_synthesis_read');
     vorbis_packet_blocksize := GetProcAddress(Libhandle, 'vorbis_packet_blocksize');
   end;
+end;
 
-  finalization
-    if Libhandle <> 0 then FreeLibrary(Libhandle);
+procedure UnloadCodecLib;
+begin
+  if Libhandle <> 0 then FreeLibrary(Libhandle);
+end;
 
-{$ENDIF}
+initialization
 
+  LoadCodecLib;
+
+finalization
+
+  UnloadCodecLib;
 
 end.

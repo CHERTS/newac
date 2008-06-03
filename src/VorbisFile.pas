@@ -6,7 +6,7 @@
   by the XIPHOPHORUS Company http://www.xiph.org/
 *)
 
-(* $Revision: 1.1 $ $Date: 2007/06/20 00:42:32 $ *)
+(* $Id$ *)
 
 unit VorbisFile;
 
@@ -268,76 +268,17 @@ var
 
   ov_read : ov_read_t;
 
+  procedure LoadVorbisFileLib;
+  procedure UnloadVorbisFileLib;  
 
 implementation
 
-{$IFDEF LINUX}
-
-var
-  Libhandle : Pointer;
-
-{$IFDEF SEARCH_LIBS}
-  Path : String;
-{$ENDIF}
-
-initialization
-
-{$IFDEF SEARCH_LIBS}
-
-  Libhandle := nil;
-  Path := FindLibs(LibvorbisfilePath);
-  if Path <> '' then Libhandle := dlopen(@Path[1], RTLD_NOW or RTLD_GLOBAL);
-
-{$ELSE}
-
-  Libhandle := dlopen(LibvorbisfilePath, RTLD_NOW or RTLD_GLOBAL);
-
-{$ENDIF}
-
-  if Libhandle <> nil then
-  begin
-    LibvorbisfileLoaded := True;
-    ov_open := dlsym(Libhandle, 'ov_open');
-    ov_test := dlsym(Libhandle, 'ov_test');
-    ov_clear := dlsym(Libhandle, 'ov_clear');
-    ov_open_callbacks := dlsym(Libhandle, 'ov_open_callbacks');
-    ov_test_callbacks := dlsym(Libhandle, 'ov_test_callbacks');
-    ov_test_open := dlsym(Libhandle, 'ov_test_open');
-    ov_bitrate := dlsym(Libhandle, 'ov_bitrate');
-    ov_bitrate_instant := dlsym(Libhandle, 'ov_bitrate_instant');
-    ov_streams := dlsym(Libhandle, 'ov_streams');
-    ov_seekable := dlsym(Libhandle, 'ov_seekable');
-    ov_serialnumber := dlsym(Libhandle, 'ov_serialnumber');
-    ov_raw_total := dlsym(Libhandle, 'ov_raw_total');
-    ov_pcm_total := dlsym(Libhandle, 'ov_pcm_total');
-    ov_time_total := dlsym(Libhandle, 'ov_time_total');
-    ov_raw_seek := dlsym(Libhandle, 'ov_raw_seek');
-    ov_pcm_seek := dlsym(Libhandle, 'ov_pcm_seek');
-    ov_pcm_seek_page := dlsym(Libhandle, 'ov_pcm_seek_page');
-    ov_time_seek := dlsym(Libhandle, 'ov_time_seek');
-    ov_time_seek_page := dlsym(Libhandle, 'ov_time_seek_page');
-    ov_raw_tell := dlsym(Libhandle, 'ov_raw_tell');
-    ov_pcm_tell := dlsym(Libhandle, 'ov_pcm_tell');
-    ov_time_tell := dlsym(Libhandle, 'ov_time_tell');
-    ov_info := dlsym(Libhandle, 'ov_info');
-    ov_comment := dlsym(Libhandle, 'ov_comment');
-    ov_read_float := dlsym(Libhandle, 'ov_read_float');
-    ov_read := dlsym(Libhandle, 'ov_read');
-  end;
-
-finalization
-
-  if libhandle <> nil then dlclose(Libhandle);
-
-{$ENDIF}
-
-
-{$IFDEF WIN32}
 var
   Libhandle : HMODULE;
 
-initialization
 
+procedure LoadVorbisFileLib;
+begin
   Libhandle := LoadLibraryEx(LibvorbisfilePath, 0, 0);
 
   if Libhandle <> 0 then
@@ -368,11 +309,21 @@ initialization
     ov_read_float := GetProcAddress(Libhandle, 'ov_read_float');
     ov_read := GetProcAddress(Libhandle, 'ov_read');
   end;
+end;
+
+
+procedure UnloadVorbisFileLib;
+begin
+  if Libhandle <> 0 then FreeLibrary(Libhandle);
+end;
+
+
+initialization
+
+  LoadVorbisFileLib;
 
 finalization
 
-  if Libhandle <> 0 then FreeLibrary(Libhandle);
-
-{$ENDIF}
+  UnloadVorbisFileLib;
 
 end.
