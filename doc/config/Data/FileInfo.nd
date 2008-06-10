@@ -35,7 +35,7 @@ D:\projects\newac\demos\Players\AudioPlayer\Main.pas	1211329768	0	D:\projects\ne
 D:\projects\newac\demos\Tutorial\ComponentsDemo\Main.pas	1211329768	0	D:\projects\newac\demos\Tutorial\ComponentsDemo\Main.pas
 D:\projects\newac\doc\txt\about documentation.txt	1211329812	1	About the Documentation
 D:\projects\newac\src\_DirectSound.pas	1211329764	1	_DirectSound
-D:\projects\newac\doc\filelist.txt	1211329141	0	D:\projects\newac\doc\filelist.txt
+D:\projects\newac\doc\filelist.txt	1211329909	0	D:\projects\newac\doc\filelist.txt
 D:\projects\newac\src\ACS_OptimFROG.pas	1211329764	1	ACS_OptimFROG
 D:\projects\newac\doc\txt\cwguide.txt	1211329812	1	Component Writer's Guide
 D:\projects\newac\src\libwma1.pas	1211329764	1	libwma1.pas
@@ -65,7 +65,7 @@ D:\projects\newac\demos\Editors\ReadMe.txt	1211329770	0	D:\projects\newac\demos\
 D:\projects\newac\src\ACS_WavPack.pas	1211329764	1	ACS_WavPack
 D:\projects\newac\src\DSWrapper.pas	1211329763	1	DSWrapper
 D:\projects\newac\src\tak_decoder.pas	1211329764	0	D:\projects\newac\src\tak_decoder.pas
-D:\projects\newac\src\ACS_Streams.pas	1211329764	1	ACS_Streams
+D:\projects\newac\src\ACS_Streams.pas	1213065122	1	ACS_Streams
 D:\projects\newac\demos\Converters\MP32WMA\Unit1.pas	1211329773	0	D:\projects\newac\demos\Converters\MP32WMA\Unit1.pas
 D:\projects\newac\demos\Players\WMPlayer\Main.pas	1211329764	0	D:\projects\newac\demos\Players\WMPlayer\Main.pas
 D:\projects\newac\src\ACS_TAK.pas	1211329764	0	D:\projects\newac\src\ACS_TAK.pas
@@ -76,18 +76,18 @@ D:\projects\newac\demos\Converters\Wav2Ogg\Main.pas	1211329775	0	D:\projects\new
 D:\projects\newac\demos\Converters\WMA2Ogg\Main.pas	1211329772	0	D:\projects\newac\demos\Converters\WMA2Ogg\Main.pas
 D:\projects\newac\src\MACDll.pas	1211329764	1	MACDll.pas
 D:\projects\newac\src\msdmo.pas	1211329764	0	D:\projects\newac\src\msdmo.pas
-D:\projects\newac\src\ogg.pas	1211329764	1	ogg.pas
+D:\projects\newac\src\ogg.pas	1213064574	1	ogg.pas
 D:\projects\newac\src\FLAC.pas	1211329764	1	FLAC
 D:\projects\newac\demos\Recorders-rippers\ReadMe.txt	1211329777	0	D:\projects\newac\demos\Recorders-rippers\ReadMe.txt
 D:\projects\newac\src\ACS_smpeg.pas	1211329764	1	ACS_SMPEG
-D:\projects\newac\src\ACS_Wave.pas	1211329764	1	ACS_Wave
+D:\projects\newac\src\ACS_Wave.pas	1213064574	1	ACS_Wave
 D:\projects\newac\demos\Converters\Wav2WV\Main.pas	1211329775	0	D:\projects\newac\demos\Converters\Wav2WV\Main.pas
-D:\projects\newac\src\Codec.pas	1211329764	1	Codec
+D:\projects\newac\src\Codec.pas	1213064574	1	Codec
 D:\projects\newac\src\TTALib.pas	1211329764	0	D:\projects\newac\src\TTALib.pas
 D:\projects\newac\demos\Converters\Wav2TTA\Main.pas	1211329774	0	D:\projects\newac\demos\Converters\Wav2TTA\Main.pas
 D:\projects\newac\demos\Editors\AudioMixer\Main.pas	1211329769	0	D:\projects\newac\demos\Editors\AudioMixer\Main.pas
 D:\projects\newac\src\ovencode.pas	1211329764	1	ovencode
-D:\projects\newac\src\VorbisFile.pas	1211329764	1	VorbisFile.pas
+D:\projects\newac\src\VorbisFile.pas	1213064574	1	VorbisFile.pas
 D:\projects\newac\src\ACS_CDROM.pas	1211329764	1	ACS_CDROM
 D:\projects\newac\demos\Players\NetworkRadioStation\Main.pas	1211329767	0	D:\projects\newac\demos\Players\NetworkRadioStation\Main.pas
 D:\projects\newac\demos\Players\CDPlayer\Main.pas	1211329765	0	D:\projects\newac\demos\Players\CDPlayer\Main.pas
@@ -95,11 +95,11 @@ D:\projects\newac\demos\Players\WVPlayer\Main.pas	1211329767	0	D:\projects\newac
 D:\projects\newac\demos\Editors\RTMixer\Main.pas	1211329770	0	D:\projects\newac\demos\Editors\RTMixer\Main.pas
 D:\projects\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas	1211329777	0	D:\projects\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas
 D:\projects\newac\demos\Recorders-rippers\RadioRecorder\Main.pas	1211329776	0	D:\projects\newac\demos\Recorders-rippers\RadioRecorder\Main.pas
-D:\projects\newac\src\VorbisEnc.pas	1211329764	1	VorbisEnc.pas
+D:\projects\newac\src\VorbisEnc.pas	1213064574	1	VorbisEnc.pas
 D:\projects\newac\src\ACS_Vorbis.pas	1211329764	1	ACS_Vorbis
 D:\projects\newac\src\CDRip.pas	1211329764	1	CDRip
 D:\projects\newac\src\ACS_TTA.pas	1211329764	1	ACS_TTA
-D:\projects\newac\src\ACS_Procs.pas	1211329764	1	ACS_Procs
+D:\projects\newac\src\ACS_Procs.pas	1213064574	1	ACS_Procs
 D:\projects\newac\src\ACS_Classes.pas	1211329764	1	ACS_Classes
 D:\projects\newac\demos\Converters\Wav2APE\Main.pas	1211329773	0	D:\projects\newac\demos\Converters\Wav2APE\Main.pas
 D:\projects\newac\demos\Players\i-Radio\Main.pas	1211329765	0	D:\projects\newac\demos\Players\i-Radio\Main.pas
