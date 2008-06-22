@@ -280,6 +280,7 @@ type
         <OnProgress> events while audio processing continues and an <OnDone>
         event when the job is done.*)
     procedure Run;
+    procedure BlockingRun;
     (* Procedure: Stop
       Stops the busy component or does nothing if the component is idle.
 
@@ -1104,7 +1105,19 @@ end;
     end;
   end;
 
-  constructor TAuOutput.Create;
+procedure TAuOutput.BlockingRun;
+var
+  bAbort: Boolean;
+begin
+  Busy := True;
+  Prepare;
+  bAbort := False;
+  CanOutput := True;
+  while DoOutput(bAbort) do;
+  WhenDone;
+end;
+
+constructor TAuOutput.Create;
   begin
     inherited Create(AOwner);
     if not (csDesigning in ComponentState) then
