@@ -280,6 +280,16 @@ type
         <OnProgress> events while audio processing continues and an <OnDone>
         event when the job is done.*)
     procedure Run;
+    (* Procedure: BlockingRun
+        In some situations, such as console programs or DUnit test units,
+        background processing is not desirable. In these cases, call
+        BlockingRun to run the output component and wait until all operations
+      	are complete before returning from the method. It is only fair to note
+      	that since there is no way to abort, pause, or stop the procedure once
+      	it has started, if used improperly this method can lock your program.
+      	If you are unsure which method to use, use the <Run> method. Under
+      	normal circumstances, call <Run> to allow audio processing to go on in
+      	the background while your application is free to respond to events. *)
     procedure BlockingRun;
     (* Procedure: Stop
       Stops the busy component or does nothing if the component is idle.
