@@ -139,7 +139,7 @@ end;
 
 initialization
 
-  LoadVrbisEncLib;
+  LoadVorbisEncLib;
 
 finalization
 
