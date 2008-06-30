@@ -383,6 +383,7 @@ var
 
 procedure LoadOggLib;
 begin
+  if LiboggLoaded then Exit;
   Libhandle := LoadLibraryEx(LiboggPath, 0, 0);
 
   if Libhandle <> 0 then
@@ -440,11 +441,7 @@ end;
 procedure UnloadOggLib;
 begin
   if Libhandle <> 0 then FreeLibrary(Libhandle);
+  LiboggLoaded := False;
 end;
-
-initialization
-  LoadOggLib;
-finalization
-UnloadOggLib
 
 end.
