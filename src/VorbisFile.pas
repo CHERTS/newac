@@ -279,6 +279,7 @@ var
 
 procedure LoadVorbisFileLib;
 begin
+  if LibvorbisfileLoaded then Exit;
   Libhandle := LoadLibraryEx(LibvorbisfilePath, 0, 0);
 
   if Libhandle <> 0 then
@@ -315,15 +316,7 @@ end;
 procedure UnloadVorbisFileLib;
 begin
   if Libhandle <> 0 then FreeLibrary(Libhandle);
+  LibvorbisfileLoaded := False;
 end;
-
-
-initialization
-
-  LoadVorbisFileLib;
-
-finalization
-
-  UnloadVorbisFileLib;
 
 end.
