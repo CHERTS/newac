@@ -3,7 +3,7 @@
   You can contact me at anb@symmetrica.net
  *)
 
-(* $Revision: 1.6 $ $Date: 2007/11/26 20:56:11 $ *)
+(* $Id$ *)
 
 
 unit FLAC;
@@ -3218,17 +3218,18 @@ var
   FLAC__metadata_simple_iterator_set_block : FLAC__metadata_simple_iterator_set_block_t;
   FLAC__metadata_simple_iterator_insert_block_after : FLAC__metadata_simple_iterator_insert_block_after_t;
 
-implementation
+  procedure LoadFLACLib;
+  procedure UnloadFLACLib;
 
-{$IFDEF WIN32}
+implementation
 
 var
   Libhandle : HMODULE;
 
-initialization
-
+procedure LoadFLACLib;
+begin
+  if LibFLACLoaded then Exit;
   Libhandle := LoadLibraryEx(LibFLACPath, 0, 0);
-
   if Libhandle <> 0 then
   begin
     LibFLACLoaded := True;
@@ -3324,13 +3325,14 @@ initialization
     FLAC__metadata_simple_iterator_set_block := GetProcAddress(Libhandle, 'FLAC__metadata_simple_iterator_set_block');
     FLAC__metadata_simple_iterator_insert_block_after := GetProcAddress(Libhandle, 'FLAC__metadata_simple_iterator_insert_block_after');
     FLAC__metadata_simple_iterator_insert_block_after := GetProcAddress(Libhandle, 'FLAC__metadata_simple_iterator_insert_block_after');
-
   end;
+end;
 
-finalization
-
+procedure UnloadFLACLib;
+begin
+  if not LibFLACLoaded then Exit;
+  LibFLACLoaded := False;
   if Libhandle <> 0 then FreeLibrary(Libhandle);
-
- {$ENDIF}
+end;
 
 end.

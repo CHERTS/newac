@@ -10,7 +10,7 @@
 unit ACS_FLAC;
 
 (* Title: ACS_FLAC
-    NewAC interface to flac.dll *)
+    NewAC interface to libFLAC.dll *)
 
 interface
 
@@ -591,19 +591,20 @@ type
     FEnableMidSideStereo := True;
     FCompressionLevel := -1;
     FTags := TVorbisTags.Create;
-    if not (csDesigning in ComponentState) then
-    if not LibFLACLoaded then
-    raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
   end;
 
   destructor TFLACOut.Destroy;
   begin
     FTags.Free;
+    UnloadFLACLib;
     inherited Destroy;
   end;
 
   procedure TFLACOut.Prepare;
   begin
+    LoadFLACLib;
+    if not LibFLACLoaded then
+      raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
     if not FStreamAssigned then
     begin
       if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
@@ -742,9 +743,6 @@ type
   constructor TFLACIn.Create;
   begin
     inherited Create(AOwner);
-    if not (csDesigning in ComponentState) then
-    if not LibFLACLoaded then
-    raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
     FComments := TVorbisTags.Create;
   end;
 
@@ -752,11 +750,15 @@ type
   begin
     CloseFile;
     FComments.Free;
+    UnloadFLACLib;
     inherited Destroy;
   end;
 
   procedure TFLACIn.OpenFile;
   begin
+    LoadFLACLib;
+    if not LibFLACLoaded then
+      raise EAuException.Create(LibFLACPath + ' library could not be loaded.');
     OpenCS.Enter;
     try
     if FOpened = 0 then
