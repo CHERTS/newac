@@ -12,7 +12,7 @@ const
   WavpackDLL_Name = 'WavpackDLL.dll';
 
 var
-  WavpackDLL_Loaded: Boolean;
+  WavpackDLL_Loaded: Boolean = False;
 
 type
   PWavpackContext = type Pointer;
@@ -218,6 +218,10 @@ type
 
     property LastError: String read GetLastError;
   end;
+
+procedure LoadWavpackDLL;
+procedure UnloadWavpackDLL;
+
 
 implementation
 
@@ -908,7 +912,9 @@ begin
     end;
 end;
 
-initialization begin
+procedure LoadWavpackDLL;
+begin
+  if WavpackDLL_Loaded then Exit;
   WavpackDLL_Handle := LoadLibrary(WavpackDLL_Name);
   WavpackDLL_Loaded := (WavpackDLL_Handle <> 0);
   if WavpackDLL_Loaded then begin
@@ -980,7 +986,8 @@ initialization begin
   end;
 end;
 
-finalization begin
+procedure UnloadWavpackDLL;
+begin
   if WavpackDLL_Loaded then
     FreeLibrary(WavpackDLL_Handle);
 end;
