@@ -105,25 +105,25 @@ end;
 function TForm1.StrToBitRate;
 begin
   if S = '48' then
-    Result := br48;
+    Result := mbr48;
   if S = '56' then
-    Result := br56;
+    Result := mbr56;
   if S = '64' then
-    Result := br64;
+    Result := mbr64;
   if S = '80' then
-    Result := br80;
+    Result := mbr80;
   if S = '96' then
-    Result := br96;
+    Result := mbr96;
   if S = '112' then
-    Result := br112;
+    Result := mbr112;
   if S = '128' then
-    Result := br128;
+    Result := mbr128;
   if S = '192' then
-    Result := br192;
+    Result := mbr192;
   if S = '256' then
-    Result := br256;
+    Result := mbr256;
   if S = '320' then
-    Result := br320;
+    Result := mbr320;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);

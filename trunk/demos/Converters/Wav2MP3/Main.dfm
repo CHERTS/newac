@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 192
   Top = 109
-  Width = 292
-  Height = 268
   Caption = 'Wav2MP3 Converter'
+  ClientHeight = 232
+  ClientWidth = 276
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,8 +13,8 @@ object Form1: TForm1
   OldCreateOrder = False
   OnCreate = FormCreate
   DesignSize = (
-    284
-    234)
+    276
+    232)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -95,8 +95,6 @@ object Form1: TForm1
     Width = 268
     Height = 9
     Anchors = [akLeft, akTop, akRight]
-    Min = 0
-    Max = 100
     TabOrder = 1
   end
   object TrackBar1: TTrackBar
@@ -106,27 +104,20 @@ object Form1: TForm1
     Height = 20
     Max = 3
     Min = 1
-    Orientation = trHorizontal
-    Frequency = 1
     Position = 3
-    SelEnd = 0
-    SelStart = 0
     TabOrder = 2
     ThumbLength = 15
-    TickMarks = tmBottomRight
-    TickStyle = tsAuto
     OnChange = TrackBar1Change
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 215
-    Width = 284
+    Top = 213
+    Width = 276
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object ComboBox1: TComboBox
     Left = 48
@@ -162,7 +153,7 @@ object Form1: TForm1
     Left = 56
     Top = 88
     Width = 217
-    Height = 17
+    Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 6
   end
@@ -170,7 +161,7 @@ object Form1: TForm1
     Left = 56
     Top = 112
     Width = 217
-    Height = 17
+    Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 7
   end
@@ -178,7 +169,7 @@ object Form1: TForm1
     Left = 56
     Top = 136
     Width = 217
-    Height = 17
+    Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 8
   end
@@ -186,7 +177,7 @@ object Form1: TForm1
     Left = 56
     Top = 160
     Width = 217
-    Height = 17
+    Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 9
   end
@@ -194,13 +185,13 @@ object Form1: TForm1
     Left = 56
     Top = 184
     Width = 217
-    Height = 17
+    Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 10
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 200
   end
@@ -219,9 +210,6 @@ object Form1: TForm1
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
     BitRate = br128
-    Id3v1Tags.Year = 0
-    Id3v1Tags.Track = 0
-    Id3v1Tags.Genre = 'Blues'
     Id3v1Tags.GenreId = 0
     Left = 104
     Top = 200
