@@ -263,6 +263,9 @@ object Form1: TForm1
     BevelOuter = bvNone
     Color = clBlack
     TabOrder = 3
+    DesignSize = (
+      339
+      81)
     object Label2: TLabel
       Left = 8
       Top = 8
@@ -388,6 +391,7 @@ object Form1: TForm1
       Top = 8
       Width = 62
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'samplerate'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -403,6 +407,7 @@ object Form1: TForm1
       Top = 24
       Width = 97
       Height = 17
+      Anchors = [akTop, akRight]
       AutoSize = False
       Caption = 'bitrate'
       Color = clBlack
@@ -419,6 +424,7 @@ object Form1: TForm1
       Top = 56
       Width = 57
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'Total time'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -434,6 +440,7 @@ object Form1: TForm1
       Top = 56
       Width = 39
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'Label7'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -449,6 +456,7 @@ object Form1: TForm1
       Top = 40
       Width = 31
       Height = 13
+      Anchors = [akTop, akRight]
       Caption = 'mono'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
@@ -466,8 +474,8 @@ object Form1: TForm1
     Top = 152
   end
   object WVIn1: TWVIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 8
     Top = 152
   end
@@ -477,6 +485,8 @@ object Form1: TForm1
     OnProgress = AudioOut1Progress
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
+    FramesInBuffer = 65536
+    PollingInterval = 200
     Left = 40
     Top = 152
   end
