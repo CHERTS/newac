@@ -44,6 +44,7 @@ type
   TMP3BitRate = (mbr32, mbr40, mbr48, mbr56, mbr64, mbr80, mbr96,
                  mbr112, mbr128, mbr144, mbr160, mbr192, mbr224, mbr256, mbr320);
 
+
   TMP3Out = class(TAuTaggedFileOut)
   private
     Buffer : PSmallInt;
@@ -83,6 +84,18 @@ type
   end;
 
 implementation
+
+type
+
+  TID3Tag = packed record
+    ID : array [0..2] of Char;
+    Title : array [0..29] of Char;
+    Artist : array [0..29] of Char;
+    Album : array [0..29] of Char;
+    Year : array [0..3] of Char;
+    Comment : array [0..29] of Char;
+    Genre : Byte;
+  end;
 
   constructor TMP3Out.Create;
   begin
@@ -138,15 +151,20 @@ implementation
       mbr320 : br := 320;
     end;
 
-    Config.dwConfig := 0;
-    Config.StructType := 0;
-    Config.dwSampleRate := FInput.SampleRate;
-    Config.byMode := Byte(FMode);
-    Config.bCRC := True;
-    Config.bPrivate := False;
-    Config.wBitrate := br;
-    Config.bCopyright := False;
-    Config.bOriginal := False;
+    FillChar(Config, SizeOf(Config), 0);
+
+    Config.dwConfig := 256;
+    Config.dwStructVersion := 1;
+    Config.dwStructSize := 331;
+    Config.dwReSampleRate := 0;
+    Config.dwSampleRate1 := FInput.SampleRate;
+    Config.nMode := Byte(FMode);
+    Config.bCRC1 := True;
+    Config.bPrivate1 := False;
+    Config.dwBitrate := br;
+    Config.bCopyright1 := False;
+    Config.bOriginal1 := False;
+    Config.bEnableVBR := False;
 
     res := beInitStream(@Config, Samples, mp3buf_size, _Stream);
 
@@ -178,7 +196,9 @@ implementation
 
   procedure TMP3Out.Done;
   var
-    res : LongWord;
+    res, l : LongWord;
+    Tag : TID3Tag;
+    S : String;
   begin
 (*    id3tag_init(_plgf);
 
@@ -192,6 +212,30 @@ implementation
 
     beDeinitStream(_Stream, mp3buf, res);
     FStream.Write(mp3buf^, res);
+    FillChar(Tag, SizeOf(Tag), 0);
+    Tag.ID := 'TAG';
+    S := Id3v1Tags.Title;
+    l := Length(S);
+    if l > 30 then l := 30;
+    Move(S[1], Tag.Title[0], l);
+    S := Id3v1Tags.Artist;
+    l := Length(S);
+    if l > 30 then l := 30;
+    Move(S[1], Tag.Artist[0], l);
+    S := Id3v1Tags.Album;
+    l := Length(S);
+    if l > 30 then l := 30;
+    Move(S[1], Tag.Album[0], l);
+    S := Id3v1Tags.Comment;
+    l := Length(S);
+    if l > 30 then l := 30;
+    Move(S[1], Tag.Comment[0], l);
+    if Id3v1Tags.Year <> 0 then
+    S := IntToStr(Id3v1Tags.Year);
+    l := Length(S);
+    if l = 4 then
+      Move(S[1], Tag.Year[0], 4);
+    FStream.Write(Tag, 128);  
     if not FStreamAssigned then FStream.Free;
     beCloseStream(_Stream);
     FreeMem(mp3buf);
@@ -214,7 +258,7 @@ implementation
     Len  := FInput.FillBuffer(Buffer, BufferSize, EOF);
     if Len <> 0 then
     begin
-      beEncodeChunk(_Stream, Len div (FInput.Channels*2), Buffer, mp3buf, OutSize);
+      beEncodeChunk(_Stream, Len div 2, Buffer, mp3buf, OutSize);
       FStream.Write(mp3buf^, OutSize);
       Result := not EOF;
     end else

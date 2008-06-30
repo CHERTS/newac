@@ -18,9 +18,9 @@ type
 
   BOOL = LongBool;
 
-  BE_CONFIG = packed record
+  BE_CONFIG = record
       dwConfig : LongWord;       // 0
-      case StructType : Integer of
+      case Integer of
        0: (dwSampleRate : LongWord;		// 48000, 44100 and 32000 allowed
   			byMode : BYTE;			// BE_MP3_MODE_STEREO, BE_MP3_MODE_DUALCHANNEL, BE_MP3_MODE_MONO
 	  		wBitrate : WORD;		// 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256 and 320 allowed
