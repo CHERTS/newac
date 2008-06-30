@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.6
+  This file is a part of New Audio Components package v 1.8
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -51,6 +51,7 @@ type
     procedure GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     (* Property: CorrectionsStream
        WavPack can use two separate files for encoded content: the main file
@@ -109,7 +110,7 @@ type
     function DoOutput(Abort: Boolean): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-
+    destructor Destroy; override;
 
     (* Property: CorrectionsStream
        WavPack can use two separate files for encoded content: the main file
@@ -193,10 +194,13 @@ const
 constructor TWVIn.Create(AOwner: TComponent);
 begin
   inherited;
-
-  if not (csDesigning in ComponentState) and not WavpackDLL_Loaded then
-    raise EAuException.Create(WavpackDLL_Name + ' library could not be loaded.');
 end;
+
+destructor TWVIn.Destroy;
+begin
+  UnloadWavpackDLL;
+  inherited;
+end;  
 
 procedure TWVIn.SetCorrectionsStream(Value: TStream);
 begin
@@ -228,6 +232,9 @@ var
   i{, n}: Integer;
   tag_id: String;
 begin
+  LoadWavpackDLL;
+  if not WavpackDLL_Loaded then
+    raise EauException.Create(WavpackDLL_Name + ' library could not be loaded');
   OpenCS.Enter();
   try
     if FOpened = 0 then begin
@@ -483,9 +490,12 @@ end;
 constructor TWVOut.Create(AOwner: TComponent);
 begin
   inherited;
+end;
 
-  if not (csDesigning in ComponentState) and not WavpackDLL_Loaded then
-    raise EAuException.Create(WavpackDLL_Name + ' library could not be loaded.');
+destructor TWVOut.Destroy;
+begin
+  UnloadWavpackDLL;
+  inherited;
 end;
 
 procedure TWVOut.SetCorrectionsStream(Value: TStream);
@@ -507,6 +517,9 @@ var
   bytes_per_sample: Integer;
   flags: TwvConfigFlags;
 begin
+  LoadWavpackDLL;
+  if not WavpackDLL_Loaded then
+    raise EauException.Create(WavpackDLL_Name + ' library could not be loaded');
   if not FStreamAssigned then
     if FWideFileName = '' then
       raise EAuException.Create('File name is not assigned')
