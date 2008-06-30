@@ -355,6 +355,7 @@ var
 
 procedure LoadCodecLib;
 begin
+  if LibvorbisLoaded then Exit;
   Libhandle := LoadLibraryEx(LibvorbisPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -393,14 +394,7 @@ end;
 procedure UnloadCodecLib;
 begin
   if Libhandle <> 0 then FreeLibrary(Libhandle);
+  LibvorbisLoaded := False;
 end;
-
-initialization
-
-  LoadCodecLib;
-
-finalization
-
-  UnloadCodecLib;
 
 end.
