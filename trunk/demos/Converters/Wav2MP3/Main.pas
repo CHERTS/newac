@@ -28,7 +28,6 @@ type
     StatusBar1: TStatusBar;
     ComboBox1: TComboBox;
     Label4: TLabel;
-    MP3Out1: TMP3Out;
     Button2: TButton;
     Edit1: TEdit;
     Label5: TLabel;
@@ -40,6 +39,7 @@ type
     Edit4: TEdit;
     Label9: TLabel;
     Edit5: TEdit;
+    MP3Out1: TMP3Out;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);

@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 192
   Top = 109
+  Width = 301
+  Height = 266
   Caption = 'Wav2MP3 Converter'
-  ClientHeight = 232
-  ClientWidth = 276
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,7 +13,7 @@ object Form1: TForm1
   OldCreateOrder = False
   OnCreate = FormCreate
   DesignSize = (
-    276
+    293
     232)
   PixelsPerInch = 96
   TextHeight = 13
@@ -95,6 +95,8 @@ object Form1: TForm1
     Width = 268
     Height = 9
     Anchors = [akLeft, akTop, akRight]
+    Min = 0
+    Max = 100
     TabOrder = 1
   end
   object TrackBar1: TTrackBar
@@ -104,20 +106,27 @@ object Form1: TForm1
     Height = 20
     Max = 3
     Min = 1
+    Orientation = trHorizontal
+    Frequency = 1
     Position = 3
+    SelEnd = 0
+    SelStart = 0
     TabOrder = 2
     ThumbLength = 15
+    TickMarks = tmBottomRight
+    TickStyle = tsAuto
     OnChange = TrackBar1Change
   end
   object StatusBar1: TStatusBar
     Left = 0
     Top = 213
-    Width = 276
+    Width = 293
     Height = 19
     Panels = <
       item
         Width = 50
       end>
+    SimplePanel = False
   end
   object ComboBox1: TComboBox
     Left = 48
@@ -209,8 +218,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
-    BitRate = br128
-    Id3v1Tags.GenreId = 0
+    BitRate = mbr128
     Left = 104
     Top = 200
   end
