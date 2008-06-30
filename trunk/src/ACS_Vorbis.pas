@@ -4,7 +4,6 @@
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 
-  Update : 26/02/2008 : Fixed a problem when using MP3out simultaneous with Vorbisout
 *)
 
 (* $Id$ *)
@@ -43,8 +42,8 @@ type
   (* Class: TVorbisOut
       The Ogg Vorbis encoder component. Descends from <TAuFileOut>. More
       information on the Ogg Vorbis format may be found at
-      http://xiph.org/vorbis/. 
-      
+      http://xiph.org/vorbis/.
+
     Requires:
       - ogg.dll
       - vorbis.dll
@@ -298,22 +297,15 @@ implementation
     FDesiredNominalBitrate := brAutoSelect;
     FDesiredMaximumBitrate := brAutoSelect;
     FMinimumBitrate := brAutoSelect;
-    if not (csDesigning in ComponentState) then
-    begin
-      if not LiboggLoaded then
-      raise EAuException.Create(LiboggPath + ' library could not be loaded.');
-      if not LibvorbisLoaded then
-      raise EAuException.Create(LibvorbisPath + ' library could not be loaded.');
-      if not LibvorbisfileLoaded then
-      raise EAuException.Create(LibvorbisfilePath + ' library could not be loaded.');
-      if not LibvorbisencLoaded then
-      raise EAuException.Create(LibvorbisencPath + ' library could not be loaded.');
-    end;
   end;
 
   destructor TVorbisOut.Destroy;
   begin
     FComments.Free;
+    UnloadOggLib;
+    UnloadCodecLib;
+    UnloadVorbisFileLib;
+    UnloadVorbisEncLib;
     inherited Destroy;
   end;
 
@@ -324,6 +316,18 @@ implementation
 
   procedure TVorbisOut.Prepare;
   begin
+    LoadOggLib;
+    LoadCodecLib;
+    LoadVorbisFileLib;
+    LoadVorbisEncLib;
+    if not LiboggLoaded then
+    raise EAuException.Create(LiboggPath + ' library could not be loaded.');
+    if not LibvorbisLoaded then
+    raise EAuException.Create(LibvorbisPath + ' library could not be loaded.');
+    if not LibvorbisfileLoaded then
+    raise EAuException.Create(LibvorbisfilePath + ' library could not be loaded.');
+    if not LibvorbisencLoaded then
+    raise EAuException.Create(LibvorbisencPath + ' library could not be loaded.');
     if not FStreamAssigned then
     begin
       if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
@@ -445,22 +449,15 @@ implementation
   begin
     inherited Create(AOwner);
     FComments := TVorbisTags.Create;
-    if not (csDesigning in ComponentState) then
-    begin
-      if not LiboggLoaded then
-      raise EAuException.Create(LiboggPath + ' library could not be loaded.');
-      if not LibvorbisLoaded then
-      raise EAuException.Create(LibvorbisPath + ' library could not be loaded.');
-      if not LibvorbisfileLoaded then
-      raise EAuException.Create(LibvorbisfilePath + ' library could not be loaded.');
-      if not LibvorbisencLoaded then
-      raise EAuException.Create(LibvorbisencPath + ' library could not be loaded.');
-    end;
   end;
 
   destructor TVorbisIn.Destroy;
   begin
     FComments.Free;
+    UnloadOggLib;
+    UnloadCodecLib;
+    UnloadVorbisFileLib;
+    UnloadVorbisEncLib;
     inherited Destroy;
   end;
 
@@ -478,6 +475,18 @@ implementation
     try
     if FOpened = 0 then
     begin
+      LoadOggLib;
+      LoadCodecLib;
+      LoadVorbisFileLib;
+      LoadVorbisEncLib;
+      if not LiboggLoaded then
+      raise EAuException.Create(LiboggPath + ' library could not be loaded.');
+      if not LibvorbisLoaded then
+      raise EAuException.Create(LibvorbisPath + ' library could not be loaded.');
+      if not LibvorbisfileLoaded then
+      raise EAuException.Create(LibvorbisfilePath + ' library could not be loaded.');
+      if not LibvorbisencLoaded then
+      raise EAuException.Create(LibvorbisencPath + ' library could not be loaded.');
       FValid := True;
       if not FStreamAssigned then
       try
