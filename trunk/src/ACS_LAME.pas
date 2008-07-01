@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.6
+  This file is a part of New Audio Components package v 1.8
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -11,7 +11,7 @@
 unit ACS_LAME;
 
 (* Title: ACS_LAME
-    Delphi interface for MP3 encoding using lame.dll. *)
+    Delphi interface for MP3 encoding using lame-enc.dll. *)
 
 interface
 
@@ -20,18 +20,7 @@ interface
 uses
   Classes, SysUtils, ACS_Classes, ACS_Types, lame,
 
-  ACS_Tags,
-
-{$IFDEF LINUX}
-  libc;
-{$ENDIF}
-
-{$IFDEF WIN32}
-  Windows;
-{$ENDIF}
-
-const
-  OUT_BUF_SIZE = $4000;
+  ACS_Tags, Windows;
 
 type
 
