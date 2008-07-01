@@ -990,6 +990,7 @@ procedure UnloadWavpackDLL;
 begin
   if WavpackDLL_Loaded then
     FreeLibrary(WavpackDLL_Handle);
+  WavpackDLL_Loaded := False;
 end;
 
 end.
