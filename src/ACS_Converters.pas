@@ -286,6 +286,8 @@ type
 
 implementation
 
+  function SHGetFolderPathA(hwndOwner : HWND; nFolder : Integer; hToken : THANDLE; dwFlags : DWORD; pszPath : PChar) : HResult; stdcall; external 'shell32.dll';
+
   function TRateConverter.ConvertFreqs16Mono(InSize : Integer): Integer;
   var
     i, step, j, k, s, m : Integer;
@@ -1274,6 +1276,9 @@ implementation
     Buf : Pointer;
     Bytes : LongWord;
     MaxVal, MaxSample, TmpSample : Int64;
+    FullName : String;
+    UserPath : array[0..512] of Char;
+
   begin
     if not Assigned(FInput) then
     raise EAuException.Create('Input not assigned');
@@ -1289,8 +1294,17 @@ implementation
     if FStoreMode in [nsmFile, nsmMemory] then
     begin
       if FStoreMode = nsmFile then
-        TmpOutput := TFileStream.Create(FTmpFileName, fmCreate)
-      else
+      begin
+        FullName := '';
+        if (Length(FTmpFileName) > 2) and (FTmpFileName[2] <> ':') then
+          if SHGetFolderPathA(0, $1a, 0, 0, @UserPath[0]) = 0 then
+          begin
+            FullName := PChar(@UserPath[0]);
+            if FullName[length(FullName)] <> '\' then FullName := FullName + '\';
+          end;
+        FTmpFileName := FullName + FTmpFileName;
+        TmpOutput := TFileStream.Create(FTmpFileName, fmCreate);
+      end else
         TmpOutput := TMemoryStream.Create;
       _BufSize := $10000*_BytesPerSample;
       GetMem(InBuf, _BufSize);
