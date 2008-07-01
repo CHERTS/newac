@@ -21,10 +21,6 @@ type
     SaveDialog1: TSaveDialog;
     Button1: TButton;
     ProgressBar1: TProgressBar;
-    TrackBar1: TTrackBar;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
     StatusBar1: TStatusBar;
     ComboBox1: TComboBox;
     Label4: TLabel;
@@ -35,14 +31,10 @@ type
     Edit2: TEdit;
     Edit3: TEdit;
     Label7: TLabel;
-    Label8: TLabel;
-    Edit4: TEdit;
     Label9: TLabel;
     Edit5: TEdit;
     MP3Out1: TMP3Out;
     procedure Button1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure TrackBar1Change(Sender: TObject);
     procedure MP3Out1Done(Sender: TComponent);
     procedure MP3Out1Progress(Sender: TComponent);
     procedure MP3Out1ThreadException(Sender: TComponent;
@@ -69,17 +61,6 @@ begin
     WaveIn1.FileName := OpenDialog1.FileName;
     StatusBar1.Panels.Items[0].Text := 'File to convert: ' + ExtractFileName(WaveIn1.FileName);
   end;
-end;
-
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-  MP3Out1.Delay := 16 - TrackBar1.Position*5;
-//  MP3Out1.SampleRate := sr22khz;
-end;
-
-procedure TForm1.TrackBar1Change(Sender: TObject);
-begin
-  MP3Out1.Delay := 16 - TrackBar1.Position*5;
 end;
 
 procedure TForm1.MP3Out1Done(Sender: TComponent);
@@ -142,8 +123,6 @@ begin
          MP3Out1.Id3v1Tags.Artist := Edit2.Text;
       if Edit3.Text <> '' then
          MP3Out1.Id3v1Tags.Album := Edit3.Text;
-      if Edit4.Text <> '' then
-         MP3Out1.Id3v1Tags.Genre := Edit4.Text;
       if Edit5.Text <> '' then
          MP3Out1.Id3v1Tags.Year := StrToInt(Edit5.Text);
       MP3Out1.FileName := SaveDialog1.FileName;

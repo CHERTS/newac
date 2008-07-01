@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 192
   Top = 109
-  Width = 301
-  Height = 266
+  Width = 287
+  Height = 244
   Caption = 'Wav2MP3 Converter'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,33 +11,11 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  OnCreate = FormCreate
   DesignSize = (
-    293
-    232)
+    279
+    210)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 200
-    Top = 8
-    Width = 56
-    Height = 13
-    Caption = 'CPU Usage'
-  end
-  object Label2: TLabel
-    Left = 192
-    Top = 48
-    Width = 22
-    Height = 13
-    Caption = 'Less'
-  end
-  object Label3: TLabel
-    Left = 240
-    Top = 48
-    Width = 24
-    Height = 13
-    Caption = 'More'
-  end
   object Label4: TLabel
     Left = 8
     Top = 48
@@ -66,16 +44,9 @@ object Form1: TForm1
     Height = 13
     Caption = 'Album'
   end
-  object Label8: TLabel
-    Left = 16
-    Top = 160
-    Width = 29
-    Height = 13
-    Caption = 'Genre'
-  end
   object Label9: TLabel
     Left = 16
-    Top = 184
+    Top = 160
     Width = 22
     Height = 13
     Caption = 'Year'
@@ -92,35 +63,17 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 8
     Top = 72
-    Width = 268
+    Width = 254
     Height = 9
     Anchors = [akLeft, akTop, akRight]
     Min = 0
     Max = 100
     TabOrder = 1
   end
-  object TrackBar1: TTrackBar
-    Left = 192
-    Top = 24
-    Width = 70
-    Height = 20
-    Max = 3
-    Min = 1
-    Orientation = trHorizontal
-    Frequency = 1
-    Position = 3
-    SelEnd = 0
-    SelStart = 0
-    TabOrder = 2
-    ThumbLength = 15
-    TickMarks = tmBottomRight
-    TickStyle = tsAuto
-    OnChange = TrackBar1Change
-  end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 213
-    Width = 293
+    Top = 191
+    Width = 279
     Height = 19
     Panels = <
       item
@@ -136,7 +89,7 @@ object Form1: TForm1
     Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 5
-    TabOrder = 4
+    TabOrder = 3
     Text = '128'
     Items.Strings = (
       '48'
@@ -155,71 +108,68 @@ object Form1: TForm1
     Width = 75
     Height = 25
     Caption = 'Convert...'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = Button2Click
   end
   object Edit1: TEdit
     Left = 56
     Top = 88
-    Width = 217
+    Width = 203
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 6
+    TabOrder = 5
   end
   object Edit2: TEdit
     Left = 56
     Top = 112
-    Width = 217
+    Width = 203
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 7
+    TabOrder = 6
   end
   object Edit3: TEdit
     Left = 56
     Top = 136
-    Width = 217
+    Width = 203
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 8
-  end
-  object Edit4: TEdit
-    Left = 56
-    Top = 160
-    Width = 217
-    Height = 21
-    Anchors = [akLeft, akTop, akRight]
-    TabOrder = 9
+    TabOrder = 7
   end
   object Edit5: TEdit
     Left = 56
-    Top = 184
-    Width = 217
+    Top = 160
+    Width = 203
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 10
+    TabOrder = 8
   end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
     Left = 72
-    Top = 200
+    Top = 176
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wav files|*.wav'
     Left = 8
-    Top = 200
+    Top = 176
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'mp3'
     Left = 40
-    Top = 200
+    Top = 176
   end
   object MP3Out1: TMP3Out
     Input = WaveIn1
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
-    BitRate = mbr128
+    BitRate = mbrAuto
+    CRC = True
+    VBRQuality = mp3ql0
+    EnableVBR = False
+    AverageBitrate = mbrAuto
+    MaximumBitrate = mbrAuto
     Left = 104
-    Top = 200
+    Top = 176
   end
 end
