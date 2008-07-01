@@ -28,6 +28,7 @@ const
   mclNormal = 2000;
   mclHigh = 3000;
   mclExtraHigh = 4000;
+  mclInsane = 8000;
 
   OUT_BUF_SIZE = $10000;
   IN_BUF_SIZE = $2000;
@@ -138,17 +139,13 @@ begin
   inherited Create(AOwner);
   FCompressionLevel := COMPRESSION_LEVEL_NORMAL;
   FMaxAudioBytes := MAX_AUDIO_BYTES_UNKNOWN;
-  if not (csDesigning in ComponentState) then
-  begin
-    if not MACLoaded then
-      raise EAuException.Create(MACPath + ' library could not be loaded.');
-  end;
 end;
 
 destructor TMACOut.Destroy;
 begin
   if Assigned(APECompress) then
     APECompress.Free;
+  UnloadMACDll;
   inherited Destroy;
 end;
 
@@ -156,6 +153,9 @@ procedure TMACOut.Prepare;
 var
   r: Integer;
 begin
+  LoadMACDll;
+  if not MACLoaded then
+     raise EAuException.Create(MACPath + ' library could not be loaded.');
   if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
   FInput.Init;
   EndOfStream := False;
@@ -253,17 +253,13 @@ end;
 constructor TMACIn.Create;
 begin
   inherited Create(AOwner);
-  if not (csDesigning in ComponentState) then
-  begin
-    if not MACLoaded then
-      raise EAuException.Create(MACPath + ' library could not be loaded.');
-  end;
 end;
 
 destructor TMACIn.Destroy;
 begin
   if Assigned(APEDecompress) then
     APEDecompress.Free;
+  UnloadMACDll;
   inherited Destroy;
 end;
 
@@ -271,6 +267,9 @@ procedure TMACIn.OpenFile;
 var
   Tag : ID3_TAG;
 begin
+  LoadMACDll;
+    if not MACLoaded then
+     raise EAuException.Create(MACPath + ' library could not be loaded.');
   OpenCS.Enter;
   try
   FValid := True;
