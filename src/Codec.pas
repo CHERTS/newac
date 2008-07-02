@@ -21,7 +21,7 @@ interface
 
 uses
 
-  ACS_Procs,
+  ACS_Procs, ACS_Classes,
 
   {$IFDEF LINUX}
   Libc,
@@ -355,7 +355,12 @@ var
 
 procedure LoadCodecLib;
 begin
-  if LibvorbisLoaded then Exit;
+  LoadLibCS.Enter;
+  if LibvorbisLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   Libhandle := LoadLibraryEx(LibvorbisPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -389,6 +394,7 @@ begin
     vorbis_synthesis_read := GetProcAddress(Libhandle, 'vorbis_synthesis_read');
     vorbis_packet_blocksize := GetProcAddress(Libhandle, 'vorbis_packet_blocksize');
   end;
+  LoadLibCS.Leave;
 end;
 
 procedure UnloadCodecLib;

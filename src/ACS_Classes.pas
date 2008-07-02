@@ -826,7 +826,7 @@ procedure ReleaseEventHandler;
 
 var
   EventHandler : TEventHandler;
-
+  LoadLibCS : TCriticalSection;
 
 implementation
 
@@ -2172,11 +2172,11 @@ end;
 initialization
 
  RCount := 0;
-
+ LoadLibCS := TCriticalSection.Create;
  //EventHandler := TEventHandler.Create;
 
 finalization
-
+ LoadLibCS.Free;
 //  if EventHandler <> nil then
 //    EventHandler.Free;
 

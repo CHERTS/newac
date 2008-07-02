@@ -6,7 +6,7 @@ unit WavPackDLL;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, ACS_Classes;
 
 const
   WavpackDLL_Name = 'WavpackDLL.dll';
@@ -914,7 +914,12 @@ end;
 
 procedure LoadWavpackDLL;
 begin
-  if WavpackDLL_Loaded then Exit;
+  LoadLibCS.Enter;
+  if WavpackDLL_Loaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   WavpackDLL_Handle := LoadLibrary(WavpackDLL_Name);
   WavpackDLL_Loaded := (WavpackDLL_Handle <> 0);
   if WavpackDLL_Loaded then begin
@@ -984,6 +989,7 @@ begin
     stream_reader.can_seek       := @stream_can_seek;
     stream_reader.write_bytes    := @stream_write_bytes;
   end;
+  LoadLibCS.Leave;
 end;
 
 procedure UnloadWavpackDLL;

@@ -596,7 +596,7 @@ type
   destructor TFLACOut.Destroy;
   begin
     FTags.Free;
-    UnloadFLACLib;
+//    UnloadFLACLib;
     inherited Destroy;
   end;
 
@@ -750,7 +750,7 @@ type
   begin
     CloseFile;
     FComments.Free;
-    UnloadFLACLib;
+//    UnloadFLACLib;
     inherited Destroy;
   end;
 

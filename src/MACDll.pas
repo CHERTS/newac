@@ -13,7 +13,7 @@ unit MACDll;
 
 interface
 
-uses Classes, SysUtils, Windows, MMSystem;
+uses Classes, SysUtils, Windows, MMSystem, ACS_Classes;
 
 const
    MACPath = 'MACDll.dll';
@@ -1139,7 +1139,12 @@ var
 
 procedure LoadMACDll;
 begin
-  if MACLoaded then Exit;
+  LoadLibCS.Enter;
+  if MACLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   Libhandle := LoadLibraryEx(MACPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -1172,6 +1177,7 @@ begin
     c_APEDecompress_GetInfo := GetProcAddress(Libhandle, 'c_APEDecompress_GetInfo');
     c_APEDecompress_Seek := GetProcAddress(Libhandle, 'c_APEDecompress_Seek');
   end;
+  LoadLibCS.Leave;  
 end;
 
 procedure UnloadMACDll;

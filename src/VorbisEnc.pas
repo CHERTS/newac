@@ -21,7 +21,7 @@ interface
 
 uses
 
-  ACS_Procs,
+  ACS_Procs, ACS_Classes,
 
   {$IFDEF LINUX}
   Libc,
@@ -119,7 +119,12 @@ var
 
 procedure LoadVorbisEncLib;
 begin
-  if LibvorbisencLoaded then Exit;
+  LoadLibCS.Enter;
+  if LibvorbisencLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   Libhandle := LoadLibraryEx(LibvorbisencPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -131,6 +136,7 @@ begin
     vorbis_encode_setup_init := GetProcAddress(Libhandle, 'vorbis_encode_setup_init');
     vorbis_encode_ctl := GetProcAddress(Libhandle, 'vorbis_encode_ctl');
   end;
+  LoadLibCS.Leave;
 end;
 
 procedure UnloadVorbisEncLib;

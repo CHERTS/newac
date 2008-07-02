@@ -21,7 +21,7 @@ interface
 
 uses
 
-  ACS_Procs,
+  ACS_Procs, ACS_Classes,
 
   {$IFDEF LINUX}
   Libc,
@@ -279,7 +279,12 @@ var
 
 procedure LoadVorbisFileLib;
 begin
-  if LibvorbisfileLoaded then Exit;
+  LoadLibCS.Enter;
+  if LibvorbisfileLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   Libhandle := LoadLibraryEx(LibvorbisfilePath, 0, 0);
 
   if Libhandle <> 0 then
@@ -310,6 +315,7 @@ begin
     ov_read_float := GetProcAddress(Libhandle, 'ov_read_float');
     ov_read := GetProcAddress(Libhandle, 'ov_read');
   end;
+  LoadLibCS.Leave;
 end;
 
 

@@ -302,10 +302,10 @@ implementation
   destructor TVorbisOut.Destroy;
   begin
     FComments.Free;
-    UnloadOggLib;
-    UnloadCodecLib;
-    UnloadVorbisFileLib;
-    UnloadVorbisEncLib;
+//    UnloadOggLib;
+//  UnloadCodecLib;
+//    UnloadVorbisFileLib;
+//    UnloadVorbisEncLib;
     inherited Destroy;
   end;
 
@@ -454,10 +454,10 @@ implementation
   destructor TVorbisIn.Destroy;
   begin
     FComments.Free;
-    UnloadOggLib;
-    UnloadCodecLib;
-    UnloadVorbisFileLib;
-    UnloadVorbisEncLib;
+//    UnloadOggLib;
+//    UnloadCodecLib;
+//    UnloadVorbisFileLib;
+ //   UnloadVorbisEncLib;
     inherited Destroy;
   end;
 
