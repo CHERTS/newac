@@ -198,7 +198,7 @@ end;
 
 destructor TWVIn.Destroy;
 begin
-  UnloadWavpackDLL;
+//  UnloadWavpackDLL;
   inherited;
 end;  
 
@@ -494,7 +494,7 @@ end;
 
 destructor TWVOut.Destroy;
 begin
-  UnloadWavpackDLL;
+//  UnloadWavpackDLL;
   inherited;
 end;
 

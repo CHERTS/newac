@@ -5,7 +5,7 @@ unit TTALib;
 interface
 
 uses
-  Windows, SysUtils;
+  Windows, SysUtils, ACS_Classes;
 
 const
   TTALib_Name = 'TTALib.dll';
@@ -218,6 +218,9 @@ type
   end;
 
 function GetErrorString(Error: TTTAError): String;
+
+procedure LoadTTALib;
+procedure UnloadTTALib;
 
 implementation
 
@@ -1018,7 +1021,14 @@ begin
   end;
 end;
 
-initialization begin
+procedure LoadTTALib;
+begin
+  LoadLibCS.Enter;
+  if TTALib_Loaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   TTALib_Handle := LoadLibrary(TTALib_name);
   TTALib_Loaded := (TTALib_Handle <> 0);
   if TTALib_Loaded then begin
@@ -1158,11 +1168,14 @@ initialization begin
       {MAKEINTRESOURCE(31)}
       '?TTATest@TTALib@@YA?AW4TTAError@1@PBDP6A_NABUTTAStat@1@PAX@Z2@Z');
   end;
+  LoadLibCS.Leave;
 end;
 
-finalization begin
+procedure UnloadTTALib;
+begin
   if TTALib_Handle <> 0 then
     FreeLibrary(TTALib_Handle);
+  TTALib_Loaded := False;
 end;
 
 end.

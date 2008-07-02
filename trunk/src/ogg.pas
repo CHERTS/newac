@@ -12,8 +12,8 @@ unit ogg;
 
 (* Unit: ogg.pas
     Delphi/Kylix headers for OggVorbis software codec. Translated from ogg.h
-    and os_types.h headers by Andrei Borovsky (acs@compiler4.net). 
-    
+    and os_types.h headers by Andrei Borovsky.
+
     The original C/C++ headers and libraries (C) COPYRIGHT 1994-2001 by the
     XIPHOPHORUS Company http://www.xiph.org. *)
 
@@ -23,7 +23,7 @@ interface
 
 uses
 
- ACS_Procs,
+ ACS_Procs, ACS_Classes,
 
 {$IFDEF LINUX}
   Libc;
@@ -383,9 +383,14 @@ var
 
 procedure LoadOggLib;
 begin
-  if LiboggLoaded then Exit;
-  Libhandle := LoadLibraryEx(LiboggPath, 0, 0);
+  LoadLibCS.Enter;
+  if LiboggLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
 
+  Libhandle := LoadLibraryEx(LiboggPath, 0, 0);
   if Libhandle <> 0 then
   begin
     LiboggLoaded := True;
@@ -435,6 +440,7 @@ begin
     ogg_stream_packetout := GetProcAddress(Libhandle, 'ogg_stream_packetout');
     ogg_stream_packetpeek := GetProcAddress(Libhandle, 'ogg_stream_packetpeek');
   end;
+  LoadLibCS.Leave;
 end;
 
 

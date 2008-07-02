@@ -145,7 +145,7 @@ destructor TMACOut.Destroy;
 begin
   if Assigned(APECompress) then
     APECompress.Free;
-  UnloadMACDll;
+//  UnloadMACDll;
   inherited Destroy;
 end;
 
@@ -259,7 +259,7 @@ destructor TMACIn.Destroy;
 begin
   if Assigned(APEDecompress) then
     APEDecompress.Free;
-  UnloadMACDll;
+//  UnloadMACDll;
   inherited Destroy;
 end;
 

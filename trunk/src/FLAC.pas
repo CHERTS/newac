@@ -15,7 +15,7 @@ interface
 
 uses
   {$IFDEF WIN32}
-   Windows;
+   Windows, ACS_Classes;
   {$ENDIF}
 
   {$IFDEF LINUX}
@@ -3228,7 +3228,12 @@ var
 
 procedure LoadFLACLib;
 begin
-  if LibFLACLoaded then Exit;
+  LoadLibCS.Enter;
+  if LibFLACLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   Libhandle := LoadLibraryEx(LibFLACPath, 0, 0);
   if Libhandle <> 0 then
   begin
@@ -3326,6 +3331,7 @@ begin
     FLAC__metadata_simple_iterator_insert_block_after := GetProcAddress(Libhandle, 'FLAC__metadata_simple_iterator_insert_block_after');
     FLAC__metadata_simple_iterator_insert_block_after := GetProcAddress(Libhandle, 'FLAC__metadata_simple_iterator_insert_block_after');
   end;
+  LoadLibCS.Leave;
 end;
 
 procedure UnloadFLACLib;

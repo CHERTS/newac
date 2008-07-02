@@ -146,10 +146,6 @@ end;
 constructor TTTAIn.Create(AOwner: TComponent);
 begin
   inherited;
-
-  if not (csDesigning in ComponentState) and not TTALib_Loaded then
-    raise EAuException.Create(TTALib_Name + ' library could not be loaded.');
-
   FSeekable := True;
 end;
 
@@ -218,6 +214,9 @@ var
   h_mapping: THandle;
   p_mapping: Pointer;
 begin
+  LoadTTALib;
+  if not TTALib_Loaded then
+    raise EAuException.Create(TTALib_Name + ' library could not be loaded.');
   OpenCS.Enter();
   try
     if FOpened = 0 then begin
@@ -424,9 +423,6 @@ end;
 constructor TTTAOut.Create(AOwner: TComponent);
 begin
   inherited;
-
-  if not (csDesigning in ComponentState) and not TTALib_Loaded then
-    raise EAuException.Create(TTALib_Name + ' library could not be loaded.');
 end;
 
 procedure TTTAOut.Prepare;
@@ -442,6 +438,9 @@ var
   file_name: WideString;
   frame_size: Integer;
 begin
+  LoadTTALib;
+  if not TTALib_Loaded then
+    raise EAuException.Create(TTALib_Name + ' library could not be loaded.');
   if FStreamAssigned then
     file_name := CreateTempFileName('tta')
   else
