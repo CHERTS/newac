@@ -18,7 +18,7 @@ type
 
   BOOL = LongBool;
 
-  BE_CONFIG = record
+  BE_CONFIG = packed record
       dwConfig : LongWord;       // 0
       case Integer of
        0: (dwSampleRate : LongWord;		// 48000, 44100 and 32000 allowed

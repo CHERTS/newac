@@ -90,7 +90,7 @@ type
 
     (* Proeprty: VBRQuality
     Use this property to set the VBR quality in VBR mode.
-    It is preferable to set VBR quality instead of setting minimum/average/maximum birates directly. *)
+    It is preferable to set VBR quality instead of setting average birate directly. *)
     property VBRQuality : TMP3Quality read FVBRQuality write FVBRQuality;
     (* Proeprty: EnableVBR
     Use this property to switch between the VBR and CBR modes. *)
@@ -101,9 +101,7 @@ type
     When encoding in CBR mode make sure this property is set to mbrAuto. *)
     property AverageBitrate : TMP3BitRate read FAverageBitrate write FAverageBitrate;
     (* Proeprty: MaximumBitrate
-    Use this property to set the maximum bitrate in VBR mode.
-    This property has no effect if AverageBitrate is set to mbrAuto.
-    When encoding in CBR mode make sure this property is set to mbrAuto. *)
+    Use this property to set the maximum bitrate in VBR mode. *)
     property MaximumBitrate : TMP3BitRate read FMaximumBitrate write FMaximumBitrate;
 
   end;
@@ -193,6 +191,11 @@ type
     Config.nVBRQuality := ql;
     Config.dwMaxBitrate := mbr;
     Config.dwVbrAbr_bps := abr;
+    if abr <> 0 then
+      Config.nVbrMethod := 4
+    else
+      Config.nVbrMethod := 2;
+    Config.bWriteVBRHeader := FEnableVBR;
 
     res := beInitStream(@Config, Samples, mp3buf_size, _Stream);
 
