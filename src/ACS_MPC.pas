@@ -146,10 +146,6 @@ const
 constructor TMPCIn.Create(AOwner: TComponent);
 begin
   inherited;
-
-  if not (csDesigning in ComponentState) and not libMPDec_Loaded then
-    raise EAuException.Create(libMPDec_Name + ' library could not be loaded.');
-
   SetBPS(DefaultMPCBitsPerSample);
 end;
 
@@ -172,6 +168,9 @@ end;
 
 procedure TMPCIn.OpenFile;
 begin
+  LoadLibMPDec;
+  if not libMPDec_Loaded then
+    raise EAuException.Create(libMPDec_Name + ' library could not be loaded.');
   OpenCS.Enter();
   try
     if FOpened = 0 then begin

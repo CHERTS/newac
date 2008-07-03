@@ -13,7 +13,7 @@ unit libmpdec;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, ACS_Classes;
 
 const
   libMPDec_Name = 'libmpdec.dll';
@@ -222,6 +222,9 @@ type
 
     property NumSamples: Int64 read GetNumSamples;
   end;
+
+procedure LoadLibMPDec;
+procedure UnloadLibMPDec;
 
 implementation
 
@@ -502,7 +505,14 @@ end;
 var
   libMPDec_Handle: HMODULE = 0;
 
-initialization begin
+procedure LoadLibMPDec;
+begin
+  LoadLibCS.Enter;
+  if libMPDec_Loaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
   libMPDec_Handle := LoadLibrary(libMPDec_Name);
   libMPDec_Loaded := (libMPDec_Handle <> 0);
   if libMPDec_Loaded then begin
@@ -521,9 +531,11 @@ initialization begin
     mpc_decoder_seek_sample := GetProcAddress(libMPDec_Handle, mpc_decoder_seek_sample_name);
     mpc_decoder_seek_seconds := GetProcAddress(libMPDec_Handle, mpc_decoder_seek_seconds_name);
   end;
+  LoadLibCS.Leave;
 end;
 
-finalization begin
+procedure UnloadLibMPDec;
+begin
   if libMPDec_Loaded then
     FreeLibrary(libMPDec_Handle);
 end;
