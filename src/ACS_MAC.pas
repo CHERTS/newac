@@ -175,7 +175,7 @@ begin
     FMaxAudioBytes,
     FCompressionLevel,
     nil,
-    CREATE_WAV_HEADER_ON_DECOMPRESSION);
+    0);
 
   CanOutput := (r = 0);
 
