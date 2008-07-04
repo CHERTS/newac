@@ -28,7 +28,7 @@ const
   mclNormal = 2000;
   mclHigh = 3000;
   mclExtraHigh = 4000;
-  mclInsane = 8000;
+  mclInsane = 5000;
 
   OUT_BUF_SIZE = $10000;
   IN_BUF_SIZE = $2000;
