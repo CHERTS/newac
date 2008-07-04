@@ -1311,7 +1311,7 @@ constructor TAuOutput.Create;
 //      Result := False;
     end else
     begin
-      if not FStreamAssigned then FStream := nil;
+//      if (not FStreamAssigned) then FStream := nil;
       try
         OpenFile; // Open the file if it is not already opened
       except

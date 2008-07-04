@@ -93,11 +93,6 @@ implementation
   constructor TResampler.Create;
   begin
     inherited Create(AOwner);
-    if not (csDesigning in ComponentState) then
-    begin
-      if not LibsamplerateLoaded then
-        raise EAuException.Create(LibsampleratePath + ' library could not be loaded.');
-    end;
   end;
 
   destructor TResampler.Destroy;
@@ -125,6 +120,9 @@ implementation
   var
     Quality, error : Integer;
   begin
+    LoadLibsamplerate;
+    if not LibsamplerateLoaded then
+      raise EAuException.Create(LibsampleratePath + ' library could not be loaded.');
     if Busy then
       raise EAuException.Create('The component is busy.');
     EndOfInput := False;

@@ -17,7 +17,7 @@ Castro Lopo (erikd@mega-nerd.com). *)
 interface
 
 uses
-  Windows;
+  Windows, ACS_Classes;
 
 const
 
@@ -203,13 +203,21 @@ var
   src_short_to_float_array : src_short_to_float_array_t;
   src_float_to_short_array : src_float_to_short_array_t;
 
+procedure LoadLibsamplerate;
 
 implementation
 
 var
   Libhandle : HMODULE;
 
-initialization
+procedure LoadLibsamplerate;
+begin
+  LoadLibCS.Enter;
+  if LibsamplerateLoaded then
+  begin
+    LoadLibCS.Leave;
+    Exit;
+  end;
 
   Libhandle := LoadLibraryEx(LibsampleratePath, 0, 0);
   if Libhandle <> 0 then
@@ -232,10 +240,14 @@ initialization
     src_short_to_float_array := GetProcAddress(Libhandle, 'src_short_to_float_array');
     src_float_to_short_array := GetProcAddress(Libhandle, 'src_float_to_short_array');
   end;
+  LoadLibCS.Leave;
+end;
 
-finalization
-
+procedure UnloadLibsamplerate;
+begin
   if Libhandle <> 0 then FreeLibrary(Libhandle);
+  LibsamplerateLoaded := False;
+end;
 
 
 end.
