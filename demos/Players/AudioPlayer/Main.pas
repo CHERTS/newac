@@ -150,7 +150,11 @@ begin
     Exit;
   end;
   FI.FileName := FileName;
-  if not FI.Valid then Exit;
+  if not FI.Valid then
+  begin
+    StatusBar1.Panels[0].Text := 'Cannot play file. Either the file is corrupt or the decoder library not found.';
+    Exit;
+  end;
   StatusBar1.Panels[0].Text := 'Playing: ' + ExtractFileName(FileName);
   FI.Loop := CheckBox1.Checked;
   DXAudioOut1.Input := FI;
