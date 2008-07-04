@@ -66,21 +66,21 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
-    (* Proeprty: BitRate
+    (* Property: BitRate
     In CBR mode sets the output file's bitrate, in VBR mode sets the output file's minimum bitrate. *)
     property BitRate : TMP3BitRate read FBitRate write FBitRate stored True;
 
-     (* Proeprty: Id3v1Tags
+     (* Property: Id3v1Tags
     Sets Id3V1 tags. *)
     property Id3v1Tags;
 
-    (* Proeprty: Mode
+    (* Property: Mode
     Sets the Mono/Stereo encoding options for the output file.
     if the input data is mono, don't set this property to mmSTEREO. *)
     property Mode : TMP3Mode read FMode write FMode default mmSTEREO;
 
     //Extras
-    (* Proeprty: CRC
+    (* Property: CRC
     Use this property to enable/disable CRC-checksum in the output bitstream. *)
     property CRC	          : BOOL read FCRC write FCRC default false;
     property Copyright	    : BOOL read FCopyright write FCopyright default false;
@@ -88,19 +88,19 @@ type
 
     //VBR encoding
 
-    (* Proeprty: VBRQuality
+    (* Property: VBRQuality
     Use this property to set the VBR quality in VBR mode.
     It is preferable to set VBR quality instead of setting average birate directly. *)
     property VBRQuality : TMP3Quality read FVBRQuality write FVBRQuality;
-    (* Proeprty: EnableVBR
+    (* Property: EnableVBR
     Use this property to switch between the VBR and CBR modes. *)
     property EnableVBR : BOOL read FEnableVBR write FEnableVBR;
-    (* Proeprty: AverageBitrate
+    (* Property: AverageBitrate
     Use this property to set the average bitrate in VBR mode.
     By default AverageBitrate is set to mbrAuto which tells the component to use VBRQuality instead (the preferable way).
     When encoding in CBR mode make sure this property is set to mbrAuto. *)
     property AverageBitrate : TMP3BitRate read FAverageBitrate write FAverageBitrate;
-    (* Proeprty: MaximumBitrate
+    (* Property: MaximumBitrate
     Use this property to set the maximum bitrate in VBR mode. *)
     property MaximumBitrate : TMP3BitRate read FMaximumBitrate write FMaximumBitrate;
 
