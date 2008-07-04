@@ -557,7 +557,8 @@ type
       practice to check this property before performing other operations on
       audio stream. Note however that True returned by Valid doesn't guarantee
       the file is fully playable. It indicates only that the file could be
-      opened successfully and the file headers were correct. *)
+      opened successfully and the file headers were correct.
+      This property also returns False if the decoder library required to play the file cannot be loaded. *)
     property Valid : Boolean read GetValid;
     (* Property: WideFileName
         Allows you to handle file names in Unicode. Setting its value
