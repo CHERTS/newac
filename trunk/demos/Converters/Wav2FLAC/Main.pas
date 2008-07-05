@@ -43,10 +43,9 @@ type
     procedure Button1Click(Sender: TObject);
     procedure FLACOut1Progress(Sender: TComponent);
     procedure FLACOut1Done(Sender: TComponent);
-    procedure FLACOut1ThreadException(Sender: TComponent;
-      const Msg: String);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
+    procedure FLACOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -95,13 +94,8 @@ end;
 procedure TForm1.FLACOut1Done(Sender: TComponent);
 begin
   Button1.Enabled := True;
-  StatusBar1.Panels[0].Text := 'Success';
-end;
-
-procedure TForm1.FLACOut1ThreadException(Sender: TComponent;
-  const Msg: String);
-begin
-  StatusBar1.Panels[0].Text := Msg;
+  if FLACOut1.ExceptionMessage = '' then
+    StatusBar1.Panels[0].Text := 'Success';
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -116,6 +110,11 @@ begin
     WaveIn1.FileName := OpenDialog1.FileName;
     StatusBar1.Panels[0].Text := ExtractFileName(WaveIn1.FileName);
   end;
+end;
+
+procedure TForm1.FLACOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := FLACOut1.ExceptionMessage;
 end;
 
 end.
