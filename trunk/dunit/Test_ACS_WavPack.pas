@@ -9,7 +9,7 @@
   TWVIn and TWVOut components are written by Sergei Borisov, <jr_ross@mail.ru>
 *)
 
-(* $Id: Test_ACS_WavPack.pas 889 2008-06-22 20:01:48Z bob $ *)
+(* $Id:$ *)
 
 (* Title: ACS_WavPack TestCases
     This unit contains TestCases for <ACS_WavPack>. More information about DUnit
