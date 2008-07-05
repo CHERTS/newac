@@ -352,7 +352,7 @@ type
        component from the event handler. *)
     property OnProgress : TOutputProgressEvent read FOnProgress write FOnProgress;
     (* Property: OnThreadException
-       This event is raised if an exception has occurred.*)
+       This event is raised if an exception has occurred. Exception string is stored in <ExceptionMessage>. *) 
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
   end;
 
