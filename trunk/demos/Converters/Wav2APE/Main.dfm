@@ -135,8 +135,8 @@ object Form1: TForm1
     Top = 40
     Width = 81
     Height = 22
-    Increment = 500
-    MaxValue = 10000
+    Increment = 1000
+    MaxValue = 5000
     MinValue = 1000
     TabOrder = 4
     Value = 2000
