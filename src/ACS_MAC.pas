@@ -64,7 +64,7 @@ type
     property APEv2Tags;
     (* Property: CompressionLevel
        Use this property to set the compression level for the APE file being created.
-       The pssible values are 1000 (fastest time, lowest compression rate), 2000 (the default), 3000, 4000 (slowest comression time, maximum compression rate). *)
+       The pssible values are 1000 (fastest time, lowest compression rate), 2000 (the default), 3000, 4000 (slow comression performance very high compression rate), 5000 (very slow performance, maximum compression). *)
     property CompressionLevel: LongInt read FCompressionLevel write SetCompressionLevel stored True;
     (* Property: MaxAudioBytes
        Use this property to set the absolute maximum audio bytes that will be encoded.
@@ -449,12 +449,13 @@ end;
 procedure TMACOut.SetCompressionLevel(Value: Integer);
 begin
   case Value of
-    COMPRESSION_LEVEL_FAST,
-      COMPRESSION_LEVEL_NORMAL,
-      COMPRESSION_LEVEL_HIGH,
-      COMPRESSION_LEVEL_EXTRA_HIGH: FCompressionLevel := Value;
+    mclFast,
+    mclNormal,
+    mclHigh,
+    mclExtraHigh,
+    mclInsane : FCompressionLevel := Value;
   else
-    FCompressionLevel := COMPRESSION_LEVEL_NORMAL;
+    FCompressionLevel := mclNormal;
   end;
 end;
 
