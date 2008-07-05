@@ -1003,15 +1003,25 @@ end;
   end;
 
   procedure TAuInput.Init;
+  var
+    eflag : Boolean;
+    Msg : String;
   begin
+    eflag := False;
     DataCS.Enter;
     try
       _EndOfStream := False;
       InitInternal;
     except
-      _EndOfStream := True;
+      on E : Exception do
+      begin
+        _EndOfStream := True;
+        eflag := True;
+        Msg := E.Message;
+      end;
     end;
     DataCS.Leave;
+    if eflag then raise EAuException.Create(Msg);
   end;
 
   procedure TAuInput.Flush;
