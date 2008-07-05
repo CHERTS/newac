@@ -79,7 +79,6 @@ Group: Main Units  {
    File: AudioPass  (src\AudioPass.pas)
    File: AuSampleRate  (src\AuSampleRate.pas)
    File: NewAC_AVI  (src\NewAC_AVI.pas)
-   File: lame.pas  (src\lame.pas)
    File: libsamplerate.pas  (src\libsamplerate.pas)
    File: MACDll.pas  (src\MACDll.pas)
    File: ogg.pas  (src\ogg.pas)
@@ -116,6 +115,15 @@ Group: Tutorials  {
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
    File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
+
+Group: DUnit  {
+
+   File: ACS_FLAC TestCases  (dunit\Test_ACS_FLAC.pas)
+   File: ACS_MAC TestCases  (dunit\Test_ACS_MAC.pas)
+   File: ACS_WavPack TestCases  (dunit\Test_ACS_WavPack.pas)
+   File: uTestBase  (dunit\uTestBase.pas)
+   File: uUtility  (dunit\uUtility.pas)
+   }  # Group: DUnit
 
 Group: Index  {
 
