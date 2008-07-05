@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2008/06/10 19:06:43.000.dproj,d:\projects\newac_test\NewAC Test.dproj=D:\projects\newac_test\newac_test.dproj</Transaction>
+    <Transaction>2008/06/21 22:40:45.381.pas,D:\projects\newac_test\Unit1.pas=D:\projects\newac_test\uTestBase.pas</Transaction>
+    <Transaction>2008/06/22 16:17:03.640.pas,D:\projects\newac\dunit\Unit1.pas=D:\projects\newac\dunit\Test_ACS_MAC.pas</Transaction>
+  </Transactions>
+</BorlandProject>
