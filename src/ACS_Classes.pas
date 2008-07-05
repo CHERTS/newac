@@ -1064,12 +1064,12 @@ end;
     Res : Boolean;
   begin
     ParentComponent := TAuOutput(Parent);
+    Stop := False;
     while not Terminated do
     begin
       try
         ParentComponent.Busy := True;
         ParentComponent.Prepare;
-        Stop := False;
         Res := True;
         ParentComponent.CanOutput := True;
         SetPause := False;
@@ -1105,15 +1105,20 @@ end;
           (Parent as TAuOutput).FExceptionMessage := E.Message;
           if Assigned((Parent as TAuOutput).FOnThreadException) then
              EventHandler.PostGenericEvent(Parent, (Parent as TAuOutput).FOnThreadException);
+          Stop := True;
         end;
       end;
       Stop := False;
-      ParentComponent.WhenDone;
+      try
+        ParentComponent.WhenDone;
+      except
+        ParentComponent.Busy := False;
+      end;
       if DoNotify then
          RaiseDoneEvent;
        Stopped := True;
        if not Terminated then Self.Suspend;
-    end;
+    end; //  while not Terminated do
   end;
 
 procedure TAuOutput.BlockingRun;
