@@ -47,13 +47,12 @@ type
     SpinEdit3: TSpinEdit;
     Edit1: TEdit;
     ComboBox1: TComboBox;
-    Label17: TLabel;
     Resampler1: TResampler;
     Button4: TButton;
     ProgressBar1: TProgressBar;
     WaveOut1: TWaveOut;
     AudioConverter1: TAudioConverter;
-    WMAOut1: TWMAOut;
+    StatusBar1: TStatusBar;
     procedure Button3Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
     procedure Button1Click(Sender: TObject);
@@ -61,6 +60,7 @@ type
     procedure WaveOut1Progress(Sender: TComponent);
     procedure Button4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure WaveOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
     Output : TAuFileOut;
@@ -100,7 +100,7 @@ begin
       1 : WaveOut1.WavType := wtDVIADPCM;
     end;
     Button3.Enabled := False;
-    Label17.Caption := 'Converting...';
+    StatusBar1.Panels[0].Text := 'Converting...';
     Output.Run;
   end;
 end;
@@ -110,9 +110,7 @@ begin
   Button3.Enabled := True;
 //  ProgressBar1.Position := 0;
   if WaveOut1.ExceptionMessage = '' then
-    Label17.Caption := 'Success!'
-  else
-    Label17.Caption := WaveOut1.ExceptionMessage;
+    StatusBar1.Panels[0].Text := 'Success!';
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -143,9 +141,9 @@ begin
   if SaveDialog1.Execute then
   begin
     if ExtractFileExt(SaveDialog1.FileName) = '.wav' then
-      Output := WaveOut1 as TAuFileOut
-    else
-      Output := WMAOut1 as TAuFileOut;
+      Output := WaveOut1 as TAuFileOut;
+//    else
+//      Output := WMAOut1 as TAuFileOut;
     Output.FileName := SaveDialog1.FileName;
     Label10.Caption := ExtractFileName(Output.FileName);
   end;
@@ -164,6 +162,11 @@ end;
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   WaveOut1.Stop(False);
+end;
+
+procedure TForm1.WaveOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := WaveOut1.ExceptionMessage;
 end;
 
 end.
