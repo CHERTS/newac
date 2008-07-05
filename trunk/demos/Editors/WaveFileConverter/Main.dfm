@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 210
   Top = 206
   Width = 483
-  Height = 313
+  Height = 329
   Caption = 'Wave File Converter'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,14 +12,11 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
+  DesignSize = (
+    475
+    295)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label17: TLabel
-    Left = 195
-    Top = 224
-    Width = 3
-    Height = 13
-  end
   object GroupBox1: TGroupBox
     Left = 7
     Top = 48
@@ -176,7 +173,7 @@ object Form1: TForm1
     object SpinEdit1: TSpinEdit
       Left = 90
       Top = 42
-      Width = 29
+      Width = 39
       Height = 22
       MaxValue = 2
       MinValue = 1
@@ -228,14 +225,25 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 262
+    Top = 264
     Width = 475
-    Height = 17
-    Align = alBottom
+    Height = 7
+    Anchors = [akLeft, akTop, akRight]
     Min = 0
     Max = 100
     Step = 1
     TabOrder = 6
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 276
+    Width = 475
+    Height = 19
+    Panels = <
+      item
+        Width = 50
+      end>
+    SimplePanel = False
   end
   object WaveIn1: TWaveIn
     Loop = False
@@ -269,8 +277,10 @@ object Form1: TForm1
     Input = AudioConverter1
     OnDone = WaveOut1Done
     OnProgress = WaveOut1Progress
+    OnThreadException = WaveOut1ThreadException
     WavType = wtPCM
     BlockSize = 512
+    CreateNonMsHeaders = False
     FileMode = foRewrite
     Left = 384
     Top = 224
@@ -281,17 +291,6 @@ object Form1: TForm1
     OutBitsPerSample = 0
     OutChannels = 0
     Left = 352
-    Top = 224
-  end
-  object WMAOut1: TWMAOut
-    Input = AudioConverter1
-    OnDone = WaveOut1Done
-    OnProgress = WaveOut1Progress
-    DesiredBitrate = 0
-    Lossless = False
-    VBR = False
-    VBRQuality = 0
-    Left = 416
     Top = 224
   end
 end
