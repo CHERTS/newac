@@ -164,8 +164,8 @@ object Form1: TForm1
     TabOrder = 11
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 232
   end
@@ -183,6 +183,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = VorbisOut1Done
     OnProgress = VorbisOut1Progress
+    OnThreadException = VorbisOut1ThreadException
     Compression = 0.400000005960464
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
