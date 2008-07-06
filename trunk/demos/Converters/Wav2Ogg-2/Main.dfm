@@ -105,6 +105,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = VorbisOut1Done
     OnProgress = VorbisOut1Progress
+    OnThreadException = VorbisOut1ThreadException
     Compression = 0.200000002980232
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
