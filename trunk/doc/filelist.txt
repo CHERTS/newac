@@ -28,6 +28,11 @@ html\files\doc\txt\introduction-txt.html
 html\files\doc\txt\license-txt.html
 html\files\doc\txt\newac-txt.html
 html\files\doc\txt\tips_and_tricks-txt.html
+html\files\dunit\Test_ACS_FLAC-pas.html
+html\files\dunit\Test_ACS_MAC-pas.html
+html\files\dunit\Test_ACS_WavPack-pas.html
+html\files\dunit\uTestBase-pas.html
+html\files\dunit\uUtility-pas.html
 html\files\src\ACS_AudioMix-pas.html
 html\files\src\ACS_CDROM-pas.html
 html\files\src\ACS_Classes-pas.html
@@ -84,6 +89,7 @@ html\index\General3.html
 html\index\General4.html
 html\index\General5.html
 html\index\General6.html
+html\index\General7.html
 html\index\Properties.html
 html\index\Properties2.html
 html\index\Properties3.html
@@ -94,6 +100,7 @@ html\javascript\searchdata.js
 html\search\ClassesA.html
 html\search\ClassesC.html
 html\search\ClassesD.html
+html\search\ClassesE.html
 html\search\ClassesF.html
 html\search\ClassesI.html
 html\search\ClassesM.html
@@ -116,6 +123,7 @@ html\search\FilesM.html
 html\search\FilesO.html
 html\search\FilesV.html
 html\search\FilesW.html
+html\search\FunctionsB.html
 html\search\FunctionsC.html
 html\search\FunctionsD.html
 html\search\FunctionsE.html
@@ -127,6 +135,7 @@ html\search\FunctionsO.html
 html\search\FunctionsP.html
 html\search\FunctionsR.html
 html\search\FunctionsS.html
+html\search\FunctionsT.html
 html\search\GeneralA.html
 html\search\GeneralB.html
 html\search\GeneralC.html
