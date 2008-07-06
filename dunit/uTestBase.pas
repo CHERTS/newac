@@ -132,7 +132,7 @@ begin
   aufOutput := Sender as TAuFileOut;
   aufInput := aufOutput.Input as TAuFileIn;
   sReference := ExtractFilePath(aufInput.FileName) + ExtractFileName(aufOutput.FileName);
-  Check(FilesAreIdentical(sReference, FOutput), 'File Mismatch: ' + sReference);
+  Check(FilesAreIdentical(sReference, FOutput), 'File Mismatch: ' + aufInput.FileName + ' - ' + sReference);
 end;
 
 procedure TTestFileCode.SetUp;
