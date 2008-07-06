@@ -41,11 +41,10 @@ type
     procedure BitBtn2Click(Sender: TObject);
     procedure BitBtn3Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure AudioOut1ThreadException(Sender: TComponent;
-      const Msg: String);
     procedure ForwardButtonClick(Sender: TObject);
     procedure BackwardButtonClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
+    procedure DXAudioOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
     FS : TFileStream;
@@ -114,12 +113,6 @@ begin
   DXAudioOut1.Stop(False);
 end;
 
-procedure TForm1.AudioOut1ThreadException(Sender: TComponent;
-  const Msg: String);
-begin
-  StatusBar1.Panels[0].Text := Msg;
-end;
-
 procedure TForm1.ForwardButtonClick(Sender: TObject);
 begin
   MACIn1.Jump(10);
@@ -133,6 +126,11 @@ end;
 procedure TForm1.CheckBox1Click(Sender: TObject);
 begin
   MACIn1.Loop := CheckBox1.Checked;
+end;
+
+procedure TForm1.DXAudioOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := DXAudioOut1.ExceptionMessage;
 end;
 
 end.

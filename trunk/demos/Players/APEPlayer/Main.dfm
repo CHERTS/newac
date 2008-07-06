@@ -185,7 +185,10 @@ object Form1: TForm1
     Input = MACIn1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
+    OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
+    FramesInBuffer = 65536
+    PollingInterval = 200
     Left = 48
     Top = 120
   end
