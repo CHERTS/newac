@@ -45,6 +45,7 @@ type
     procedure BitBtn3Click(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure DXAudioOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -155,6 +156,11 @@ end;
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   DXAudioOut1.Stop(False);
+end;
+
+procedure TForm1.DXAudioOut1ThreadException(Sender: TComponent);
+begin
+  Label3.Caption := DXAudioOut1.ExceptionMessage;
 end;
 
 end.
