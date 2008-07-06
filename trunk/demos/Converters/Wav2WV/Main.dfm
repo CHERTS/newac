@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 106
   Top = 69
-  Width = 243
+  Width = 266
   Height = 314
   Caption = 'Wav2WavPack Converter'
   Color = clBtnFace
@@ -26,7 +26,7 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 148
-    Width = 235
+    Width = 258
     Height = 9
     Align = alBottom
     Min = 0
@@ -36,7 +36,7 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Top = 261
-    Width = 235
+    Width = 258
     Height = 19
     Panels = <
       item
@@ -76,11 +76,14 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 0
     Top = 157
-    Width = 235
+    Width = 258
     Height = 104
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 6
+    DesignSize = (
+      258
+      104)
     object Label4: TLabel
       Left = 8
       Top = 16
@@ -112,29 +115,33 @@ object Form1: TForm1
     object Edit1: TEdit
       Left = 48
       Top = 8
-      Width = 177
+      Width = 197
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       TabOrder = 0
     end
     object Edit2: TEdit
       Left = 48
       Top = 32
-      Width = 177
+      Width = 197
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
     end
     object Edit3: TEdit
       Left = 48
       Top = 56
-      Width = 177
+      Width = 197
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       TabOrder = 2
     end
     object Edit4: TEdit
       Left = 48
       Top = 80
-      Width = 177
+      Width = 197
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       TabOrder = 3
     end
   end
@@ -148,8 +155,8 @@ object Form1: TForm1
     OnClick = Button2Click
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 112
   end
@@ -168,6 +175,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = WVOut1Done
     OnProgress = WVOut1Progress
+    OnThreadException = WVOut1ThreadException
     Left = 104
     Top = 112
   end

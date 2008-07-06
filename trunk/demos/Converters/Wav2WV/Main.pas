@@ -44,6 +44,7 @@ type
     procedure WVOut1Progress(Sender: TComponent);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
+    procedure WVOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -76,7 +77,8 @@ procedure TForm1.WVOut1Done(Sender: TComponent);
 begin
   Button1.Enabled := True;
   Button2.Enabled := True;
-  StatusBar1.Panels[0].Text := 'Success';
+  if WVOut1.ExceptionMessage =  '' then
+    StatusBar1.Panels[0].Text := 'Success';
 end;
 
 procedure TForm1.WVOut1Progress(Sender: TComponent);
@@ -119,6 +121,11 @@ begin
       WVOut1.APEv2Tags.Year := Edit4.Text;
     WVOut1.Run;
   end;
+end;
+
+procedure TForm1.WVOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := WVOut1.ExceptionMessage;
 end;
 
 end.
