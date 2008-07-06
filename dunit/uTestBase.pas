@@ -139,9 +139,9 @@ begin
   aufInput := aufOutput.Input as TAuFileIn;
   sReference := ExtractFilePath(aufInput.FileName) + ExtractFileName(aufOutput.FileName);
   {$IFDEF GenerateSources}
-  if not (ExtractFileExt(FOutput) = '.wv') then
-    CopyFile(PChar(FOutput), PChar(sReference), false);
+   CopyFile(PChar(FOutput), PChar(sReference), false);
   {$ELSE}
+  Check(FileSizeInt64(FOutput) <> 0);
   Check(FilesAreIdentical(sReference, FOutput), 'File Mismatch: ' + aufInput.FileName + ' - ' + sReference);
   {$ENDIF}
 end;
@@ -176,13 +176,20 @@ begin
   begin
     FInput := FInputFiles[i];
     FOutput := 'temp\' + ChangeFileExt(ExtractFileName(FInputFiles[i]), sExt);
-    {$IFNDEF GenerateSources}
+    {$IfNDef GenerateSources}
     Assert(FileExists(FInput));
     {$ENDIF}
     FWaveIn.FileName := FInput;
     aufOutput.FileName := FOutput;
     aufOutput.BlockingRun;
     OnFileDone(aufOutput);
+    {$IfDef GenerateSources}
+    if Pos(' - hybrid', FOutput) > 0 then
+    begin
+      CopyFile(PChar(FOutput), PChar('media\' + ExtractFilename(FOutput)), false);
+      CopyFile(PChar(ChangeFileExt(FOutput, '.wvc')), PChar('media\' + ChangeFileExt(ExtractFilename(FOutput), '.wvc')), false);
+    end;
+    {$EndIf}
   end;
 end;
 
