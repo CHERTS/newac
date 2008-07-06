@@ -125,17 +125,19 @@ var
 begin
   FWVOut.HybridMode := true;
   EncodeFiles('encode_wv.txt', ' - hybrid.wv', FWVOut);
+  {$IfNDef GenerateSources}
   slCorrections := TStringList.Create;
   try
     slCorrections.LoadFromFile('encode_wv.txt');
     for i := 0 to Pred(slCorrections.Count) - 1 do
       Check(FilesAreIdentical(
         ChangeFileExt(slCorrections[i], ' - hybrid.wvc'),
-        'temp\' + ExtractFilename(ChangeFileExt(slCorrections[i], ' - hybrid.wvc')))
-        , 'Corrections file mismatch');
+        'temp\' + ExtractFilename(ChangeFileExt(slCorrections[i], ' - hybrid.wvc'))),
+        'Corrections file mismatch');
   finally
     slCorrections.Destroy;
   end;
+  {$EndIf}
 end;
 
 initialization

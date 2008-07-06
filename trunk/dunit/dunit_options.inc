@@ -1,1 +1,1 @@
-{$Define GenerateSources}
+{.$Define GenerateSources}
