@@ -34,6 +34,7 @@ type
     procedure ComboBox1Select(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure VorbisOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -168,6 +169,11 @@ end;
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   VorbisOut1.Stop(False);
+end;
+
+procedure TForm1.VorbisOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := 'ERROR: ' + VorbisOut1.ExceptionMessage;
 end;
 
 end.
