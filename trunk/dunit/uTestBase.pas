@@ -3,6 +3,10 @@
     A collection of ancestor classes for testcases.
 *)
 
+{$M+} // RTTI for DUnit
+
+{$Include dunit_options.inc}
+
 unit uTestBase;
 
 interface
@@ -97,7 +101,9 @@ begin
       FOutput := Copy(FInput, 1, Pred(x)) + Copy(FInput, x + Length(sHybridExt), MAXINT);
       FOutput := 'temp\' + ChangeFileExt(ExtractFileName(FOutput), '.wav')
     end;
+    {$IFNDEF GenerateSources}
     Assert(FileExists(FInput));
+    {$ENDIF}
     aufInput.FileName := FInput;
     FWaveOut.FileName := FOutput;
     FWaveOut.BlockingRun;
@@ -132,7 +138,12 @@ begin
   aufOutput := Sender as TAuFileOut;
   aufInput := aufOutput.Input as TAuFileIn;
   sReference := ExtractFilePath(aufInput.FileName) + ExtractFileName(aufOutput.FileName);
+  {$IFDEF GenerateSources}
+  if not (ExtractFileExt(FOutput) = '.wv') then
+    CopyFile(PChar(FOutput), PChar(sReference), false);
+  {$ELSE}
   Check(FilesAreIdentical(sReference, FOutput), 'File Mismatch: ' + aufInput.FileName + ' - ' + sReference);
+  {$ENDIF}
 end;
 
 procedure TTestFileCode.SetUp;
@@ -147,7 +158,7 @@ var
 begin
 //co-opt FInputFiles for file deleting, comment out the FindFiles line to generate references
   FInputFiles.Clear;
- // FindFiles(FInputFiles, 'temp\', '*.*');
+  FindFiles(FInputFiles, 'temp\', '*.*');
   for i := 0 to Pred(FInputFiles.Count) do
     DeleteFile(PChar(FInputFiles[i]));
   FInputFiles.Destroy;
@@ -165,7 +176,9 @@ begin
   begin
     FInput := FInputFiles[i];
     FOutput := 'temp\' + ChangeFileExt(ExtractFileName(FInputFiles[i]), sExt);
+    {$IFNDEF GenerateSources}
     Assert(FileExists(FInput));
+    {$ENDIF}
     FWaveIn.FileName := FInput;
     aufOutput.FileName := FOutput;
     aufOutput.BlockingRun;

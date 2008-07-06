@@ -17,6 +17,8 @@
 
 unit Test_ACS_WavPack;
 
+{$Include dunit_options.inc}
+
 interface
 
 uses
@@ -90,7 +92,11 @@ end;
 
 procedure TestWVDecode.TestDecode;
 begin
+{$IfDef GenerateSources}
+  DecodeFiles('decode_wv_reference.txt', FWVIn);
+{$Else}
   DecodeFiles('decode_wv.txt', FWVIn);
+{$EndIf}
 end;
 
 procedure TestWVEncode.SetUp;
