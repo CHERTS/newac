@@ -51,6 +51,7 @@ function SetFileDate(const FileName: string; const FileDate: TDateTime):
 function CalcFileCRC32(sFilename: string): string;
 procedure CalcCRC32(pData: Pointer; dwByteCount: DWORD; var dwCRC: DWORD);
 function FilesAreIdentical(const sFile1, sFile2: string): Boolean;
+function FileSizeInt64(const sFilename: widestring): Int64;
 
  const
   CRCTable: array[0..255] of DWORD =
@@ -286,6 +287,19 @@ begin
   s1 := CalcFileCRC32(sFile1);
   s2 := CalcFileCRC32(sFile2);
   Result := s1 = s2;
+end;
+
+function FileSizeInt64(const sFilename: widestring): Int64;
+var
+  h: THandle;
+  f: TWin32FindDataW;
+begin
+  Result := -1;
+  h := FindFirstFileW(PWideChar(sFilename), f);
+  if h = INVALID_HANDLE_VALUE then
+    Exit;
+  Result := Int64(f.nFileSizeLow) + f.nFileSizeHigh * High(f.nFileSizeLow);
+  Windows.FindClose(h);
 end;
 
 end.
