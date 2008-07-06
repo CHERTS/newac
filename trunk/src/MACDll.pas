@@ -495,7 +495,6 @@ Usage:
     //virtual int Kill() = 0;
     function Kill(
       ): LongInt;
-  published
     property Handle: APE_DECOMPRESS_HANDLE read FHandle;
   end;
 
