@@ -29,7 +29,8 @@ program newac_test;
     create files under the bin\ directory. After extracting it, run the included
     executable, "bin\generate_sources.exe" to generate reference files for all
     of the various formats. Note this executable is just a DUnit test with the
-    compiler define of GenerateSources as defined in dunit_options.inc *)
+    compiler define of GenerateSources as defined in dunit_options.inc.
+*)
 
 {$Include dunit_options.inc}
 
@@ -46,6 +47,9 @@ uses
   TestFramework,
   GUITestRunner,
   TextTestRunner,
+  { Topic: ACS_Classes
+    Is a unit.
+  }
   ACS_Classes in '..\src\ACS_Classes.pas',
   ACS_WavPack in '..\src\ACS_WavPack.pas',
   Test_ACS_WavPack in 'Test_ACS_WavPack.pas',

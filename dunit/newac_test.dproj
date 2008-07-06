@@ -34,12 +34,5 @@
     <DelphiCompile Include="newac_test.dpr">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\src\ACS_Classes.pas" />
-    <DCCReference Include="..\src\ACS_FLAC.pas" />
-    <DCCReference Include="..\src\ACS_WavPack.pas" />
-    <DCCReference Include="Test_ACS_FLAC.pas" />
-    <DCCReference Include="Test_ACS_MAC.pas" />
-    <DCCReference Include="Test_ACS_WavPack.pas" />
-    <DCCReference Include="uTestBase.pas" />
   </ItemGroup>
 </Project>
