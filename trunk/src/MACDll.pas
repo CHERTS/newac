@@ -587,7 +587,6 @@ TAPEDecompress - class for working with existing APE files (decoding, seeking, a
       MaxBytes: Integer): LongInt;
     function InfoWavTerminatingBytes: LongInt;
     function InfoWavTotalBytes: LongInt;
-  published
     property Handle: APE_DECOMPRESS_HANDLE read FHandle;
     property Filename: WideString read FFilename;
   end;
