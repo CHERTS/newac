@@ -21,10 +21,6 @@ type
     SaveDialog1: TSaveDialog;
     Button1: TButton;
     ProgressBar1: TProgressBar;
-    TrackBar1: TTrackBar;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
     StatusBar1: TStatusBar;
     Label4: TLabel;
     SpinEdit1: TSpinEdit;
@@ -40,13 +36,12 @@ type
     Label9: TLabel;
     Edit5: TEdit;
     procedure Button1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure TrackBar1Change(Sender: TObject);
     procedure MP3Out1ThreadException(Sender: TComponent;
       const Msg: String);
     procedure MACOut1Done(Sender: TComponent);
     procedure MACOut1Progress(Sender: TComponent);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure MACOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -86,17 +81,6 @@ begin
   end;
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-  MACOut1.Delay := 16 - TrackBar1.Position*5;
-//  MP3Out1.SampleRate := sr22khz;
-end;
-
-procedure TForm1.TrackBar1Change(Sender: TObject);
-begin
-  MACOut1.Delay := 16 - TrackBar1.Position*5;
-end;
-
 procedure TForm1.MP3Out1ThreadException(Sender: TComponent;
   const Msg: String);
 begin
@@ -120,6 +104,11 @@ end;
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   MACOut1.Stop(False);
+end;
+
+procedure TForm1.MACOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := MACOut1.ExceptionMessage;
 end;
 
 end.
