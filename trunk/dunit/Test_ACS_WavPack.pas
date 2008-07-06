@@ -113,10 +113,23 @@ begin
 end;
 
 procedure TestWVEncode.TestEncodeHyrbid;
+var
+  slCorrections: TStringList;
+  i: integer;
 begin
   FWVOut.HybridMode := true;
   EncodeFiles('encode_wv.txt', ' - hybrid.wv', FWVOut);
-  Check(FilesAreIdentical(ChangeFileExt(FOutput, '.wvc'), 'media\test - 24bit 48kHz Stereo - hybrid.wvc'));
+  slCorrections := TStringList.Create;
+  try
+    slCorrections.LoadFromFile('encode_wv.txt');
+    for i := 0 to Pred(slCorrections.Count) - 1 do
+      Check(FilesAreIdentical(
+        ChangeFileExt(slCorrections[i], ' - hybrid.wvc'),
+        'temp\' + ExtractFilename(ChangeFileExt(slCorrections[i], ' - hybrid.wvc')))
+        , 'Corrections file mismatch');
+  finally
+    slCorrections.Destroy;
+  end;
 end;
 
 initialization
