@@ -165,7 +165,7 @@ object Form1: TForm1
     OnProgress = MP3Out1Progress
     BitRate = mbrAuto
     CRC = True
-    VBRQuality = mp3ql0
+    VBRQuality = mp3ql5
     EnableVBR = False
     AverageBitrate = mbrAuto
     MaximumBitrate = mbrAuto
