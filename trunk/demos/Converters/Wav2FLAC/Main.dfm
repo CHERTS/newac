@@ -164,8 +164,8 @@ object Form1: TForm1
     TabOrder = 11
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 200
   end
@@ -182,6 +182,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = FLACOut1Done
     OnProgress = FLACOut1Progress
+    OnThreadException = FLACOut1ThreadException
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
