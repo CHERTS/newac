@@ -45,6 +45,7 @@ type
     procedure VorbisOut1Progress(Sender: TComponent);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
+    procedure VorbisOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -120,6 +121,11 @@ begin
     WaveIn1.FileName := OpenDialog1.FileName;
     Self.StatusBar1.Panels[0].Text := 'File to convert: ' + WaveIn1.FileName;
   end;  
+end;
+
+procedure TForm1.VorbisOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := VorbisOut1.ExceptionMessage;
 end;
 
 end.
