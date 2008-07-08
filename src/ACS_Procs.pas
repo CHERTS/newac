@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.7
+  This file is a part of New Audio Components package v 1.8
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -35,6 +35,12 @@ type
 
   procedure BlackmanWindow(OutData : PDoubleArray; Width : Integer; Symmetric : Boolean);
 
+  procedure HannWindowS(OutData : PSingleArray; Width : Integer; Symmetric : Boolean);
+
+  procedure HammingWindowS(OutData : PSingleArray; Width : Integer; Symmetric : Boolean);
+
+  procedure BlackmanWindowS(OutData : PSingleArray; Width : Integer; Symmetric : Boolean);
+
   procedure CalculateSincKernel(OutData : PDoubleArray; CutOff : Double; Width : Integer; WType : TFilterWindowType);
 
   procedure SmallIntArrayToDouble(InData : PSmallInt; OutData : PDouble; DataSize : Integer);
@@ -45,6 +51,8 @@ type
   // Computes Op2[i] = Op1[i]*Op2[i], i = [0..DataSize-1]
 
   procedure MultDoubleArrays(Op1, Op2 : PDouble; DataSize : Integer);
+  procedure MultSingleArrays(Op1, Op2 : PSingle; DataSize : Integer);
+
 
   (*
     Performs calculation of
@@ -394,6 +402,34 @@ implementation
     for i := 0 to Width-1 do OutData[i] := 0.42-0.5*Cos(TwoPi*i/n) + 0.08*Cos(2*TwoPi*i/n);
   end;
 
+  procedure HannWindowS(OutData : PSingleArray; Width : Integer; Symmetric : Boolean);
+  var
+    i, n : Integer;
+  begin
+    if Symmetric then n := Width-1
+    else n := Width;
+    for i := 0 to Width-1 do OutData[i] := (1-Cos(TwoPi*i/n))/2;
+  end;
+
+  procedure HammingWindowS(OutData : PSingleArray; Width : Integer; Symmetric : Boolean);
+  var
+    i, n : Integer;
+  begin
+    if Symmetric then n := Width-1
+    else n := Width;
+    for i := 0 to Width-1 do OutData[i] := 0.54-0.46*Cos(TwoPi*i/n);
+  end;
+
+  procedure BlackmanWindowS(OutData : PSingleArray; Width : Integer; Symmetric : Boolean);
+  var
+    i, n : Integer;
+  begin
+    if Symmetric then n := Width-1
+    else n := Width;
+    for i := 0 to Width-1 do OutData[i] := 0.42-0.5*Cos(TwoPi*i/n) + 0.08*Cos(2*TwoPi*i/n);
+  end;
+
+
   procedure CalculateSincKernel(OutData : PDoubleArray; CutOff : Double; Width : Integer; WType : TFilterWindowType);
   var
     i : Integer;
@@ -455,6 +491,19 @@ implementation
       @out:     ;
     end;
   end;
+
+  procedure MultSingleArrays(Op1, Op2 : PSingle; DataSize : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to DataSize - 1 do
+    begin
+      Op1^ := Op1^*Op2^;
+      Inc(Op1);
+      Inc(Op2);
+    end;
+  end;
+
 
   procedure MultDoubleArrays(Op1, Op2 : PDouble; DataSize : Integer);
   begin
