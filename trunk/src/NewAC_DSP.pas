@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id *)
+(* $Id$ *)
 
 unit NewAC_DSP;
 
