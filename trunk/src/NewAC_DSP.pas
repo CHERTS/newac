@@ -15,6 +15,9 @@ uses
   Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, FFTReal, Math;
 
 type
+
+  TOutputFormat = (ofmtPascal, ofmtMathematica);
+
   TFrequencyAnalysis = class(TAuOutput)
   private
     _N : Word;
@@ -29,6 +32,7 @@ type
     FNumSamples : Int64;
     FCurSample : Int64;
     ChunkCount : Integer;
+    FSeparator : Char;
     function GetMagnitude(Channel, Index : Word) : Single;
     function GetLogMagnitude(Channel, Index : Word) : Single;
   protected
@@ -42,6 +46,7 @@ type
     procedure SaveLogMagnitude(Channel : Word; const FileName : String);
     property Magnitude[Channel, Index : Word] : Single read GetMagnitude;
     property LogMagnitude[Channel, Index : Word] : Single read GetLogMagnitude;
+    property Separator : Char read FSeparator write FSeparator;
   published
     property N : Word read _N write _N;
     property Window : TFilterWindowType read FWindow write FWindow;
@@ -59,6 +64,7 @@ implementation
     FStartSample := 0;
     FEndSample := -1;
     MaxChannels := -1;
+    FSeparator := ' ';
   end;
 
   destructor TFrequencyAnalysis.Destroy;
@@ -98,7 +104,7 @@ implementation
       else
         FNumSamples := FEndSample - FStartSample;
     end else
-    FNumSamples := $100000000;
+    FNumSamples := High(Int64) - 1;
     FCurSample := FStartSample;
     ChunkCount := 0;
   end;
@@ -175,12 +181,16 @@ implementation
   var
     F : System.Text;
     i : Integer;
+    OldSep : Char;
   begin
     System.Assign(F, FileName);
     System.Rewrite(F);
-    for i := 1 to _N div 2 - 2 do
-      Write(F, Round(GetMagnitude(Channel, i)*10000), ', ');
-    WriteLn(F, Round(GetMagnitude(Channel, _N div 2 -1)*10000));
+    OldSep := DecimalSeparator;
+    DecimalSeparator := '.';
+    for i := 0 to _N div 2 - 2 do
+      Write(F, FloatToStrF(GetMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
+    WriteLn(F, FloatToStrF(GetMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
+    DecimalSeparator := OldSep;
     System.Close(F);
   end;
 
@@ -189,12 +199,15 @@ implementation
   var
     F : System.Text;
     i : Integer;
+    OldSep : Char;
   begin
     System.Assign(F, FileName);
     System.Rewrite(F);
-    for i := 1 to _N div 2 - 2 do
-      Write(F, GetLogMagnitude(Channel, i), ', ');
-    WriteLn(F, GetLogMagnitude(Channel, _N div 2 -1));
+    OldSep := DecimalSeparator;
+    for i := 0 to _N div 2 - 2 do
+      Write(F, FloatToStrF(GetLogMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
+    WriteLn(F, FloatToStrF(GetLogMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
+    DecimalSeparator := OldSep;
     System.Close(F);
   end;
 
