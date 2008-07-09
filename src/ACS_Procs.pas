@@ -494,16 +494,16 @@ implementation
 
   procedure MultSingleArrays(Op1, Op2 : PSingle; DataSize : Integer);
   var
-    i : Integer;
+    P : Pointer;
   begin
-    for i := 0 to DataSize - 1 do
+    LongWord(P) := LongWord(Op1) + DataSize*4;
+    while Op1 <> P do
     begin
       Op1^ := Op1^*Op2^;
       Inc(Op1);
       Inc(Op2);
     end;
   end;
-
 
   procedure MultDoubleArrays(Op1, Op2 : PDouble; DataSize : Integer);
   begin
