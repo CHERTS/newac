@@ -9,6 +9,12 @@
 
 unit NewAC_DSP;
 
+(* Title: NewAC_DSP
+    This unit contains components performing different DSP-related tasks. (c) 2008, Andrei
+    Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
+    for more details. *)
+
+
 interface
 
 uses
@@ -16,7 +22,11 @@ uses
 
 type
 
-  TOutputFormat = (ofmtPascal, ofmtMathematica);
+(* Class: TFrequencyAnalysis
+     This component generates input's frequency spectrum using averaged real DFT.
+     TFrequencyAnalysis is an output component but unlike other output components
+     it doesn't provide audio data. TFrequencyAnalysis' output is an audio frequency spectrum.
+     Descends from <TAuOutput>.*)
 
   TFrequencyAnalysis = class(TAuOutput)
   private
@@ -42,13 +52,30 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function: SaveMagnitude
+       This method saves magnitude series obtained at channel Channel to the file specified by FileName. *)
     procedure SaveMagnitude(Channel : Word; const FileName : String);
+    (* Function: SaveLogMagnitude
+       This method saves logarithmed magnitude series obtained at channel Channel to the file specified by FileName. *)
     procedure SaveLogMagnitude(Channel : Word; const FileName : String);
+    (* Property: Magnitude
+       Returns the value of the magnitude scpecified by channel number and index.
+       Valid indeces range from 0 to <N>/2 - 1. *)
     property Magnitude[Channel, Index : Word] : Single read GetMagnitude;
+    (* Property: LogMagnitude
+       Returns the logarithm of the magnitude scpecified by channel number and index.
+       Valid indeces range from 0 to <N>/2 - 1. *)
     property LogMagnitude[Channel, Index : Word] : Single read GetLogMagnitude;
+    (* Separator: Magnitude
+       Use this property to specify the character used to delimit the values being saved to a file. *)
     property Separator : Char read FSeparator write FSeparator;
   published
+    (* Property: N
+       The number of input points for performing real DFT.
+       Magnitude calculation produces N/2 values that represent the frequency distrbution between 0 and samplerate/2. *)
     property N : Word read _N write _N;
+    (* Property: Window
+       Use this proeprty to select the type of the window applied to the input data. *)
     property Window : TFilterWindowType read FWindow write FWindow;
     property StartSample : Int64 read FStartSample write FStartSample;
     property EndSample : Int64 read FEndSample write FEndSample;
@@ -174,7 +201,10 @@ implementation
 
   function TFrequencyAnalysis.GetLogMagnitude(Channel, Index : Word) : Single;
   begin
-    Result := Log10(GetMagnitude(Channel, Index));
+    if GetMagnitude(Channel, Index) <> 0 then
+      Result := Log10(GetMagnitude(Channel, Index))
+    else
+      Result := MinSingle;
   end;
 
   procedure TFrequencyAnalysis.SaveMagnitude(Channel : Word; const FileName : String);
@@ -204,6 +234,7 @@ implementation
     System.Assign(F, FileName);
     System.Rewrite(F);
     OldSep := DecimalSeparator;
+    DecimalSeparator := '.';
     for i := 0 to _N div 2 - 2 do
       Write(F, FloatToStrF(GetLogMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetLogMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
