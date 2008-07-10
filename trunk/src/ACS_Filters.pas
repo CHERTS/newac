@@ -483,7 +483,7 @@ implementation
     raise EAuException.Create('Input is not assigned');
     Busy := True;
     FInput.Init;
-    if not (Finput.BitsPerSample in [16,32] then
+    if not (Finput.BitsPerSample in [16,32]) then
        raise EAuException.Create('Only 16 or 32 bps input is accepted');
     FPosition := 0;
     CalculateFilter;
