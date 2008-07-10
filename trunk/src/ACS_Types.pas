@@ -27,6 +27,13 @@ type
   TBuffer32 = array[0..0] of Integer;
   PBuffer32 = ^TBuffer32;
 
+  TStereoSample32 = packed record
+    Left, Right : Integer;
+  end;
+
+  TStereoBuffer32 = array[0..0] of TStereoSample32;
+  PStereoBuffer32 = ^TStereoBuffer32;
+
   TStereoSample16 = packed record
     Left, Right : SmallInt;
   end;

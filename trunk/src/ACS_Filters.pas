@@ -60,6 +60,12 @@ type
     property LowFreq : Integer read FLowFreq write SetLowFreq;
   end;
 
+  (* Class: TSincFilter
+    This component implements a windowed-sinc filter.
+    The component's input should be 1 or 2 channels 16 bps or 32 bps audio.
+    A descendant of <TAuConverter>. *)
+
+
   TSincFilter = class(TAuConverter)
   private
     {$IFDEF WIN32}
@@ -83,18 +89,28 @@ type
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure GetKernel(var K : PDoubleArray);
   published
+    (* Property: FilterType
+     Use this property to set the desired filter type: low-pass, high-pass, band-pass, or band-reject. *)
     property FilterType : TFilterType read FFilterType write SetFilterType;
+    (* Property: HighFreq
+     Use this property to set the high cut-off frequency. This property applies to high-pass, band-pass, and band-reject filters and should always (even for low-pass) be greater than <LowFreq>. *)
     property HighFreq : Integer read FHighFreq write SetHighFreq;
+    (* Property: KernelWidth
+     Use this property to set the number of points in the filter kernel. *)
     property KernelWidth : Integer read FKernelWidth write SetKernelWidth;
+    (* Property: LowFreq
+     Use this property to set the low cut-off frequency. This property applies to low-pass, band-pass, and band-reject filters and should always (even for high-pass) be less than <HighFreq>. *)
     property LowFreq : Integer read FLowFreq write SetLowFreq;
+    (* Property: WindowType
+     Use this property to set the type of the window applied to the filter kernel. *)
     property WindowType  : TFilterWindowType read FWindowType write SetWindowType;
   end;
 
@@ -467,6 +483,8 @@ implementation
     raise EAuException.Create('Input is not assigned');
     Busy := True;
     FInput.Init;
+    if not (Finput.BitsPerSample in [16,32] then
+       raise EAuException.Create('Only 16 or 32 bps input is accepted');
     FPosition := 0;
     CalculateFilter;
     if FInput.Channels = 1 then
@@ -496,8 +514,10 @@ implementation
   procedure TSincFilter.GetDataInternal;
   var
     i, j, NumSamples : Integer;
-    InBufMono : PBuffer16;
-    InBufStereo : PStereoBuffer16;
+    InBufMono32 : PBuffer32;
+    InBufStereo32 : PStereoBuffer32;
+    InBufMono16 : PBuffer16;
+    InBufStereo16 : PStereoBuffer16;
   begin
     if not Busy then  raise EAuException.Create('The Stream is not opened');
     if BufStart > BufEnd then
@@ -513,43 +533,81 @@ implementation
         Bytes := 0;
         Exit;
       end;
-      if FInput.Channels = 1 then
+      if FInput.BitsPerSample = 16 then
       begin
-        InBufMono := @InBuf[1];
-        NumSamples := BufEnd div 2;
-        for i := 0 to NumSamples-1 do
-        for j := 0 to FKernelWidth-1 do
-        DA[i+j] := DA[i+j] + InbufMono[i]*Kernel[j];
-        for i := 0 to NumSamples-1 do
-        InBufMono[i] := Round(DA[i]);
-        BufEnd := NumSamples*2;
-        FillChar(DA[0], NumSamples*SizeOf(Double), 0);
-        Move(DA[NumSamples], DA[0], (FKernelWidth-1)*SizeOf(Double));
+        if FInput.Channels = 1 then
+        begin
+          InBufMono16 := @InBuf[1];
+          NumSamples := BufEnd div 2;
+          for i := 0 to NumSamples-1 do
+            for j := 0 to FKernelWidth-1 do
+              DA[i+j] := DA[i+j] + InbufMono16[i]*Kernel[j];
+          for i := 0 to NumSamples-1 do
+          InBufMono16[i] := Round(DA[i]);
+          FillChar(DA[0], NumSamples*SizeOf(Double), 0);
+          Move(DA[NumSamples], DA[0], (FKernelWidth-1)*SizeOf(Double));
+        end else
+        begin
+          InBufStereo16 := @InBuf[1];
+          NumSamples := BufEnd div 4;
+          for i := 0 to NumSamples-1 do
+            for j := 0 to FKernelWidth-1 do
+            begin
+              DAS[i+j].Left := DAS[i+j].Left + InbufStereo16[i].Left*Kernel[j];
+              DAS[i+j].Right := DAS[i+j].Right + InbufStereo16[i].Right*Kernel[j];
+            end;
+          for i := 0 to NumSamples-1 do
+          begin
+            InBufStereo16[i].Left := Round(DAS[i].Left);
+            InBufStereo16[i].Right := Round(DAS[i].Right);
+          end;
+          FillChar(DAS[0], NumSamples*2*SizeOf(Double), 0);
+          for i := 0 to FKernelWidth-2 do
+          begin
+            DAS[i] := DAS[NumSamples+i];
+            DAS[NumSamples+i].Left := 0;
+            DAS[NumSamples+i].Right := 0;
+          end;
+        end;
       end else
+      if FInput.BitsPerSample = 32 then
       begin
-        InBufStereo := @InBuf[1];
-        NumSamples := BufEnd div 4;
-        for i := 0 to NumSamples-1 do
-        for j := 0 to FKernelWidth-1 do
+        if FInput.Channels = 1 then
         begin
-          DAS[i+j].Left := DAS[i+j].Left + InbufStereo[i].Left*Kernel[j];
-          DAS[i+j].Right := DAS[i+j].Right + InbufStereo[i].Right*Kernel[j];
-        end;
-        for i := 0 to NumSamples-1 do
+          InBufMono32 := @InBuf[1];
+          NumSamples := BufEnd div 4;
+          for i := 0 to NumSamples-1 do
+            for j := 0 to FKernelWidth-1 do
+              DA[i+j] := DA[i+j] + InbufMono32[i]*Kernel[j];
+          for i := 0 to NumSamples-1 do
+          InBufMono32[i] := Round(DA[i]);
+          FillChar(DA[0], NumSamples*SizeOf(Double), 0);
+          Move(DA[NumSamples], DA[0], (FKernelWidth-1)*SizeOf(Double));
+        end else
         begin
-          InBufStereo[i].Left := Round(DAS[i].Left);
-          InBufStereo[i].Right := Round(DAS[i].Right);
+          InBufStereo32 := @InBuf[1];
+          NumSamples := BufEnd div 8;
+          for i := 0 to NumSamples-1 do
+            for j := 0 to FKernelWidth-1 do
+            begin
+              DAS[i+j].Left := DAS[i+j].Left + InbufStereo32[i].Left*Kernel[j];
+              DAS[i+j].Right := DAS[i+j].Right + InbufStereo32[i].Right*Kernel[j];
+            end;
+          for i := 0 to NumSamples-1 do
+          begin
+            InBufStereo32[i].Left := Round(DAS[i].Left);
+            InBufStereo32[i].Right := Round(DAS[i].Right);
+          end;
+          FillChar(DAS[0], NumSamples*2*SizeOf(Double), 0);
+          for i := 0 to FKernelWidth-2 do
+          begin
+            DAS[i] := DAS[NumSamples+i];
+            DAS[NumSamples+i].Left := 0;
+            DAS[NumSamples+i].Right := 0;
+          end;
         end;
-        BufEnd := NumSamples*4;
-        FillChar(DAS[0], NumSamples*2*SizeOf(Double), 0);
-        for i := 0 to FKernelWidth-2 do
-        begin
-          DAS[i] := DAS[NumSamples+i];
-          DAS[NumSamples+i].Left := 0;
-          DAS[NumSamples+i].Right := 0;
-        end;
-        //Move(DAS[NumSamples], DAS[0], (FKernelWidth-1)*2*SizeOf(Double));
       end;
+
       {$IFDEF WIN32}
       LeaveCriticalSection(CS);
       {$ENDIF}
