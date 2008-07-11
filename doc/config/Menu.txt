@@ -88,6 +88,7 @@ Group: Main Units  {
    File: WaveConverter.pas  (src\WaveConverter.pas)
    File: WavPackDLL  (src\WavPackDLL.pas)
    File: wmfintf.pas  (src\wmfintf.pas)
+   File: NewAC_DSP  (src\NewAC_DSP.pas)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
@@ -121,6 +122,7 @@ Group: DUnit  {
    File: ACS_FLAC TestCases  (dunit\Test_ACS_FLAC.pas)
    File: ACS_MAC TestCases  (dunit\Test_ACS_MAC.pas)
    File: ACS_WavPack TestCases  (dunit\Test_ACS_WavPack.pas)
+   File: uLog  (dunit\uLog.pas)
    File: uTestBase  (dunit\uTestBase.pas)
    File: uUtility  (dunit\uUtility.pas)
    }  # Group: DUnit

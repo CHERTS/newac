@@ -24,6 +24,7 @@ interface
 uses
   uUtility,
   uTestBase,
+  uLog,
 
   ACS_WavPack,
   ACS_Classes,
@@ -53,6 +54,9 @@ type
   (* Procedure: TestDecode
       Decodes all WV files specified in decode_wv.txt .*)
     procedure TestDecode; override;
+  (* Procedure: TestFileNotFound
+      Attempts to open a file which doesn't exist. *)
+    procedure TestFileNotFound;
   end;
 
   (* Class: TestWVEncode
@@ -97,6 +101,26 @@ begin
 {$Else}
   DecodeFiles('decode_wv.txt', FWVIn);
 {$EndIf}
+end;
+
+// leaks a TAuFileStream created at Line 1280 in ACS_Wave
+// this actually ends up testing TWaveOut, so a new unit should be made
+// with a testcase for ACS_Wave
+// this procedure would then be moved to TestWVEncode and used with a
+// nonexistent wav
+procedure TestWVDecode.TestFileNotFound;
+begin
+  FWVIn.FileName := 'not.found.wv';
+  FWaveOut.FileName := 'temp\output.wav';
+  try
+    FWaveOut.BlockingRun;
+  except
+    on E: Exception do
+    begin
+      LogIt('File Not Found Message: ' + E.Message);
+      Check(E.Message = 'The system cannot find the file specified', 'Bad File Not Found Message: ' + E.Message);
+    end;
+  end;
 end;
 
 procedure TestWVEncode.SetUp;

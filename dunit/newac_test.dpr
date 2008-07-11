@@ -47,9 +47,6 @@ uses
   TestFramework,
   GUITestRunner,
   TextTestRunner,
-  { Topic: ACS_Classes
-    Is a unit.
-  }
   ACS_Classes in '..\src\ACS_Classes.pas',
   ACS_WavPack in '..\src\ACS_WavPack.pas',
   Test_ACS_WavPack in 'Test_ACS_WavPack.pas',
@@ -70,4 +67,7 @@ begin
   else
     GUITestRunner.RunRegisteredTests;
 end.
+
+
+
 
