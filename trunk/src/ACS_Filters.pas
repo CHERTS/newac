@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.2
+  This file is a part of New Audio Components package 1.8
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
