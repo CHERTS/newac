@@ -390,7 +390,10 @@ implementation
       for i := 0 to SamplesRead - 1 do
         OutputBuffer[i] := 0;
       for i := 0 to (Length(Kernel) -1)*SamplesInFrame - 1 do
+      begin
         OutputBuffer[i] := OutputBuffer[i + SamplesRead];
+        OutputBuffer[i + SamplesRead] := 0;
+      end;
     end;
     if Bytes > (BufEnd - BufStart) then
       Bytes := BufEnd - BufStart;
