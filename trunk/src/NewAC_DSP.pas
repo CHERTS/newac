@@ -84,6 +84,10 @@ type
     property EndSample : Int64 read FEndSample write FEndSample;
   end;
 
+(* Class: TConvolver
+     This component performs convolution.
+     Descends from <TAuOutput>.*)
+
   TConvolver = class(TAuConverter)
   private
     Kernel : array of Single;
@@ -101,7 +105,31 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function SetKernel
+       Call this method to set the convolution kernel (impulse response function). *)
     procedure SetKernel(const K : array of Single);
+  end;
+
+  TDifferenceEquation = class(TAuConverter)
+  private
+    _A, _B : array of Single;
+    X, Y : array[0..7] of array of Single;
+    offsX, OffsY : Integer;
+    InputBuffer : array of Single;
+    SampleSize, FrameSize, SamplesInFrame : Word;
+    _Buffer : array of Byte;
+    StartSample, EndSample : Integer;
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure SetCoefficients(const A, B : array of Single);
   end;
 
 
@@ -379,5 +407,153 @@ implementation
     for i := 0 to  Length(Kernel) - 1 do
       Kernel[i] := K[i];
   end;
+
+  constructor TDifferenceEquation.Create;
+  begin
+    inherited Create(AOwner);
+  end;
+
+  destructor TDifferenceEquation.Destroy;
+  begin
+    Inherited Destroy;
+  end;
+
+  function TDifferenceEquation.GetBPS;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.BitsPerSample;
+  end;
+
+  function TDifferenceEquation.GetCh;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.Channels;
+  end;
+
+  function TDifferenceEquation.GetSR;
+  begin
+    if not Assigned(Input) then
+    raise EAuException.Create('Input is not assigned');
+    Result := FInput.SampleRate;
+  end;
+
+  procedure TDifferenceEquation.InitInternal;
+  var
+    i : Integer;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Busy := True;
+    FInput.Init;
+    SampleSize := FInput.BitsPerSample div 8;
+    FrameSize := SampleSize*FInput.Channels;
+    SamplesInFrame := Finput.Channels;
+    FPosition := 0;
+    SetLength(_Buffer, BufSize);
+    SetLength(InputBuffer, BufSize div SampleSize);
+    OffsX := Length(_A) - 1;
+    OffsY := Length(_B);
+    for i := 0 to SamplesInFrame - 1 do
+    begin
+      SetLength(X[i], BufSize div SampleSize + OffsX);
+      FillChar(X[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y[i], BufSize div SampleSize + OffsY);
+      FillChar(Y[i][0], OffsY*SizeOf(Single), 0);
+    end;
+    BufStart := 0;
+    BufEnd := 0;
+    FSize := FInput.Size;
+  end;
+
+  procedure TDifferenceEquation.FlushInternal;
+  var
+    i : Integer;
+  begin
+    FInput.Flush;
+    SetLength(_Buffer, 0);
+    SetLength(InputBuffer, 0);
+    for i := 0 to SamplesInFrame - 1 do
+    begin
+      SetLength(X[i], 0);
+      SetLength(Y[i], 0);
+    end;
+    Busy := False;
+  end;
+
+  procedure TDifferenceEquation.GetDataInternal;
+  var
+    i, j, k, SamplesRead, FramesRead : Integer;
+    P : PBufferSingle;
+    Acc : Single;
+  begin
+    if not Busy then  raise EAuException.Create('The Stream is not opened');
+    if BufStart >= BufEnd then
+    begin
+      BufStart := 0;
+      BufEnd := FInput.CopyData(@_Buffer[0], BufSize);
+      if BufEnd = 0 then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;
+      SamplesRead := BufEnd div SampleSize;
+      FramesRead := BufEnd div FrameSize;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : ByteToSingle(PBuffer8(_Buffer), P, SamplesRead);
+        2 : SmallIntToSingle(PBuffer16(_Buffer), P, SamplesRead);
+        3 : Int24ToSingle(PBuffer8(_Buffer), PBufferSingle(P), SamplesRead);
+        4 : Int32ToSingle(PBuffer32(_Buffer), PBufferSingle(P), SamplesRead);
+      end;
+      for i := 0 to SamplesRead -1 do
+        X[i mod SamplesInFrame][OffsX + i div SamplesInFrame] := InputBuffer[i];
+      for i := 0 to FramesRead -1 do
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          Acc := 0;
+          MultAndSumSingleArrays(@(X[j][i]), @_A[0], Acc, OffsX + 1);
+          MultAndSumSingleArrays(@(Y[j][i]), @_B[0], Acc, OffsY);
+          Y[j][i + OffsY] := Acc;
+        end;
+      for i := 0 to FramesRead -1 do
+        for j :=  0 to SamplesInFrame - 1 do
+          InputBuffer[i*SamplesInFrame + j] :=  Y[j][i];
+      for j :=  0 to SamplesInFrame - 1 do
+      begin
+        for i := 0 to OffsX - 1 do
+          X[j][i] := X[j][i + FramesRead];
+        for i := 0 to OffsY - 1 do
+          Y[j][i] := Y[j][i + FramesRead];
+      end;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : SingleToByte(P, PBuffer8(_Buffer), SamplesRead);
+        2 : SingleToSmallInt(P, PBuffer16(_Buffer), SamplesRead);
+        3 : SingleToInt24(P, PBuffer8(_Buffer), SamplesRead);
+        4 : SingleToInt32(P, PBuffer32(_Buffer), SamplesRead);
+      end;
+    end;
+    if Bytes > (BufEnd - BufStart) then
+      Bytes := BufEnd - BufStart;
+    Buffer := @_Buffer[BufStart];
+    Inc(BufStart, Bytes);
+    FPosition := Round(FInput.Position*(FSize/FInput.Size));
+  end;
+
+  procedure TDifferenceEquation.SetCoefficients;
+  var
+    i : Integer;
+  begin
+    SetLength(_A, Length(A));
+    for i := 0 to  Length(A) - 1 do
+      _A[i] := A[Length(A) - 1 - i];
+    SetLength(_B, Length(B));
+    for i := 0 to  Length(B) - 1 do
+      _B[i] := B[Length(B) - 1 - i];
+  end;
+
 
 end.

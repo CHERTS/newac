@@ -51,9 +51,10 @@ type
   // Computes Op2[i] = Op1[i]*Op2[i], i = [0..DataSize-1]
 
   procedure MultDoubleArrays(Op1, Op2 : PDouble; DataSize : Integer);
+
   procedure MultSingleArrays(Op1, Op2 : PSingle; DataSize : Integer);
 
-
+  procedure MultAndSumSingleArrays(Op1, Op2 : PSingle; var Accumulator : Single; DataSize : Integer);
   (*
     Performs calculation of
                    /
@@ -504,6 +505,20 @@ implementation
       Inc(Op2);
     end;
   end;
+
+  procedure MultAndSumSingleArrays(Op1, Op2 : PSingle; var Accumulator : Single; DataSize : Integer);
+  var
+    P : Pointer;
+  begin
+    LongWord(P) := LongWord(Op1) + DataSize*4;
+    while Op1 <> P do
+    begin
+      Accumulator := Accumulator + Op1^*Op2^;
+      Inc(Op1);
+      Inc(Op2);
+    end;
+  end;
+
 
   procedure MultDoubleArrays(Op1, Op2 : PDouble; DataSize : Integer);
   begin
