@@ -149,16 +149,12 @@ implementation
 
   procedure TBWFilter.SetHighFreq;
   begin
-    if FFilterType = ftLowPass then
-    FHighFreq := 0
-    else FHighFreq := aFreq;
+    FHighFreq := aFreq;
   end;
 
   procedure TBWFilter.SetLowFreq;
   begin
-    if FFilterType = ftHighPass then
-    FLowFreq := 0
-    else FLowFreq := aFreq;
+    FLowFreq := aFreq;
   end;
 
   procedure TBWFilter.SetAmplification;
@@ -373,12 +369,15 @@ implementation
         SetLength(Kernel2, FKernelWidth);
         CutOff := FHighFreq/FInput.SampleRate;
         CalculateSincKernel(@Kernel2[0], CutOff, FKernelWidth, FWindowType);
-        SetLength(Kernel, 2*FKernelWidth);
+        SetLength(Kernel, 2*FKernelWidth - 1);
         FillChar(Kernel[0], Length(Kernel)*SizeOf(Double), 0);
         for i := 0 to KernelWidth - 1 do
         for j := 0 to KernelWidth - 1 do
         Kernel[i+j] := Kernel[i+j] + Kernel1[i]*Kernel2[j];
-        SetLength(Kernel, FKernelWidth);
+//        SetLength(Kernel, FKernelWidth);
+        FKernelWidth := 2*FKernelWidth - 1;
+        for i := 0 to KernelWidth - 1 do
+          Kernel[i] := Kernel[i]*10;
         Kernel1 := nil;
         Kernel2 := nil;
       end;

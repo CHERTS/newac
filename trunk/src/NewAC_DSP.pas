@@ -20,6 +20,9 @@ interface
 uses
   Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, FFTReal, Math;
 
+const
+  BufSize : Integer = $6000;
+
 type
 
 (* Class: TFrequencyAnalysis
@@ -81,6 +84,25 @@ type
     property EndSample : Int64 read FEndSample write FEndSample;
   end;
 
+  TConvolver = class(TAuConverter)
+  private
+    Kernel : array of Single;
+    InputBuffer, OutputBuffer : array of Single;
+    SampleSize, FrameSize, SamplesInFrame : Word;
+    _Buffer : array of Byte;
+    StartSample, EndSample : Integer;
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure SetKernel(const K : array of Single);
+  end;
 
 
 implementation
@@ -242,5 +264,120 @@ implementation
     System.Close(F);
   end;
 
+  constructor TConvolver.Create;
+  begin
+    inherited Create(AOwner);
+  end;
+
+  destructor TConvolver.Destroy;
+  begin
+    Inherited Destroy;
+  end;
+
+  function TConvolver.GetBPS;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.BitsPerSample;
+  end;
+
+  function TConvolver.GetCh;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.Channels;
+  end;
+
+  function TConvolver.GetSR;
+  begin
+    if not Assigned(Input) then
+    raise EAuException.Create('Input is not assigned');
+    Result := FInput.SampleRate;
+  end;
+
+  procedure TConvolver.InitInternal;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Busy := True;
+    FInput.Init;
+    SampleSize := FInput.BitsPerSample div 8;
+    FrameSize := SampleSize*FInput.Channels;
+    FPosition := 0;
+    SetLength(_Buffer, BufSize);
+    SetLength(InputBuffer, BufSize div SampleSize);
+    SetLength(OutputBuffer, BufSize div SampleSize + (Length(Kernel) - 1)*FInput.Channels);
+    FillChar(OutputBuffer[0], Length(OutputBuffer)*SizeOf(Single), 0);
+    BufStart := 0;
+    BufEnd := 0;
+    SamplesInFrame := Finput.Channels;
+    FSize := FInput.Size;
+  end;
+
+  procedure TConvolver.FlushInternal;
+  begin
+    FInput.Flush;
+    SetLength(_Buffer, 0);
+    SetLength(InputBuffer, 0);
+    SetLength(OutputBuffer, 0);
+    Busy := False;
+  end;
+
+  procedure TConvolver.GetDataInternal;
+  var
+    i, j, k, SamplesRead, FramesRead : Integer;
+    P : PBufferSingle;
+  begin
+    if not Busy then  raise EAuException.Create('The Stream is not opened');
+    if BufStart >= BufEnd then
+    begin
+      BufStart := 0;
+      BufEnd := FInput.CopyData(@_Buffer[0], BufSize);
+      if BufEnd = 0 then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;
+      SamplesRead := BufEnd div SampleSize;
+      FramesRead := BufEnd div FrameSize;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : ByteToSingle(PBuffer8(_Buffer), P, SamplesRead);
+        2 : SmallIntToSingle(PBuffer16(_Buffer), P, SamplesRead);
+        3 : Int24ToSingle(PBuffer8(_Buffer), PBufferSingle(P), SamplesRead);
+        4 : Int32ToSingle(PBuffer32(_Buffer), PBufferSingle(P), SamplesRead);
+      end;
+      for i := 0 to FramesRead -1 do
+       for j := 0 to Length(Kernel) - 1 do
+         for k := 0 to SamplesInFrame - 1 do
+           OutputBuffer[(i + j)*SamplesInFrame + k] := OutputBuffer[(i + j)*SamplesInFrame + k] + InputBuffer[i*SamplesInFrame + k]*Kernel[j];
+      P := PBufferSingle(@OutputBuffer[0]);
+      case SampleSize of
+        1 : SingleToByte(P, PBuffer8(_Buffer), SamplesRead);
+        2 : SingleToSmallInt(P, PBuffer16(_Buffer), SamplesRead);
+        3 : SingleToInt24(P, PBuffer8(_Buffer), SamplesRead);
+        4 : SingleToInt32(P, PBuffer32(_Buffer), SamplesRead);
+      end;
+      for i := 0 to SamplesRead - 1 do
+        OutputBuffer[i] := 0;
+      for i := 0 to (Length(Kernel) -1)*SamplesInFrame - 1 do
+        OutputBuffer[i] := OutputBuffer[i + SamplesRead];
+    end;
+    if Bytes > (BufEnd - BufStart) then
+      Bytes := BufEnd - BufStart;
+    Buffer := @_Buffer[BufStart];
+    Inc(BufStart, Bytes);
+    FPosition := Round(FInput.Position*(FSize/FInput.Size));
+  end;
+
+  procedure TConvolver.SetKernel;
+  var
+    i : Integer;
+  begin
+    SetLength(Kernel, Length(K));
+    for i := 0 to  Length(Kernel) - 1 do
+      Kernel[i] := K[i];
+  end;
 
 end.

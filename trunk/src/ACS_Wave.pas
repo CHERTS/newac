@@ -74,21 +74,21 @@ type
 
   TWaveHeader = record
     // RIFF file header
-    RIFF: array [0..3] of Char;          // = 'RIFF'
-    FileSize: Integer;                   // = FileSize - 8
-    RIFFType: array [0..3] of Char;      // = 'WAVE'
+    RIFF: array [0..3] of Char;          // = 'RIFF' offset : 0000
+    FileSize: Integer;                   // = FileSize - 8 offset : 0004
+    RIFFType: array [0..3] of Char;      // = 'WAVE'  offset : 0008
     // Format chunk
-    FmtChunkId: array [0..3] of Char;    // = 'fmt'
-    FmtChunkSize: Integer;               // = 16
-    FormatTag: Word;                     // One of WAVE_FORMAT_XXX constants
-    Channels: Word;                      // = 1 - mono = 2 - stereo
-    SampleRate: Integer;
-    BytesPerSecond: Integer;
-    BlockAlign: Word;
-    BitsPerSample: Word;                 // = 8, 16 or 32 Bits/sample
+    FmtChunkId: array [0..3] of Char;    // = 'fmt'   offset : 0012
+    FmtChunkSize: Integer;               // = 16      offset : 0016
+    FormatTag: Word;                     // One of WAVE_FORMAT_XXX constants    offset : 0020
+    Channels: Word;                      // = 1 - mono = 2 - stereo             offset : 0022
+    SampleRate: Integer;                                                     // offset : 0024
+    BytesPerSecond: Integer;                                                 // offset : 0028
+    BlockAlign: Word;                                                        // offset : 0032
+    BitsPerSample: Word;                 // = 8, 16 or 32 Bits/sample           offset : 0034
     // Data Chunk
-    DataChunkId: array [0..3] of Char;   // = 'data'
-    DataSize: Integer;   // Data size in bytes
+    DataChunkId: array [0..3] of Char;   // = 'data'                          // offset : 0036
+    DataSize: Integer;   // Data size in bytes                                // offset : 0040
   end;
 (*
   Record: TWaveHeaderExt

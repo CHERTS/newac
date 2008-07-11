@@ -24,6 +24,7 @@ package NewAC;
 {$R 'ACS_TAK.dcr'}
 {$R 'AudioDMO.dcr'}
 {$R 'NewAC_AVI.dcr'}
+{$R 'NewAC_DSP.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -105,6 +106,8 @@ contains
   _Direct3D9 in '_Direct3D9.pas',
   _DirectShow9 in '_DirectShow9.pas',
   msdmo in 'msdmo.pas',
-  NewAC_AVI in 'NewAC_AVI.pas';
+  NewAC_AVI in 'NewAC_AVI.pas',
+  FFTReal in 'fftreal.pas',
+  NewAC_DSP in 'NewAC_DSP.pas';
 
 end.
