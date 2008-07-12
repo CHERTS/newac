@@ -110,6 +110,12 @@ type
     procedure SetKernel(const K : array of Single);
   end;
 
+  (* Class: TDifferenceEquation
+     This component calculates its output following the equation y[n] = a0*x[n] + a1*x[n-1] + ... + b0*y[n-1] + b0*y[n-2]...
+
+     Descends from TAuConverter.
+  *)
+
   TDifferenceEquation = class(TAuConverter)
   private
     _A, _B : array of Single;
@@ -129,6 +135,11 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function: SetCoefficients
+       Sets coefficients for the equation.
+       A is a vector of a0...an, B is a verctor of b0...bn.
+       The same set of cefficients is applied to all input channels. 
+    *)
     procedure SetCoefficients(const A, B : array of Single);
   end;
 
