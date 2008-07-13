@@ -43,7 +43,7 @@ type
 
   procedure CalculateSincKernel(OutData : PDoubleArray; CutOff : Double; Width : Integer; WType : TFilterWindowType);
 
-  procedure CalculateChebyshev(FC, PR : Single; NP : Integer; LH : Boolean; var A, B : array of Single);
+  procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; LowPass : Boolean; var A, B : array of Single);
 
   procedure SmallIntArrayToDouble(InData : PSmallInt; OutData : PDouble; DataSize : Integer);
 
@@ -521,6 +521,22 @@ implementation
     end;
   end;
 
+  procedure MultAndSumXSingleArrays(A, X : PSingle; var Accumulator : Single; DataSize : Integer);
+  var
+    P  : Pointer;
+    X2 : PSingle;
+  begin
+    LongWord(P) := LongWord(X) + (DataSize shr 1)*4;
+    LongWord(X2) := LongWord(P) + 4;
+    while X <> P do
+    begin
+      Accumulator := Accumulator + A^*(X^+X2^);
+      Inc(A);
+      Inc(X);
+      Inc(X2);
+    end;
+    Accumulator := Accumulator + A^*X^;
+  end;
 
   procedure MultDoubleArrays(Op1, Op2 : PDouble; DataSize : Integer);
   begin
@@ -917,23 +933,23 @@ end;
      Result := True;
    end;
 
-    procedure TransferSToZ(FC : Single; LH : Boolean; PR : Single; P, NP : Integer; var A, B : array of Single);
+    procedure NewCascade(CutOff : Single; LowPass : Boolean; Ripple : Single; P, NumPoles : Integer; var A, B : array of Single);
     var
       RP, IP, ES, VX, KX, T, W, M, D, K, X0, X1, X2, Y1, Y2 : Single;
     begin
-      RP := -cos(Pi/(NP*2) + (P-1) * PI/NP);
-      IP := sin(Pi/(NP*2) + (P-1) * PI/NP);
-      if PR <> 0 then
+      RP := -cos(Pi/(NumPoles*2) + (P-1) * PI/NumPoles);
+      IP := sin(Pi/(NumPoles*2) + (P-1) * PI/NumPoles);
+      if Ripple <> 0 then
       begin
-        ES := Sqrt( Sqr(100 / (100-PR)) - 1);
-        VX := (1/NP) * Ln((1/ES) + Sqrt(1/Sqr(ES) + 1));
-        KX := (1/NP) * Ln((1/ES) + Sqrt(1/Sqr(ES) - 1));
+        ES := Sqrt( Sqr(100 / (100-Ripple)) - 1);
+        VX := (1/NumPoles) * Ln((1/ES) + Sqrt(1/Sqr(ES) + 1));
+        KX := (1/NumPoles) * Ln((1/ES) + Sqrt(1/Sqr(ES) - 1));
         KX := (Exp(KX) + Exp(-KX))/2;
         RP := RP*((Exp(VX) - Exp(-VX))/2)/KX;
         IP := IP*((Exp(VX) + Exp(-VX))/2)/ KX;
       end;
       T := 2*Tan(0.5);
-      W := 2*Pi*FC;
+      W := 2*Pi*CutOff;
       M := Sqr(RP) + Sqr(IP);
       D := 4 - 4*RP*T + M*Sqr(T);
       X0 := Sqr(T)/D;
@@ -941,7 +957,7 @@ end;
       X2 := X0;
       Y1 := (8 - 2*M*Sqr(T))/D;
       Y2 := (-4 - 4*RP*T - M*Sqr(T))/D;
-      if LH then
+      if LowPass then
         K := -cos(W/2 + 0.5)/cos(W/2 - 0.5)
       else
         K := sin(0.5 - W/2)/sin(0.5 + W/2);
@@ -951,14 +967,14 @@ end;
       A[2] := (X0*Sqr(K) - X1*K + X2)/D;
       B[0] := (2*K + Y1 + Y1*Sqr(K) - 2*Y2*K)/D;
       B[1] := (-Sqr(K) - Y1*K + Y2)/D;
-      if LH then
+      if LowPass then
       begin
         A[1] := -A[1];
         B[0] := -B[0];
       end;
     end;
 
-    procedure CalculateChebyshev(FC, PR : Single; NP : Integer; LH : Boolean; var A, B : array of Single);
+    procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; LowPass : Boolean; var A, B : array of Single);
     var
       i, j, P : Integer;
       TA, TB : array[0..32] of Single;
@@ -973,9 +989,9 @@ end;
       end;
       A[2] := 1;
       B[2] := 1;
-      for P := 1 to NP div 2 do
+      for P := 1 to NumPoles div 2 do
       begin
-        TransferSToZ(FC, LH, PR, P, NP, Ax, Bx);
+        NewCascade(CutOff, LowPass, Ripple, P, NumPoles, Ax, Bx);
         for i := 0 to 32 do
         begin
           TA[i] := A[i];
@@ -998,7 +1014,7 @@ end;
       SB := 0;
       for i := 0 to 30 do
       begin
-        if LH then
+        if LowPass then
         begin
           SA := SA + A[i]*(1 - (i mod 2)*2);
           SB := SB + B[i]*(1 - (i mod 2)*2);
