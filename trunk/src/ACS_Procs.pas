@@ -961,12 +961,12 @@ end;
     procedure CalculateChebyshev(FC, PR : Single; NP : Integer; LH : Boolean; var A, B : array of Single);
     var
       i, j, P : Integer;
-      TA, TB : array[0..22] of Single;
+      TA, TB : array[0..32] of Single;
       Ax : array[0..2] of Single;
       Bx : array[0..1] of Single;
       SA, SB, Gain : Single;
     begin
-      for i := 0 to 22 do
+      for i := 0 to 32 do
       begin
         A[i] := 0;
         B[i] := 0
@@ -976,7 +976,7 @@ end;
       for P := 1 to NP div 2 do
       begin
         TransferSToZ(FC, LH, PR, P, NP, Ax, Bx);
-        for i := 0 to 22 do
+        for i := 0 to 32 do
         begin
           TA[i] := A[i];
           TB[i] := B[i];
@@ -989,14 +989,14 @@ end;
         end;
       end;
       B[2] := 0;
-      for i := 0 to 19 do
+      for i := 0 to 29 do
       begin
         A[i] := A[i+2];
         B[i] := -1*B[i+3];
       end;
       SA := 0;
       SB := 0;
-      for i := 0 to 20 do
+      for i := 0 to 30 do
       begin
         if LH then
         begin
