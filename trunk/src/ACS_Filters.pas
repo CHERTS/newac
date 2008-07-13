@@ -411,8 +411,8 @@ implementation
         Kernel[i+j] := Kernel[i+j] + Kernel1[i]*Kernel2[j];
 //        SetLength(Kernel, FKernelWidth);
         FKernelWidth := 2*FKernelWidth - 1;
-        for i := 0 to KernelWidth - 1 do
-          Kernel[i] := Kernel[i]*10;
+//        for i := 0 to KernelWidth - 1 do
+//          Kernel[i] := Kernel[i]*10;
         Kernel1 := nil;
         Kernel2 := nil;
       end;
@@ -696,20 +696,22 @@ implementation
   var
     A1, B1, A2, B2 : array of Single;
     i, j : Integer;
-    CutOff, Tmp : Single;
-  procedure Swap(var S1, S2 : Single);
-  begin
-    Tmp := S1;
-    S1 := S2;
-    S2 := Tmp;
-  end;
+    CutOff : Single;
   begin
     SetLength(A, 33);
     SetLength(B, 33);
+    SetLength(A1, 33);
+    SetLength(B1, 33);
+    SetLength(A2, 33);
+    SetLength(B2, 33);
     for i := 0 to 32 do
     begin
       A[i] := 0;
       B[i] := 0;
+      A1[i] := 0;
+      B1[i] := 0;
+      A2[i] := 0;
+      B2[i] := 0;
     end;
     case FFilterType of
       ftLowpass :
@@ -732,34 +734,32 @@ implementation
       end;
       ftBandPass:
       begin
-        FFilterType := ftLowpass;
-        CalculateFilter;
-        SetLength(A1, Length(A));
-        for i := 0  to Length(A) - 1 do
-          A1[i] := A[i];
-        SetLength(B1, Length(B));
-        for i := 0  to Length(B) - 1 do
-          B1[i] := B[i];
-        FFilterType := ftHighPass;
-        CalculateFilter;
-        SetLength(A2, Length(A));
-        for i := 0  to Length(A) - 1 do
-          A2[i] := A[i];
-        SetLength(B2, Length(B));
-        for i := 0  to Length(B) - 1 do
-          B2[i] := B[i];
-        FFilterType := ftBandPass;
-        SetLength(A, Length(A)*2);
+        CutOff := FLowFreq/FInput.SampleRate;
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A1, B1);
+        SetLength(A1, FNumberOfPoles +1);
+        SetLength(B1, FNumberOfPoles);
+        CutOff := FHighFreq/FInput.SampleRate;
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A2, B2);
+        SetLength(A2, FNumberOfPoles +1);
+        SetLength(B2, FNumberOfPoles);
+        SetLength(A, Length(A1) + Length(A2) - 1);
         for i := 0 to Length(A) - 1 do
           A[i] := 0;
         for i := 0 to Length(A2) - 1 do
           for j := 0 to Length(A1) - 1 do
             A[i + j] := A[i + j] + A1[i]*A2[j];
-        SetLength(B, Length(B)*2);
+        SetLength(B, Length(B1) + Length(B2) - 1);
         for i := 0 to Length(B) - 1 do
           B[i] := 0;
-        for i := 0 to Length(B) div 2 - 1 do
-          for j := 0 to Length(B) div 2 - 1 do
+        for i := 0 to Length(B1) - 1 do
+        begin
+          B1[i] := -B1[i];
+          B2[i] := -B2[i];
+        end;
+        B1[0] := 1;
+        B2[0] := 1;
+        for i := 0 to Length(B1) - 1 do
+          for j := 0 to Length(B2) - 1 do
             B[i + j] := B[i + j] + B1[i]*B2[j];
       end;
       ftBandReject:
@@ -795,15 +795,19 @@ implementation
             B[i + j] := B[i + j] + B1[i]*B2[j];
       end;
     end;
-      for i := 0 to Length(A) div 2 -1 do
-         Swap(A[i], A[Length(A) - i -1]);
-      for i := 0 to Length(B) div 2 -1 do
-        Swap(B[i], B[Length(B) - i -1]);
   end;
 
   procedure TChebyshevFilter.InitInternal;
   var
     i : Integer;
+  procedure Swap(var S1, S2 : Single);
+  var
+    Tmp : Single;
+  begin
+    Tmp := S1;
+    S1 := S2;
+    S2 := Tmp;
+  end;
   begin
     if not Assigned(Input) then
       raise EAuException.Create('Input is not assigned');
@@ -816,7 +820,11 @@ implementation
     SetLength(_Buffer, BufSize);
     SetLength(InputBuffer, BufSize div SampleSize);
     CalculateFilter;
-    OffsX := Length(A) - 1;
+    for i := 0 to Length(A) div 2 -1 do
+      Swap(A[i], A[Length(A) - i -1]);
+    for i := 0 to Length(B) div 2 -1 do
+      Swap(B[i], B[Length(B) - i -1]);
+     OffsX := Length(A) - 1;
     OffsY := Length(B);
     for i := 0 to SamplesInFrame - 1 do
     begin
