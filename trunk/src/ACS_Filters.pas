@@ -26,6 +26,7 @@ uses
 
 const
   BUF_SIZE = $4000;
+  BufSize = $6000;
 
 type
 
@@ -113,6 +114,40 @@ type
      Use this property to set the type of the window applied to the filter kernel. *)
     property WindowType  : TFilterWindowType read FWindowType write SetWindowType;
   end;
+
+  TChebyshevFilter = class(TAuConverter)
+  private
+    A, B : array of Single;
+    X, Y : array[0..7] of array of Single;
+    FRipple : Single;
+    FHighFreq, FLowFreq : Word;
+    FNumberOfPoles  : Word;
+    FFilterType : TFilterType;
+    offsX, OffsY : Integer;
+    InputBuffer : array of Single;
+    SampleSize, FrameSize, SamplesInFrame : Word;
+    _Buffer : array of Byte;
+    StartSample, EndSample : Integer;
+    procedure CalculateFilter;
+    procedure SetNumPoles(NP : Word);
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property FilterType : TFilterType read FFilterType write FFilterType;
+    property NumberOfPoles : Word read FNumberOfPoles write SetNumPoles;
+    property HighFreq : Word read FHighFreq write FHighFreq;
+    property LowFreq : Word read FLowFreq write FLowFreq;
+    property Ripple : Single read FRipple write FRipple;
+  end;
+
 
 implementation
 
@@ -305,7 +340,7 @@ implementation
   constructor TSincFilter.Create;
   begin
     inherited Create(AOwner);
-    FKernelWidth := 31;
+    FKernelWidth := 63;
     FWindowType := fwBlackman;
     FLowFreq := 8000;
     FHighFreq := 16000;
@@ -622,6 +657,262 @@ implementation
   begin
     K := @Kernel[0];
   end;
+
+  constructor TChebyshevFilter.Create;
+  begin
+    inherited Create(AOwner);
+    FRipple := 0.5;
+    FFilterType := ftLowPass;
+    NumberOfPoles := 6;
+  end;
+
+  destructor TChebyshevFilter.Destroy;
+  begin
+    Inherited Destroy;
+  end;
+
+  function TChebyshevFilter.GetBPS;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.BitsPerSample;
+  end;
+
+  function TChebyshevFilter.GetCh;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.Channels;
+  end;
+
+  function TChebyshevFilter.GetSR;
+  begin
+    if not Assigned(Input) then
+    raise EAuException.Create('Input is not assigned');
+    Result := FInput.SampleRate;
+  end;
+
+  procedure TChebyshevFilter.CalculateFilter;
+  var
+    A1, B1, A2, B2 : array of Single;
+    i, j : Integer;
+    CutOff, Tmp : Single;
+  procedure Swap(var S1, S2 : Single);
+  begin
+    Tmp := S1;
+    S1 := S2;
+    S2 := Tmp;
+  end;
+  begin
+    SetLength(A, 33);
+    SetLength(B, 33);
+    for i := 0 to 32 do
+    begin
+      A[i] := 0;
+      B[i] := 0;
+    end;
+    case FFilterType of
+      ftLowpass :
+      begin
+        CutOff := FLowFreq/FInput.SampleRate;
+        if CutOff >= 0.5 then
+          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A, B);
+        SetLength(A, FNumberOfPoles + 1);
+        SetLength(B, FNumberOfPoles);
+      end;
+      ftHighPass:
+      begin
+        CutOff := FHighFreq/FInput.SampleRate;
+        if CutOff >= 0.5 then
+          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A, B);
+        SetLength(A, FNumberOfPoles + 1);
+        SetLength(B, FNumberOfPoles);
+      end;
+      ftBandPass:
+      begin
+        FFilterType := ftLowpass;
+        CalculateFilter;
+        SetLength(A1, Length(A));
+        for i := 0  to Length(A) - 1 do
+          A1[i] := A[i];
+        SetLength(B1, Length(B));
+        for i := 0  to Length(B) - 1 do
+          B1[i] := B[i];
+        FFilterType := ftHighPass;
+        CalculateFilter;
+        SetLength(A2, Length(A));
+        for i := 0  to Length(A) - 1 do
+          A2[i] := A[i];
+        SetLength(B2, Length(B));
+        for i := 0  to Length(B) - 1 do
+          B2[i] := B[i];
+        FFilterType := ftBandPass;
+        SetLength(A, Length(A)*2);
+        for i := 0 to Length(A) - 1 do
+          A[i] := 0;
+        for i := 0 to Length(A2) - 1 do
+          for j := 0 to Length(A1) - 1 do
+            A[i + j] := A[i + j] + A1[i]*A2[j];
+        SetLength(B, Length(B)*2);
+        for i := 0 to Length(B) - 1 do
+          B[i] := 0;
+        for i := 0 to Length(B) div 2 - 1 do
+          for j := 0 to Length(B) div 2 - 1 do
+            B[i + j] := B[i + j] + B1[i]*B2[j];
+      end;
+      ftBandReject:
+      begin
+        FFilterType := ftLowpass;
+        CalculateFilter;
+        SetLength(A1, Length(A));
+        for i := 0  to Length(A) - 1 do
+          A1[i] := A[i];
+        SetLength(B1, Length(B));
+        for i := 0  to Length(B) - 1 do
+          B1[i] := B[i];
+        FFilterType := ftHighPass;
+        CalculateFilter;
+        SetLength(A2, Length(A));
+        for i := 0  to Length(A) - 1 do
+          A2[i] := A[i];
+        SetLength(B2, Length(B));
+        for i := 0  to Length(B) - 1 do
+          B2[i] := B[i];
+        FFilterType := ftBandReject;
+        SetLength(A, Length(A)*2);
+        for i := 0 to Length(A) - 1 do
+          A[i] := 0;
+        for i := 0 to Length(A1) - 1 do
+          for j := 0 to Length(B2) - 1 do
+            A[i + j] := A[i + j] + A1[i]*B2[j] + A2[i]*B1[j];
+        SetLength(B, Length(B)*2);
+        for i := 0 to Length(B) - 1 do
+          B[i] := 0;
+        for i := 0 to Length(B) div 2 - 1 do
+          for j := 0 to Length(B) div 2 - 1 do
+            B[i + j] := B[i + j] + B1[i]*B2[j];
+      end;
+    end;
+      for i := 0 to Length(A) div 2 -1 do
+         Swap(A[i], A[Length(A) - i -1]);
+      for i := 0 to Length(B) div 2 -1 do
+        Swap(B[i], B[Length(B) - i -1]);
+  end;
+
+  procedure TChebyshevFilter.InitInternal;
+  var
+    i : Integer;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Busy := True;
+    FInput.Init;
+    SampleSize := FInput.BitsPerSample div 8;
+    FrameSize := SampleSize*FInput.Channels;
+    SamplesInFrame := Finput.Channels;
+    FPosition := 0;
+    SetLength(_Buffer, BufSize);
+    SetLength(InputBuffer, BufSize div SampleSize);
+    CalculateFilter;
+    OffsX := Length(A) - 1;
+    OffsY := Length(B);
+    for i := 0 to SamplesInFrame - 1 do
+    begin
+      SetLength(X[i], BufSize div SampleSize + OffsX);
+      FillChar(X[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y[i], BufSize div SampleSize + OffsY);
+      FillChar(Y[i][0], OffsY*SizeOf(Single), 0);
+    end;
+    BufStart := 0;
+    BufEnd := 0;
+    FSize := FInput.Size;
+  end;
+
+  procedure TChebyshevFilter.FlushInternal;
+  var
+    i : Integer;
+  begin
+    FInput.Flush;
+    SetLength(_Buffer, 0);
+    SetLength(InputBuffer, 0);
+    for i := 0 to SamplesInFrame - 1 do
+    begin
+      SetLength(X[i], 0);
+      SetLength(Y[i], 0);
+    end;
+    Busy := False;
+  end;
+
+  procedure TChebyshevFilter.GetDataInternal;
+  var
+    i, j, k, SamplesRead, FramesRead : Integer;
+    P : PBufferSingle;
+    Acc : Single;
+  begin
+    if not Busy then  raise EAuException.Create('The Stream is not opened');
+    if BufStart >= BufEnd then
+    begin
+      BufStart := 0;
+      BufEnd := FInput.CopyData(@_Buffer[0], BufSize);
+      if BufEnd = 0 then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;
+      SamplesRead := BufEnd div SampleSize;
+      FramesRead := BufEnd div FrameSize;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : ByteToSingle(PBuffer8(_Buffer), P, SamplesRead);
+        2 : SmallIntToSingle(PBuffer16(_Buffer), P, SamplesRead);
+        3 : Int24ToSingle(PBuffer8(_Buffer), PBufferSingle(P), SamplesRead);
+        4 : Int32ToSingle(PBuffer32(_Buffer), PBufferSingle(P), SamplesRead);
+      end;
+      for i := 0 to SamplesRead -1 do
+        X[i mod SamplesInFrame][OffsX + i div SamplesInFrame] := InputBuffer[i];
+      for i := 0 to FramesRead -1 do
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          Acc := 0;
+          MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
+          MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
+          Y[j][i + OffsY] := Acc;
+        end;
+      for i := OffsY to FramesRead + OffsY -1 do
+        for j :=  0 to SamplesInFrame - 1 do
+          InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i];
+      for j :=  0 to SamplesInFrame - 1 do
+      begin
+        for i := 0 to OffsX - 1 do
+          X[j][i] := X[j][i + FramesRead];
+        for i := 0 to OffsY - 1 do
+          Y[j][i] := Y[j][i + FramesRead];
+      end;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : SingleToByte(P, PBuffer8(_Buffer), SamplesRead);
+        2 : SingleToSmallInt(P, PBuffer16(_Buffer), SamplesRead);
+        3 : SingleToInt24(P, PBuffer8(_Buffer), SamplesRead);
+        4 : SingleToInt32(P, PBuffer32(_Buffer), SamplesRead);
+      end;
+    end;
+    if Bytes > (BufEnd - BufStart) then
+      Bytes := BufEnd - BufStart;
+    Buffer := @_Buffer[BufStart];
+    Inc(BufStart, Bytes);
+    FPosition := Round(FInput.Position*(FSize/FInput.Size));
+  end;
+
+  procedure TChebyshevFilter.SetNumPoles(NP : Word);
+  begin
+    FNumberOfPoles := ((NP + 1) shr 1)*2;
+    if FNumberOfPoles > 12 then FNumberOfPoles := 12;
+  end;
+
+
 
 
 {$WARNINGS ON}
