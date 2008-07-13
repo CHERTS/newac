@@ -532,9 +532,9 @@ implementation
           MultAndSumSingleArrays(@(Y[j][i]), @_B[0], Acc, OffsY);
           Y[j][i + OffsY] := Acc;
         end;
-      for i := 0 to FramesRead -1 do
+      for i := OffsY to FramesRead + OffsY -1 do
         for j :=  0 to SamplesInFrame - 1 do
-          InputBuffer[i*SamplesInFrame + j] :=  Y[j][i];
+          InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i];
       for j :=  0 to SamplesInFrame - 1 do
       begin
         for i := 0 to OffsX - 1 do
