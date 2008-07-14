@@ -63,19 +63,14 @@ type
 
   (* Class: TSincFilter
     This component implements a windowed-sinc filter.
-    The component's input should be 1 or 2 channels 16 bps or 32 bps audio.
     A descendant of <TAuConverter>. *)
-
 
   TSincFilter = class(TAuConverter)
   private
-    {$IFDEF WIN32}
-    CS : TRTLCriticalSection;
-    {$ENDIF}
-    Kernel : array of Double;
-    DA : PDoubleArray;
-    DAS : PStereoBufferD;
-    inBuf : array[1..BUF_SIZE] of Byte;
+    Kernel : array of Single;
+    InputBuffer, OutputBuffer : array of Single;
+    SampleSize, FrameSize, SamplesInFrame : Word;
+    _Buffer : array of Byte;
     FFilterType : TFilterType;
     FKernelWidth : Integer;
     FLowFreq, FHighFreq : Integer;
@@ -96,10 +91,12 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure GetKernel(var K : PDoubleArray);
+    (* Function SetKernel
+       Call this method to set the convolution kernel (impulse response function). *)
+    procedure GetKernel(var K : PSingleArray);
   published
     (* Property: FilterType
-     Use this property to set the desired filter type: low-pass, high-pass, band-pass, or band-reject. *)
+     Use this property to set the desired filter type: low-pass, high-pass, band-pass, band-reject, or all-pass. *)
     property FilterType : TFilterType read FFilterType write SetFilterType;
     (* Property: HighFreq
      Use this property to set the high cut-off frequency. This property applies to high-pass, band-pass, and band-reject filters and should always (even for low-pass) be greater than <LowFreq>. *)
@@ -344,50 +341,37 @@ implementation
     FWindowType := fwBlackman;
     FLowFreq := 8000;
     FHighFreq := 16000;
-    DA := nil;
-    DAS := nil;
-    {$IFDEF WIN32}
-    InitializeCriticalSection(CS);
-    {$ENDIF}
   end;
 
   destructor TSincFilter.Destroy;
   begin
     Kernel := nil;
-    if DA <> nil then FreeMem(DA);
-    if DAS <> nil then FreeMem(DAS);
-    {$IFDEF WIN32}
-    DeleteCriticalSection(CS);
-    {$ENDIF}
     Inherited Destroy;
   end;
 
   procedure TSincFilter.CalculateFilter;
   var
-    Kernel1, Kernel2 : array of Double;
-    CutOff : Double;
+    Kernel1, Kernel2 : array of Single;
+    CutOff : Single;
     i, j : Integer;
   begin
     if csDesigning in ComponentState then Exit;
     if not Assigned(FInput) then Exit;
     if (FLowFreq > FInput.SampleRate/2) or (FHighFreq > FInput.SampleRate/2) then
     raise EAuException.Create('Cut-off frequencies are greater than the half of the sample rate.');
-    {$IFDEF WIN32}
-    EnterCriticalSection(CS);
-    {$ENDIF}
     case FilterType of
       ftLowPass:
       begin
         SetLength(Kernel, FKernelWidth);
         CutOff := FLowFreq/FInput.SampleRate;
-        CalculateSincKernel(@Kernel[0], CutOff, FKernelWidth, FWindowType);
+        CalculateSincKernelSingle(@Kernel[0], CutOff, FKernelWidth, FWindowType);
       end;
       ftHighPass:
       begin
         if not Odd(FKernelWidth) then Inc(FKernelWidth);
         SetLength(Kernel, FKernelWidth);
         CutOff := FHighFreq/FInput.SampleRate;
-        CalculateSincKernel(@Kernel[0], CutOff, FKernelWidth, FWindowType);
+        CalculateSincKernelSingle(@Kernel[0], CutOff, FKernelWidth, FWindowType);
         for i := 0 to FKernelWidth - 1 do
         Kernel[i] := -Kernel[i];
         Kernel[(FKernelWidth shr 1)] := Kernel[(FKernelWidth shr 1)] + 1;
@@ -397,15 +381,15 @@ implementation
         if not Odd(FKernelWidth) then Inc(FKernelWidth);
         SetLength(Kernel1, FKernelWidth);
         CutOff := FLowFreq/FInput.SampleRate;
-        CalculateSincKernel(@Kernel1[0], CutOff, FKernelWidth, FWindowType);
+        CalculateSincKernelSingle(@Kernel1[0], CutOff, FKernelWidth, FWindowType);
         for i := 0 to FKernelWidth - 1 do
         Kernel1[i] := -Kernel1[i];
         Kernel1[(FKernelWidth shr 1)] := Kernel1[(FKernelWidth shr 1)] + 1;
         SetLength(Kernel2, FKernelWidth);
         CutOff := FHighFreq/FInput.SampleRate;
-        CalculateSincKernel(@Kernel2[0], CutOff, FKernelWidth, FWindowType);
+        CalculateSincKernelSingle(@Kernel2[0], CutOff, FKernelWidth, FWindowType);
         SetLength(Kernel, 2*FKernelWidth - 1);
-        FillChar(Kernel[0], Length(Kernel)*SizeOf(Double), 0);
+        FillChar(Kernel[0], Length(Kernel)*SizeOf(Single), 0);
         for i := 0 to KernelWidth - 1 do
         for j := 0 to KernelWidth - 1 do
         Kernel[i+j] := Kernel[i+j] + Kernel1[i]*Kernel2[j];
@@ -421,29 +405,26 @@ implementation
         if not Odd(FKernelWidth) then Inc(FKernelWidth);
         SetLength(Kernel1, FKernelWidth);
         CutOff := FHighFreq/FInput.SampleRate;
-        CalculateSincKernel(@Kernel1[0], CutOff, FKernelWidth, FWindowType);
+        CalculateSincKernelSingle(@Kernel1[0], CutOff, FKernelWidth, FWindowType);
         for i := 0 to FKernelWidth - 1 do
         Kernel1[i] := -Kernel1[i];
         Kernel1[(FKernelWidth shr 1)] := Kernel1[(FKernelWidth shr 1)] + 1;
         SetLength(Kernel2, FKernelWidth);
         CutOff := FLowFreq/FInput.SampleRate;
-        CalculateSincKernel(@Kernel2[0], CutOff, FKernelWidth, FWindowType);
+        CalculateSincKernelSingle(@Kernel2[0], CutOff, FKernelWidth, FWindowType);
         SetLength(Kernel, FKernelWidth);
         for i := 0 to FKernelWidth - 1 do
         Kernel[i] := Kernel1[i] + Kernel2[i];
         Kernel1 := nil;
         Kernel2 := nil;
       end;
-      ftAllPass :
+      ftAllPass:
       begin
         SetLength(Kernel, FKernelWidth);
         FillChar(Kernel[0], Length(Kernel)*SizeOf(Double), 0);
         Kernel[FKernelWidth shr 1] := 1;
       end;
     end;
-    {$IFDEF WIN32}
-    LeaveCriticalSection(CS);
-    {$ENDIF}
   end;
 
   procedure TSincFilter.SetFilterType;
@@ -514,141 +495,79 @@ implementation
   procedure TSincFilter.InitInternal;
   begin
     if not Assigned(Input) then
-    raise EAuException.Create('Input is not assigned');
+      raise EAuException.Create('Input is not assigned');
     Busy := True;
     FInput.Init;
-    if not (Finput.BitsPerSample in [16,32]) then
-       raise EAuException.Create('Only 16 or 32 bps input is accepted');
+    SampleSize := FInput.BitsPerSample div 8;
+    FrameSize := SampleSize*FInput.Channels;
     FPosition := 0;
     CalculateFilter;
-    if FInput.Channels = 1 then
-    begin
-      GetMem(DA, ((BUF_SIZE div 2)+FKernelWidth-1)*SizeOf(Double));
-      FillChar(DA[0], ((BUF_SIZE div 2)+FKernelWidth-1)*SizeOf(Double), 0);
-    end else
-    begin
-      GetMem(DAS, ((BUF_SIZE div 2)+(FKernelWidth-1)*2)*SizeOf(Double));
-      FillChar(DAS[0], ((BUF_SIZE div 2)+(FKernelWidth-1)*2)*SizeOf(Double), 0);
-    end;
-    BufStart := 1;
+    SetLength(_Buffer, BufSize);
+    SetLength(InputBuffer, BufSize div SampleSize);
+    SetLength(OutputBuffer, BufSize div SampleSize + (Length(Kernel) - 1)*FInput.Channels);
+    FillChar(OutputBuffer[0], Length(OutputBuffer)*SizeOf(Single), 0);
+    BufStart := 0;
     BufEnd := 0;
+    SamplesInFrame := Finput.Channels;
     FSize := FInput.Size;
   end;
 
   procedure TSincFilter.FlushInternal;
   begin
     FInput.Flush;
-    if DA <> nil then FreeMem(DA);
-    if DAS <> nil then FreeMem(DAS);
-    DA := nil;
-    DAS := nil;
+    SetLength(_Buffer, 0);
+    SetLength(InputBuffer, 0);
+    SetLength(OutputBuffer, 0);
     Busy := False;
   end;
 
   procedure TSincFilter.GetDataInternal;
   var
-    i, j, NumSamples : Integer;
-    InBufMono32 : PBuffer32;
-    InBufStereo32 : PStereoBuffer32;
-    InBufMono16 : PBuffer16;
-    InBufStereo16 : PStereoBuffer16;
+    i, j, k, SamplesRead, FramesRead : Integer;
+    P : PBufferSingle;
   begin
     if not Busy then  raise EAuException.Create('The Stream is not opened');
-    if BufStart > BufEnd then
+    if BufStart >= BufEnd then
     begin
-      {$IFDEF WIN32}
-      EnterCriticalSection(CS);
-      {$ENDIF}
-      BufStart := 1;
-      BufEnd := FInput.CopyData(@InBuf[1], BUF_SIZE);
+      BufStart := 0;
+      BufEnd := FInput.CopyData(@_Buffer[0], BufSize);
       if BufEnd = 0 then
       begin
         Buffer := nil;
         Bytes := 0;
         Exit;
       end;
-      if FInput.BitsPerSample = 16 then
-      begin
-        if FInput.Channels = 1 then
-        begin
-          InBufMono16 := @InBuf[1];
-          NumSamples := BufEnd div 2;
-          for i := 0 to NumSamples-1 do
-            for j := 0 to FKernelWidth-1 do
-              DA[i+j] := DA[i+j] + InbufMono16[i]*Kernel[j];
-          for i := 0 to NumSamples-1 do
-          InBufMono16[i] := Round(DA[i]);
-          FillChar(DA[0], NumSamples*SizeOf(Double), 0);
-          Move(DA[NumSamples], DA[0], (FKernelWidth-1)*SizeOf(Double));
-        end else
-        begin
-          InBufStereo16 := @InBuf[1];
-          NumSamples := BufEnd div 4;
-          for i := 0 to NumSamples-1 do
-            for j := 0 to FKernelWidth-1 do
-            begin
-              DAS[i+j].Left := DAS[i+j].Left + InbufStereo16[i].Left*Kernel[j];
-              DAS[i+j].Right := DAS[i+j].Right + InbufStereo16[i].Right*Kernel[j];
-            end;
-          for i := 0 to NumSamples-1 do
-          begin
-            InBufStereo16[i].Left := Round(DAS[i].Left);
-            InBufStereo16[i].Right := Round(DAS[i].Right);
-          end;
-          FillChar(DAS[0], NumSamples*2*SizeOf(Double), 0);
-          for i := 0 to FKernelWidth-2 do
-          begin
-            DAS[i] := DAS[NumSamples+i];
-            DAS[NumSamples+i].Left := 0;
-            DAS[NumSamples+i].Right := 0;
-          end;
-        end;
-      end else
-      if FInput.BitsPerSample = 32 then
-      begin
-        if FInput.Channels = 1 then
-        begin
-          InBufMono32 := @InBuf[1];
-          NumSamples := BufEnd div 4;
-          for i := 0 to NumSamples-1 do
-            for j := 0 to FKernelWidth-1 do
-              DA[i+j] := DA[i+j] + InbufMono32[i]*Kernel[j];
-          for i := 0 to NumSamples-1 do
-          InBufMono32[i] := Round(DA[i]);
-          FillChar(DA[0], NumSamples*SizeOf(Double), 0);
-          Move(DA[NumSamples], DA[0], (FKernelWidth-1)*SizeOf(Double));
-        end else
-        begin
-          InBufStereo32 := @InBuf[1];
-          NumSamples := BufEnd div 8;
-          for i := 0 to NumSamples-1 do
-            for j := 0 to FKernelWidth-1 do
-            begin
-              DAS[i+j].Left := DAS[i+j].Left + InbufStereo32[i].Left*Kernel[j];
-              DAS[i+j].Right := DAS[i+j].Right + InbufStereo32[i].Right*Kernel[j];
-            end;
-          for i := 0 to NumSamples-1 do
-          begin
-            InBufStereo32[i].Left := Round(DAS[i].Left);
-            InBufStereo32[i].Right := Round(DAS[i].Right);
-          end;
-          FillChar(DAS[0], NumSamples*2*SizeOf(Double), 0);
-          for i := 0 to FKernelWidth-2 do
-          begin
-            DAS[i] := DAS[NumSamples+i];
-            DAS[NumSamples+i].Left := 0;
-            DAS[NumSamples+i].Right := 0;
-          end;
-        end;
+      SamplesRead := BufEnd div SampleSize;
+      FramesRead := BufEnd div FrameSize;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : ByteToSingle(PBuffer8(_Buffer), P, SamplesRead);
+        2 : SmallIntToSingle(PBuffer16(_Buffer), P, SamplesRead);
+        3 : Int24ToSingle(PBuffer8(_Buffer), PBufferSingle(P), SamplesRead);
+        4 : Int32ToSingle(PBuffer32(_Buffer), PBufferSingle(P), SamplesRead);
       end;
-
-      {$IFDEF WIN32}
-      LeaveCriticalSection(CS);
-      {$ENDIF}
+      for i := 0 to FramesRead -1 do
+       for j := 0 to Length(Kernel) - 1 do
+         for k := 0 to SamplesInFrame - 1 do
+           OutputBuffer[(i + j)*SamplesInFrame + k] := OutputBuffer[(i + j)*SamplesInFrame + k] + InputBuffer[i*SamplesInFrame + k]*Kernel[j];
+      P := PBufferSingle(@OutputBuffer[0]);
+      case SampleSize of
+        1 : SingleToByte(P, PBuffer8(_Buffer), SamplesRead);
+        2 : SingleToSmallInt(P, PBuffer16(_Buffer), SamplesRead);
+        3 : SingleToInt24(P, PBuffer8(_Buffer), SamplesRead);
+        4 : SingleToInt32(P, PBuffer32(_Buffer), SamplesRead);
+      end;
+      for i := 0 to SamplesRead - 1 do
+        OutputBuffer[i] := 0;
+      for i := 0 to (Length(Kernel) -1)*SamplesInFrame - 1 do
+      begin
+        OutputBuffer[i] := OutputBuffer[i + SamplesRead];
+        OutputBuffer[i + SamplesRead] := 0;
+      end;
     end;
-    if Bytes > (BufEnd - BufStart + 1) then
-      Bytes := BufEnd - BufStart + 1;
-    Buffer := @InBuf[BufStart];
+    if Bytes > (BufEnd - BufStart) then
+      Bytes := BufEnd - BufStart;
+    Buffer := @_Buffer[BufStart];
     Inc(BufStart, Bytes);
     FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
@@ -748,19 +667,25 @@ implementation
         for i := 0 to Length(A2) - 1 do
           for j := 0 to Length(A1) - 1 do
             A[i + j] := A[i + j] + A1[i]*A2[j];
+        SetLength(B1, Length(B1) +1);
+        SetLength(B2, Length(B2) +1);
         SetLength(B, Length(B1) + Length(B2) - 1);
         for i := 0 to Length(B) - 1 do
           B[i] := 0;
-        for i := 0 to Length(B1) - 1 do
+
+        for i := Length(B1) - 1 downto 0  do
         begin
-          B1[i] := -B1[i];
-          B2[i] := -B2[i];
+          B1[i] := -B1[i-1];
+          B2[i] := -B2[i-1];
         end;
         B1[0] := 1;
         B2[0] := 1;
         for i := 0 to Length(B1) - 1 do
           for j := 0 to Length(B2) - 1 do
             B[i + j] := B[i + j] + B1[i]*B2[j];
+        for i := 0 to Length(B) - 1 do
+          B[i] := -B[i];
+        B[0] := 0;
       end;
       ftBandReject:
       begin

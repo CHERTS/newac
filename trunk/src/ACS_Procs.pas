@@ -43,6 +43,8 @@ type
 
   procedure CalculateSincKernel(OutData : PDoubleArray; CutOff : Double; Width : Integer; WType : TFilterWindowType);
 
+  procedure CalculateSincKernelSingle(OutData : PSingleArray; CutOff : Single; Width : Integer; WType : TFilterWindowType);
+
   procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; LowPass : Boolean; var A, B : array of Single);
 
   procedure SmallIntArrayToDouble(InData : PSmallInt; OutData : PDouble; DataSize : Integer);
@@ -431,6 +433,31 @@ implementation
     else n := Width;
     for i := 0 to Width-1 do OutData[i] := 0.42-0.5*Cos(TwoPi*i/n) + 0.08*Cos(2*TwoPi*i/n);
   end;
+
+  procedure CalculateSincKernelSingle(OutData : PSingleArray; CutOff : Single; Width : Integer; WType : TFilterWindowType);
+  var
+    i : Integer;
+    S : Single;
+    Window : array of Single;
+  begin
+//    SetLength(OutData, Width);
+    SetLength(Window, Width);
+    case WType of
+      fwHamming : HammingWindowS(@Window[0], Width, False);
+      fwHann : HannWindowS(@Window[0], Width, False);
+      fwBlackman : BlackmanWindowS(@Window[0], Width, False);
+    end;
+    S := 0;
+    for i := 0 to Width-1 do
+    begin
+      if i-(Width shr 1) <> 0 then
+      OutData[i] := Sin(TwoPi*CutOff*(i-(Width shr 1)))/(i-(Width shr 1))*Window[i]
+      else OutData[i] := TwoPi*CutOff*Window[i];
+      S := S + OutData[i];
+    end;
+    for i := 0 to Width-1 do OutData[i] := OutData[i]/S;
+  end;
+
 
 
   procedure CalculateSincKernel(OutData : PDoubleArray; CutOff : Double; Width : Integer; WType : TFilterWindowType);
