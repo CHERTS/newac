@@ -112,6 +112,10 @@ type
     property WindowType  : TFilterWindowType read FWindowType write SetWindowType;
   end;
 
+  (* Class: TChebyshevFilter
+    This component implements Chebyshev or  Butterworth filters (see the descri[ton below).
+    A descendant of <TAuConverter>. *)
+
   TChebyshevFilter = class(TAuConverter)
   private
     A, B : array of Single;
@@ -138,10 +142,28 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+   (* Property: FilterType
+     Use this property to set the desired filter type: low-pass, high-pass, band-pass, or band-reject
+     Curretnly only low-pass and high-pass filters are stable. *)
     property FilterType : TFilterType read FFilterType write FFilterType;
+   (* Property: NumberOfPoles
+     Use this property to set the number of poles for the filter.
+     Allowed values are 2, 4, 6 ... 12. Note that filters with high number of poles may become unstable in which case their operation results in floating pointoverflow. *)
     property NumberOfPoles : Word read FNumberOfPoles write SetNumPoles;
+   (* Property: HighFreq
+     Use this property to set the high cut-off frequency. This property applies to high-pass, band-pass, and band-reject filters.
+     The value of this property should not be greater than the half of the samping rate.
+    *)
     property HighFreq : Word read FHighFreq write FHighFreq;
+   (* Property: LowFreq
+     Use this property to set the low cut-off frequency. This property applies to low-pass, band-pass, and band-reject filters.
+     The value of this property should not be greater than the half of the samping rate.
+    *)
     property LowFreq : Word read FLowFreq write FLowFreq;
+   (* Property: Ripple
+     Use this property to set the band-pass ripple. The reasonable values for Chebyshev filters are are 0.3 - 0.5.
+     If you set this property to zero the filter's response becomes that of Butterworth filter.
+    *)
     property Ripple : Single read FRipple write FRipple;
   end;
 
