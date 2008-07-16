@@ -962,28 +962,28 @@ end;
 
     procedure NewCascade(CutOff : Single; LowPass : Boolean; Ripple : Single; P, NumPoles : Integer; var A, B : array of Single);
     var
-      RP, IP, ES, VX, KX, T, W, M, D, K, X0, X1, X2, Y1, Y2 : Single;
+      ReP, ImP, ES, VX, KX, T, W, Mag, D, K, X0, X1, X2, Y1, Y2 : Single;
     begin
-      RP := -cos(Pi/(NumPoles*2) + (P-1) * PI/NumPoles);
-      IP := sin(Pi/(NumPoles*2) + (P-1) * PI/NumPoles);
+      ReP := -cos(Pi/(NumPoles*2) + (P-1) * Pi/NumPoles);
+      ImP := sin(Pi/(NumPoles*2) + (P-1) * Pi/NumPoles);
       if Ripple <> 0 then
       begin
         ES := Sqrt( Sqr(100 / (100-Ripple)) - 1);
         VX := (1/NumPoles) * Ln((1/ES) + Sqrt(1/Sqr(ES) + 1));
         KX := (1/NumPoles) * Ln((1/ES) + Sqrt(1/Sqr(ES) - 1));
         KX := (Exp(KX) + Exp(-KX))/2;
-        RP := RP*((Exp(VX) - Exp(-VX))/2)/KX;
-        IP := IP*((Exp(VX) + Exp(-VX))/2)/ KX;
+        ReP := ReP*((Exp(VX) - Exp(-VX))/2)/KX;
+        ImP := ImP*((Exp(VX) + Exp(-VX))/2)/ KX;
       end;
       T := 2*Tan(0.5);
       W := 2*Pi*CutOff;
-      M := Sqr(RP) + Sqr(IP);
-      D := 4 - 4*RP*T + M*Sqr(T);
+      Mag := Sqr(ReP) + Sqr(ImP);
+      D := 4 - 4*ReP*T + Mag*Sqr(T);
       X0 := Sqr(T)/D;
       X1 := 2*Sqr(T)/D;
       X2 := X0;
-      Y1 := (8 - 2*M*Sqr(T))/D;
-      Y2 := (-4 - 4*RP*T - M*Sqr(T))/D;
+      Y1 := (8 - 2*Mag*Sqr(T))/D;
+      Y2 := (-4 - 4*ReP*T - Mag*Sqr(T))/D;
       if LowPass then
         K := -cos(W/2 + 0.5)/cos(W/2 - 0.5)
       else
@@ -1004,12 +1004,14 @@ end;
     procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; LowPass : Boolean; var A, B : array of Single);
     var
       i, j, P : Integer;
-      TA, TB : array[0..32] of Single;
+      TA, TB : array of Single;
       Ax : array[0..2] of Single;
       Bx : array[0..1] of Single;
-      SA, SB, Gain : Single;
+      SumA, SumB, Gain : Single;
     begin
-      for i := 0 to 32 do
+      SetLength(TA, NumPoles + 4);
+      SetLength(TB, NumPoles + 4);
+      for i := 0 to NumPoles + 3 do
       begin
         A[i] := 0;
         B[i] := 0
@@ -1019,40 +1021,40 @@ end;
       for P := 1 to NumPoles div 2 do
       begin
         NewCascade(CutOff, LowPass, Ripple, P, NumPoles, Ax, Bx);
-        for i := 0 to 32 do
+        for i := 0 to NumPoles + 3 do
         begin
           TA[i] := A[i];
           TB[i] := B[i];
         end;
         i := 0;
-        for j := 2 to 22 do
+        for j := 2 to NumPoles + 3 do
         begin
           A[j] := Ax[0]*TA[j] + Ax[1]*TA[j-1] + Ax[2]*TA[j-2];
           B[j] := TB[j] - Bx[0]*TB[j-1] - Bx[1]*TB[j-2];
         end;
       end;
       B[2] := 0;
-      for i := 0 to 29 do
+      for i := 0 to NumPoles do
       begin
         A[i] := A[i+2];
         B[i] := -1*B[i+3];
       end;
-      SA := 0;
-      SB := 0;
-      for i := 0 to 30 do
+      SumA := 0;
+      SumB := 0;
+      for i := 0 to NumPoles do
       begin
         if LowPass then
         begin
-          SA := SA + A[i]*(1 - (i mod 2)*2);
-          SB := SB + B[i]*(1 - (i mod 2)*2);
+          SumA := SumA + A[i]*(1 - (i mod 2)*2);
+          SumB := SumB + B[i]*(1 - (i mod 2)*2);
         end else
         begin
-          SA := SA + A[i];
-          SB := SB + B[i];
+          SumA := SumA + A[i];
+          SumB := SumB + B[i];
         end;
       end;
-      Gain := SA/(1 - SB);
-      for i := 0 to 20 do
+      Gain := SumA/(1 - SumB);
+      for i := 0 to NumPoles do
         A[i] := A[i]/Gain;
     end;
 

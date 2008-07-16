@@ -91,9 +91,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (* Function SetKernel
-       Call this method to set the convolution kernel (impulse response function). *)
-    procedure GetKernel(var K : PSingleArray);
   published
     (* Property: FilterType
      Use this property to set the desired filter type: low-pass, high-pass, band-pass, band-reject, or all-pass. *)
@@ -443,7 +440,7 @@ implementation
       ftAllPass:
       begin
         SetLength(Kernel, FKernelWidth);
-        FillChar(Kernel[0], Length(Kernel)*SizeOf(Double), 0);
+        FillChar(Kernel[0], Length(Kernel)*SizeOf(Single), 0);
         Kernel[FKernelWidth shr 1] := 1;
       end;
     end;
@@ -594,11 +591,6 @@ implementation
     FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
-  procedure TSincFilter.GetKernel;
-  begin
-    K := @Kernel[0];
-  end;
-
   constructor TChebyshevFilter.Create;
   begin
     inherited Create(AOwner);
@@ -639,13 +631,13 @@ implementation
     i, j : Integer;
     CutOff : Single;
   begin
-    SetLength(A, 33);
-    SetLength(B, 33);
-    SetLength(A1, 33);
-    SetLength(B1, 33);
-    SetLength(A2, 33);
-    SetLength(B2, 33);
-    for i := 0 to 32 do
+    SetLength(A, FNumberOfPoles + 4);
+    SetLength(B, FNumberOfPoles + 4);
+    SetLength(A1, FNumberOfPoles + 4);
+    SetLength(B1, FNumberOfPoles + 4);
+    SetLength(A2, FNumberOfPoles + 4);
+    SetLength(B2, FNumberOfPoles + 4);
+    for i := 0 to FNumberOfPoles + 3 do
     begin
       A[i] := 0;
       B[i] := 0;
