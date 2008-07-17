@@ -45,7 +45,7 @@ type
 
   procedure CalculateSincKernelSingle(OutData : PSingleArray; CutOff : Single; Width : Integer; WType : TFilterWindowType);
 
-  procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; LowPass : Boolean; var A, B : array of Single);
+  procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; HighPass : Boolean; var A, B : array of Single);
 
   procedure SmallIntArrayToDouble(InData : PSmallInt; OutData : PDouble; DataSize : Integer);
 
@@ -960,7 +960,7 @@ end;
      Result := True;
    end;
 
-    procedure NewCascade(CutOff : Single; LowPass : Boolean; Ripple : Single; P, NumPoles : Integer; var A, B : array of Single);
+    procedure NewCascade(CutOff : Single; HighPass : Boolean; Ripple : Single; P, NumPoles : Integer; var A, B : array of Single);
     var
       ReP, ImP, ES, VX, KX, T, W, Mag, D, K, X0, X1, X2, Y1, Y2 : Single;
     begin
@@ -984,7 +984,7 @@ end;
       X2 := X0;
       Y1 := (8 - 2*Mag*Sqr(T))/D;
       Y2 := (-4 - 4*ReP*T - Mag*Sqr(T))/D;
-      if LowPass then
+      if HighPass then
         K := -cos(W/2 + 0.5)/cos(W/2 - 0.5)
       else
         K := sin(0.5 - W/2)/sin(0.5 + W/2);
@@ -994,14 +994,14 @@ end;
       A[2] := (X0*Sqr(K) - X1*K + X2)/D;
       B[0] := (2*K + Y1 + Y1*Sqr(K) - 2*Y2*K)/D;
       B[1] := (-Sqr(K) - Y1*K + Y2)/D;
-      if LowPass then
+      if HighPass then
       begin
         A[1] := -A[1];
         B[0] := -B[0];
       end;
     end;
 
-    procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; LowPass : Boolean; var A, B : array of Single);
+    procedure CalculateChebyshev(CutOff, Ripple : Single; NumPoles : Integer; HighPass : Boolean; var A, B : array of Single);
     var
       i, j, P : Integer;
       TA, TB : array of Single;
@@ -1020,7 +1020,7 @@ end;
       B[2] := 1;
       for P := 1 to NumPoles div 2 do
       begin
-        NewCascade(CutOff, LowPass, Ripple, P, NumPoles, Ax, Bx);
+        NewCascade(CutOff, HighPass, Ripple, P, NumPoles, Ax, Bx);
         for i := 0 to NumPoles + 3 do
         begin
           TA[i] := A[i];
@@ -1041,17 +1041,19 @@ end;
       end;
       SumA := 0;
       SumB := 0;
-      for i := 0 to NumPoles do
+      if HighPass then
       begin
-        if LowPass then
-        begin
+        for i := 0 to NumPoles do
           SumA := SumA + A[i]*(1 - (i mod 2)*2);
+        for i := 0 to NumPoles - 1 do
           SumB := SumB + B[i]*(1 - (i mod 2)*2);
-        end else
-        begin
+        SumB := SumB + 1;  
+      end else
+      begin
+        for i := 0 to NumPoles do
           SumA := SumA + A[i];
+        for i := 0 to NumPoles do
           SumB := SumB + B[i];
-        end;
       end;
       Gain := SumA/(1 - SumB);
       for i := 0 to NumPoles do
