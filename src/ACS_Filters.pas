@@ -96,13 +96,13 @@ type
      Use this property to set the desired filter type: low-pass, high-pass, band-pass, band-reject, or all-pass. *)
     property FilterType : TFilterType read FFilterType write SetFilterType;
     (* Property: HighFreq
-     Use this property to set the high cut-off frequency. This property applies to high-pass, band-pass, and band-reject filters and should always (even for low-pass) be greater than <LowFreq>. *)
+     Use this property to set the high cut-off frequency. This property applies to high-pass, band-pass, and band-reject filters. *)
     property HighFreq : Integer read FHighFreq write SetHighFreq;
     (* Property: KernelWidth
      Use this property to set the number of points in the filter kernel. *)
     property KernelWidth : Integer read FKernelWidth write SetKernelWidth;
     (* Property: LowFreq
-     Use this property to set the low cut-off frequency. This property applies to low-pass, band-pass, and band-reject filters and should always (even for high-pass) be less than <HighFreq>. *)
+     Use this property to set the low cut-off frequency. This property applies to low-pass, band-pass, and band-reject filters. *)
     property LowFreq : Integer read FLowFreq write SetLowFreq;
     (* Property: WindowType
      Use this property to set the type of the window applied to the filter kernel. *)
