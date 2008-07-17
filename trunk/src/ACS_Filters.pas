@@ -145,7 +145,7 @@ type
     property FilterType : TFilterType read FFilterType write FFilterType;
    (* Property: NumberOfPoles
      Use this property to set the number of poles for the filter.
-     Allowed values are 2, 4, 6 ... 12. Note that filters with high number of poles may become unstable in which case their operation results in floating pointoverflow. *)
+     Allowed values are 2, 4, 6 ... 16. Note that filters with high number of poles may become unstable in which case their operation results in floating pointoverflow. *)
     property NumberOfPoles : Word read FNumberOfPoles write SetNumPoles;
    (* Property: HighFreq
      Use this property to set the high cut-off frequency. This property applies to high-pass, band-pass, and band-reject filters.
@@ -856,7 +856,7 @@ implementation
   procedure TChebyshevFilter.SetNumPoles(NP : Word);
   begin
     FNumberOfPoles := ((NP + 1) shr 1)*2;
-    if FNumberOfPoles > 12 then FNumberOfPoles := 12;
+    if FNumberOfPoles > 16 then FNumberOfPoles := 16;
   end;
 
 
