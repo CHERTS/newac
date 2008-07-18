@@ -186,6 +186,32 @@ type
   end;
 
 
+  TFastResampler = class(TAuConverter)
+  private
+    A, B : array of Single;
+    X, Y : array[0..7] of array of Single;
+    IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
+    FOutSampleRate : Word;
+    offsX, OffsY : Integer;
+    InputBuffer : array of Single;
+    SampleSize, FrameSize, SamplesInFrame : Word;
+    _Buffer : array of Byte;
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property OutSampleRate : Word read FOutSampleRate write FOutSampleRate;
+  end;
+
+
+
 
   (* Class: TAudioConverter
      Descends from <TAuConverter>. TAudioConverter component may be used for
@@ -1387,6 +1413,246 @@ implementation
     end;
     Busy := False;
   end;
+
+  constructor TFastResampler.Create;
+  begin
+    inherited Create(AOwner);
+  end;
+
+  destructor TFastResampler.Destroy;
+  begin
+    Inherited Destroy;
+  end;
+
+  function TFastResampler.GetBPS;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.BitsPerSample;
+  end;
+
+  function TFastResampler.GetCh;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Result := FInput.Channels;
+  end;
+
+  function TFastResampler.GetSR;
+  begin
+    if not Assigned(Input) then
+    raise EAuException.Create('Input is not assigned');
+    Result := FOutSampleRate;
+  end;
+
+  procedure TFastResampler.InitInternal;
+  var
+    i : Integer;
+    k : Single;
+  const
+    NP : Integer = 8;
+  procedure Swap(var S1, S2 : Single);
+  var
+    Tmp : Single;
+  begin
+    Tmp := S1;
+    S1 := S2;
+    S2 := Tmp;
+  end;
+  begin
+    if not Assigned(Input) then
+      raise EAuException.Create('Input is not assigned');
+    Busy := True;
+    FInput.Init;
+    SampleSize := FInput.BitsPerSample div 8;
+    FrameSize := SampleSize*FInput.Channels;
+    SamplesInFrame := Finput.Channels;
+    FPosition := 0;
+    IFrames := FInput.SampleRate div 5;
+    OFrames := FOutSampleRate div 5;
+    ISize := IFrames*FrameSize;
+    OSize := OFrames*FrameSize;
+    if OFrames > IFrames then
+      MaxFrames := OFrames
+    else
+      MaxFrames := IFrames;
+    MaxSize := MaxFrames*FrameSize;
+    SetLength(_Buffer, MaxSize);
+    SetLength(InputBuffer, MaxFrames*SamplesInFrame);
+    if ISize > OSize then
+      k := OSize/ISize
+    else
+      k := ISize/OSize;
+    SetLength(A, NP + 4);
+    SetLength(B, NP + 4);
+    for i := 0 to NP + 3 do
+    begin
+      A[i] := 0;
+      B[i] := 0;
+    end;
+    CalculateChebyshev(0.7*k/2, 10, NP, False, A, B);
+    SetLength(A, NP + 1);
+    SetLength(B, NP);
+
+    SetLength(A, 1);
+    SetLength(B, 1);
+    A[0] := 0.14;
+    B[0] := 0.86;
+    for i := 0 to Length(A) div 2 -1 do
+      Swap(A[i], A[Length(A) - i -1]);
+    for i := 0 to Length(B) div 2 -1 do
+      Swap(B[i], B[Length(B) - i -1]);
+    OffsX := Length(A) - 1;
+    OffsY := Length(B);
+    for i := 0 to SamplesInFrame - 1 do
+    begin
+      SetLength(X[i], MaxFrames*SampleSize + OffsX);
+      FillChar(X[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y[i], MaxFrames*SampleSize + OffsY);
+      FillChar(Y[i][0], OffsY*SizeOf(Single), 0);
+    end;
+    BufStart := 0;
+    BufEnd := 0;
+    if FInput.Size > 0 then
+      FSize := Round(FInput.Size*OSize/ISize)
+    else
+      FSize := FInput.Size;
+  end;
+
+  procedure TFastResampler.FlushInternal;
+  var
+    i : Integer;
+  begin
+    FInput.Flush;
+    SetLength(_Buffer, 0);
+    SetLength(InputBuffer, 0);
+    for i := 0 to SamplesInFrame - 1 do
+    begin
+      SetLength(X[i], 0);
+      SetLength(Y[i], 0);
+    end;
+    Busy := False;
+  end;
+
+  procedure TFastResampler.GetDataInternal;
+  var
+    i, j, k, SamplesRead, FramesRead, Residue : Integer;
+    P : PBufferSingle;
+    Acc : Single;
+    EOF : Boolean;
+  begin
+    if not Busy then  raise EAuException.Create('The Stream is not opened');
+    if BufStart >= BufEnd then
+    begin
+      BufStart := 0;
+      BufEnd := FInput.FillBuffer(@_Buffer[0], ISize, EOF);
+      if BufEnd = 0 then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;
+      SamplesRead := BufEnd div SampleSize;
+      FramesRead := BufEnd div FrameSize;
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : ByteToSingle(PBuffer8(_Buffer), P, SamplesRead);
+        2 : SmallIntToSingle(PBuffer16(_Buffer), P, SamplesRead);
+        3 : Int24ToSingle(PBuffer8(_Buffer), PBufferSingle(P), SamplesRead);
+        4 : Int32ToSingle(PBuffer32(_Buffer), PBufferSingle(P), SamplesRead);
+      end;
+      if OSize > ISize then
+      begin
+        k := 0;
+        i := 0;
+        Residue := 0;
+        while i < SamplesRead do
+        begin
+          Residue := Residue - ISize;
+          if Residue >= 0 then
+          begin
+            X[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := 0; //Random(1)*0.05;
+          end else
+          begin
+            X[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i];
+            Inc(i);
+            Residue := Residue + OSize;
+          end;
+          Inc(k);
+        end; // while i < SamplesRead do
+        SamplesRead := k;
+        FramesRead := SamplesRead div SamplesInFrame;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
+            Y[j][i + OffsY] := Acc;
+          end;
+        for i := OffsY to FramesRead + OffsY -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+             InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X[j][i] := X[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y[j][i] := Y[j][i + FramesRead];
+        end;
+      end else // if OSize > ISize then
+      begin
+        for i := 0 to SamplesRead -1 do
+          X[i mod SamplesInFrame][OffsX + i div SamplesInFrame] := InputBuffer[i];
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
+            Y[j][i + OffsY] := Acc;
+          end;
+        i := OffsY;
+        k := 0;
+        Residue := 0;
+        while i < FramesRead + OffsY do
+        begin
+          Residue := Residue - OSize;
+          if Residue < 0 then
+          begin
+            for j :=  0 to SamplesInFrame - 1 do
+              InputBuffer[k*SamplesInFrame + j] :=  Y[j][i];
+            Residue := Residue + ISize;
+            Inc(k);
+          end;
+          Inc(i);
+        end; // while i < FramesRead + OffsY do
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X[j][i] := X[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y[j][i] := Y[j][i + FramesRead];
+        end;
+        FramesRead := k;
+        SamplesRead :=  FramesRead*SamplesInFrame;
+      end; // if OSize > ISize then ... else
+      P := PBufferSingle(@InputBuffer[0]);
+      case SampleSize of
+        1 : SingleToByte(P, PBuffer8(_Buffer), SamplesRead);
+        2 : SingleToSmallInt(P, PBuffer16(_Buffer), SamplesRead);
+        3 : SingleToInt24(P, PBuffer8(_Buffer), SamplesRead);
+        4 : SingleToInt32(P, PBuffer32(_Buffer), SamplesRead);
+      end;
+      BufEnd := SamplesRead*SampleSize;
+    end; // if BufStart >= BufEnd then
+    if Bytes > (BufEnd - BufStart) then
+      Bytes := BufEnd - BufStart;
+    Buffer := @_Buffer[BufStart];
+    Inc(BufStart, Bytes);
+    FPosition := Round(FInput.Position*(FSize/FInput.Size));
+  end;
+
 
 {$WARNINGS ON}
 
