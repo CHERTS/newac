@@ -162,6 +162,8 @@ type
 
   function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
 
+  function GCD(a, b : Integer) : Integer;
+
 implementation
 
 {$IFDEF LINUX}
@@ -1059,6 +1061,22 @@ end;
       for i := 0 to NumPoles do
         A[i] := A[i]/Gain;
     end;
+
+  function GCD(a, b : Integer) : Integer;
+  var
+    p, q, r : Integer;
+  begin
+    p := a;
+    q := b;
+    r := p mod q;
+    while r <> 0 do
+    begin
+      p := q;
+      q := r;
+      r := p mod q;
+    end;
+    Result := q;
+  end;
 
 
 end.
