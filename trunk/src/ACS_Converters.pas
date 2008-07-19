@@ -189,7 +189,10 @@ type
   TFastResampler = class(TAuConverter)
   private
     A, B : array of Single;
-    X, Y : array[0..7] of array of Single;
+    X0, Y0 : array[0..7] of array of Single;
+    X1, Y1 : array[0..7] of array of Single;
+    X2, Y2 : array[0..7] of array of Single;
+    X3, Y3 : array[0..7] of array of Single;
     IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
     FOutSampleRate : Word;
     offsX, OffsY : Integer;
@@ -1448,9 +1451,9 @@ implementation
   procedure TFastResampler.InitInternal;
   var
     i : Integer;
-    k : Single;
+    k, alpha : Single;
   const
-    NP : Integer = 8;
+    NP : Integer = 4;
   procedure Swap(var S1, S2 : Single);
   var
     Tmp : Single;
@@ -1479,25 +1482,32 @@ implementation
     MaxSize := MaxFrames*FrameSize;
     SetLength(_Buffer, MaxSize);
     SetLength(InputBuffer, MaxFrames*SamplesInFrame);
-    if ISize > OSize then
+      if ISize > OSize then
       k := OSize/ISize
     else
       k := ISize/OSize;
-    SetLength(A, NP + 4);
+     SetLength(A, NP + 4);
     SetLength(B, NP + 4);
     for i := 0 to NP + 3 do
     begin
       A[i] := 0;
       B[i] := 0;
     end;
-    CalculateChebyshev(0.7*k/2, 10, NP, False, A, B);
+    CalculateChebyshev(0.85*k/2, 10, NP, False, A, B);
     SetLength(A, NP + 1);
     SetLength(B, NP);
 
+(*    k := OSize/ISize;
+    if k < 0.5 then k := 1/k;
+    alpha := (k - 0.5)/k;
+    if alpha < 0 then
+      alpha := (1 + alpha)
+    else
+      alpha := alpha/k;
     SetLength(A, 1);
     SetLength(B, 1);
-    A[0] := 0.14;
-    B[0] := 0.86;
+    A[0] := 1 - alpha;
+    B[0] := alpha; *)
     for i := 0 to Length(A) div 2 -1 do
       Swap(A[i], A[Length(A) - i -1]);
     for i := 0 to Length(B) div 2 -1 do
@@ -1506,10 +1516,22 @@ implementation
     OffsY := Length(B);
     for i := 0 to SamplesInFrame - 1 do
     begin
-      SetLength(X[i], MaxFrames*SampleSize + OffsX);
-      FillChar(X[i][0], OffsX*SizeOf(Single), 0);
-      SetLength(Y[i], MaxFrames*SampleSize + OffsY);
-      FillChar(Y[i][0], OffsY*SizeOf(Single), 0);
+      SetLength(X0[i], MaxFrames*SampleSize + OffsX);
+      FillChar(X0[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y0[i], MaxFrames*SampleSize + OffsY);
+      FillChar(Y0[i][0], OffsY*SizeOf(Single), 0);
+      SetLength(X1[i], MaxFrames*SampleSize + OffsX);
+      FillChar(X1[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y1[i], MaxFrames*SampleSize + OffsY);
+      FillChar(Y1[i][0], OffsY*SizeOf(Single), 0);
+      SetLength(X2[i], MaxFrames*SampleSize + OffsX);
+      FillChar(X2[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y2[i], MaxFrames*SampleSize + OffsY);
+      FillChar(Y2[i][0], OffsY*SizeOf(Single), 0);
+      SetLength(X3[i], MaxFrames*SampleSize + OffsX);
+      FillChar(X3[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y3[i], MaxFrames*SampleSize + OffsY);
+      FillChar(Y3[i][0], OffsY*SizeOf(Single), 0);
     end;
     BufStart := 0;
     BufEnd := 0;
@@ -1528,8 +1550,14 @@ implementation
     SetLength(InputBuffer, 0);
     for i := 0 to SamplesInFrame - 1 do
     begin
-      SetLength(X[i], 0);
-      SetLength(Y[i], 0);
+      SetLength(X0[i], 0);
+      SetLength(Y0[i], 0);
+      SetLength(X1[i], 0);
+      SetLength(Y1[i], 0);
+      SetLength(X2[i], 0);
+      SetLength(Y2[i], 0);
+      SetLength(X3[i], 0);
+      SetLength(Y3[i], 0);
     end;
     Busy := False;
   end;
@@ -1571,10 +1599,10 @@ implementation
           Residue := Residue - ISize;
           if Residue >= 0 then
           begin
-            X[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := 0; //Random(1)*0.05;
+            X0[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i]; //Random(1)*0.05;
           end else
           begin
-            X[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i];
+            X0[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i];
             Inc(i);
             Residue := Residue + OSize;
           end;
@@ -1586,31 +1614,139 @@ implementation
           for j :=  0 to SamplesInFrame - 1 do
           begin
             Acc := 0;
-            MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
-            MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
-            Y[j][i + OffsY] := Acc;
+            MultAndSumSingleArrays(@(X0[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y0[j][i]), @B[0], Acc, OffsY);
+            Y0[j][i + OffsY] := Acc;
           end;
-        for i := OffsY to FramesRead + OffsY -1 do
+        for i := 0 to FramesRead -1 do
           for j :=  0 to SamplesInFrame - 1 do
-             InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i];
+            X1[j][OffsX + i] := Y0[j][OffsY + i];
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
-            X[j][i] := X[j][i + FramesRead];
+              X0[j][i] := X0[j][i + FramesRead];
           for i := 0 to OffsY - 1 do
-            Y[j][i] := Y[j][i + FramesRead];
+            Y0[j][i] := Y0[j][i + FramesRead];
         end;
-      end else // if OSize > ISize then
-      begin
-        for i := 0 to SamplesRead -1 do
-          X[i mod SamplesInFrame][OffsX + i div SamplesInFrame] := InputBuffer[i];
         for i := 0 to FramesRead -1 do
           for j :=  0 to SamplesInFrame - 1 do
           begin
             Acc := 0;
-            MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
-            MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
-            Y[j][i + OffsY] := Acc;
+            MultAndSumSingleArrays(@(X1[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y1[j][i]), @B[0], Acc, OffsY);
+            Y1[j][i + OffsY] := Acc;
+          end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+            X2[j][OffsX + i] := Y1[j][OffsY + i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X1[j][i] := X1[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y1[j][i] := Y1[j][i + FramesRead];
+        end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X2[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y2[j][i]), @B[0], Acc, OffsY);
+            Y2[j][i + OffsY] := Acc;
+          end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+            X3[j][OffsX + i] := Y2[j][OffsY + i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X2[j][i] := X2[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y2[j][i] := Y2[j][i + FramesRead];
+        end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X3[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y3[j][i]), @B[0], Acc, OffsY);
+            Y3[j][i + OffsY] := Acc;
+          end;
+        for i := OffsY to FramesRead + OffsY -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+             InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y3[j][i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X3[j][i] := X3[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y3[j][i] := Y3[j][i + FramesRead];
+        end;
+      end else // if OSize > ISize then
+      begin
+        for i := 0 to SamplesRead -1 do
+          X0[i mod SamplesInFrame][OffsX + i div SamplesInFrame] := InputBuffer[i];
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X0[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y0[j][i]), @B[0], Acc, OffsY);
+            Y0[j][i + OffsY] := Acc;
+          end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+            X1[j][OffsX + i] := Y0[j][OffsY + i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+              X0[j][i] := X0[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y0[j][i] := Y0[j][i + FramesRead];
+        end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X1[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y1[j][i]), @B[0], Acc, OffsY);
+            Y1[j][i + OffsY] := Acc;
+          end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+            X2[j][OffsX + i] := Y1[j][OffsY + i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X1[j][i] := X1[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y1[j][i] := Y1[j][i + FramesRead];
+        end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X2[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y2[j][i]), @B[0], Acc, OffsY);
+            Y2[j][i + OffsY] := Acc;
+          end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+            X3[j][OffsX + i] := Y2[j][OffsY + i];
+        for j :=  0 to SamplesInFrame - 1 do
+        begin
+          for i := 0 to OffsX - 1 do
+            X2[j][i] := X2[j][i + FramesRead];
+          for i := 0 to OffsY - 1 do
+            Y2[j][i] := Y2[j][i + FramesRead];
+        end;
+        for i := 0 to FramesRead -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            Acc := 0;
+            MultAndSumSingleArrays(@(X3[j][i]), @A[0], Acc, OffsX + 1);
+            MultAndSumSingleArrays(@(Y3[j][i]), @B[0], Acc, OffsY);
+            Y3[j][i + OffsY] := Acc;
           end;
         i := OffsY;
         k := 0;
@@ -1621,7 +1757,7 @@ implementation
           if Residue < 0 then
           begin
             for j :=  0 to SamplesInFrame - 1 do
-              InputBuffer[k*SamplesInFrame + j] :=  Y[j][i];
+              InputBuffer[k*SamplesInFrame + j] :=  Y3[j][i];// + (Random-0.5)*0.04;
             Residue := Residue + ISize;
             Inc(k);
           end;
@@ -1630,9 +1766,9 @@ implementation
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
-            X[j][i] := X[j][i + FramesRead];
+            X3[j][i] := X3[j][i + FramesRead];
           for i := 0 to OffsY - 1 do
-            Y[j][i] := Y[j][i + FramesRead];
+            Y3[j][i] := Y3[j][i + FramesRead];
         end;
         FramesRead := k;
         SamplesRead :=  FramesRead*SamplesInFrame;
