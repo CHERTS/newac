@@ -110,13 +110,15 @@ type
   end;
 
   (* Class: TChebyshevFilter
-    This component implements Chebyshev or  Butterworth filters (see the descri[ton below).
+    This component implements Chebyshev or  Butterworth filters (see the description below).
     A descendant of <TAuConverter>. *)
 
   TChebyshevFilter = class(TAuConverter)
   private
     A, B : array of Single;
     X, Y : array[0..7] of array of Single;
+    A1, B1 : array of Single;
+    X1, Y1 : array[0..7] of array of Single;
     FRipple : Single;
     FHighFreq, FLowFreq : Word;
     FNumberOfPoles  : Word;
@@ -627,7 +629,6 @@ implementation
 
   procedure TChebyshevFilter.CalculateFilter;
   var
-    A1, B1, A2, B2 : array of Single;
     i, j : Integer;
     CutOff : Single;
   begin
@@ -635,16 +636,12 @@ implementation
     SetLength(B, FNumberOfPoles + 4);
     SetLength(A1, FNumberOfPoles + 4);
     SetLength(B1, FNumberOfPoles + 4);
-    SetLength(A2, FNumberOfPoles + 4);
-    SetLength(B2, FNumberOfPoles + 4);
     for i := 0 to FNumberOfPoles + 3 do
     begin
       A[i] := 0;
       B[i] := 0;
       A1[i] := 0;
       B1[i] := 0;
-      A2[i] := 0;
-      B2[i] := 0;
     end;
     case FFilterType of
       ftLowpass :
@@ -668,70 +665,32 @@ implementation
       ftBandPass:
       begin
         CutOff := FLowFreq/FInput.SampleRate;
-        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A1, B1);
+        if CutOff >= 0.5 then
+          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A, B);
+        SetLength(A, FNumberOfPoles +1);
+        SetLength(B, FNumberOfPoles);
+        CutOff := FHighFreq/FInput.SampleRate;
+        if CutOff >= 0.5 then
+          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A1, B1);
         SetLength(A1, FNumberOfPoles +1);
         SetLength(B1, FNumberOfPoles);
-        CutOff := FHighFreq/FInput.SampleRate;
-        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A2, B2);
-        SetLength(A2, FNumberOfPoles +1);
-        SetLength(B2, FNumberOfPoles);
-        SetLength(A, Length(A1) + Length(A2) - 1);
-        for i := 0 to Length(A) - 1 do
-          A[i] := 0;
-        for i := 0 to Length(A2) - 1 do
-          for j := 0 to Length(A1) - 1 do
-            A[i + j] := A[i + j] + A1[i]*A2[j];
-        SetLength(B1, Length(B1) +1);
-        SetLength(B2, Length(B2) +1);
-        SetLength(B, Length(B1) + Length(B2) - 1);
-        for i := 0 to Length(B) - 1 do
-          B[i] := 0;
-
-        for i := Length(B1) - 1 downto 0  do
-        begin
-          B1[i] := -B1[i-1];
-          B2[i] := -B2[i-1];
-        end;
-        B1[0] := 1;
-        B2[0] := 1;
-        for i := 0 to Length(B1) - 1 do
-          for j := 0 to Length(B2) - 1 do
-            B[i + j] := B[i + j] + B1[i]*B2[j];
-        for i := 0 to Length(B) - 1 do
-          B[i] := -B[i];
-        B[0] := 0;
       end;
       ftBandReject:
       begin
-        FFilterType := ftLowpass;
-        CalculateFilter;
-        SetLength(A1, Length(A));
-        for i := 0  to Length(A) - 1 do
-          A1[i] := A[i];
-        SetLength(B1, Length(B));
-        for i := 0  to Length(B) - 1 do
-          B1[i] := B[i];
-        FFilterType := ftHighPass;
-        CalculateFilter;
-        SetLength(A2, Length(A));
-        for i := 0  to Length(A) - 1 do
-          A2[i] := A[i];
-        SetLength(B2, Length(B));
-        for i := 0  to Length(B) - 1 do
-          B2[i] := B[i];
-        FFilterType := ftBandReject;
-        SetLength(A, Length(A)*2);
-        for i := 0 to Length(A) - 1 do
-          A[i] := 0;
-        for i := 0 to Length(A1) - 1 do
-          for j := 0 to Length(B2) - 1 do
-            A[i + j] := A[i + j] + A1[i]*B2[j] + A2[i]*B1[j];
-        SetLength(B, Length(B)*2);
-        for i := 0 to Length(B) - 1 do
-          B[i] := 0;
-        for i := 0 to Length(B) div 2 - 1 do
-          for j := 0 to Length(B) div 2 - 1 do
-            B[i + j] := B[i + j] + B1[i]*B2[j];
+        CutOff := FLowFreq/FInput.SampleRate;
+        if CutOff >= 0.5 then
+          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A, B);
+        SetLength(A, FNumberOfPoles +1);
+        SetLength(B, FNumberOfPoles);
+        CutOff := FHighFreq/FInput.SampleRate;
+        if CutOff >= 0.5 then
+          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+        CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A1, B1);
+        SetLength(A1, FNumberOfPoles +1);
+        SetLength(B1, FNumberOfPoles);
       end;
     end;
   end;
@@ -763,14 +722,22 @@ implementation
       Swap(A[i], A[Length(A) - i -1]);
     for i := 0 to Length(B) div 2 -1 do
       Swap(B[i], B[Length(B) - i -1]);
-     OffsX := Length(A) - 1;
+    OffsX := Length(A) - 1;
     OffsY := Length(B);
+    for i := 0 to Length(A1) div 2 -1 do
+      Swap(A1[i], A1[Length(A1) - i -1]);
+    for i := 0 to Length(B1) div 2 -1 do
+      Swap(B1[i], B1[Length(B1) - i -1]);
     for i := 0 to SamplesInFrame - 1 do
     begin
       SetLength(X[i], BufSize div SampleSize + OffsX);
       FillChar(X[i][0], OffsX*SizeOf(Single), 0);
       SetLength(Y[i], BufSize div SampleSize + OffsY);
       FillChar(Y[i][0], OffsY*SizeOf(Single), 0);
+      SetLength(X1[i], BufSize div SampleSize + OffsX);
+      FillChar(X1[i][0], OffsX*SizeOf(Single), 0);
+      SetLength(Y1[i], BufSize div SampleSize + OffsY);
+      FillChar(Y1[i][0], OffsY*SizeOf(Single), 0);
     end;
     BufStart := 0;
     BufEnd := 0;
@@ -788,6 +755,8 @@ implementation
     begin
       SetLength(X[i], 0);
       SetLength(Y[i], 0);
+      SetLength(X1[i], 0);
+      SetLength(Y1[i], 0);
     end;
     Busy := False;
   end;
@@ -820,23 +789,105 @@ implementation
       end;
       for i := 0 to SamplesRead -1 do
         X[i mod SamplesInFrame][OffsX + i div SamplesInFrame] := InputBuffer[i];
-      for i := 0 to FramesRead -1 do
-        for j :=  0 to SamplesInFrame - 1 do
+      case FilterType of
+        ftLowPass, ftHighPass:
         begin
-          Acc := 0;
-          MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
-          MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
-          Y[j][i + OffsY] := Acc;
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+            begin
+              Acc := 0;
+              MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
+              MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
+              Y[j][i + OffsY] := Acc;
+            end;
+          for i := OffsY to FramesRead + OffsY -1 do
+          for j :=  0 to SamplesInFrame - 1 do
+            InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i];
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            for i := 0 to OffsX - 1 do
+              X[j][i] := X[j][i + FramesRead];
+            for i := 0 to OffsY - 1 do
+              Y[j][i] := Y[j][i + FramesRead];
+          end;
         end;
-      for i := OffsY to FramesRead + OffsY -1 do
-        for j :=  0 to SamplesInFrame - 1 do
-          InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i];
-      for j :=  0 to SamplesInFrame - 1 do
-      begin
-        for i := 0 to OffsX - 1 do
-          X[j][i] := X[j][i + FramesRead];
-        for i := 0 to OffsY - 1 do
-          Y[j][i] := Y[j][i + FramesRead];
+        ftBandPass :
+        begin
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+            begin
+              Acc := 0;
+              MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
+              MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
+              Y[j][i + OffsY] := Acc;
+            end;
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+              X1[j][i + OffsX] := Y[j][i + OffsY];
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            for i := 0 to OffsX - 1 do
+              X[j][i] := X[j][i + FramesRead];
+            for i := 0 to OffsY - 1 do
+              Y[j][i] := Y[j][i + FramesRead];
+          end;
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+            begin
+              Acc := 0;
+              MultAndSumSingleArrays(@(X1[j][i]), @A1[0], Acc, OffsX + 1);
+              MultAndSumSingleArrays(@(Y1[j][i]), @B1[0], Acc, OffsY);
+              Y1[j][i + OffsY] := Acc;
+            end;
+          for i := OffsY to FramesRead + OffsY -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+              InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y1[j][i];
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            for i := 0 to OffsX - 1 do
+              X1[j][i] := X1[j][i + FramesRead];
+            for i := 0 to OffsY - 1 do
+              Y1[j][i] := Y1[j][i + FramesRead];
+          end;
+        end;
+        ftBandReject :
+        begin
+          for i := OffsX to FramesRead + OffsX - 1 do
+            for j :=  0 to SamplesInFrame - 1 do
+              X1[j][i] := X[j][i];
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+            begin
+              Acc := 0;
+              MultAndSumSingleArrays(@(X[j][i]), @A[0], Acc, OffsX + 1);
+              MultAndSumSingleArrays(@(Y[j][i]), @B[0], Acc, OffsY);
+              Y[j][i + OffsY] := Acc;
+            end;
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+            begin
+              Acc := 0;
+              MultAndSumSingleArrays(@(X1[j][i]), @A1[0], Acc, OffsX + 1);
+              MultAndSumSingleArrays(@(Y1[j][i]), @B1[0], Acc, OffsY);
+              Y1[j][i + OffsY] := Acc;
+            end;
+          for i := OffsY to FramesRead + OffsY -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+              InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y[j][i] + Y1[j][i];
+          for j :=  0 to SamplesInFrame - 1 do
+          begin
+            for i := 0 to OffsX - 1 do
+            begin
+              X[j][i] := X[j][i + FramesRead];
+              X1[j][i] := X1[j][i + FramesRead];
+            end;
+            for i := 0 to OffsY - 1 do
+            begin
+              Y[j][i] := Y[j][i + FramesRead];
+              Y1[j][i] := Y1[j][i + FramesRead];
+            end;
+          end;
+        end;
       end;
       P := PBufferSingle(@InputBuffer[0]);
       case SampleSize of
