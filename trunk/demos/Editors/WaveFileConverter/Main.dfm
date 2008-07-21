@@ -266,13 +266,6 @@ object Form1: TForm1
     Left = 256
     Top = 224
   end
-  object Resampler1: TResampler
-    Input = WaveIn1
-    Quality = rqBest
-    OutSampleRate = 44100
-    Left = 320
-    Top = 224
-  end
   object WaveOut1: TWaveOut
     Input = AudioConverter1
     OnDone = WaveOut1Done
@@ -286,11 +279,17 @@ object Form1: TForm1
     Top = 224
   end
   object AudioConverter1: TAudioConverter
-    Input = Resampler1
+    Input = FastResampler1
     Mode = msmMonoToBoth
     OutBitsPerSample = 0
     OutChannels = 0
     Left = 352
+    Top = 224
+  end
+  object FastResampler1: TFastResampler
+    Input = WaveIn1
+    OutSampleRate = 22050
+    Left = 320
     Top = 224
   end
 end

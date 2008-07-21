@@ -47,12 +47,12 @@ type
     SpinEdit3: TSpinEdit;
     Edit1: TEdit;
     ComboBox1: TComboBox;
-    Resampler1: TResampler;
     Button4: TButton;
     ProgressBar1: TProgressBar;
     WaveOut1: TWaveOut;
     AudioConverter1: TAudioConverter;
     StatusBar1: TStatusBar;
+    FastResampler1: TFastResampler;
     procedure Button3Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
     procedure Button1Click(Sender: TObject);
@@ -94,7 +94,7 @@ begin
       AudioConverter1.OutBitsPerSample := BPS;
     if WaveIn1.Channels <> Ch then
       AudioConverter1.OutChannels := Ch;
-    Resampler1.OutSampleRate := StrToInt(Edit1.Text);
+    FastResampler1.OutSampleRate := StrToInt(Edit1.Text);
     case ComboBox1.ItemIndex of
       0 : WaveOut1.WavType := wtPCM;
       1 : WaveOut1.WavType := wtDVIADPCM;
