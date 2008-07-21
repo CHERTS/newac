@@ -15,7 +15,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Spin, ACS_Classes, ACS_Wave, ACS_Converters, ComCtrls,
-  AuSampleRate, ACS_WinMedia;
+  ACS_WinMedia;
 
 type
   TForm1 = class(TForm)
