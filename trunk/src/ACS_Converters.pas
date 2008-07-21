@@ -1127,21 +1127,9 @@ implementation
       A[i] := 0;
       B[i] := 0;
     end;
-    CalculateChebyshev(0.85*k/2, 10, NP, False, A, B);
+    CalculateChebyshev(0.85*k/2, 5, NP, False, A, B);
     SetLength(A, NP + 1);
     SetLength(B, NP);
-
-(*    k := OSize/ISize;
-    if k < 0.5 then k := 1/k;
-    alpha := (k - 0.5)/k;
-    if alpha < 0 then
-      alpha := (1 + alpha)
-    else
-      alpha := alpha/k;
-    SetLength(A, 1);
-    SetLength(B, 1);
-    A[0] := 1 - alpha;
-    B[0] := alpha; *)
     for i := 0 to Length(A) div 2 -1 do
       Swap(A[i], A[Length(A) - i -1]);
     for i := 0 to Length(B) div 2 -1 do
