@@ -145,6 +145,7 @@ type
 
   TFastResampler = class(TAuConverter)
   private
+    FPassThrough : Boolean;
     A, B : array of Single;
     X0, Y0 : array[0..7] of array of Single;
     X1, Y1 : array[0..7] of array of Single;
@@ -1109,6 +1110,18 @@ implementation
     OFrames := FOutSampleRate div 5;
     ISize := IFrames*FrameSize;
     OSize := OFrames*FrameSize;
+    BufStart := 0;
+    BufEnd := 0;
+    if FInput.Size > 0 then
+      FSize := Round(FInput.Size*OSize/ISize)
+    else
+      FSize := FInput.Size;
+    if OSize = ISize then
+    begin
+      FPassThrough := True;
+      Exit;
+    end else
+      FPassThrough := False;
     if OFrames > IFrames then
       MaxFrames := OFrames
     else
@@ -1155,12 +1168,6 @@ implementation
       SetLength(Y3[i], MaxFrames*SampleSize + OffsY);
       FillChar(Y3[i][0], OffsY*SizeOf(Single), 0);
     end;
-    BufStart := 0;
-    BufEnd := 0;
-    if FInput.Size > 0 then
-      FSize := Round(FInput.Size*OSize/ISize)
-    else
-      FSize := FInput.Size;
   end;
 
   procedure TFastResampler.FlushInternal;
@@ -1191,6 +1198,11 @@ implementation
     Acc : Single;
     EOF : Boolean;
   begin
+    if FPassThrough then
+    begin
+      FInput.GetData(Buffer, Bytes);
+      Exit;
+    end;
     if not Busy then  raise EAuException.Create('The Stream is not opened');
     if BufStart >= BufEnd then
     begin
