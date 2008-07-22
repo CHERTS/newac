@@ -1252,9 +1252,8 @@ implementation
             MultAndSumSingleArrays(@(Y0[j][i]), @B[0], Acc, OffsY);
             Y0[j][i + OffsY] := Acc;
           end;
-        for i := 0 to FramesRead -1 do
-          for j :=  0 to SamplesInFrame - 1 do
-            X1[j][OffsX + i] := Y0[j][OffsY + i];
+        for j := 0 to SamplesInFrame - 1 do
+          Move(Y0[j][OffsY], X1[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1270,9 +1269,8 @@ implementation
             MultAndSumSingleArrays(@(Y1[j][i]), @B[0], Acc, OffsY);
             Y1[j][i + OffsY] := Acc;
           end;
-        for i := 0 to FramesRead -1 do
-          for j :=  0 to SamplesInFrame - 1 do
-            X2[j][OffsX + i] := Y1[j][OffsY + i];
+        for j := 0 to SamplesInFrame - 1 do
+          Move(Y1[j][OffsY], X2[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1288,9 +1286,8 @@ implementation
             MultAndSumSingleArrays(@(Y2[j][i]), @B[0], Acc, OffsY);
             Y2[j][i + OffsY] := Acc;
           end;
-        for i := 0 to FramesRead -1 do
-          for j :=  0 to SamplesInFrame - 1 do
-            X3[j][OffsX + i] := Y2[j][OffsY + i];
+        for j := 0 to SamplesInFrame - 1 do
+          Move(Y2[j][OffsY], X3[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
