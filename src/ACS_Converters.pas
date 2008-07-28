@@ -1303,9 +1303,20 @@ implementation
             MultAndSumSingleArrays(@(Y3[j][i]), @B[0], Acc, OffsY);
             Y3[j][i + OffsY] := Acc;
           end;
-        for i := OffsY to FramesRead + OffsY -1 do
-          for j :=  0 to SamplesInFrame - 1 do
-             InputBuffer[(i - OffsY)*SamplesInFrame + j] :=  Y3[j][i];
+        if (Frac(OSize/ISize) > 0.01) then
+        begin
+          for i := OffsY to FramesRead + OffsY -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+            begin
+               Y3[j][i] := Y3[j][i]*0.25 + Y3[j][i-1]*0.75;
+               InputBuffer[(i - OffsY)*SamplesInFrame + j] := Y3[j][i];
+            end;
+        end else
+        begin
+          for i := OffsY to FramesRead + OffsY -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+               InputBuffer[(i - OffsY)*SamplesInFrame + j] := Y3[j][i];
+        end;
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do

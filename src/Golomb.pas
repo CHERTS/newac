@@ -31,6 +31,9 @@ type
 
 implementation
 
+const
+    MAX_M = 512;
+
 function ReadBit(var Offset : LongWord; Source : PArrayOfByte) : Byte;
 var
   mask : Byte;
@@ -168,10 +171,10 @@ begin
   for i := 0 to DataLength-1 do
     if (Abs(Data[i]) > max) then
       max := Abs(Data[i]);
-  if max-1 < 256 then
+  if max-1 < MAX_M then
     NewM := max-1
   else
-    NewM := 256;
+    NewM := MAX_M;
   if NewM <= 0 then NewM := 1;
   clm := Ceil(Log2(NewM));
   for i := 0 to DataLength -1 do
