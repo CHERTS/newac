@@ -1231,7 +1231,7 @@ implementation
       begin
         k := 0;
         i := 0;
-        Residue := MaxSize - ISize;
+        Residue := 0;
         while i < FramesRead do
         begin
           Residue := Residue - ISize;
@@ -1240,7 +1240,7 @@ implementation
           if Residue < 0 then
           begin
             Inc(i);
-            Residue := Residue + MaxSize;
+            Residue := Residue + OSize;
           end;
           Inc(k);
         end; // while i < Frames do
@@ -1305,7 +1305,11 @@ implementation
             MultAndSumSingleArrays(@(Y3[j][i]), @B[0], Acc, OffsY);
             Y3[j][i + OffsY] := Acc;
           end;
-        i := OffsY;
+          for i := 0 to FramesRead -1 do
+            for j :=  0 to SamplesInFrame - 1 do
+              InputBuffer[i*SamplesInFrame + j] :=  Y3[j][OffsY + i];
+
+ {       i := OffsY;
         k := 0;
         Residue := 0;
         while i < FramesRead + OffsY do
@@ -1321,7 +1325,7 @@ implementation
           Inc(i);
         end; // while i < FramesRead + OffsY do
         FramesRead := k;
-        SamplesRead :=  FramesRead*SamplesInFrame;
+        SamplesRead :=  FramesRead*SamplesInFrame;}
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
