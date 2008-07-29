@@ -141,7 +141,7 @@ type
   end;
 
   (* Class: TFastResampler
-     This resampler uses fast but not very accurate resampling algorithm. Use it if it suits your needs, use <TResampler> or <TMSReasampler> otherwise.
+     This resampler combines fast resampling speed and good quality.
       Descends from <TAuConverter>. *)
 
   TFastResampler = class(TAuConverter)
