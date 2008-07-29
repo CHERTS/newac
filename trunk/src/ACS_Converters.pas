@@ -1232,19 +1232,20 @@ implementation
         k := 0;
         i := 0;
         Residue := MaxSize - ISize;
-        while i < SamplesRead do
+        while i < FramesRead do
         begin
           Residue := Residue - ISize;
-          X0[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i]; //Random(1)*0.05;
+          for j := 0 to SamplesInFrame - 1 do
+            X0[j][OffsX + k] := InputBuffer[i*SamplesInFrame + j];
           if Residue < 0 then
           begin
             Inc(i);
             Residue := Residue + MaxSize;
           end;
           Inc(k);
-        end; // while i < SamplesRead do
-        SamplesRead := k;
-        FramesRead := SamplesRead div SamplesInFrame;
+        end; // while i < Frames do
+        FramesRead := k;
+        SamplesRead := FramesRead*SamplesInFrame;
         for i := 0 to FramesRead -1 do
           for j :=  0 to SamplesInFrame - 1 do
           begin
