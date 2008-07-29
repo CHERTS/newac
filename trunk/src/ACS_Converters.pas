@@ -152,7 +152,7 @@ type
     X1, Y1 : array[0..7] of array of Single;
     X2, Y2 : array[0..7] of array of Single;
     X3, Y3 : array[0..7] of array of Single;
-    IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
+    IFrames, OFrames, ISize, OSize, ITmpSize, MaxSize, MaxFrames : LongWord;
     FOutSampleRate : Word;
     offsX, OffsY : Integer;
     InputBuffer : array of Single;
@@ -1124,13 +1124,16 @@ implementation
     end else
       FPassThrough := False;
     if OFrames > IFrames then
-      MaxFrames := OFrames
-    else
+    begin
+      i := 2;
+      while IFrames*i < OFrames do Inc(i);
+      MaxFrames := IFrames*i;
+    end else
       MaxFrames := IFrames;
     MaxSize := MaxFrames*FrameSize;
     SetLength(_Buffer, MaxSize);
     SetLength(InputBuffer, MaxFrames*SamplesInFrame);
-      if ISize > OSize then
+    if ISize > OSize then
       k := OSize/ISize
     else
       k := ISize/OSize;
@@ -1228,18 +1231,15 @@ implementation
       begin
         k := 0;
         i := 0;
-        Residue := 0;
+        Residue := MaxSize - ISize;
         while i < SamplesRead do
         begin
           Residue := Residue - ISize;
-          if Residue >= 0 then
+          X0[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i]; //Random(1)*0.05;
+          if Residue < 0 then
           begin
-            X0[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i]; //Random(1)*0.05;
-          end else
-          begin
-            X0[k mod SamplesInFrame][OffsX + k div SamplesInFrame] := InputBuffer[i];
             Inc(i);
-            Residue := Residue + OSize;
+            Residue := Residue + MaxSize;
           end;
           Inc(k);
         end; // while i < SamplesRead do
@@ -1304,20 +1304,23 @@ implementation
             MultAndSumSingleArrays(@(Y3[j][i]), @B[0], Acc, OffsY);
             Y3[j][i + OffsY] := Acc;
           end;
-        if (Frac(OSize/ISize) > 0.01) then
+        i := OffsY;
+        k := 0;
+        Residue := 0;
+        while i < FramesRead + OffsY do
         begin
-          for i := OffsY to FramesRead + OffsY -1 do
+          Residue := Residue - OSize;
+          if Residue < 0 then
+          begin
             for j :=  0 to SamplesInFrame - 1 do
-            begin
-               Y3[j][i] := Y3[j][i]*0.25 + Y3[j][i-1]*0.75;
-               InputBuffer[(i - OffsY)*SamplesInFrame + j] := Y3[j][i];
-            end;
-        end else
-        begin
-          for i := OffsY to FramesRead + OffsY -1 do
-            for j :=  0 to SamplesInFrame - 1 do
-               InputBuffer[(i - OffsY)*SamplesInFrame + j] := Y3[j][i];
-        end;
+              InputBuffer[k*SamplesInFrame + j] :=  Y3[j][i];
+            Residue := Residue + MaxSize;
+            Inc(k);
+          end;
+          Inc(i);
+        end; // while i < FramesRead + OffsY do
+        FramesRead := k;
+        SamplesRead :=  FramesRead*SamplesInFrame;
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
