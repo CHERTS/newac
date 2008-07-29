@@ -1308,24 +1308,6 @@ implementation
           for i := 0 to FramesRead -1 do
             for j :=  0 to SamplesInFrame - 1 do
               InputBuffer[i*SamplesInFrame + j] :=  Y3[j][OffsY + i];
-
- {       i := OffsY;
-        k := 0;
-        Residue := 0;
-        while i < FramesRead + OffsY do
-        begin
-          Residue := Residue - OSize;
-          if Residue < 0 then
-          begin
-            for j :=  0 to SamplesInFrame - 1 do
-              InputBuffer[k*SamplesInFrame + j] :=  Y3[j][i];
-            Residue := Residue + MaxSize;
-            Inc(k);
-          end;
-          Inc(i);
-        end; // while i < FramesRead + OffsY do
-        FramesRead := k;
-        SamplesRead :=  FramesRead*SamplesInFrame;}
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
