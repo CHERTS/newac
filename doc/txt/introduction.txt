@@ -32,6 +32,18 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
+Version: NewAC 1.8
+	- TFastResampler component (fully Delphi-based) for fast resampling.
+	- TConvolver and TDifferenceEquation components for exploring DSP operations.
+	- TChebyshevFilter component implementing Chebyshev filters.
+	- TFrequencyAnalysis component thst performs DFT on audio data.
+
+Version: NewAC 1.7.2
+	- New TRealTimeMixer component.
+	- External DLLs are now loaded on demand 
+	- Updated LAME encoder
+	- Some bugs are fixed.
+
 Version: NewAC 1.7.1
 	- AVI files reader added (TAVIIn component).
 	- Some bugs are fixed.
@@ -264,9 +276,12 @@ Some NewAC components are now considered legacy. They are kept for backward comp
 
 Section: Third Party Libraries
 
-Some of NewAC components require certain shared libraries, which are not included in the package but are publicly available and may be found on many sites both in source and binary forms. You can download these libraries in binary form from the NewAC Site. If you want to compile yourself, below are the links to the libraries' sources on the Net.
+Some of NewAC components require certain shared libraries, which are not included in the package but are publicly available and may be found on many sites both in source and binary forms.
+Many NewAC components do not require any additional libraries at all. hese are: TDXIn, TDXOut, TInputList, TMemoryIn,TWaveIn, TWaveOut, TWMIn, TWMOut, TWMStreamedIn, TWMStreamedOut, TSreamIn, TStreamOut, TWMADualPassOut, TAVIIn, TAudioMixer, TRealTimeMixer, TAudioConverter, TSincFilter, TStereoBalance, TACMConverter, TNormalizer, TMSResampler, TVoiceFilter. *Important note:* In previous versions required DLLs were loaded at application startup. If some DLL was missing the application could not proceed. Since NewAC 1.7.2 DLLs are loaded on demand. For example file-reading component loads a required DLL only when it opens a file for playback. Now NewAC applications may work even if not all the required DLLs are present. If you try to put to an active audio chain a  component that cannot find a required DLL, it will indicate that it cannot proceed. File input components set Valid property to False and file output components raise OnThreadException event.
 
-	Libraries, require by some NewAC components in a precompiled binary form are available at http://symmetrica.net/uploads/newac/windlls.zip
+For those components that require third-party shared libraries you can download these libraries in binary form from the NewAC Site. If you want to compile yourself, below are the links to the libraries' sources on the Net.
+
+	Libraries, require by some NewAC components in a precompiled binary form are available at http://symmetrica.net/uploads/newac/windlls.zip and http://symmetrica.net/uploads/newac/windlls-2.zip
 
 It is important to note that since all libraries required by NewAC components are loaded dynamically at run-time, you can use NewAC as a whole without these libraries. Of course, those components requiring certain library will only work if the library is found.
 
