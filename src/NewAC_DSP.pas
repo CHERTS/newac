@@ -111,7 +111,7 @@ type
   end;
 
   (* Class: TDifferenceEquation
-     This component calculates its output following the equation y[n] = a0*x[n] + a1*x[n-1] + ... + b0*y[n-1] + b0*y[n-2]...
+     This component calculates its output following the equation y[n] = a0*x[n] + a1*x[n-1] + ... + b0*y[n-1] + b1*y[n-2]...
 
      Descends from TAuConverter.
   *)
