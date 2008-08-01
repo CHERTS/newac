@@ -105,7 +105,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (* Function SetKernel
+    (* Function: SetKernel
        Call this method to set the convolution kernel (impulse response function). *)
     procedure SetKernel(const K : array of Single);
   end;
