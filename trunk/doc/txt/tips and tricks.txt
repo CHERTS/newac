@@ -9,6 +9,9 @@ Title: Tips & Tricks
 Section: Snippets
 	Bits of code to do things related to NewAC.
 
+Topic: What to do if an input component reports premature end of data
+	One possible reason for this may be an exception raised during components' operation. Don't forget to set the OnThreadException event handler and inspect an output component's ExceptionMessage property.
+
 Topic: How to decrease the delay before audio playback
 	The TDXAudioOut component buffers its output in order to make it smoother. This
 	buffering introduces some delay at the beginning of audio playback.
