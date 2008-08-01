@@ -46,7 +46,7 @@ package NewAC;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'New Audio Components v 1.7.2'}
+{$DESCRIPTION 'New Audio Components v 1.8'}
 {$IMPLICITBUILD OFF}
 
 requires

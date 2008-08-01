@@ -33,7 +33,7 @@ type
   TBuffer = array[0..0] of Byte;
   PBuffer = ^TBuffer;
 
-  TOnBufferDone = procedure(Sender : TComponent) of object;
+  TOnBufferDone = procedure(Sender : TComponent; var DataBuffer : Pointer; var DataSize : LongWord; var RepeatCount : Integer) of object;
 
   TAudioProcessorInitEvent = procedure(Sender : TComponent; var TotalSize : Int64) of object;
   TAudioProcessorFlushEvent = procedure(Sender : TComponent) of object;
@@ -52,11 +52,12 @@ type
   TMemoryIn = class(TAuInput)
   private
     FBuffer : PBuffer;
-    FDataSize : Int64;
+    FDataSize : LongWord;
     Busy : Boolean;
     BufStart, BufEnd : LongWord;
     FBPS, FSR, FChan : LongWord;
     FRepeatCount : Integer;
+    FOnBufferDone : TOnBufferDone;
     function GetBuffer : Pointer;
     procedure SetBuffer(v : Pointer);
   protected
@@ -79,7 +80,7 @@ type
     property DataBuffer : Pointer read GetBuffer write SetBuffer;
     (* Property: DataSize
       Use this property to set the size of the <DataBuffer> in bytes. *)
-    property DataSize : Int64 read FDataSize write FDataSize;
+    property DataSize : LongWord read FDataSize write FDataSize;
   published
     (* Property: InBitsPerSample
       Use this property to tell the component the number of bits per sample
@@ -100,6 +101,14 @@ type
       set to -1 the component will replay the buffer endlessly until it is
       stopped. *)
     property RepeatCount : Integer read FRepeatCount write FRepeatCount;
+    (* Property: OnBufferDone
+      This event is raised when the comoponent has played its current buffer contents and is about to report the end of input.
+      Using this property you can renew data buffer so that the component continues playback.
+      The event hander arguments are the pointer to the new buffer, its length and the repeat count.
+      You can assign new values to these arguments or leave the previous ones.
+      If <RepeatCount> is greater than 1, the OnBufferDone event handler is called only after the contents of the buffer has been repeated <RepeatCount> number of times.
+      The event handler will never be called if <RepeatCount> is -1. *)
+    property OnBufferDone : TOnBufferDone read FOnBufferDone write FOnBufferDone;
   end;
 
   TAudioProcessor = class(TAuConverter)
@@ -305,6 +314,8 @@ var
       FSize := FDataSize*FRepeatCount
     else
       FSize := -1;
+    if Assigned(FOnBufferDone) then
+      FSize := -1;
     Busy := True;
   end;
 
@@ -327,9 +338,21 @@ var
     begin
       if (FDataSize = 0) or ((FSize > 0) and (FPosition >= FSize)) then
       begin
-        Bytes := 0;
-        Buffer := nil;
-        Exit;
+        if Assigned(FOnBufferDone) then
+        begin
+          FOnBufferDone(Self, Pointer(FBuffer), FDataSize, FRepeatCount);
+          if (FBuffer = nil) or (FDataSize*FRepeatCount = 0) then
+          begin
+            Bytes := 0;
+            Buffer := nil;
+            Exit;
+          end;
+        end else
+        begin
+          Bytes := 0;
+          Buffer := nil;
+          Exit;
+        end;
       end;
       BufStart := 0;
     end;
