@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.7
+  This file is a part of New Audio Components package 1.8
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -1187,7 +1187,10 @@ constructor TAuOutput.Create;
     if Busy then raise EAuException.Create('Component is Busy');
     if not Assigned(FInput) then raise EAuException.Create('Input is not assigned');
     if Thread.Suspended then
-        Thread.Resume;
+    begin
+      Thread.Stop := False;
+      Thread.Resume;
+    end;
   end;
 
   procedure TAuOutput.Stop;
