@@ -10,10 +10,10 @@
 unit NewAC_DSP;
 
 (* Title: NewAC_DSP
-    This unit contains components performing different DSP-related tasks. (c) 2008, Andrei
-    Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
-    for more details. *)
+    This unit contains components performing various DSP related tasks.
 
+    (c) 2008 Andrei Borovsky (anb@symmetrica.net). All rights reserved. See the
+    LICENSE file for more details. *)
 
 interface
 
@@ -26,10 +26,12 @@ const
 type
 
 (* Class: TFrequencyAnalysis
-     This component generates input's frequency spectrum using averaged real DFT.
-     TFrequencyAnalysis is an output component but unlike other output components
-     it doesn't provide audio data. TFrequencyAnalysis' output is an audio frequency spectrum.
-     Descends from <TAuOutput>.*)
+     A descendent of <TAuOutput> which generates input's frequency spectrum
+     using averaged real DFT.
+
+     TFrequencyAnalysis is an output component, but unlike other output components
+     it doesn't provide audio data. TFrequencyAnalysis's output is an audio
+     frequency spectrum. *)
 
   TFrequencyAnalysis = class(TAuOutput)
   private
@@ -56,29 +58,37 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: SaveMagnitude
-       This method saves magnitude series obtained at channel Channel to the file specified by FileName. *)
+       This method saves magnitude series obtained at channel Channel to the
+       file specified by FileName. *)
     procedure SaveMagnitude(Channel : Word; const FileName : String);
     (* Function: SaveLogMagnitude
-       This method saves logarithmed magnitude series obtained at channel Channel to the file specified by FileName. *)
+       This method saves logarithmed magnitude series obtained at channel
+       Channel to the file specified by FileName. *)
     procedure SaveLogMagnitude(Channel : Word; const FileName : String);
     (* Property: Magnitude
-       Returns the value of the magnitude scpecified by channel number and index.
+       Returns the value of the magnitude scpecified by channel number and
+       index.
+       
        Valid indeces range from 0 to <N>/2 - 1. *)
     property Magnitude[Channel, Index : Word] : Single read GetMagnitude;
     (* Property: LogMagnitude
-       Returns the logarithm of the magnitude scpecified by channel number and index.
+       Returns the logarithm of the magnitude scpecified by channel number and
+       index.
        Valid indeces range from 0 to <N>/2 - 1. *)
     property LogMagnitude[Channel, Index : Word] : Single read GetLogMagnitude;
     (* Separator: Magnitude
-       Use this property to specify the character used to delimit the values being saved to a file. *)
+       Use this property to specify the character used to delimit the values
+       being saved to a file. *)
     property Separator : Char read FSeparator write FSeparator;
   published
     (* Property: N
        The number of input points for performing real DFT.
-       Magnitude calculation produces N/2 values that represent the frequency distrbution between 0 and samplerate/2. *)
+       Magnitude calculation produces N/2 values that represent the frequency
+       distrbution between 0 and samplerate/2. *)
     property N : Word read _N write _N;
     (* Property: Window
-       Use this proeprty to select the type of the window applied to the input data. *)
+       Use this property to select the type of the window applied to the input
+       data. *)
     property Window : TFilterWindowType read FWindow write FWindow;
     property StartSample : Int64 read FStartSample write FStartSample;
     property EndSample : Int64 read FEndSample write FEndSample;
@@ -106,14 +116,16 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: SetKernel
-       Call this method to set the convolution kernel (impulse response function). *)
+       Call this method to set the convolution kernel (impulse response
+       function). *)
     procedure SetKernel(const K : array of Single);
   end;
 
   (* Class: TDifferenceEquation
-     This component calculates its output following the equation y[n] = a0*x[n] + a1*x[n-1] + ... + b0*y[n-1] + b1*y[n-2]...
+     This component calculates its output following the equation y[n] = a0*x[n]
+     + a1*x[n-1] + ... + b0*y[n-1] + b1*y[n-2]...
 
-     Descends from TAuConverter.
+     Descends from <TAuConverter>.
   *)
 
   TDifferenceEquation = class(TAuConverter)
@@ -137,8 +149,8 @@ type
     destructor Destroy; override;
     (* Function: SetCoefficients
        Sets coefficients for the equation.
-       A is a vector of a0...an, B is a verctor of b0...bn.
-       The same set of cefficients is applied to all input channels. 
+       A is a vector of a0...an, B is a vector of b0...bn.
+       The same set of coefficients is applied to all input channels. 
     *)
     procedure SetCoefficients(const A, B : array of Single);
   end;
