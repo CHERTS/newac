@@ -31,6 +31,7 @@ html\files\doc\txt\tips_and_tricks-txt.html
 html\files\dunit\Test_ACS_FLAC-pas.html
 html\files\dunit\Test_ACS_MAC-pas.html
 html\files\dunit\Test_ACS_WavPack-pas.html
+html\files\dunit\uLog-pas.html
 html\files\dunit\uTestBase-pas.html
 html\files\dunit\uUtility-pas.html
 html\files\src\ACS_AudioMix-pas.html
@@ -70,6 +71,7 @@ html\files\src\libwma1-pas.html
 html\files\src\MACDll-pas.html
 html\files\src\MAD-pas.html
 html\files\src\NewAC_AVI-pas.html
+html\files\src\NewAC_DSP-pas.html
 html\files\src\ogg-pas.html
 html\files\src\ovencode-pas.html
 html\files\src\VorbisEnc-pas.html
@@ -90,9 +92,11 @@ html\index\General4.html
 html\index\General5.html
 html\index\General6.html
 html\index\General7.html
+html\index\General8.html
 html\index\Properties.html
 html\index\Properties2.html
 html\index\Properties3.html
+html\index\Properties4.html
 html\index\Types.html
 html\index\Variables.html
 html\javascript\main.js
@@ -102,7 +106,9 @@ html\search\ClassesC.html
 html\search\ClassesD.html
 html\search\ClassesE.html
 html\search\ClassesF.html
+html\search\ClassesG.html
 html\search\ClassesI.html
+html\search\ClassesL.html
 html\search\ClassesM.html
 html\search\ClassesN.html
 html\search\ClassesO.html
@@ -116,6 +122,7 @@ html\search\ConstantsC.html
 html\search\ConstantsD.html
 html\search\ConstantsE.html
 html\search\ConstantsI.html
+html\search\ConstantsN.html
 html\search\ConstantsR.html
 html\search\ConstantsT.html
 html\search\FilesL.html
@@ -131,11 +138,13 @@ html\search\FunctionsF.html
 html\search\FunctionsG.html
 html\search\FunctionsI.html
 html\search\FunctionsJ.html
+html\search\FunctionsL.html
 html\search\FunctionsO.html
 html\search\FunctionsP.html
 html\search\FunctionsR.html
 html\search\FunctionsS.html
 html\search\FunctionsT.html
+html\search\FunctionsW.html
 html\search\GeneralA.html
 html\search\GeneralB.html
 html\search\GeneralC.html
