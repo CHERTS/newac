@@ -127,7 +127,6 @@ type
     InputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;
-    StartSample, EndSample : Integer;
     procedure CalculateFilter;
     procedure SetNumPoles(NP : Word);
   protected
@@ -629,7 +628,7 @@ implementation
 
   procedure TChebyshevFilter.CalculateFilter;
   var
-    i, j : Integer;
+    i : Integer;
     CutOff : Single;
   begin
     SetLength(A, FNumberOfPoles + 4);
@@ -763,7 +762,7 @@ implementation
 
   procedure TChebyshevFilter.GetDataInternal;
   var
-    i, j, k, SamplesRead, FramesRead : Integer;
+    i, j, SamplesRead, FramesRead : Integer;
     P : PBufferSingle;
     Acc : Single;
   begin

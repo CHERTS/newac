@@ -177,7 +177,7 @@ type
     X1, Y1 : array[0..7] of array of Single;
     X2, Y2 : array[0..7] of array of Single;
     X3, Y3 : array[0..7] of array of Single;
-    IFrames, OFrames, ISize, OSize, ITmpSize, MaxSize, MaxFrames : LongWord;
+    IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
     FOutSampleRate : Word;
     offsX, OffsY : Integer;
     InputBuffer : array of Single;
@@ -1108,7 +1108,7 @@ implementation
   procedure TFastResampler.InitInternal;
   var
     i : Integer;
-    k, alpha : Single;
+    k : Single;
   const
     NP : Integer = 4;
   procedure Swap(var S1, S2 : Single);

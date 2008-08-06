@@ -104,7 +104,6 @@ type
     InputBuffer, OutputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;
-    StartSample, EndSample : Integer;
   protected
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
@@ -136,7 +135,6 @@ type
     InputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;
-    StartSample, EndSample : Integer;
   protected
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
@@ -174,7 +172,7 @@ implementation
 
   procedure TFrequencyAnalysis.Prepare;
   var
-    i, j : Integer;
+    i : Integer;
   begin
     if FInput = nil then raise EAuException.Create('Input is not assigned');
     FInput.Init;
@@ -264,6 +262,7 @@ implementation
     end;
     Inc(FCurSample, _N);
     Inc(ChunkCount);
+    Result := True;
   end;
 
 
@@ -357,7 +356,9 @@ implementation
     FPosition := 0;
     SetLength(_Buffer, BufSize);
     SetLength(InputBuffer, BufSize div SampleSize);
+    {$WARNINGS OFF}
     SetLength(OutputBuffer, BufSize div SampleSize + (Length(Kernel) - 1)*FInput.Channels);
+    {$WARNINGS ON}
     FillChar(OutputBuffer[0], Length(OutputBuffer)*SizeOf(Single), 0);
     BufStart := 0;
     BufEnd := 0;
@@ -510,7 +511,7 @@ implementation
 
   procedure TDifferenceEquation.GetDataInternal;
   var
-    i, j, k, SamplesRead, FramesRead : Integer;
+    i, j, SamplesRead, FramesRead : Integer;
     P : PBufferSingle;
     Acc : Single;
   begin
