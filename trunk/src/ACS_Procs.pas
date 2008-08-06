@@ -528,7 +528,7 @@ implementation
   var
     P : Pointer;
   begin
-    LongWord(P) := LongWord(Op1) + DataSize*4;
+    LongWord(P) := LongWord(Op1) + LongWord(DataSize*4);
     while Op1 <> P do
     begin
       Op1^ := Op1^*Op2^;
@@ -541,7 +541,7 @@ implementation
   var
     P : Pointer;
   begin
-    LongWord(P) := LongWord(Op1) + DataSize*4;
+    LongWord(P) := LongWord(Op1) + LongWord(DataSize*4);
     while Op1 <> P do
     begin
       Accumulator := Accumulator + Op1^*Op2^;
@@ -555,7 +555,7 @@ implementation
     P  : Pointer;
     X2 : PSingle;
   begin
-    LongWord(P) := LongWord(X) + (DataSize shr 1)*4;
+    LongWord(P) := LongWord(X) + LongWord((DataSize shr 1)*4);
     LongWord(X2) := LongWord(P) + 4;
     while X <> P do
     begin
@@ -1028,7 +1028,6 @@ end;
           TA[i] := A[i];
           TB[i] := B[i];
         end;
-        i := 0;
         for j := 2 to NumPoles + 3 do
         begin
           A[j] := Ax[0]*TA[j] + Ax[1]*TA[j-1] + Ax[2]*TA[j-2];

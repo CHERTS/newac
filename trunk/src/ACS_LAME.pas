@@ -57,6 +57,7 @@ type
     FMode: TMP3Mode;
     FAverageBitrate : TMp3Bitrate;
     FMaximumBitrate : TMP3Bitrate;
+    FEnableBitReservoir : Boolean;
     function BitrateToInt(br : TMp3Bitrate) : Word;
   protected
     procedure Done; override;
@@ -85,6 +86,8 @@ type
     property CRC	          : BOOL read FCRC write FCRC default false;
     property Copyright	    : BOOL read FCopyright write FCopyright default false;
     property Original       : BOOL read FOriginal write FOriginal default true;
+
+    property EnableBitReservoir : Boolean read FEnableBitReservoir write FEnableBitReservoir;
 
     //VBR encoding
 
@@ -191,6 +194,7 @@ type
     Config.nVBRQuality := ql;
     Config.dwMaxBitrate := mbr;
     Config.dwVbrAbr_bps := abr;
+    config.bNoRes := not FEnableBitReservoir;
     if abr <> 0 then
       Config.nVbrMethod := 4
     else
