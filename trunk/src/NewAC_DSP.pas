@@ -39,7 +39,7 @@ type
     Core : TFFTReal;
     FWindow : TFilterWindowType;
     FStartSample, FEndSample : Int64;
-    _Data : array[0..7] of array of Single;
+    FMagnitude : array[0..7] of array of Single;
     TmpData, OutData, InputData, W : array of Single;
     MaxChannels : Integer;
     FDataSize : Int64;
@@ -50,6 +50,8 @@ type
     FSeparator : Char;
     function GetMagnitude(Channel, Index : Word) : Single;
     function GetLogMagnitude(Channel, Index : Word) : Single;
+    function GetPower(Channel, Index : Word) : Single;
+    function GetLogPower(Channel, Index : Word) : Single;
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -66,29 +68,33 @@ type
        Channel to the file specified by FileName. *)
     procedure SaveLogMagnitude(Channel : Word; const FileName : String);
     (* Property: Magnitude
-       Returns the value of the magnitude scpecified by channel number and
-       index.
-       
-       Valid indeces range from 0 to <N>/2 - 1. *)
+       Returns the value of the magnitude specified by channel number and
+       index. Valid indeces range from 0 to <N>/2. *)
     property Magnitude[Channel, Index : Word] : Single read GetMagnitude;
     (* Property: LogMagnitude
-       Returns the logarithm of the magnitude scpecified by channel number and
-       index.
-       Valid indeces range from 0 to <N>/2 - 1. *)
+       Returns the logarithm of the magnitude specified by channel number and
+       index. Valid indeces range from 0 to <N>/2. *)
     property LogMagnitude[Channel, Index : Word] : Single read GetLogMagnitude;
-    (* Separator: Magnitude
+    (* Property: Power
+       Returns the power (square of magnitude) specified by channel number and
+       index. Valid indeces range from 0 to <N>/2. *)
+    property Power[Channel, Index : Word] : Single read GetPower;
+    (* Property: LogMagnitude
+       Returns the logarithm of the power specified by channel number and
+       index. Valid indeces range from 0 to <N>/2. *)
+    property LogPower[Channel, Index : Word] : Single read GetLogPower;
+    (* property: Separator
        Use this property to specify the character used to delimit the values
        being saved to a file. *)
     property Separator : Char read FSeparator write FSeparator;
   published
     (* Property: N
        The number of input points for performing real DFT.
-       Magnitude calculation produces N/2 values that represent the frequency
+       Magnitude calculation produces N/2 + 1 values that represent the frequency
        distrbution between 0 and samplerate/2. *)
     property N : Word read _N write _N;
     (* Property: Window
-       Use this property to select the type of the window applied to the input
-       data. *)
+       Use this property to select the type of the window applied to the input data. *)
     property Window : TFilterWindowType read FWindow write FWindow;
     property StartSample : Int64 read FStartSample write FStartSample;
     property EndSample : Int64 read FEndSample write FEndSample;
@@ -190,8 +196,8 @@ implementation
     SetLength(InputData, _N*(MaxChannels + 1));
     for i := 0 to MaxChannels do
     begin
-      SetLength(_Data[i], _N div 2 + 1);
-      FillChar(_Data[i][0], _N*2 + 4, 0);
+      SetLength(FMagnitude[i], _N div 2 + 1);
+      FillChar(FMagnitude[i][0], _N*2 + 4, 0);
     end;
     Core := TFFTReal.Create(_N);
     if FInput is TAuFileIn then
@@ -220,7 +226,7 @@ implementation
     if ChunkCount <> 0 then
       for i := 0 to MaxChannels do
         for j := 0 to _N div 2 do
-          _Data[i][j] := _Data[i][j]/(ChunkCount*_N);
+          FMagnitude[i][j] := FMagnitude[i][j]/(ChunkCount*_N);
     Core.Free;
   end;
 
@@ -257,9 +263,9 @@ implementation
       MultSingleArrays(@TmpData[0], @W[0], _N);
       Core.do_fft(@OutData[0], @TmpData[0]);
       for j := 1 to _N div 2 - 1 do
-        _Data[i][j] := _Data[i][j] + Hypot(OutData[j], OutData[j + N div 2]);
-      _Data[i][0] := _Data[i][0] + Abs(OutData[0]);
-      _Data[i][N div 2] := _Data[i][N div 2] + Abs(OutData[N div 2]);
+        FMagnitude[i][j] := FMagnitude[i][j] + Hypot(OutData[j], OutData[j + N div 2]);
+      FMagnitude[i][0] := FMagnitude[i][0] + Abs(OutData[0]);
+      FMagnitude[i][N div 2] := FMagnitude[i][N div 2] + Abs(OutData[N div 2]);
     end;
     Inc(FCurSample, _N);
     Inc(ChunkCount);
@@ -269,13 +275,26 @@ implementation
 
   function TFrequencyAnalysis.GetMagnitude(Channel, Index : Word) : Single;
   begin
-    Result := _Data[Channel, Index];
+    Result := FMagnitude[Channel, Index];
+  end;
+
+  function TFrequencyAnalysis.GetPower(Channel, Index : Word) : Single;
+  begin
+    Result := Sqr(FMagnitude[Channel, Index]);
   end;
 
   function TFrequencyAnalysis.GetLogMagnitude(Channel, Index : Word) : Single;
   begin
     if GetMagnitude(Channel, Index) <> 0 then
       Result := Log10(GetMagnitude(Channel, Index))
+    else
+      Result := MinSingle;
+  end;
+
+  function TFrequencyAnalysis.GetLogPower(Channel, Index : Word) : Single;
+  begin
+    if GetMagnitude(Channel, Index) <> 0 then
+      Result := 2*Log10(GetMagnitude(Channel, Index))
     else
       Result := MinSingle;
   end;
