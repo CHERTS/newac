@@ -190,8 +190,8 @@ implementation
     SetLength(InputData, _N*(MaxChannels + 1));
     for i := 0 to MaxChannels do
     begin
-      SetLength(_Data[i], _N div 2);
-      FillChar(_Data[i][0], _N*2, 0);
+      SetLength(_Data[i], _N div 2 + 1);
+      FillChar(_Data[i][0], _N*2 + 4, 0);
     end;
     Core := TFFTReal.Create(_N);
     if FInput is TAuFileIn then
@@ -219,7 +219,7 @@ implementation
     SetLength(OutData, 0);
     if ChunkCount <> 0 then
       for i := 0 to MaxChannels do
-        for j := 0 to _N div 2 - 1 do
+        for j := 0 to _N div 2 do
           _Data[i][j] := _Data[i][j]/(ChunkCount*_N);
     Core.Free;
   end;
@@ -256,9 +256,10 @@ implementation
          TmpData[j] := InputData[j*(MaxChannels + 1) + i];
       MultSingleArrays(@TmpData[0], @W[0], _N);
       Core.do_fft(@OutData[0], @TmpData[0]);
-      for j := 1 to _N div 2 -1 do
+      for j := 1 to _N div 2 - 1 do
         _Data[i][j] := _Data[i][j] + Hypot(OutData[j], OutData[j + N div 2]);
-      _Data[i][0] := _Data[i][0] + Abs(OutData[0])*2;
+      _Data[i][0] := _Data[i][0] + Abs(OutData[0]);
+      _Data[i][N div 2] := _Data[i][N div 2] + Abs(OutData[N div 2]);
     end;
     Inc(FCurSample, _N);
     Inc(ChunkCount);
@@ -289,7 +290,7 @@ implementation
     System.Rewrite(F);
     OldSep := DecimalSeparator;
     DecimalSeparator := '.';
-    for i := 0 to _N div 2 - 2 do
+    for i := 0 to _N div 2 do
       Write(F, FloatToStrF(GetMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
     DecimalSeparator := OldSep;
@@ -307,7 +308,7 @@ implementation
     System.Rewrite(F);
     OldSep := DecimalSeparator;
     DecimalSeparator := '.';
-    for i := 0 to _N div 2 - 2 do
+    for i := 0 to _N div 2 do
       Write(F, FloatToStrF(GetLogMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetLogMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
     DecimalSeparator := OldSep;
