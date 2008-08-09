@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 192
-  Top = 114
-  Width = 1069
-  Height = 542
+  Left = 10
+  Top = 91
+  Width = 1115
+  Height = 541
   Caption = 'Filter Test'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

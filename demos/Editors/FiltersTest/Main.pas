@@ -117,10 +117,10 @@ procedure TForm1.FrequencyAnalysis1Done(Sender: TComponent);
 var
   i : Integer;
 begin
-  Image1.Canvas.MoveTo(0,0);
+  Image1.Canvas.MoveTo(0, Round((FrequencyAnalysis1.LogMagnitude[0, 0] + 1)/-6*350));
   Image1.Canvas.Pen.Color := clBlue;
   Image1.Canvas.Pen.Width := 2;
-  for i := 1 to FrequencyAnalysis1.N div 2 - 2 do
+  for i := 1 to FrequencyAnalysis1.N div 2 do
      Image1.Canvas.LineTo(i, Round((FrequencyAnalysis1.LogMagnitude[0, i] + 1)/-6*350));
   FrequencyAnalysis2.Run;
 end;
@@ -131,9 +131,9 @@ var
 begin
   Image1.Canvas.Pen.Color := clRed;
   Image1.Canvas.Pen.Width := 1;
-  Image1.Canvas.MoveTo(0,0);
+//  Image1.Canvas.MoveTo(0,0);
   Image1.Canvas.MoveTo(0, Round((FrequencyAnalysis2.LogMagnitude[0, 0] + 1)/-6*350));
-  for i := 1 to FrequencyAnalysis2.N div 2 - 2 do
+  for i := 1 to FrequencyAnalysis2.N div 2 do
      Image1.Canvas.LineTo(i, Round((FrequencyAnalysis2.LogMagnitude[0, i] + 1)/-6*350));
   Image1.Canvas.Font.Style := [];
   Image1.Canvas.Font.Color := clRed;
