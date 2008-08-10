@@ -311,10 +311,8 @@ var
     BufEnd := FDataSize;
     BufStart := 0;
     if FRepeatCount >= 0 then
-    {$WARNINGS OFF}
       FSize := FDataSize*FRepeatCount
     else
-    {$WARNINGS ON}
       FSize := -1;
     if Assigned(FOnBufferDone) then
       FSize := -1;
@@ -343,9 +341,7 @@ var
         if Assigned(FOnBufferDone) then
         begin
           FOnBufferDone(Self, Pointer(FBuffer), FDataSize, FRepeatCount);
-          {$WARNINGS OFF}
           if (FBuffer = nil) or (FDataSize*FRepeatCount = 0) then
-          {$WARNINGS ON}
           begin
             Bytes := 0;
             Buffer := nil;

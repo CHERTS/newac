@@ -10,10 +10,10 @@
 unit NewAC_DSP;
 
 (* Title: NewAC_DSP
-    This unit contains components performing various DSP related tasks.
+    This unit contains components performing different DSP-related tasks. (c) 2008, Andrei
+    Borovsky (anb@symmetrica.net). All rights reserved. See the LICENSE file
+    for more details. *)
 
-    (c) 2008 Andrei Borovsky (anb@symmetrica.net). All rights reserved. See the
-    LICENSE file for more details. *)
 
 interface
 
@@ -26,12 +26,10 @@ const
 type
 
 (* Class: TFrequencyAnalysis
-     A descendent of <TAuOutput> which generates input's frequency spectrum
-     using averaged real DFT.
-
-     TFrequencyAnalysis is an output component, but unlike other output components
-     it doesn't provide audio data. TFrequencyAnalysis's output is an audio
-     frequency spectrum. *)
+     This component generates input's frequency spectrum using averaged real DFT.
+     TFrequencyAnalysis is an output component but unlike other output components
+     it doesn't provide audio data. TFrequencyAnalysis' output is an audio frequency spectrum.
+     Descends from <TAuOutput>.*)
 
   TFrequencyAnalysis = class(TAuOutput)
   private
@@ -39,7 +37,7 @@ type
     Core : TFFTReal;
     FWindow : TFilterWindowType;
     FStartSample, FEndSample : Int64;
-    FMagnitude : array[0..7] of array of Single;
+    _Data : array[0..7] of array of Single;
     TmpData, OutData, InputData, W : array of Single;
     MaxChannels : Integer;
     FDataSize : Int64;
@@ -50,8 +48,6 @@ type
     FSeparator : Char;
     function GetMagnitude(Channel, Index : Word) : Single;
     function GetLogMagnitude(Channel, Index : Word) : Single;
-    function GetPower(Channel, Index : Word) : Single;
-    function GetLogPower(Channel, Index : Word) : Single;
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -60,41 +56,29 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: SaveMagnitude
-       This method saves magnitude series obtained at channel Channel to the
-       file specified by FileName. *)
+       This method saves magnitude series obtained at channel Channel to the file specified by FileName. *)
     procedure SaveMagnitude(Channel : Word; const FileName : String);
     (* Function: SaveLogMagnitude
-       This method saves logarithmed magnitude series obtained at channel
-       Channel to the file specified by FileName. *)
+       This method saves logarithmed magnitude series obtained at channel Channel to the file specified by FileName. *)
     procedure SaveLogMagnitude(Channel : Word; const FileName : String);
     (* Property: Magnitude
-       Returns the value of the magnitude specified by channel number and
-       index. Valid indeces range from 0 to <N>/2. *)
+       Returns the value of the magnitude scpecified by channel number and index.
+       Valid indeces range from 0 to <N>/2 - 1. *)
     property Magnitude[Channel, Index : Word] : Single read GetMagnitude;
     (* Property: LogMagnitude
-       Returns the logarithm of the magnitude specified by channel number and
-       index. Valid indeces range from 0 to <N>/2. *)
+       Returns the logarithm of the magnitude scpecified by channel number and index.
+       Valid indeces range from 0 to <N>/2 - 1. *)
     property LogMagnitude[Channel, Index : Word] : Single read GetLogMagnitude;
-    (* Property: Power
-       Returns the power (square of magnitude) specified by channel number and
-       index. Valid indeces range from 0 to <N>/2. *)
-    property Power[Channel, Index : Word] : Single read GetPower;
-    (* Property: LogMagnitude
-       Returns the logarithm of the power specified by channel number and
-       index. Valid indeces range from 0 to <N>/2. *)
-    property LogPower[Channel, Index : Word] : Single read GetLogPower;
-    (* property: Separator
-       Use this property to specify the character used to delimit the values
-       being saved to a file. *)
+    (* Separator: Magnitude
+       Use this property to specify the character used to delimit the values being saved to a file. *)
     property Separator : Char read FSeparator write FSeparator;
   published
     (* Property: N
        The number of input points for performing real DFT.
-       Magnitude calculation produces N/2 + 1 values that represent the frequency
-       distrbution between 0 and samplerate/2. *)
+       Magnitude calculation produces N/2 values that represent the frequency distrbution between 0 and samplerate/2. *)
     property N : Word read _N write _N;
     (* Property: Window
-       Use this property to select the type of the window applied to the input data. *)
+       Use this proeprty to select the type of the window applied to the input data. *)
     property Window : TFilterWindowType read FWindow write FWindow;
     property StartSample : Int64 read FStartSample write FStartSample;
     property EndSample : Int64 read FEndSample write FEndSample;
@@ -110,6 +94,7 @@ type
     InputBuffer, OutputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;
+    StartSample, EndSample : Integer;
   protected
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
@@ -121,16 +106,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     (* Function: SetKernel
-       Call this method to set the convolution kernel (impulse response
-       function). *)
+       Call this method to set the convolution kernel (impulse response function). *)
     procedure SetKernel(const K : array of Single);
   end;
 
   (* Class: TDifferenceEquation
-     This component calculates its output following the equation y[n] = a0*x[n]
-     + a1*x[n-1] + ... + b0*y[n-1] + b1*y[n-2]...
+     This component calculates its output following the equation y[n] = a0*x[n] + a1*x[n-1] + ... + b0*y[n-1] + b1*y[n-2]...
 
-     Descends from <TAuConverter>.
+     Descends from TAuConverter.
   *)
 
   TDifferenceEquation = class(TAuConverter)
@@ -141,6 +124,7 @@ type
     InputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;
+    StartSample, EndSample : Integer;
   protected
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
@@ -153,8 +137,8 @@ type
     destructor Destroy; override;
     (* Function: SetCoefficients
        Sets coefficients for the equation.
-       A is a vector of a0...an, B is a vector of b0...bn.
-       The same set of coefficients is applied to all input channels. 
+       A is a vector of a0...an, B is a verctor of b0...bn.
+       The same set of cefficients is applied to all input channels. 
     *)
     procedure SetCoefficients(const A, B : array of Single);
   end;
@@ -178,7 +162,7 @@ implementation
 
   procedure TFrequencyAnalysis.Prepare;
   var
-    i : Integer;
+    i, j : Integer;
   begin
     if FInput = nil then raise EAuException.Create('Input is not assigned');
     FInput.Init;
@@ -196,8 +180,8 @@ implementation
     SetLength(InputData, _N*(MaxChannels + 1));
     for i := 0 to MaxChannels do
     begin
-      SetLength(FMagnitude[i], _N div 2 + 1);
-      FillChar(FMagnitude[i][0], _N*2 + 4, 0);
+      SetLength(_Data[i], _N div 2);
+      FillChar(_Data[i][0], _N*2, 0);
     end;
     Core := TFFTReal.Create(_N);
     if FInput is TAuFileIn then
@@ -225,8 +209,8 @@ implementation
     SetLength(OutData, 0);
     if ChunkCount <> 0 then
       for i := 0 to MaxChannels do
-        for j := 0 to _N div 2 do
-          FMagnitude[i][j] := FMagnitude[i][j]/(ChunkCount*_N);
+        for j := 0 to _N div 2 - 1 do
+          _Data[i][j] := _Data[i][j]/(ChunkCount*_N);
     Core.Free;
   end;
 
@@ -262,39 +246,24 @@ implementation
          TmpData[j] := InputData[j*(MaxChannels + 1) + i];
       MultSingleArrays(@TmpData[0], @W[0], _N);
       Core.do_fft(@OutData[0], @TmpData[0]);
-      for j := 1 to _N div 2 - 1 do
-        FMagnitude[i][j] := FMagnitude[i][j] + Hypot(OutData[j], OutData[j + N div 2]);
-      FMagnitude[i][0] := FMagnitude[i][0] + Abs(OutData[0]);
-      FMagnitude[i][N div 2] := FMagnitude[i][N div 2] + Abs(OutData[N div 2]);
+      for j := 1 to _N div 2 -1 do
+        _Data[i][j] := _Data[i][j] + Hypot(OutData[j], OutData[j + N div 2]);
+      _Data[i][0] := _Data[i][0] + Abs(OutData[0])*2;
     end;
     Inc(FCurSample, _N);
     Inc(ChunkCount);
-    Result := True;
   end;
 
 
   function TFrequencyAnalysis.GetMagnitude(Channel, Index : Word) : Single;
   begin
-    Result := FMagnitude[Channel, Index];
-  end;
-
-  function TFrequencyAnalysis.GetPower(Channel, Index : Word) : Single;
-  begin
-    Result := Sqr(FMagnitude[Channel, Index]);
+    Result := _Data[Channel, Index];
   end;
 
   function TFrequencyAnalysis.GetLogMagnitude(Channel, Index : Word) : Single;
   begin
     if GetMagnitude(Channel, Index) <> 0 then
       Result := Log10(GetMagnitude(Channel, Index))
-    else
-      Result := MinSingle;
-  end;
-
-  function TFrequencyAnalysis.GetLogPower(Channel, Index : Word) : Single;
-  begin
-    if GetMagnitude(Channel, Index) <> 0 then
-      Result := 2*Log10(GetMagnitude(Channel, Index))
     else
       Result := MinSingle;
   end;
@@ -309,7 +278,7 @@ implementation
     System.Rewrite(F);
     OldSep := DecimalSeparator;
     DecimalSeparator := '.';
-    for i := 0 to _N div 2 do
+    for i := 0 to _N div 2 - 2 do
       Write(F, FloatToStrF(GetMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
     DecimalSeparator := OldSep;
@@ -327,7 +296,7 @@ implementation
     System.Rewrite(F);
     OldSep := DecimalSeparator;
     DecimalSeparator := '.';
-    for i := 0 to _N div 2 do
+    for i := 0 to _N div 2 - 2 do
       Write(F, FloatToStrF(GetLogMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetLogMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
     DecimalSeparator := OldSep;
@@ -376,9 +345,7 @@ implementation
     FPosition := 0;
     SetLength(_Buffer, BufSize);
     SetLength(InputBuffer, BufSize div SampleSize);
-    {$WARNINGS OFF}
     SetLength(OutputBuffer, BufSize div SampleSize + (Length(Kernel) - 1)*FInput.Channels);
-    {$WARNINGS ON}
     FillChar(OutputBuffer[0], Length(OutputBuffer)*SizeOf(Single), 0);
     BufStart := 0;
     BufEnd := 0;
@@ -531,7 +498,7 @@ implementation
 
   procedure TDifferenceEquation.GetDataInternal;
   var
-    i, j, SamplesRead, FramesRead : Integer;
+    i, j, k, SamplesRead, FramesRead : Integer;
     P : PBufferSingle;
     Acc : Single;
   begin

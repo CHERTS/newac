@@ -58,22 +58,10 @@ type
     property Balance : Single read FBalance write SetBalance;
   end;
 
-  (* Enum: TNormalizerStoreMode
-      Used by TNormalizer to differentiate between three different methods to
-      store intermediate data.
-
-       nsmFile - the intermediate data is stored in a disc file (see the
-       <TmpFileName> property).
-       nsmMemory - the intermediate data is stored in RAM.
-       nsmNone - no intermediate data is stored. In this mode the component
-       reads the data from its input twice. This mode works only for inputs which
-       can reproduce their data (<TAuStreamedInput> descendants). *)
-
   TNormalizerStoreMode = (nsmFile, nsmMemory, nsmNone);
 
    (* Class: TNormalizer
-     A descendent of <TAuConverter> which scales audio data such that the
-     highest peak in the data is mapped to the maximum sample value available. *)
+     Descends from <TAuConverter>. TNormalizer scales audio data so that the highest peak in data is mapped to the maximum sample value avaiable. *)
 
   TNormalizer = class(TAuConverter)
   private
@@ -97,39 +85,26 @@ type
     destructor Destroy; override;
   published
     (* Property: StoreMode
-       TNormalizer needs a preprocessing data stage, depending on the StoreMode
-       value the component can work in several modes: <nsmFile>, <nsmMemory>, or
-       <nsmNone>. See <TNormalizerStoreMode> for more. *)
+       TNormalizer needs a preprocessing data stage. Depending on the StoreMode value the component can work in several modes.
+       - nsmFile - the intermediate data is stored in a disc file (see the <TmpFileName> property).
+       - nsmMemory - the intermediate data is stored in RAM.
+       - nsmNone - no intermediate data is stored. In this mode the component reads the data from its input twice. This mode works only for inputs that can reproduce its data (TSreamedIn descendants). *)
     property StoreMode : TNormalizerStoreMode read FStoreMode write SetStoreMode;
     (* Property: TmpFileName
-       The name of the temporary file that stores intermediate data in the
-       <nsmFile> mode.  *)
+       The name of the temporary file that stores intermediate data in the nsmFile mode.  *)
     property TmpFileName : String read FTmpFileName write FTmpFileName;
     (* Property: Enabled
-       If this property is set to False the component passes data through
-       without scaling.  *)
+       If this property is set to False the component passes data through without scaling.  *)
     property Enabled : Boolean read FEnabled write FEnabled;
   end;
-
-  (* Enum: TDitheringAlgorithm
-      Select between several dithering algorithms.
-      
-        dtaRectangular - Rectangle noise
-        dtaTriangular - Triangle noise
-        dtaShaped1 - Shaped 1
-        dtaShaped2 - Shaped 2 *)
 
   TDitheringAlgorithm = (dtaRectangular, dtaTriangular, dtaShaped1, dtaShaped2);
 
  (* Class: TDitherer
-     A descendent of <TAuConverter> which converter adds dithering noise to
-     the audio data passing through it. Dithering is useful when performing
-     audio sample truncation (with <TAudioConverter> for example) and other
-     DSP operatins that involve rounding. TDitherer uses several dithering
-     algorithms, but none of them is perfect. I would be grateful for any
-     dithering algorithms additions. If you want to use TDitherer together
-     with <TAudioConverter> you should place it before <TAudioConverter> in
-     the audio processing chain. *)
+     Descends from <TAuConverter>. TDitherer converter adds dithering noise to the audio data passing through it.
+     Dithering is usefull when performing audio samples truncation (with <TAudioConverter> for example) and other DSP operatins that involve rounding off.
+     TDitherer uses seeveral dithering algorithms but none of them is perfect. I will be grateful for any dithering algorithms additions.
+     If you want to use TDitherer together with <TAudioConverter> you should place it before <TAudioConverter> in the audio-processing chain. *)
 
   TDitherer = class(TAuConverter)
   private
@@ -151,17 +126,17 @@ type
     destructor Destroy; override;
   published
     (* Property: DitheringDepth
-    Use this property to set the number of bits that will contain the
-    dithering noise. For example, if you want to truncate audio samples from
-    24 bits per sample to 16 bits, set this value to 8. If the DitheringDepth
-    value is set to 0 (the default  value), the component switches to pass-
-    through mode in which audio data will be passed through unmodified. *)
-    
+    Use this property to set the number of bits that will contain the dithering noise.
+    For example, if you want to truncate audio samples from 24 bits per sample to 16 bits, set this value to 8.
+    If the DitheringDepth value is set to 0 (the default  value), the component switches to pass-through mode
+    in which audio data will be passed through unmodified. *)
     property DitheringDepth : Word read FDitheringDepth write SetDitheringDepth;
     (* Property: DitheringAlgorithm
-    Use this property to set the dithering algorithm. Possible values are
-    <dtaRectangular>, <dtaTriangular>, <dtaShaped1>, and <dtaShaped2>. See
-    <TDitheringAlgorithm> for more. *)
+    Use this property to set the dithering algorithm. Possible values are:
+    - dtaRectangular (rectangle noise)
+    - dtaTriangular (triangle noise)
+    - dtaShaped1
+    - dtaShaped2 *)
     property DitheringAlgorithm : TDitheringAlgorithm read FDitheringAlgorithm write SetDitheringAlgorithm;
   end;
 
@@ -177,7 +152,7 @@ type
     X1, Y1 : array[0..7] of array of Single;
     X2, Y2 : array[0..7] of array of Single;
     X3, Y3 : array[0..7] of array of Single;
-    IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
+    IFrames, OFrames, ISize, OSize, ITmpSize, MaxSize, MaxFrames : LongWord;
     FOutSampleRate : Word;
     offsX, OffsY : Integer;
     InputBuffer : array of Single;
@@ -199,9 +174,13 @@ type
     property OutSampleRate : Word read FOutSampleRate write FOutSampleRate;
   end;
 
+
+
+
   (* Class: TAudioConverter
-     A descendent of <TAuConverter> which may be used for changing the number
-     of channels and number of bits per sample in an audio stream. *)
+     Descends from <TAuConverter>. TAudioConverter component may be used for
+     changing the number of channels and number of bits per sample in an audio
+     stream.*)
 
   TAudioConverter = class(TAuConverter)
   private
@@ -1108,7 +1087,7 @@ implementation
   procedure TFastResampler.InitInternal;
   var
     i : Integer;
-    k : Single;
+    k, alpha : Single;
   const
     NP : Integer = 4;
   procedure Swap(var S1, S2 : Single);

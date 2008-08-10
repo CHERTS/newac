@@ -22,11 +22,9 @@ type
   ArrayOfInteger = array[0..536870910] of Integer;
   PArrayOfInteger = ^ArrayOfInteger;
 
-  (* Encodes a set of Integers assigned via Data array using Golomb codes. Codes
-   are stored in the memory area pointed to by Block. The Block is created with the
-   routine by GetMem and should be freed by FreeMem when it is no longer needed.
-   The length of the new block in bytes is returned via BlockLength. M - Golomb
-   parameter. *)
+  (* Encodes a set of Integers assed via Data array using Golomb codes. Codes sre stored in memory area pointed to by Block.
+   The Block os created with the routine by GetMem and should be freed by FreeMem when it is no more needed.
+   The length of the new block in bytes is returned via BlockLength. M - Golomb parameter. *)
   procedure GolombNewBlock(Data : PArrayOfInteger; DataLength : LongWord; var Block : PArrayOfByte; var BlockLength : LongWord; var M : Word);
 
   procedure GolombDecodeBlock(Data : PArrayOfInteger; DataLength : LongWord; Block : PArrayOfByte; BlockLength : LongWord; M : Word);
