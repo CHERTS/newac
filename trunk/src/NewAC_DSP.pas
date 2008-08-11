@@ -31,7 +31,7 @@ type
 
      TFrequencyAnalysis is an output component, but unlike other output components
      it doesn't provide audio data. TFrequencyAnalysis's output is an audio
-     frequency spectrum. *)
+     frequency spectrum. TFrequencyAnalysis normalizes its input values so all the output frequency and power values are normalized. *)
 
   TFrequencyAnalysis = class(TAuOutput)
   private
