@@ -174,10 +174,13 @@ begin
     if (Abs(Data[i]) > max) then
       max := Abs(Data[i]);
   if max-1 < MAX_M then
-    NewM := max-1
-  else
+  begin
+    if max > 1 then
+      NewM := max-1
+    else
+      NewM := 1;
+  end else
     NewM := MAX_M;
-  if NewM <= 0 then NewM := 1;
   clm := Ceil(Log2(NewM));
   for i := 0 to DataLength -1 do
     NewLength := NewLength + CodeLength(data[i], NewM, clm);
