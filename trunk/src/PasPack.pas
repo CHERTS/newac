@@ -7,6 +7,9 @@ interface
 uses
   SysUtils, Classes, Math, ACS_Types, ACS_Procs, Golomb;
 
+const
+  StaticMu = 0.00000000001;
+
 type
 
   TFileHeader = packed record
@@ -545,7 +548,7 @@ implementation
     j : Integer;
   begin
     for j := 0 to FileHeader.VectorLen - 1 do
-      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Y[Channel][Offset]*0.00000000001;
+      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Y[Channel][Offset]*StaticMu;
   end;
 
   procedure TPPAdaptiveEncoder.InitFilter;
@@ -662,7 +665,7 @@ implementation
     j : Integer;
   begin
     for j := 0 to FileHeader.VectorLen - 1 do
-      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Error*0.00000000001;
+      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Error*StaticMu;
   end;
 
   procedure TPPAdaptiveDecoder.Decode;
