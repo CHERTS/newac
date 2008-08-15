@@ -202,7 +202,7 @@ implementation
         Filter(j, i);
       end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     if (FileHeader.Channels = 2) and (FileHeader.u > 0) then
       for i := 0 to FileHeader.FramesInBlock -1 do
           Y[1][i] := Y[1][i] - Y[0][i];
@@ -273,8 +273,8 @@ implementation
     begin
       SetLength(A[i], FileHeader.VectorLen);
       SetLength(X0[i], FileHeader.VectorLen);
-      SetLength(X[i], SizeOf(SmallInt)*FileHeader.FramesInBlock + FileHeader.VectorLen);
-      SetLength(Y[i], SizeOf(SmallInt)*FileHeader.FramesInBlock);
+      SetLength(X[i], FileHeader.FramesInBlock + FileHeader.VectorLen);
+      SetLength(Y[i], FileHeader.FramesInBlock);
     end;
     SetLength(InData, FileHeader.FramesInBlock*FileHeader.Channels);
     FBufferSize := FileHeader.FramesInBlock*FileHeader.Channels*(FileHeader.BitsPerSample div 8);
@@ -342,7 +342,7 @@ implementation
         Restore(j, i);
       end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     Interlace;
     Buffer := FBuffer;
     BufLength := FBufferSize;
@@ -623,7 +623,7 @@ implementation
         Recalculate(j, i, e);
       end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     for j := 0 to FileHeader.Channels -1 do
       for i := 0 to FileHeader.FramesInBlock -1 do
         OutData[j*FileHeader.FramesInBlock + i] := Y[j][i];
@@ -711,7 +711,7 @@ implementation
       end;
     end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     Interlace;
     Buffer := FBuffer;
     BufLength := FBufferSize;
