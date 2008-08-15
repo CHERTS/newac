@@ -37,15 +37,15 @@ type
     X, Y : array[0..7] of array of Integer;
     OutData : array of Integer;
     FBufferSize : LongWord;
-    FramesRead : Word;
+    FramesRead : LongWord;
     SBuf : array of Single;
     IBuf : array of Integer;
     procedure Deinterlace; virtual;
-    procedure Recalculate(Channel, Offset : Integer; Error : SmallInt); virtual;
+    procedure Recalculate(Channel, Offset : Integer; Error : Integer); virtual;
     procedure Filter(Channel, Offset : Integer); virtual;
     procedure Decorrelate; virtual;
     procedure InitFilter; virtual;
-    procedure WriteX0; 
+    procedure WriteX0;
   public
     constructor Create(const OutputStream : TStream);
     destructor Destroy;
@@ -57,12 +57,12 @@ type
 
   TPPFastEncoder = class (TPPBaseEncoder)
   protected
-    procedure Filter(Channel, Offset : Integer);
     procedure InitFilter;
   public
     constructor Create(const OutputStream : TStream);
     destructor Destroy;
     procedure Init(BPS, Channels, Samplerate : Word); override;
+    procedure SetJoinedStereo;
     procedure Encode; override;
   end;
 
@@ -82,7 +82,7 @@ type
     function GetSampleRate : Word;
     function GetBPS : Word;
     procedure Interlace;
-    procedure Recalculate(Channel, Offset : Integer); virtual;
+    procedure Recalculate(Channel, Offset : Integer; Error : Integer); virtual;
     procedure Restore(Channel, Offset : Integer); virtual;
     procedure Decorrelate; virtual;
     procedure InitFilter;  virtual;
@@ -100,7 +100,6 @@ type
 
   TPPFastDecoder = class (TPPBaseDecoder)
   protected
-    procedure Restore(Channel, Offset : Integer); override;
     procedure InitFilter; override;
   public
     constructor Create(const InputStream : TStream);
@@ -111,6 +110,30 @@ type
     property SampleRate : Word read GetSampleRate;
     property Size : LongWord read FSize;
   end;
+
+  TPPAdaptiveEncoder = class(TPPBaseEncoder)
+  protected
+    procedure Recalculate(Channel, Offset : Integer;  Error : Integer); override;
+    procedure InitFilter; override;
+  public
+    constructor Create(const OutputStream : TStream);
+    destructor Destroy;
+    procedure Init(BPS, Channels, Samplerate : Word); override;
+    procedure SetFilterLength(Length : Word);
+    procedure Encode; override;
+  end;
+
+  TPPAdaptiveDecoder = class(TPPBaseDecoder)
+  protected
+    procedure Recalculate(Channel, Offset : Integer; Error : Integer); override;
+    procedure InitFilter; override;
+  public
+    constructor Create(const InputStream : TStream);
+    destructor Destroy;
+    function ReadHeader : Boolean; override;
+    procedure Decode(var Buffer : Pointer; var BufLength : LongWord);  override;
+  end;
+
 
 implementation
 
@@ -128,10 +151,11 @@ implementation
     FileHeader.Channels := Channels;
     FileHeader.SampleRate := Samplerate;
     FileHeader.Magic := 'PPAK';
-    FileHeader.Version := 1;
+    FileHeader.Version := 100;
     FileHeader.TotalFrames := 0;
     FileHeader.FramesInBlock := 512;
     FileHeader.VectorLen := 4;
+    FileHeader.u := 0;
     for i := 0 to FileHeader.Channels - 1 do
     begin
       SetLength(A[i], FileHeader.VectorLen);
@@ -149,6 +173,11 @@ implementation
   destructor TPPFastEncoder.Destroy;
   begin
     FreeMem(FBuffer);
+  end;
+
+  procedure TPPFastEncoder.SetJoinedStereo;
+  begin
+    FileHeader.u := 1;
   end;
 
   procedure TPPFastEncoder.Encode;
@@ -174,6 +203,9 @@ implementation
       end;
     for j := 0 to FileHeader.Channels -1 do
       Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+    if (FileHeader.Channels = 2) and (FileHeader.u > 0) then
+      for i := 0 to FileHeader.FramesInBlock -1 do
+          Y[1][i] := Y[1][i] - Y[0][i];
     for j := 0 to FileHeader.Channels -1 do
       for i := 0 to FileHeader.FramesInBlock -1 do
         OutData[j*FileHeader.FramesInBlock + i] := Y[j][i];
@@ -186,7 +218,7 @@ implementation
   end;
 
 
-  procedure TPPFastEncoder.Filter;
+  procedure TPPBaseEncoder.Filter;
   var
     i : Integer;
     Sum : Double;
@@ -231,7 +263,7 @@ implementation
       Result := False;
       Exit;
     end;
-    if FileHeader.Version <> 1 then
+    if not (FileHeader.Version in [100..199]) then
     begin
       Result := False;
       Exit;
@@ -267,18 +299,6 @@ implementation
     end;
   end;
 
-  procedure TPPFastDecoder.Restore;
-  var
-    i : Integer;
-    Sum : Double;
-  begin
-    Sum := 0;
-    for i := 0 to FileHeader.VectorLen - 1 do
-      Sum := Sum + A[Channel][i]*X[Channel][i + Offset];
-    X[Channel][FileHeader.VectorLen + Offset] := X[Channel][FileHeader.VectorLen + Offset] + Round(Sum);
-    Y[Channel][Offset] := X[Channel][FileHeader.VectorLen + Offset];
-  end;
-
   procedure TPPFastDecoder.Decode;
   var
     i, j : Integer;
@@ -307,6 +327,9 @@ implementation
     FileStream.Read(Block^, BlockLen);
     GolombDecodeBlock(@InData[0], FileHeader.FramesInBlock*FileHeader.Channels, Block, BlockHeader.BlockSize, BlockHeader.M);
     FreeMem(Block);
+    if (FileHeader.Channels = 2) and (FileHeader.u > 0) then
+      for i := 0 to FileHeader.FramesInBlock -1 do
+        InData[FileHeader.FramesInBlock + i] := InData[FileHeader.FramesInBlock + i] + InData[i];
     for i := 0 to FileHeader.VectorLen -1 do
       for j := 0 to FileHeader.Channels -1 do
         X[j][i] := X0[j][i];
@@ -381,10 +404,6 @@ implementation
   begin
   end;
 
-  procedure TPPBaseEncoder.Filter;
-  begin
-  end;
-
   procedure TPPBaseEncoder.QueryBuffer;
   begin
      if not HeaderWritten then
@@ -452,7 +471,7 @@ implementation
     i, j : Integer;
   begin
     for j := 0 to FileHeader.Channels -1 do
-      FileStream.Read(X0[j][0], Length(X0[j])*SizeOf(X0[j][0]));
+      FileStream.Read(X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     for i := 0 to FileHeader.VectorLen -1 do
       for j := 0 to FileHeader.Channels -1 do
         Y[j][i] := X0[j][i];
@@ -464,7 +483,15 @@ implementation
   end;
 
   procedure TPPBaseDecoder.Restore;
+  var
+    i : Integer;
+    Sum : Double;
   begin
+    Sum := 0;
+    for i := 0 to FileHeader.VectorLen - 1 do
+      Sum := Sum + A[Channel][i]*X[Channel][i + Offset];
+    X[Channel][FileHeader.VectorLen + Offset] := X[Channel][FileHeader.VectorLen + Offset] + Round(Sum);
+    Y[Channel][Offset] := X[Channel][FileHeader.VectorLen + Offset];
   end;
 
   procedure TPPBaseDecoder.Decorrelate;
@@ -501,5 +528,226 @@ implementation
   begin
     Result := False;
   end;
+
+  constructor TPPAdaptiveEncoder.Create;
+  begin
+    FileStream := OutputStream;
+    HeaderWritten := False;
+  end;
+
+  destructor TPPAdaptiveEncoder.Destroy;
+  begin
+    FreeMem(FBuffer);
+  end;
+
+  procedure TPPAdaptiveEncoder.Recalculate;
+  var
+    j : Integer;
+  begin
+    for j := 0 to FileHeader.VectorLen - 1 do
+      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Y[Channel][Offset]*0.00000000001;
+  end;
+
+  procedure TPPAdaptiveEncoder.InitFilter;
+  var
+    i, j : Integer;
+  begin
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      for j := 0 to FileHeader.VectorLen - 1 do
+        A[i][j] := 0;
+    end;
+  end;
+
+  procedure TPPAdaptiveEncoder.Init;
+  var
+    i : Integer;
+  begin
+    FileHeader.BitsPerSample := BPS;
+    FileHeader.Channels := Channels;
+    FileHeader.SampleRate := Samplerate;
+    FileHeader.Magic := 'PPAK';
+    FileHeader.Version := 200;
+    FileHeader.TotalFrames := 0;
+    FileHeader.FramesInBlock := 2048;
+    FileHeader.VectorLen := 64;
+    FileHeader.u := 0;
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      SetLength(A[i], FileHeader.VectorLen);
+      SetLength(X0[i], FileHeader.VectorLen);
+      SetLength(X[i], FileHeader.FramesInBlock + FileHeader.VectorLen);
+      SetLength(Y[i], FileHeader.FramesInBlock);
+    end;
+    SetLength(SBuf, FileHeader.FramesInBlock*FileHeader.Channels);
+    SetLength(IBuf, FileHeader.FramesInBlock*FileHeader.Channels);
+    SetLength(OutData, FileHeader.FramesInBlock*FileHeader.Channels);
+    FBufferSize := FileHeader.FramesInBlock*(FileHeader.BitsPerSample div 8)*FileHeader.Channels;
+    GetMem(FBuffer, FBufferSize);
+  end;
+
+  procedure TPPAdaptiveEncoder.SetFilterLength;
+  var
+    i : Integer;
+  begin
+    FileHeader.VectorLen := Length;
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      SetLength(A[i], FileHeader.VectorLen);
+      SetLength(X0[i], FileHeader.VectorLen);
+      SetLength(X[i], FileHeader.FramesInBlock + FileHeader.VectorLen);
+    end;
+  end;
+
+  procedure TPPAdaptiveEncoder.Encode;
+  var
+    i, j : Integer;
+    P : PArrayOfByte;
+    BS : LongWord;
+    BlockHeader : TBlockHeader;
+    e : Integer;
+  begin
+    if not HeaderWritten then
+    begin
+      FileStream.Write(FileHeader, SizeOf(FileHeader));
+      WriteX0;
+      InitFilter;
+      HeaderWritten := True;
+      Exit;
+    end;
+    Deinterlace;
+    for i := 0 to FileHeader.FramesInBlock -1 do
+      for j := 0 to FileHeader.Channels -1 do
+      begin
+        Filter(j, i);
+        Recalculate(j, i, e);
+      end;
+    for j := 0 to FileHeader.Channels -1 do
+      Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+    for j := 0 to FileHeader.Channels -1 do
+      for i := 0 to FileHeader.FramesInBlock -1 do
+        OutData[j*FileHeader.FramesInBlock + i] := Y[j][i];
+    GolombNewBlock(@OutData[0], FileHeader.FramesInBlock*FileHeader.Channels, P, BS, BlockHeader.M);
+    BlockHeader.BlockSize := BS;
+    FileStream.Write(BlockHeader, SizeOf(BlockHeader));
+    FileStream.Write(P^, BlockHeader.BlockSize);
+    Inc(FileHeader.TotalFrames, FileHeader.FramesInBlock);
+    FreeMem(P);
+  end;
+
+  constructor TPPAdaptiveDecoder.Create;
+  begin
+    FileStream := InputStream;
+    FBuffer := nil;
+  end;
+
+  destructor TPPAdaptiveDecoder.Destroy;
+  begin
+    if FBuffer <> nil then FreeMem(FBuffer);
+  end;
+
+  procedure TPPAdaptiveDecoder.InitFilter;
+  var
+    i, j : Integer;
+  begin
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      for j := 0 to FileHeader.VectorLen - 1 do
+        A[i][j] := 0;
+    end
+  end;
+
+  procedure TPPAdaptiveDecoder.Recalculate;
+  var
+    j : Integer;
+  begin
+    for j := 0 to FileHeader.VectorLen - 1 do
+      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Error*0.00000000001;
+  end;
+
+  procedure TPPAdaptiveDecoder.Decode;
+    var
+    i, j : Integer;
+    P : PSmallInt;
+    BlockHeader : TBlockHeader;
+    Block : PArrayOfByte;
+    BlockLen : LongWord;
+    Error : Integer;
+  begin
+    if FramesRead = 0 then
+    begin
+      ReadX0;
+      Interlace;
+      Buffer := FBuffer;
+      BufLength := FileHeader.VectorLen*FileHeader.Channels*(FileHeader.BitsPerSample div 8);
+      Inc(FramesRead);
+      Exit;
+    end;
+    if FramesRead > FileHeader.TotalFrames then
+    begin
+      Buffer := FBuffer;
+      BufLength := 0;
+      Exit;
+    end;
+    FileStream.Read(BlockHeader, SizeOf(BlockHeader));
+    GetMem(Block, BlockHeader.BlockSize);
+    BlockLen := BlockHeader.BlockSize;
+    FileStream.Read(Block^, BlockLen);
+    GolombDecodeBlock(@InData[0], FileHeader.FramesInBlock*FileHeader.Channels, Block, BlockHeader.BlockSize, BlockHeader.M);
+    FreeMem(Block);
+    for i := 0 to FileHeader.VectorLen -1 do
+      for j := 0 to FileHeader.Channels -1 do
+        X[j][i] := X0[j][i];
+    for i := 0 to FileHeader.FramesInBlock -1 do
+      for j := 0 to FileHeader.Channels -1 do
+        X[j][i + FileHeader.VectorLen] := InData[FileHeader.FramesInBlock*j + i];
+    for j := 0 to FileHeader.Channels -1 do
+    begin
+      for i := 0 to FileHeader.FramesInBlock -1 do
+      begin
+        Error := X[j][i + FileHeader.VectorLen];
+        Restore(j, i);
+        Recalculate(j, i, Error);
+      end;
+    end;
+    for j := 0 to FileHeader.Channels -1 do
+      Move(X[j][FileHeader.FramesInBlock - FileHeader.VectorLen + 1], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+    Interlace;
+    Buffer := FBuffer;
+    BufLength := FBufferSize;
+    Inc(FramesRead);
+  end;
+
+  function TPPAdaptiveDecoder.ReadHeader;
+  var
+    i : Integer;
+  begin
+    FileStream.Read(FileHeader, SizeOf(FileHeader));
+    if FileHeader.Magic <> 'PPAK' then
+    begin
+      Result := False;
+      Exit;
+    end;
+    if (FileHeader.Version < 200) or (FileHeader.Version > 299) then
+    begin
+      Result := False;
+      Exit;
+    end;
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      SetLength(A[i], FileHeader.VectorLen);
+      SetLength(X0[i], FileHeader.VectorLen);
+      SetLength(X[i], FileHeader.FramesInBlock + FileHeader.VectorLen);
+      SetLength(Y[i], FileHeader.FramesInBlock);
+    end;
+    SetLength(InData, FileHeader.FramesInBlock*FileHeader.Channels);
+    FBufferSize := FileHeader.FramesInBlock*FileHeader.Channels*(FileHeader.BitsPerSample div 8);
+    GetMem(FBuffer, FBufferSize);
+    FSize := FileHeader.TotalFrames*FileHeader.Channels*FileHeader.BitsPerSample div 8;
+    InitFilter;
+    FramesRead := 0;
+    Result := True;
+  end;
+
 
 end.
