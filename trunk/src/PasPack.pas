@@ -9,6 +9,8 @@ uses
 
 const
   StaticMu = 0.00000000001;
+  U = 0.0001;
+  Beta = 0.9;
 
 type
 
@@ -21,7 +23,7 @@ type
     TotalFrames : LongWord;
     FramesInBlock : Word;
     VectorLen : Word;
-    u, Beta : Single;
+    u, Beta : Double;
   end;
 
   TBlockHeader = packed record
@@ -137,8 +139,26 @@ type
     procedure Decode(var Buffer : Pointer; var BufLength : LongWord);  override;
   end;
 
+  TPPNLMSDecoder = class(TPPAdaptiveDecoder)
+  protected
+    Sigma : array[0..7] of Double;
+    procedure Recalculate(Channel, Offset : Integer; Error : Integer); override;
+  public
+    function ReadHeader : Boolean; override;
+  end;
+
+  TPPNLMSEncoder = class(TPPAdaptiveEncoder)
+  protected
+    Sigma : array[0..7] of Double;
+    procedure Recalculate(Channel, Offset : Integer;  Error : Integer); override;
+  public
+    procedure Init(BPS, Channels, Samplerate : Word); override;
+  end;
 
 implementation
+
+  var
+    F1, F2 : System.Text;
 
   constructor TPPFastEncoder.Create;
   begin
@@ -189,6 +209,7 @@ implementation
     P : PArrayOfByte;
     BS : LongWord;
     BlockHeader : TBlockHeader;
+//    TestData : array[0..4095] of Integer;
   begin
     if not HeaderWritten then
     begin
@@ -213,6 +234,10 @@ implementation
       for i := 0 to FileHeader.FramesInBlock -1 do
         OutData[j*FileHeader.FramesInBlock + i] := Y[j][i];
     GolombNewBlock(@OutData[0], FileHeader.FramesInBlock*FileHeader.Channels, P, BS, BlockHeader.M);
+(*    GolombDecodeBlock(@TestData[0], FileHeader.FramesInBlock*FileHeader.Channels, P, BS, BlockHeader.M);
+    for i := 0 to FileHeader.FramesInBlock*FileHeader.Channels -1 do
+    if  OutData[i] <> TestData[i] then
+    raise Exception.Create(''); *)
     BlockHeader.BlockSize := BS;
     FileStream.Write(BlockHeader, SizeOf(BlockHeader));
     FileStream.Write(P^, BlockHeader.BlockSize);
@@ -229,7 +254,7 @@ implementation
     Sum := 0;
     for i := 0 to FileHeader.VectorLen - 1 do
       Sum := Sum + A[Channel][i]*X[Channel][i + Offset];
-    Y[Channel][Offset] := X[Channel][FileHeader.VectorLen + Offset] - Round(Sum);
+    Y[Channel][Offset] := Integer(X[Channel][FileHeader.VectorLen + Offset] - Round(Sum));
   end;
 
   procedure TPPFastEncoder.InitFilter;
@@ -752,5 +777,124 @@ implementation
     Result := True;
   end;
 
+  procedure TPPNLMSEncoder.Init;
+  var
+    i : Integer;
+  begin
+    FileHeader.BitsPerSample := BPS;
+    FileHeader.Channels := Channels;
+    FileHeader.SampleRate := Samplerate;
+    FileHeader.Magic := 'PPAK';
+    FileHeader.Version := 300;
+    FileHeader.TotalFrames := 0;
+    FileHeader.FramesInBlock := 2048;
+    FileHeader.VectorLen := 16;
+    FileHeader.u := U;
+    FileHeader.Beta := Beta;
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      Sigma[i] := 0;
+      SetLength(A[i], FileHeader.VectorLen);
+      SetLength(X0[i], FileHeader.VectorLen);
+      SetLength(X[i], FileHeader.FramesInBlock + FileHeader.VectorLen);
+      SetLength(Y[i], FileHeader.FramesInBlock);
+    end;
+    SetLength(SBuf, FileHeader.FramesInBlock*FileHeader.Channels);
+    SetLength(IBuf, FileHeader.FramesInBlock*FileHeader.Channels);
+    SetLength(OutData, FileHeader.FramesInBlock*FileHeader.Channels);
+    FBufferSize := FileHeader.FramesInBlock*(FileHeader.BitsPerSample div 8)*FileHeader.Channels;
+    GetMem(FBuffer, FBufferSize);
+    InitFilter;
+  end;
 
+  procedure TPPNLMSEncoder.Recalculate;
+  var
+    j : Integer;
+    Mu : Double;
+  begin
+    if Y[Channel][Offset] = 0 then Exit;
+      Sigma[Channel] := FileHeader.Beta*Sigma[Channel] + (1 - FileHeader.Beta)*Sqr(Y[Channel][Offset]);
+    Mu := FileHeader.u/Sigma[Channel];
+    for j := 0 to FileHeader.VectorLen - 1 do
+      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Y[Channel][Offset]*Mu;
+(*  WriteLn(F1, 'Offset= ', Offset);
+   for j := 0 to FileHeader.VectorLen - 1 do
+    Write(F1, 'A', Channel, ',', j, '= ', A[Channel][j]);
+    WriteLn(F1);
+  for j := 0 to FileHeader.VectorLen - 1 do
+    Write(F1, 'X', Channel, ',', j, '= ', X[Channel][Offset + j]);
+  WriteLn(F1);
+  WriteLn(F1, 'Error= ', Y[Channel][Offset], 'Mu = ', Mu);*)
+
+
+//    if Abs(A[Channel][0]) >= 1 then
+//      raise Exception.Create('dd');
+  end;
+
+  procedure TPPNLMSDecoder.Recalculate;
+  var
+    j : Integer;
+    Mu : Double;
+  begin
+    if Error = 0 then Exit;
+      Sigma[Channel] := FileHeader.Beta*Sigma[Channel] + (1 - FileHeader.Beta)*Sqr(Error);
+    Mu := FileHeader.u/Sigma[Channel];
+    for j := 0 to FileHeader.VectorLen - 1 do
+      A[Channel][j] := A[Channel][j] + X[Channel][Offset + j]*Error*Mu;
+
+(*  WriteLn(F2, 'Offset= ', Offset);
+   for j := 0 to FileHeader.VectorLen - 1 do
+    Write(F2, 'A', Channel, ',', j, '= ', A[Channel][j]);
+    WriteLn(F2);
+  for j := 0 to FileHeader.VectorLen - 1 do
+    Write(F2, 'X', Channel, ',', j, '= ', X[Channel][Offset + j]);
+  WriteLn(F2);
+  WriteLn(F2, 'Error= ', Error, 'Mu = ', Mu); *)
+
+ //   if Abs(A[Channel][0]) >= 1 then
+ //     raise Exception.Create('dd');
+  end;
+
+  function TPPNLMSDecoder.ReadHeader;
+  var
+    i : Integer;
+  begin
+    FileStream.Read(FileHeader, SizeOf(FileHeader));
+    if FileHeader.Magic <> 'PPAK' then
+    begin
+      Result := False;
+      Exit;
+    end;
+    if (FileHeader.Version < 300) or (FileHeader.Version > 399) then
+    begin
+      Result := False;
+      Exit;
+    end;
+    for i := 0 to FileHeader.Channels - 1 do
+    begin
+      Sigma[i] := 0;
+      SetLength(A[i], FileHeader.VectorLen);
+      SetLength(X0[i], FileHeader.VectorLen);
+      SetLength(X[i], FileHeader.FramesInBlock + FileHeader.VectorLen);
+      SetLength(Y[i], FileHeader.FramesInBlock);
+    end;
+    SetLength(InData, FileHeader.FramesInBlock*FileHeader.Channels);
+    FBufferSize := FileHeader.FramesInBlock*FileHeader.Channels*(FileHeader.BitsPerSample div 8);
+    GetMem(FBuffer, FBufferSize);
+    FSize := FileHeader.TotalFrames*FileHeader.Channels*FileHeader.BitsPerSample div 8;
+    InitFilter;
+    FramesRead := 0;
+    Result := True;
+
+  end;
+
+initialization
+  System.Assign(F1, 'C:\output\debug1.txt');
+  System.Rewrite(F1);
+  System.Assign(F2, 'C:\output\debug2.txt');
+  System.Rewrite(F2);
+
+finalization
+  System.Close(F1);
+  System.Close(F2);
 end.
