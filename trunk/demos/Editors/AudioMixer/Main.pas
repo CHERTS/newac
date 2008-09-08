@@ -116,8 +116,8 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  TrackBar1 := amMaxVolume;
-  TrackBar2 := amMaxVolume;
+  TrackBar1.Position := amMaxVolume;
+  TrackBar2.Position := amMaxVolume;
 end;
 
 end.
