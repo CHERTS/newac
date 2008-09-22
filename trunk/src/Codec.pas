@@ -144,10 +144,10 @@ type
   VORBIS_COMMENT = record
   (* unlimited user comment fields. libvorbis writes 'libvorbis'
    whatever vendor is set to in encode *)
-    user_comments: PPChar;
+    user_comments: PPAnsiChar;
     comment_lengths: PInteger;
     comments: Integer;
-    vendor: PChar;
+    vendor: PAnsiChar;
   end;
 
  (* libvorbis encodes in two abstraction layers; first we perform DSP
@@ -194,11 +194,11 @@ type
                              comment: PChar); cdecl;
 
   vorbis_comment_add_tag_t = procedure(vc: PVORBIS_COMMENT;
-                                 tag: PChar;
-                                 contents: PChar); cdecl;
+                                 tag: PAnsiChar;
+                                 contents: PAnsiChar); cdecl;
 
   vorbis_comment_query_t = function(vc: PVORBIS_COMMENT;
-                              tag: PChar;
+                              tag: PAnsiChar;
                               count: Integer): PChar; cdecl;
 
   vorbis_comment_query_count_t = function(vc: PVORBIS_COMMENT;

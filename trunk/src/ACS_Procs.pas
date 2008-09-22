@@ -156,9 +156,9 @@ type
 
   procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer);
 
-  function GetRightOf(Delim : Char; const S : String) : String;
+  function GetRightOf(Delim : AnsiChar; const S : AnsiString) : AnsiString;
 
-  function GetLeftOf(Delim : Char; const S : String) : String;
+  function GetLeftOf(Delim : AnsiChar; const S : AnsiString) : AnsiString;
 
   function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
 
