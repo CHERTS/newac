@@ -465,8 +465,8 @@ implementation
   var
     PVComm : PVORBIS_COMMENT;
     PVInfo : PVORBIS_INFO;
-    PComment : PPChar;
-    Comment : PChar;
+    PComment : PPAnsiChar;
+    Comment : PAnsiChar;
     Callbacks : OV_CALLBACKS;
     res : Integer;
     CN, CV : String;
@@ -510,8 +510,8 @@ implementation
       Comment := PComment^;
       while Comment <> nil do
       begin
-        CN := GetLeftOf('=', String(Comment));
-        CV := GetRightOf('=', String(Comment));
+        CN := GetLeftOf('=', AnsiString(Comment));
+        CV := GetRightOf('=', AnsiString(Comment));
         CN := AnsiLowerCase(CN);
         if CN = _vorbis_Artist then
           FComments.Artist := UTF8Decode(CV)
@@ -718,7 +718,7 @@ implementation
   procedure TVorbisOut.InitVorbis;
   var
     i, maxbr, minbr, nombr : Integer;
-    Name, Value : String;
+    Name, Value : AnsiString;
   begin
     vorbis_info_init(@VInfo);
     if DesiredNominalBitrate = brAutoSelect then
@@ -750,7 +750,7 @@ implementation
       Name := Utf8Encode(WideString(FComments.Ids[i]));
       Value := Utf8Encode(FComments.AsWideString[FComments.Ids[i]]);
       if Value <> '' then
-        vorbis_comment_add_tag(@VComm, PChar(Name), PChar(Value));
+        vorbis_comment_add_tag(@VComm, PAnsiChar(@Name[1]), PAnsiChar(@Value[1]));
     end;
     vorbis_analysis_init(Vdsp, VInfo);
     vorbis_block_init(Vdsp, VBlock);
