@@ -101,7 +101,7 @@ type
 
   PCDROMPARAMS = ^TCDROMPARAMS;
   TCDROMPARAMS = record
-    lpszCDROMID : array [1..255] of Char;	// CD-ROM ID, must be unique to index settings in INI file
+    lpszCDROMID : array [1..255] of AnsiChar;	// CD-ROM ID, must be unique to index settings in INI file
     nNumReadSectors : Integer;           	// Number of sector to read per burst
     nNumOverlapSectors : Integer;        	// Number of overlap sectors for jitter correction
     nNumCompareSectors : Integer;        	// Number of sector to compare for jitter correction
@@ -146,7 +146,7 @@ type
 // Function pointers
 
   // Call init before anything else
-  CR_Init_t = function(strIniFname : PChar) : TRES_ERR; stdcall;
+  CR_Init_t = function(strIniFname : PAnsiChar) : TRES_ERR; stdcall;
 
   // Call DeIni when ripping library is no longer needed
   CR_DeInit_t = function : TRES_ERR; stdcall;
@@ -328,7 +328,7 @@ var
   function GetTOCEntry(n : Integer) : TTOCENTRY;
 
   // Note by A.B.: this function is modified by Thomas Grelle
-  procedure CDRIPInit(FilePath:String);
+  procedure CDRIPInit(FilePath:AnsiString);
 
   // Note by A.B.: this function is added by Thomas Grelle
   function GetWindowsVersion: TOSVer;
@@ -341,7 +341,7 @@ var
 function GetWindowsVersion: TOSVer;
 var
   VerInfo: TOsversionInfo;
-//  PlatformId : string;
+//  PlatformId : AnsiString;
   Reg: TRegistry;
 begin
   VerInfo.dwOSVersionInfoSize := SizeOf(VerInfo);
@@ -370,7 +370,7 @@ end;
     Result.btTrackNumber := Hi(t);
   end;
 
-  procedure CDRIPInit(FilePath:String);
+  procedure CDRIPInit(FilePath:AnsiString);
   begin
     Libhandle := LoadLibraryEx(CDRipPath, 0, 0);
     if Libhandle <> 0 then
@@ -427,7 +427,7 @@ end;
         WINNT : CDRIni.WriteInteger('CD-ROM','nTransportLayer',1);
       end;
       CDRIni.Free;
-      CR_Init(PChar(FilePath+'cdr.ini'));
+      CR_Init(PAnsiChar(FilePath+'cdr.ini'));
     end;
   end;
 

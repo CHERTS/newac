@@ -48,7 +48,7 @@ type
   TCDInfo = (cdiNoDisc, cdiDiscAudio, cdiDiscData, cdiDiscMixed, cdiUnknown);
 
 
-  TMCN = array[0..13] of Char;
+  TMCN = array[0..13] of AnsiChar;
 
   (* Structures:
         These are the structures used by TCDIn andd TCDPlayer. *)
@@ -103,8 +103,8 @@ const
   BUF_SIZE = 75 * CD_FRAMESIZE_RAW;  // 75 frames - 1 sec
 
 var
-  AppPath : String;
-  WinPath : String;
+  AppPath : AnsiString;
+  WinPath : AnsiString;
 
 type
 
@@ -114,7 +114,7 @@ type
     FCurrentDrive : Integer;
     _cd_fd : Integer;
     aux_ind : Integer;
-    CDDrives : array[0..32] of Char;
+    CDDrives : array[0..32] of AnsiChar;
     CDDNum : Integer;
     procedure OpenCD;
     procedure CloseCD;
@@ -132,7 +132,7 @@ type
     procedure SetRVolume(aVolume : Word);
     function  GetLVolume : Word;
     function  GetRVolume : Word;
-    function GetDriveLetter(anIndex : Integer) : Char;
+    function GetDriveLetter(anIndex : Integer) : AnsiChar;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -144,7 +144,7 @@ type
     procedure Resume;
     procedure Stop;
     property DiscInfo : TCDInfo read GetDiscInfo;
-    property DriveLetter[anIndex : Integer] : Char read GetDriveLetter;
+    property DriveLetter[anIndex : Integer] : AnsiChar read GetDriveLetter;
     property MCN : TMCN read GetMCN;
     property MediaChanged : Boolean read GetMediaChanged;
     property Position : TCDPosition read GetPosition;
@@ -184,7 +184,7 @@ type
     function GetInfo : TCDInfo;
     function GetDrivesCount : Integer;
     procedure SetCurrentDrive(Value : Integer);
-    function GetDriveName : String;
+    function GetDriveName : AnsiString;
   protected
     function GetTotalSamples : Int64; override;
     function GetTotalTime : LongWord; override;
@@ -222,7 +222,7 @@ type
     property TracksCount : Integer read GetNumTracks;
     (* Property: DriveName
       The name of the current CD-ROM drive as returned by the drive unit. *)
-    property DriveName : String read GetDriveName;
+    property DriveName : AnsiString read GetDriveName;
     (* Property: DrivesCount
       The total number of the CD-ROM drives detected in the system. *)
     property DrivesCount : Integer read GetDrivesCount;
@@ -253,20 +253,20 @@ type
     property EndTrack: Integer read FEndTrack write SetET;
   end;
 
-  function MSFToStr(const MSF : TCDMSF) : String;
+  function MSFToStr(const MSF : TCDMSF) : AnsiString;
   procedure Frames2MSF(Frames : Integer; var MSF : TCDMSF);
   function MSF2Frames(const MSF : TCDMSF) : Integer;
 
 implementation
 
   var
-    adPath : array[0..512] of Char;
+    adPath : array[0..512] of AnsiChar;
 
-  function SHGetFolderPathA(hwndOwner : HWND; nFolder : Integer; hToken : THANDLE; dwFlags : DWORD; pszPath : PChar) : HResult; stdcall; external 'shell32.dll';
+  function SHGetFolderPathA(hwndOwner : HWND; nFolder : Integer; hToken : THANDLE; dwFlags : DWORD; pszPath : PAnsiChar) : HResult; stdcall; external 'shell32.dll';
 
-  function MSFToStr(const MSF : TCDMSF) : String;
+  function MSFToStr(const MSF : TCDMSF) : AnsiString;
   var
-    sep : String;
+    sep : AnsiString;
     sec, min : Integer;
   begin
     min := MSF.Minute;
@@ -304,8 +304,8 @@ implementation
   var
     numaux, i : Integer;
     AuxCaps : TAuxCaps;
-    Ch : Char;
-    DriveName : String;
+    Ch : AnsiChar;
+    DriveName : AnsiString;
   begin
     inherited Create(AOwner);
     aux_ind := -1;
@@ -342,8 +342,8 @@ implementation
   procedure TCDPlayer.OpenCD;
   var
    mciSetParms : MCI_SET_PARMS;
-   DevName : String;
-   Cmd : String;
+   DevName : AnsiString;
+   Cmd : AnsiString;
   begin
     if FOpened = 0 then
     begin
@@ -505,7 +505,7 @@ implementation
     MSF1, MSF2 : TCDMSF;
     mciPlayParms : MCI_PLAY_PARMS;
     res : LongWord;
-    Error : String;
+    Error : AnsiString;
   begin
     OpenCD;
     if GetStatus = cdsNotReady then
@@ -839,7 +839,7 @@ implementation
       if SHGetFolderPathA(0, $1a, 0, 0, @adPath[0]) <> 0 then
         AppPath := ExtractFilePath(ParamStr(0))
       else
-        AppPath := PChar(@adPath[0]);
+        AppPath := PAnsiChar(@adPath[0]);
       if AppPath[length(AppPath)] <> '\' then AppPath := AppPath + '\';
       CDRIPInit(AppPath);
       if not CDRipLoaded then
@@ -976,7 +976,7 @@ implementation
     begin
       OpenCD;
       CR_GetCDROMParameters(@CDP);
-      Result := String(CDP.lpszCDROMID);
+      Result := AnsiString(CDP.lpszCDROMID);
       CloseCD;
     end else Result := '';
   end;

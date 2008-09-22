@@ -1664,7 +1664,12 @@ constructor TAuOutput.Create;
 
   destructor TAuFileStream.Destroy;
   begin
+    {$IFDEF UNICODE}
+    if FHandle <> INVALID_HANDLE_VALUE then FileClose(FHandle);
+    {$ENDIF}
+    {$IFNDEF UNICODE}
     if FHandle >= 0 then FileClose(FHandle);
+    {$ENDIF}
     inherited Destroy;
   end;
 
