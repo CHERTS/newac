@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.8
+  This file is a part of New Audio Components package 1.9
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -1646,25 +1646,20 @@ constructor TAuOutput.Create;
       FILE_SHARE_READ or FILE_SHARE_WRITE);
   begin
     if Mode = fmCreate then
-    begin
       inherited Create(
       CreateFileW(PWideChar(FileName), GENERIC_READ or GENERIC_WRITE,
-      0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
-      if FHandle = INVALID_HANDLE_VALUE then
-        raise EAuException.Create(SysErrorMessage(GetLastError));
- //     if FHandle < 0 then
-//        raise EAuException.Create(Format('Cannot create file %s', [FileName]));
-    end
+      0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0))
     else
-    begin
       inherited Create(CreateFileW(PWideChar(FileName), AccessMode[Mode and 3],
         ShareMode[(Mode and $F0) shr 4], nil, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, 0));
-        if FHandle < 0 then
-          raise EAuException.Create(SysErrorMessage(GetLastError));
- //      if FHandle < 0 then
- //        raise EAuException.Create(Format('Cannot open file %s', [FileName]));
-    end;
+    {$IFDEF UNICODE}
+    if FHandle = INVALID_HANDLE_VALUE then
+    {$ENDIF}
+    {$IFNDEF UNICODE}
+    if FHandle < 0 then
+    {$ENDIF}
+      raise EAuException.Create(SysErrorMessage(GetLastError));
   end;
 
   destructor TAuFileStream.Destroy;
