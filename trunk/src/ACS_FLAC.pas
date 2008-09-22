@@ -171,7 +171,7 @@ type
     BS : Integer;
     Header : array[0..4] of Byte;
     t : byte;
-    P : PChar;
+    P : PAnsiChar;
     i, StrCount : Integer;
     procedure AddString(const Str : Utf8String);
     var
@@ -227,7 +227,7 @@ type
     Header[1] := t;
     Result := BS + 4;
     GetMem(Block, Result);
-    P := PChar(Block);
+    P := PAnsiChar(Block);
     Move(Header[0], P[0], 4);
     i := 4;
     AddString(Comments.Vendor);
@@ -528,7 +528,7 @@ type
     FLACIn : TFLACIn;
     FI : FLAC__StreamMetadata_StreamInfo;
     i : Integer;
-    S : String;
+    S : AnsiString;
     Entry : PFLAC__StreamMetadata_VorbisComment_Entry;
     SL : TStringList;
   begin
