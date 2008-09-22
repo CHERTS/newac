@@ -51,7 +51,7 @@ type
 
   TWavpackDecoder = class
   private
-    FFileName: String;
+    FFileName: AnsiString;
 
     FStream: TStream;
     FCorrectionsStream: TStream;
@@ -78,9 +78,9 @@ type
     function GetHasLossyBlocks: Boolean;
     function GetProgress: Integer;
 
-    function GetTag(const Id: String): WideString;
+    function GetTag(const Id: AnsiString): WideString;
 
-    function GetLastError: String;
+    function GetLastError: AnsiString;
   public
     constructor Create(const AFileName: String;
       Flags: TwvOpenFlags; NormOffset: Integer = 0); overload;
@@ -91,7 +91,7 @@ type
     function UnpackSamples(Buffer: Pointer; SampleCount: Cardinal): Cardinal;
     function SeekSample(Sample: Cardinal): Boolean;
 
-    property FileName: String read FFileName;
+    property FileName: AnsiString read FFileName;
     property Stream: TStream read FStream;
     property CorrectionsStream: TStream read FCorrectionsStream;
 
@@ -115,9 +115,9 @@ type
     property HasLossyBlocks: Boolean read GetHasLossyBlocks;
     property Progress: Integer read GetProgress;
 
-    property Tags[const Id: String]: WideString read GetTag;
+    property Tags[const Id: AnsiString]: WideString read GetTag;
 
-    property LastError: String read GetLastError;
+    property LastError: AnsiString read GetLastError;
   end;
 
   (* class TWavpackEncoder *)
@@ -190,9 +190,9 @@ type
     procedure SetShapingWeight(Value: Single);
     procedure SetXMode(Value: Integer);
 
-    procedure SetTag(const Id: String; const Value: WideString);
+    procedure SetTag(const Id: AnsiString; const Value: WideString);
 
-    function GetLastError: String;
+    function GetLastError: AnsiString;
   public
     constructor Create(const AStream, ACorrectionsStream: TStream); reintroduce;
     destructor Destroy; override;
@@ -214,9 +214,9 @@ type
     property ShapingWeight: Single write SetShapingWeight;
     property XMode: Integer write SetXMode;
 
-    property Tags[const Id: String]: WideString write SetTag;
+    property Tags[const Id: AnsiString]: WideString write SetTag;
 
-    property LastError: String read GetLastError;
+    property LastError: AnsiString read GetLastError;
   end;
 
 procedure LoadWavpackDLL;
@@ -369,11 +369,11 @@ type
 
   t_WavpackFloatNormalize_proc = procedure(values: PInteger; num_values: Integer; delta_exp: Integer); cdecl;
 
-  t_WavpackLittleEndianToNative_proc = procedure(data: Pointer; format: PChar); cdecl;
-  t_WavpackNativeToLittleEndian_proc = procedure(data: Pointer; format: PChar); cdecl;
+  t_WavpackLittleEndianToNative_proc = procedure(data: Pointer; format: PAnsiChar); cdecl;
+  t_WavpackNativeToLittleEndian_proc = procedure(data: Pointer; format: PAnsiChar); cdecl;
 
   t_WavpackGetLibraryVersion_func = function: Cardinal; cdecl;
-  t_WavpackGetLibraryVersionString_func = function: PChar; cdecl;
+  t_WavpackGetLibraryVersionString_func = function: PAnsiChar; cdecl;
 
 var
   WavpackDLL_Handle: HMODULE = 0;
@@ -636,7 +636,7 @@ begin
   Result := Trunc(WavpackGetProgress(FContext) * 100);
 end;
 
-function TWavpackDecoder.GetTag(const Id: String): WideString;
+function TWavpackDecoder.GetTag(const Id: AnsiString): WideString;
 var
   len: Integer;
   buf: UTF8String;
@@ -653,7 +653,7 @@ begin
     Result := '';
 end;
 
-function TWavpackDecoder.GetLastError: String;
+function TWavpackDecoder.GetLastError: AnsiString;
 begin
   CheckFunc(@WavpackGetErrorMessage, WavpackGetErrorMessage_name);
 
@@ -763,7 +763,7 @@ begin
   FConfig.xmode := Value;
 end;
 
-procedure TWavpackEncoder.SetTag(const Id: String; const Value: WideString);
+procedure TWavpackEncoder.SetTag(const Id: AnsiString; const Value: WideString);
 var
   buf: UTF8String;
 begin
@@ -773,7 +773,7 @@ begin
   WavpackAppendTagItem(FContext, @(Id[1]), @(buf[1]), Length(buf));
 end;
 
-function TWavpackEncoder.GetLastError: String;
+function TWavpackEncoder.GetLastError: AnsiString;
 begin
   CheckFunc(@WavpackGetErrorMessage, WavpackGetErrorMessage_name);
 
