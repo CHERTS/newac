@@ -74,11 +74,11 @@ type
 
   TWaveHeader = record
     // RIFF file header
-    RIFF: array [0..3] of Byte;          // = 'RIFF' offset : 0000
+    RIFF: array [0..3] of AnsiChar;          // = 'RIFF' offset : 0000
     FileSize: Integer;                   // = FileSize - 8 offset : 0004
-    RIFFType: array [0..3] of Byte;      // = 'WAVE'  offset : 0008
+    RIFFType: array [0..3] of AnsiChar;      // = 'WAVE'  offset : 0008
     // Format chunk
-    FmtChunkId: array [0..3] of Byte;    // = 'fmt'   offset : 0012
+    FmtChunkId: array [0..3] of AnsiChar;    // = 'fmt'   offset : 0012
     FmtChunkSize: Integer;               // = 16      offset : 0016
     FormatTag: Word;                     // One of WAVE_FORMAT_XXX constants    offset : 0020
     Channels: Word;                      // = 1 - mono = 2 - stereo             offset : 0022
@@ -87,19 +87,19 @@ type
     BlockAlign: Word;                                                        // offset : 0032
     BitsPerSample: Word;                 // = 8, 16 or 32 Bits/sample           offset : 0034
     // Data Chunk
-    DataChunkId: array [0..3] of Byte;   // = 'data'                          // offset : 0036
+    DataChunkId: array [0..3] of AnsiChar;   // = 'data'                          // offset : 0036
     DataSize: Integer;   // Data size in bytes                                // offset : 0040
   end;
 (*
   Record: TWaveHeaderExt
     Represents a WaveFormatExtensible header.
-    
+
   Properties:
     RIFF: array [0..3] of Char - 'RIFF'
     FileSize: Integer - FileSize - 8
     RIFFType: array [0..3] of Char - 'WAVE'
     FmtChunkId: array [0..3] of Char - 'fmt' marks the beginning of the format chunk
-    FmtChunkSize: Integer - 16, the size of the format chunk  
+    FmtChunkSize: Integer - 16, the size of the format chunk
     Format: <TWaveFormatExtensible> - see <TWaveFormatExtensible>
     DataChunkId: array [0..3] of Char; - 'data' marks the beginning of the data chunk
     DataSize: Integer; - Data size in bytes
@@ -108,15 +108,15 @@ type
 
   TWaveHeaderExt = packed record
     // RIFF file header
-    RIFF: array [0..3] of Byte;          // = 'RIFF'
+    RIFF: array [0..3] of AnsiChar;          // = 'RIFF'
     FileSize: Integer;                   // = FileSize - 8
-    RIFFType: array [0..3] of Byte;      // = 'WAVE'
+    RIFFType: array [0..3] of AnsiChar;      // = 'WAVE'
     // Format chunk
-    FmtChunkId: array [0..3] of Byte;    // = 'fmt'
+    FmtChunkId: array [0..3] of AnsiChar;    // = 'fmt'
     FmtChunkSize: Integer;               // = 16
     Format : TWaveFormatExtensible;
     // Data Chunk
-    DataChunkId: array [0..3] of Byte;   // = 'data'
+    DataChunkId: array [0..3] of AnsiChar;   // = 'data'
     DataSize: Integer;   // Data size in bytes
   end;
 
@@ -127,7 +127,7 @@ type
   Properties:
     RIFF: array [0..3] of Char - 'RIFF' begins RIFF file header
     FileSize: Integer - FileSize - 8
-    RIFFType: array [0..3] of Char - 'WAVE'   
+    RIFFType: array [0..3] of Char - 'WAVE'
     FmtChunkId: array [0..3] of Char - 'fmt' Format chunk
     FmtChunkSize: Integer - 20
     FormatTag: Word - WAVE_FORMAT_DVI_ADPCM
@@ -144,14 +144,14 @@ type
     DataChunkId: array [0..3] of Char - 'data' begin Data Chunk
     DataSize: Integer -  Data size in bytes
   *)
-  
+
   TDVIADPCMHeader = record
     // RIFF file header
-    RIFF: array [0..3] of Byte;          // = 'RIFF'
+    RIFF: array [0..3] of AnsiChar;          // = 'RIFF'
     FileSize: Integer;                   // = FileSize - 8
-    RIFFType: array [0..3] of Byte;      // = 'WAVE'
+    RIFFType: array [0..3] of AnsiChar;      // = 'WAVE'
     // Format chunk
-    FmtChunkId: array [0..3] of Byte;    // = 'fmt'
+    FmtChunkId: array [0..3] of AnsiChar;    // = 'fmt'
     FmtChunkSize: Integer;               // = 20
     FormatTag: Word;                     // WAVE_FORMAT_DVI_ADPCM
     Channels: Word;                      // = 1 - mono = 2 - stereo
@@ -162,11 +162,11 @@ type
     cbSize : Word;                      // The size in bytes of the extra information
     SamplesPerBlock : Word;             // number of samples per channel per Block
     // Fact Chunk
-    FactChunkId: array [0..3] of Byte;  // = 'fact'
+    FactChunkId: array [0..3] of AnsiChar;  // = 'fact'
     FactChunkSize : Integer;            // = 4
     DataLength : Integer;
     // Data Chunk
-    DataChunkId: array [0..3] of Byte;   // = 'data'
+    DataChunkId: array [0..3] of AnsiChar;   // = 'data'
     DataSize: Integer;   // Data size in bytes
   end;
 
@@ -602,7 +602,7 @@ const
     Len := pos*2;
   end;
 
-  function Compare4(S1, S2 : PBuffer8) : Boolean;
+  function Compare4(S1, S2 : PAnsiChar) : Boolean;
   var
     i, Diff : Byte;
   begin
@@ -638,7 +638,7 @@ const
      WH : TWaveHeader;
      i, framesize : Integer;
      outsamples : array[0..2303] of SmallInt;
-     text : array[0..4] of Char;
+     text : array[0..4] of AnsiChar;
    begin
      WI := TWaveIn(CData);
      if not WI.HasFirstFrame then
@@ -1017,23 +1017,10 @@ const
 
 procedure TWaveOut.FillHeaderPCM(var Header : TWaveHeader);
 begin
-
-  //Header.RIFF := 'RIFF';
-  Header.RIFF[0] := Byte('R');
-  Header.RIFF[1] := Byte('I');
-  Header.RIFF[2] := Byte('F');
-  Header.RIFF[3] := Byte('F');
+  Header.RIFF := 'RIFF';
   Header.FileSize := FInput.Size + WaveHeaderOffs - 8;
-//  Header.RIFFType := 'WAVE';
-  Header.RIFFType[0] := Byte('W');
-  Header.RIFFType[1] := Byte('A');
-  Header.RIFFType[2] := Byte('V');
-  Header.RIFFType[3] := Byte('E');
-//  Header.FmtChunkId := 'fmt ';
-  Header.FmtChunkId[0] := Byte('f');
-  Header.FmtChunkId[1] := Byte('m');
-  Header.FmtChunkId[2] := Byte('t');
-  Header.FmtChunkId[3] := Byte(' ');
+  Header.RIFFType := 'WAVE';
+  Header.FmtChunkId := 'fmt ';
   Header.FmtChunkSize := 16;
   Header.FormatTag := WAVE_FORMAT_PCM;
   Header.Channels := FInput.Channels;
@@ -1041,32 +1028,16 @@ begin
   Header.BitsPerSample := FInput.BitsPerSample;
   Header.BlockAlign := (Header.BitsPerSample * Header.Channels) shr 3;
   Header.BytesPerSecond := Header.SampleRate * Header.BlockAlign;
-//  Header.DataChunkId := 'data';
-  Header.DataChunkId[0] := Byte('d');
-  Header.DataChunkId[1] := Byte('a');
-  Header.DataChunkId[2] := Byte('t');
-  Header.DataChunkId[3] := Byte('a');
+  Header.DataChunkId := 'data';
   Header.DataSize := FInput.Size;
 end;
 
 procedure TWaveOut.FillHeaderExtPCM;
 begin
-//  Header.RIFF := 'RIFF';
-  Header.RIFF[0] := Byte('R');
-  Header.RIFF[1] := Byte('I');
-  Header.RIFF[2] := Byte('F');
-  Header.RIFF[3] := Byte('F');
+  Header.RIFF := 'RIFF';
   Header.FileSize := FInput.Size + SizeOf(Header) - 8;
-//  Header.RIFFType := 'WAVE';
-  Header.RIFFType[0] := Byte('W');
-  Header.RIFFType[1] := Byte('A');
-  Header.RIFFType[2] := Byte('V');
-  Header.RIFFType[3] := Byte('E');
-//  Header.FmtChunkId := 'fmt ';
-  Header.FmtChunkId[0] := Byte('f');
-  Header.FmtChunkId[1] := Byte('m');
-  Header.FmtChunkId[2] := Byte('t');
-  Header.FmtChunkId[3] := Byte(' ');
+  Header.RIFFType := 'WAVE';
+  Header.FmtChunkId := 'fmt ';
   Header.FmtChunkSize := SizeOf(Header.Format);
   Header.Format.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
   Header.Format.Format.nChannels := FInput.Channels;
@@ -1077,7 +1048,7 @@ begin
   Header.Format.wValidBitsPerSample := Header.Format.Format.wBitsPerSample;
   if Header.Format.Format.nChannels = 1 then
     Header.Format.dwChannelMask := 1
-  else
+  else  
   if Header.Format.Format.nChannels = 2 then
     Header.Format.dwChannelMask := 3
   else
@@ -1088,31 +1059,21 @@ begin
         Header.Format.dwChannelMask := $FF;
   Header.Format.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
   Header.Format.Format.cbSize := 22;
-//  Header.DataChunkId := 'data';
-  Header.DataChunkId[0] := Byte('d');
-  Header.DataChunkId[1] := Byte('a');
-  Header.DataChunkId[2] := Byte('t');
-  Header.DataChunkId[3] := Byte('a');
+  Header.DataChunkId := 'data';
   Header.DataSize := FInput.Size;
 end;
 
 procedure TWaveOut.FillHeaderDVIADPCM(var Header : TDVIADPCMHeader);
 var
+  text : array[0..4] of AnsiChar;
   samples : Integer;
 begin
-  Header.RIFF[0] := Byte('R');
-  Header.RIFF[1] := Byte('I');
-  Header.RIFF[2] := Byte('F');
-  Header.RIFF[3] := Byte('F');
-  Header.RIFFType[0] := Byte('W');
-  Header.RIFFType[1] := Byte('A');
-  Header.RIFFType[2] := Byte('V');
-  Header.RIFFType[3] := Byte('E');
-//  text := 'fmt ';
-  Header.FmtChunkId[0] := Byte('f');
-  Header.FmtChunkId[1] := Byte('m');
-  Header.FmtChunkId[2] := Byte('t');
-  Header.FmtChunkId[3] := Byte(' ');
+  text := 'RIFF';
+  Move(text[0], Header.RIFF[0], 4);
+  text := 'WAVE';
+  Move(text[0], Header.RIFFType[0], 4);
+  text := 'fmt ';
+  Move(text[0], Header.FmtChunkId[0], 4);
   Header.FmtChunkSize := 20;
   Header.FormatTag := WAVE_FORMAT_DVI_IMA_ADPCM;
   Header.Channels := FInput.Channels;
@@ -1125,14 +1086,10 @@ begin
   samples := (FInput.Size div (FInput.BitsPerSample shr 3)) div FInput.Channels;
   Header.DataSize := Round(samples/Header.SamplesPerBlock)*Header.BlockAlign;
   Header.FileSize := Header.DataSize + SizeOf(TDVIADPCMHeader);
-  Header.DataChunkId[0] := Byte('d');
-  Header.DataChunkId[1] := Byte('a');
-  Header.DataChunkId[2] := Byte('t');
-  Header.DataChunkId[3] := Byte('a');
-  Header.FactChunkId[0] := Byte('f');
-  Header.FactChunkId[1] := Byte('a');
-  Header.FactChunkId[2] := Byte('c');
-  Header.FactChunkId[3] := Byte('t');
+  text := 'data';
+  Move(text[0], Header.DataChunkId[0], 4);
+  text := 'fact';
+  Move(text[0], Header.FactChunkId[0], 4);
   Header.FactChunkSize := 4;
   Header.DataLength := samples;
 end;
@@ -1651,8 +1608,7 @@ end;
     i : Integer;
     WordVal : Word;
     IntVal : Integer;
-    Buff : array[0..$fff] of Byte;
-    S : array[0..3] of Byte;
+    Buff : array[0..$fff] of AnsiChar;
     State : Integer;
     ChunkSize : Integer;
     SubType : TGuid;
@@ -1670,11 +1626,7 @@ end;
       case State of
         LookingForRIFF :
         begin
-          S[0] := Byte('R');
-          S[1] := Byte('I');
-          S[2] := Byte('F');
-          S[3] := Byte('F');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'RIFF') then
           begin
             FStream.Read(Buff[i], 1);
             Inc(i);
@@ -1687,11 +1639,7 @@ end;
         end;
         LookingForWAVE :
         begin
-          S[0] := Byte('W');
-          S[1] := Byte('A');
-          S[2] := Byte('V');
-          S[3] := Byte('E');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'WAVE') then
           begin
             FStream.Read(Buff[i], 1);
             Inc(i);
@@ -1704,11 +1652,7 @@ end;
         end;
         LookingForFMT :
         begin
-          S[0] := Byte('f');
-          S[1] := Byte('m');
-          S[2] := Byte('t');
-          S[3] := Byte(' ');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'fmt ') then
           begin
             FStream.Read(Buff[i], 4);
             Inc(i, 4);
@@ -1774,11 +1718,7 @@ end;
         end;
         LookingForFACT :
         begin
-          S[0] := Byte('f');
-          S[1] := Byte('a');
-          S[2] := Byte('c');
-          S[3] := Byte('t');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'fact') then
           begin
             FStream.Read(Buff[i], 4);
             Inc(i, 4);
@@ -1806,11 +1746,7 @@ end;
         end;
         LookingForDATA :
         begin
-          S[0] := Byte('d');
-          S[1] := Byte('a');
-          S[2] := Byte('t');
-          S[3] := Byte('a');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'data') then
           begin
             FStream.Read(Buff[i], 4);
             Inc(i, 4);
@@ -1840,9 +1776,8 @@ end;
   var
     i : Integer;
     WordVal : Word;
-    Buff : array[0..$fff] of Char;
+    Buff : array[0..$fff] of AnsiChar;
     State : Integer;
-    S : array[0..3] of Byte;
     ChunkSize : Integer;
   begin
     FPrevWavType := wtUnsupported;
@@ -1854,11 +1789,7 @@ end;
       case State of
         LookingForRIFF :
         begin
-          S[0] := Byte('R');
-          S[1] := Byte('I');
-          S[2] := Byte('F');
-          S[3] := Byte('F');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'RIFF') then
           begin
             FStream.Read(Buff[i], 1);
             Inc(i);
@@ -1871,11 +1802,7 @@ end;
         end;
         LookingForWAVE :
         begin
-          S[0] := Byte('W');
-          S[1] := Byte('A');
-          S[2] := Byte('V');
-          S[3] := Byte('E');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'WAVE') then
           begin
             FStream.Read(Buff[i], 1);
             Inc(i);
@@ -1888,11 +1815,7 @@ end;
         end;
         LookingForFMT :
         begin
-          S[0] := Byte('f');
-          S[1] := Byte('m');
-          S[2] := Byte('t');
-          S[3] := Byte(' ');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'fmt ') then
           begin
             FStream.Read(Buff[i], 4);
             Inc(i, 4);
@@ -1927,11 +1850,7 @@ end;
         end;
         LookingForFACT :
         begin
-          S[0] := Byte('f');
-          S[1] := Byte('a');
-          S[2] := Byte('c');
-          S[3] := Byte('t');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'fact') then
           begin
             FStream.Read(Buff[i], 4);
             Inc(i, 4);
@@ -1956,11 +1875,7 @@ end;
         end;
         LookingForDATA :
         begin
-          S[0] := Byte('d');
-          S[1] := Byte('a');
-          S[2] := Byte('t');
-          S[3] := Byte('a');
-          if not Compare4(@Buff[i-4], @S[0]) then
+          if not Compare4(@Buff[i-4], 'data') then
           begin
             FStream.Read(Buff[i], 4);
             Inc(i, 4);
@@ -1994,20 +1909,9 @@ end;
 
   procedure TWaveTap.FillHeaderPCM(var Header : TWaveHeader);
   begin
-    Header.RIFF[0] := Byte('R');
-    Header.RIFF[1] := Byte('I');
-    Header.RIFF[2] := Byte('F');
-    Header.RIFF[3] := Byte('F');
-//  Header.RIFFType := 'WAVE';
-    Header.RIFFType[0] := Byte('W');
-    Header.RIFFType[1] := Byte('A');
-    Header.RIFFType[2] := Byte('V');
-    Header.RIFFType[3] := Byte('E');
-//  Header.FmtChunkId := 'fmt ';
-    Header.FmtChunkId[0] := Byte('f');
-    Header.FmtChunkId[1] := Byte('m');
-    Header.FmtChunkId[2] := Byte('t');
-    Header.FmtChunkId[3] := Byte(' ');
+    Header.RIFF := 'RIFF';
+    Header.RIFFType := 'WAVE';
+    Header.FmtChunkId := 'fmt ';
     Header.FmtChunkSize := 16;
     Header.FormatTag := WAVE_FORMAT_PCM;
     Header.Channels := FInput.Channels;
@@ -2015,11 +1919,7 @@ end;
     Header.BitsPerSample := FInput.BitsPerSample;
     Header.BlockAlign := (Header.BitsPerSample * Header.Channels) shr 3;
     Header.BytesPerSecond := Header.SampleRate * Header.BlockAlign;
-//    Header.DataChunkId := 'data';
-    Header.DataChunkId[0] := Byte('d');
-    Header.DataChunkId[1] := Byte('a');
-    Header.DataChunkId[2] := Byte('t');
-    Header.DataChunkId[3] := Byte('a');
+    Header.DataChunkId := 'data';
   end;
 
 
