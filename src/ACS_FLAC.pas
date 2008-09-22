@@ -712,7 +712,7 @@ type
         if FInput.BitsPerSample = 24 then
         begin
           FBU := PFLACUBuf(FB);
-          for i := 0 to samples - 1 do FBU[i] := (Buffer[i*3 + 2] shl 16) + (Buffer[i*3 + 1] shl 8) + (Buffer[i*3]);
+          for i := 0 to samples - 1 do FBU[i] := (ShortInt(Buffer[i*3 + 2]) shl 16) + (Buffer[i*3 + 1] shl 8) + (Buffer[i*3]);
         end else
           if FInput.BitsPerSample = 32 then
           begin

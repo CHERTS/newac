@@ -1370,7 +1370,7 @@ constructor TAuOutput.Create;
 
     if FStartSample > 0 then
     begin
-     Seek(FStartSample);
+     Seek(0);
      FPosition := 0;
     end; 
     if (FStartSample > 0) or (FEndSample <> -1) then
