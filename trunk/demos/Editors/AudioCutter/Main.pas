@@ -40,7 +40,6 @@ type
     procedure Button4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     InputMS : TMemoryStream;
@@ -243,11 +242,6 @@ begin
     end;
   end;
   AudioConverter1.Flush;
-end;
-
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-  DXAudioOut1.BufferSize := $A000;
 end;
 
 end.
