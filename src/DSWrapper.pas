@@ -111,7 +111,12 @@ type
 
   DSW_DeviceInfo = record
     guid : TGUID;
-    name : array [0..127] of char;
+    {$IFDEF UNICODE}
+    name : array [0..127] of WideChar;
+    {$ENDIF}
+    {$IFNDEF UNICODE}
+    name : array [0..127] of Char;
+    {$ENDIF}
   end;
 
   PDSW_DeviceInfo = ^DSW_DeviceInfo;
@@ -646,8 +651,14 @@ begin
         Result := DWORD(DSERR_INVALIDPARAM);
 end;
 
-function DSEnumOutputCallback(lpGuid : PGUID; lpcstrDescription : PChar;
-                lpcstrModule : PChar; lpContext : Pointer) : BOOL; stdcall;
+function DSEnumOutputCallback(lpGuid : PGUID;
+                              {$IFDEF UNICODE}
+                              lpcstrDescription : PWideChar;
+                              {$ENDIF}
+                              {$IFNDEF UNICODE}
+                              lpcstrDescription : PChar;
+                              {$ENDIF}
+                              lpcstrModule : PChar; lpContext : Pointer) : BOOL; stdcall;
 var
   l : Integer;
   devices : PDSW_Devices; // = (DSW_Devices *) lpContext;
@@ -662,8 +673,14 @@ begin
     Move(lpGuid^, devices.dinfo[devices.devcount].guid, sizeof(TGUID))
   else
     FillChar(devices.dinfo[devices.devcount].guid, sizeof(TGUID), 0);
+  {$IFDEF UNICODE}
+  l := strlen(lpcstrDescription)*2;
+  if l > 255 then l := 255;
+  {$ENDIF}
+  {$IFNDEF UNICODE}
   l := strlen(lpcstrDescription);
   if l > 127 then l := 127;
+  {$ENDIF}
   Move(lpcstrDescription[0], devices.dinfo[devices.devcount].name, l);
   devices.dinfo[devices.devcount].name[l] := Char(0);
   Inc(devices.devcount);
