@@ -1650,7 +1650,7 @@ constructor TAuOutput.Create;
       inherited Create(
       CreateFileW(PWideChar(FileName), GENERIC_READ or GENERIC_WRITE,
       0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
-      if FHandle < 0 then
+      if FHandle = INVALID_HANDLE_VALUE then
         raise EAuException.Create(SysErrorMessage(GetLastError));
  //     if FHandle < 0 then
 //        raise EAuException.Create(Format('Cannot create file %s', [FileName]));
