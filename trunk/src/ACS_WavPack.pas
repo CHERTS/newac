@@ -230,7 +230,7 @@ end;
 procedure TWVIn.OpenFile;
 var
   i{, n}: Integer;
-  tag_id: String;
+  tag_id: AnsiString;
 begin
   LoadWavpackDLL;
   if not WavpackDLL_Loaded then
