@@ -12,7 +12,6 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
-  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -592,8 +591,8 @@ object Form1: TForm1
     end
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 8
     Top = 152
   end
@@ -613,6 +612,8 @@ object Form1: TForm1
     OnDone = Done
     OnProgress = Progress
     DeviceNumber = 0
+    FramesInBuffer = 65536
+    PollingInterval = 200
     Left = 80
     Top = 152
   end
@@ -620,9 +621,10 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = Done
     OnProgress = Progress
-    FileMode = foRewrite
     WavType = wtPCM
     BlockSize = 512
+    CreateNonMsHeaders = False
+    FileMode = foRewrite
     Left = 40
     Top = 152
   end
