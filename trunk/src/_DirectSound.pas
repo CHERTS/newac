@@ -46,6 +46,8 @@
 {                                                                              }
 {******************************************************************************}
 
+{$DEFINE DELPHI_2009}
+
 {$MINENUMSIZE 4}
 {$ALIGN ON}
 
@@ -2129,7 +2131,13 @@ type
   TDSEnumCallbackW = function(lpGuid: PGUID; lpcstrDescription, lpcstrModule: PWideChar;
     lpContext: Pointer): BOOL; stdcall;
   {$NODEFINE TDSEnumCallbackW}
+{$IFDEF UNICODE}
+  TDSEnumCallback = TDSEnumCallbackW;
+{$ENDIF}
+{$IFNDEF UNICODE}
   TDSEnumCallback = TDSEnumCallbackA;
+{$ENDIF}
+
   {$NODEFINE TDSEnumCallback}
   {$HPPEMIT 'typedef LPDSENUMCALLBACKA TDSEnumCallbackA;'}
   {$HPPEMIT 'typedef LPDSENUMCALLBACKW TDSEnumCallbackW;'}
@@ -2148,7 +2156,12 @@ function DirectSoundEnumerateW(lpDSEnumCallback: TDSEnumCallbackW; lpContext: Po
 {$EXTERNALSYM DirectSoundEnumerateW}
 function DirectSoundEnumerateA(lpDSEnumCallback: TDSEnumCallbackA; lpContext: Pointer): HResult; stdcall; external DirectSoundDLL name 'DirectSoundEnumerateA';
 {$EXTERNALSYM DirectSoundEnumerateA}
+{$IFDEF UNICODE}
+function DirectSoundEnumerate(lpDSEnumCallback: TDSEnumCallback; lpContext: Pointer): HResult; stdcall; external DirectSoundDLL name 'DirectSoundEnumerateW';
+{$ENDIF}
+{$IFNDEF UNICODE}
 function DirectSoundEnumerate(lpDSEnumCallback: TDSEnumCallback; lpContext: Pointer): HResult; stdcall; external DirectSoundDLL name 'DirectSoundEnumerateA';
+{$ENDIF}
 {$EXTERNALSYM DirectSoundEnumerate}
 
 function DirectSoundCaptureCreate(lpGUID: PGUID; out lplpDSC: IDirectSoundCapture; pUnkOuter: IUnknown): HResult; stdcall; external DirectSoundDLL;
@@ -2157,7 +2170,12 @@ function DirectSoundCaptureEnumerateW(lpDSEnumCallback: TDSEnumCallbackW; lpCont
 {$EXTERNALSYM DirectSoundCaptureEnumerateW}
 function DirectSoundCaptureEnumerateA(lpDSEnumCallback: TDSEnumCallbackA; lpContext: Pointer): HResult; stdcall; external DirectSoundDLL name 'DirectSoundCaptureEnumerateA';
 {$EXTERNALSYM DirectSoundCaptureEnumerateA}
+{$IFDEF UNICODE}
+function DirectSoundCaptureEnumerate(lpDSEnumCallback: TDSEnumCallback; lpContext: Pointer): HResult; stdcall; external DirectSoundDLL name 'DirectSoundCaptureEnumerateW';
+{$ENDIF}
+{$IFNDEF UNICODE}
 function DirectSoundCaptureEnumerate(lpDSEnumCallback: TDSEnumCallback; lpContext: Pointer): HResult; stdcall; external DirectSoundDLL name 'DirectSoundCaptureEnumerateA';
+{$ENDIF}
 {$EXTERNALSYM DirectSoundCaptureEnumerate}
 
 //#if DIRECTSOUND_VERSION >= 0x0800
