@@ -37,14 +37,14 @@ type
     FChanged: Boolean;
 
     function GetIdCount: Integer;
-    function GetId(Index: Integer): String;
-    function GetValue(const Id: String): Variant;
-    procedure SetValue(const Id: String; const Value: Variant);
-    function GetAsInteger(const Id: String): Integer;
-    function GetAsString(const Id: String): String;
-    function GetAsWideString(const Id: String): WideString;
+    function GetId(Index: Integer): AnsiString;
+    function GetValue(const Id: AnsiString): Variant;
+    procedure SetValue(const Id: AnsiString; const Value: Variant);
+    function GetAsInteger(const Id: AnsiString): Integer;
+    function GetAsString(const Id: AnsiString): AnsiString;
+    function GetAsWideString(const Id: AnsiString): WideString;
   protected
-    function AddId(const Id: String; const Default: Variant): Boolean;
+    function AddId(const Id: AnsiString; const Default: Variant): Boolean;
   public
     constructor Create; reintroduce; virtual;
     destructor Destroy; override;
@@ -76,19 +76,19 @@ type
     property IdCount: Integer read GetIdCount;
   (* Property: Ids[Index: Integer]
      This property returns a tag Id based on its index. The valid vaues for indeces range from 0 to <IdCount> - 1.*)
-    property Ids[Index: Integer]: String read GetId;
-  (* Property: Values[const Id: String]
+    property Ids[Index: Integer]: AnsiString read GetId;
+  (* Property: Values[const Id: AnsiString]
      This property returns a tag value based on its Id. All this works very much like name/value pairs in TStringList. *)
-    property Values[const Id: String]: Variant read GetValue write SetValue; default;
-  (* Property: AsInteger[const Id: String]
+    property Values[const Id: AnsiString]: Variant read GetValue write SetValue; default;
+  (* Property: AsInteger[const Id: AnsiString]
      Returns the value of the Id as Integer. Make sure the value is of appropriate type. *)
-    property AsInteger[const Id: String]: Integer read GetAsInteger;
-  (* Property: AsString[const Id: String]
-     Returns the value of the Id as String. *)
-    property AsString[const Id: String]: String read GetAsString;
-  (* Property: AsWidString[const Id: String]
+    property AsInteger[const Id: AnsiString]: Integer read GetAsInteger;
+  (* Property: AsString[const Id: AnsiString]
+     Returns the value of the Id as AnsiString. *)
+    property AsString[const Id: AnsiString]: AnsiString read GetAsString;
+  (* Property: AsWidString[const Id: AnsiString]
      Returns the value of the Id as WidString. *)
-    property AsWideString[const Id: String]: WideString read GetAsWideString;
+    property AsWideString[const Id: AnsiString]: WideString read GetAsWideString;
   end;
 
   { class TId3v1Tags }
@@ -96,12 +96,12 @@ type
   TId3v1TagsGenreId = 0 .. 147;
 
   TId3v1TagsInfo = packed record
-    ID     : packed array [1 ..  3] of Char; // must be "TAG"
-    Title  : packed array [1 .. 30] of Char; // title
-    Artist : packed array [1 .. 30] of Char; // artist
-    Album  : packed array [1 .. 30] of Char; // album
-    Year   : packed array [1 ..  4] of Char; // year
-    Comment: packed array [1 .. 30] of Char; // comment
+    ID     : packed array [1 ..  3] of AnsiChar; // must be "TAG"
+    Title  : packed array [1 .. 30] of AnsiChar; // title
+    Artist : packed array [1 .. 30] of AnsiChar; // artist
+    Album  : packed array [1 .. 30] of AnsiChar; // album
+    Year   : packed array [1 ..  4] of AnsiChar; // year
+    Comment: packed array [1 .. 30] of AnsiChar; // comment
     GenreId: {TId3v1TagsGenreId}Byte;        // genre ID
   end;
 
@@ -157,7 +157,7 @@ type
   { class TId3v2Tags }
 
   TId3v2TagsInfo = packed record
-    ID: packed array [1 .. 3] of Char;   // must be "ID3"
+    ID: packed array [1 .. 3] of AnsiChar;   // must be "ID3"
     Version: Byte;                       // version: 2 - 2.2.x, 3 - 2.3.x, 4 - 2.4.x
     Revision: Byte;                      // revision
     Flags: Byte;                         // flags
@@ -181,10 +181,10 @@ type
     procedure SetAlbum(const Value: WideString);
     function GetGenre: WideString;
     procedure SetGenre(const Value: WideString);
-    function GetYear: String;
-    procedure SetYear(const Value: String);
-    function GetTrack: String;
-    procedure SetTrack(const Value: String);
+    function GetYear: AnsiString;
+    procedure SetYear(const Value: AnsiString);
+    function GetTrack: AnsiString;
+    procedure SetTrack(const Value: AnsiString);
     function GetTitle: WideString;
     procedure SetTitle(const Value: WideString);
     function GetComment: WideString;
@@ -210,8 +210,8 @@ type
     property Artist: WideString read GetArtist write SetArtist;
     property Album: WideString read GetAlbum write SetAlbum;
     property Genre: WideString read GetGenre write SetGenre;
-    property Year: String read GetYear write SetYear;
-    property Track: String read GetTrack write SetTrack;
+    property Year: AnsiString read GetYear write SetYear;
+    property Track: AnsiString read GetTrack write SetTrack;
     property Title: WideString read GetTitle write SetTitle;
     property Comment: WideString read GetComment write SetComment;
     property Composer: WideString read GetComposer write SetComposer;
@@ -239,24 +239,24 @@ type
     procedure SetConductor(const Value: WideString);
     function GetCopyright: WideString;
     procedure SetCopyright(const Value: WideString);
-    function GetISBN: String;
-    procedure SetISBN(const Value: String);
-    function GetISRC: String;
-    procedure SetISRC(const Value: String);
-    function GetBarCode: String;
-    procedure SetBarCode(const Value: String);
-    function GetLabelCode: String;
-    procedure SetLabelCode(const Value: String);
-    function GetCatalog: String;
-    procedure SetCatalog(const Value: String);
+    function GetISBN: AnsiString;
+    procedure SetISBN(const Value: AnsiString);
+    function GetISRC: AnsiString;
+    procedure SetISRC(const Value: AnsiString);
+    function GetBarCode: AnsiString;
+    procedure SetBarCode(const Value: AnsiString);
+    function GetLabelCode: AnsiString;
+    procedure SetLabelCode(const Value: AnsiString);
+    function GetCatalog: AnsiString;
+    procedure SetCatalog(const Value: AnsiString);
     function GetLanguage: WideString;
     procedure SetLanguage(const Value: WideString);
     function GetGenre: WideString;
     procedure SetGenre(const Value: WideString);
-    function GetYear: String;
-    procedure SetYear(const Value: String);
-    function GetRecordDate: String;
-    procedure SetRecordDate(const Value: String);
+    function GetYear: AnsiString;
+    procedure SetYear(const Value: AnsiString);
+    function GetRecordDate: AnsiString;
+    procedure SetRecordDate(const Value: AnsiString);
     function GetRecordLocation: WideString;
     procedure SetRecordLocation(const Value: WideString);
     function GetFile: WideString;
@@ -267,8 +267,8 @@ type
     procedure SetAbstract(const Value: WideString);
     function GetBibliography: WideString;
     procedure SetBibliography(const Value: WideString);
-    function GetTrack: String;
-    procedure SetTrack(const Value: String);
+    function GetTrack: AnsiString;
+    procedure SetTrack(const Value: AnsiString);
     function GetTitle: WideString;
     procedure SetTitle(const Value: WideString);
     function GetSubTitle: WideString;
@@ -285,28 +285,28 @@ type
     property Publisher: WideString read GetPublisher write SetPublisher;
     property Conductor: WideString read GetConductor write SetConductor;
     property Copyright: WideString read GetCopyright write SetCopyright;
-    property ISBN: String read GetISBN write SetISBN;
-    property ISRC: String read GetISRC write SetISRC;
-    property BarCode: String read GetBarCode write SetBarCode;
-    property LabelCode: String read GetLabelCode write SetLabelCode;
-    property Catalog: String read GetCatalog write SetCatalog;
+    property ISBN: AnsiString read GetISBN write SetISBN;
+    property ISRC: AnsiString read GetISRC write SetISRC;
+    property BarCode: AnsiString read GetBarCode write SetBarCode;
+    property LabelCode: AnsiString read GetLabelCode write SetLabelCode;
+    property Catalog: AnsiString read GetCatalog write SetCatalog;
     property Language: WideString read GetLanguage write SetLanguage;
     property Genre: WideString read GetGenre write SetGenre;
-    property Year: String read GetYear write SetYear;
-    property RecordDate: String read GetRecordDate write SetRecordDate;
+    property Year: AnsiString read GetYear write SetYear;
+    property RecordDate: AnsiString read GetRecordDate write SetRecordDate;
     property RecordLocation: WideString read GetRecordLocation write SetRecordLocation;
     property File_: WideString read GetFile write SetFile;
     property Related: WideString read GetRelated write SetRelated;
     property Abstract: WideString read GetAbstract write SetAbstract;
     property Bibliography: WideString read GetBibliography write SetBibliography;
-    property Track: String read GetTrack write SetTrack;
+    property Track: AnsiString read GetTrack write SetTrack;
     property Title: WideString read GetTitle write SetTitle;
     property SubTitle: WideString read GetSubTitle write SetSubTitle;
     property Comment: WideString read GetComment write SetComment;
   end;
 
 const
-  Id3v1Genres: array [TId3v1TagsGenreId] of String = (
+  Id3v1Genres: array [TId3v1TagsGenreId] of AnsiString = (
     'Blues',
     'Classic Rock',
     'Country',
@@ -505,7 +505,7 @@ const
   _id3v2_Link_Id      = 11;
 
   // frames ID for v2.2.x (when first index is False) and v2.3.x & v2.4.x (when first index is True)
-  _id3v2_tags: array [Boolean, _id3v2_Album_Id .. _id3v2_Link_Id] of String =
+  _id3v2_tags: array [Boolean, _id3v2_Album_Id .. _id3v2_Link_Id] of AnsiString =
     ((_id3v2old_Album,
       _id3v2old_Artist,
       _id3v2old_Genre,
@@ -645,7 +645,7 @@ begin
   Result := FValues.Count;
 end;
 
-function TAuTags.GetId(Index: Integer): String;
+function TAuTags.GetId(Index: Integer): AnsiString;
 begin
   if (Index >= 0) and (Index < FValues.Count) then
     Result := FValues[Index]
@@ -653,7 +653,7 @@ begin
     Result := '';
 end;
 
-function TAuTags.GetValue(const Id: String): Variant;
+function TAuTags.GetValue(const Id: AnsiString): Variant;
 var
  n: Integer;
 begin
@@ -664,7 +664,7 @@ begin
     Result := Null;
 end;
 
-procedure TAuTags.SetValue(const Id: String; const Value: Variant);
+procedure TAuTags.SetValue(const Id: AnsiString; const Value: Variant);
 var
   n: Integer;
   p_value_info: PTagValueInfo;
@@ -681,7 +681,7 @@ begin
   end;
 end;
 
-function TAuTags.GetAsInteger(const Id: String): Integer;
+function TAuTags.GetAsInteger(const Id: AnsiString): Integer;
 var
   n: Integer;
   tag_value: Variant;
@@ -707,7 +707,7 @@ begin
   end;
 end;
 
-function TAuTags.GetAsString(const Id: String): String;
+function TAuTags.GetAsString(const Id: AnsiString): AnsiString;
 var
   n: Integer;
   tag_value: Variant;
@@ -732,7 +732,7 @@ begin
   end;
 end;
 
-function TAuTags.GetAsWideString(const Id: String): WideString;
+function TAuTags.GetAsWideString(const Id: AnsiString): WideString;
 var
   n: Integer;
   tag_value: Variant;
@@ -758,7 +758,7 @@ begin
   end;
 end;
 
-function TAuTags.AddId(const Id: String; const Default: Variant): Boolean;
+function TAuTags.AddId(const Id: AnsiString; const Default: Variant): Boolean;
 var
   p_value_info: PTagValueInfo;
 begin
@@ -773,7 +773,7 @@ end;
 procedure TAuTags.Assign(Source: TPersistent);
 var
   i: Integer;
-  tag_id: String;
+  tag_id: AnsiString;
 begin
   if Source is TAuTags then begin
     Clear();
@@ -790,7 +790,7 @@ end;
 procedure TAuTags.AssignTo(Dest: TPersistent);
 var
   i: Integer;
-  tag_id: String;
+  tag_id: AnsiString;
 begin
   if Dest is TAuTags then begin
     TAuTags(Dest).Clear();
@@ -810,7 +810,7 @@ var
 begin
   for i := 0 to FValues.Count - 1 do
     PTagValueInfo(Pointer(FValues.Objects[i])).Value := Null;
-  
+
   FEmpty := True;
   FChanged := True;
 end;
@@ -947,7 +947,7 @@ end;
 procedure TId3v1Tags.SetGenre(const Value: AnsiString);
 var
   i: TId3v1TagsGenreId;
-  buf: String;
+  buf: AnsiString;
 begin
   buf := Trim(Value);
   for i := Low(i) to High(i) do
@@ -1031,7 +1031,7 @@ begin
       Move(Comment[1], tags_info.Comment[1],
         _min(Length(Comment), SizeOf(tags_info.Comment) - 2));
       tags_info.Comment[Pred(High(tags_info.Comment))] := #0;
-      tags_info.Comment[High(tags_info.Comment)] := Char(Track);
+      tags_info.Comment[High(tags_info.Comment)] := AnsiChar(Track);
     end
     else
       Move(Comment[1], tags_info.Comment[1],
@@ -1137,22 +1137,22 @@ begin
   Values[_id3v2_tags[FNew, _id3v2_Genre_Id]] := Value;
 end;
 
-function TId3v2Tags.GetYear: String;
+function TId3v2Tags.GetYear: AnsiString;
 begin
   Result := AsString[_id3v2_tags[FNew, _id3v2_Year_Id]];
 end;
 
-procedure TId3v2Tags.SetYear(const Value: String);
+procedure TId3v2Tags.SetYear(const Value: AnsiString);
 begin
   Values[_id3v2_tags[FNew, _id3v2_Year_Id]] := Value;
 end;
 
-function TId3v2Tags.GetTrack: String;
+function TId3v2Tags.GetTrack: AnsiString;
 begin
   Result := AsString[_id3v2_tags[FNew, _id3v2_Track_Id]];
 end;
 
-procedure TId3v2Tags.SetTrack(const Value: String);
+procedure TId3v2Tags.SetTrack(const Value: AnsiString);
 begin
   Values[_id3v2_tags[FNew, _id3v2_Track_Id]] := Value;
 end;
@@ -1252,11 +1252,11 @@ const
 
   // strings size restrictions
   ID3V2_RESTRICTION_STR_UNLIMITED = $00; // xxx00xxx - no restrictions
-  ID3V2_RESTRICTION_STR_1024      = $08; // xxx01xxx - no string is longer than
+  ID3V2_RESTRICTION_STR_1024      = $08; // xxx01xxx - no AnsiString is longer than
                                          //            1024 characters
-  ID3V2_RESTRICTION_STR_128       = $10; // xxx10xxx - no string is longer than
+  ID3V2_RESTRICTION_STR_128       = $10; // xxx10xxx - no AnsiString is longer than
                                          //            128 characters
-  ID3V2_RESTRICTION_STR_30        = $18; // xxx11xxx - no string is longer than
+  ID3V2_RESTRICTION_STR_30        = $18; // xxx11xxx - no AnsiString is longer than
                                          //            30 characters
   ID3V2_RESTRICTION_STR_MASK      = $18;
 
@@ -1297,20 +1297,20 @@ type
   PId3v2ExtHeader = ^TId3v2ExtHeader;
 
   TId3v2FrameHeaderOld = packed record   // frame header for v2.2.x
-    ID: packed array [1 .. 3] of Char;   // frame ID
+    ID: packed array [1 .. 3] of AnsiChar;   // frame ID
     Size: packed array [0 .. 2] of Byte; // frame size excluding size of TId3v2FrameHeaderOld structure
   end;
   PId3v2FrameHeaderOld = ^TId3v2FrameHeaderOld;
 
   TId3v2FrameHeaderNew = packed record   // frame header for v2.3.x & v2.4.x
-    ID: packed array [1 .. 4] of Char;   // frame ID
+    ID: packed array [1 .. 4] of AnsiChar;   // frame ID
     Size: packed array [0 .. 3] of Byte; // frame size excluding size of TId3v2FrameHeaderNew structure
     Flags: Word;                         // frame flags
   end;
   PId3v2FrameHeaderNew = ^TId3v2FrameHeaderNew;
 
   TId3v2TagsFooter = packed record
-    ID: packed array [1 .. 3] of Char;   // must be "3DI"
+    ID: packed array [1 .. 3] of AnsiChar;   // must be "3DI"
     Version: Byte;                       // doubled Version in header (must be $04)
     Revision: Byte;                      // doubled Revision in header (must be 0???)
     Flags: Byte;                         // doubled Flags in header
@@ -1333,13 +1333,13 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
       Inc(Result, SizeOf(TId3v2TagsFooter));
   end;
 
-  function set_tag_item(const id, data: String;
+  function set_tag_item(const id, data: AnsiString;
     const tags_info: TId3v2TagsInfo): Boolean;
   const
     start_char_pos: array [Boolean] of Integer = (2, 4);
   var
     i: Integer;
-    a_buf: String;
+    a_buf: AnsiString;
     w_buf: WideString;
   begin
     for i := Low(_id3v2_tags[False]) to High(_id3v2_tags[False]) do begin
@@ -1351,7 +1351,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
         else
           case data[1] of
             ID3V2_FRAME_ANSI_ID   : begin
-              a_buf := PChar(@(data[start_char_pos[False]]));
+              a_buf := PAnsiChar(@(data[start_char_pos[False]]));
               SetValue(id, a_buf);
             end;
             ID3V2_FRAME_UTF16_ID: begin
@@ -1360,7 +1360,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
               SetValue(id, w_buf);
             end;
             ID3V2_FRAME_UTF8_ID: begin
-              w_buf := UTF8Decode(PChar(@(data[start_char_pos[False]])));
+              w_buf := UTF8Decode(PAnsiChar(@(data[start_char_pos[False]])));
               SetValue(id, w_buf);
             end;
             else
@@ -1377,7 +1377,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
     start_file_pos, end_tag_pos, file_size, file_pos, bytes_read: Cardinal;
     frame: TId3v2FrameHeaderOld;
     data_size: Cardinal;
-    data: String;
+    data: AnsiString;
   begin
     start_file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
     Result := (start_file_pos <> $FFFFFFFF);
@@ -1431,7 +1431,7 @@ function TId3v2Tags.ReadFromFile(InFile: HFILE): Boolean;
     start_file_pos, end_tag_pos, file_size, file_pos, bytes_read: Cardinal;
     frame: TId3v2FrameHeaderNew;
     data_size: Cardinal;
-    data: String;
+    data: AnsiString;
   begin
     start_file_pos := SetFilePointer(InFile, 0, nil, FILE_CURRENT);
     Result := (start_file_pos <> $FFFFFFFF);
@@ -1510,7 +1510,7 @@ end;
 
 function TId3v2Tags.WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean;
 const
-  encoding_flags: array [Boolean] of Char = (
+  encoding_flags: array [Boolean] of AnsiChar = (
     ID3V2_FRAME_ANSI_ID,
 {$IFDEF USE_ID3V2_4}
     ID3V2_FRAME_UTF8_ID
@@ -1523,7 +1523,7 @@ var
   i: Integer;
   size, data_size, tags_size, full_data_size, padding_size: Cardinal;
   frame_is_unicode: Boolean;
-  buf: String;
+  buf: AnsiString;
   w_buf: WideString;
   frame: TId3v2FrameHeaderNew;
   tags_info: TId3v2TagsInfo;
@@ -1613,11 +1613,11 @@ begin
             Result := (p_mapping <> nil);
             if Result then
               try
-                Move(p_mapping^, PChar(p_mapping)[tags_size], size - tags_size);
+                Move(p_mapping^, PAnsiChar(p_mapping)[tags_size], size - tags_size);
                 Move(tags_info, p_mapping^, SizeOf(tags_info));
-                Move(ms.Memory^, PChar(p_mapping)[SizeOf(tags_info)], data_size);
+                Move(ms.Memory^, PAnsiChar(p_mapping)[SizeOf(tags_info)], data_size);
                 FillChar(
-                  PChar(p_mapping)[SizeOf(tags_info) + data_size], padding_size, 0);
+                  PAnsiChar(p_mapping)[SizeOf(tags_info) + data_size], padding_size, 0);
               finally
                 try
                   FlushViewOfFile(p_mapping, 0);
@@ -1739,52 +1739,52 @@ begin
   Values[_ape_Copyright] := Value;
 end;
 
-function TAPEv2Tags.GetISBN: String;
+function TAPEv2Tags.GetISBN: AnsiString;
 begin
   Result := AsString[_ape_ISBN];
 end;
 
-procedure TAPEv2Tags.SetISBN(const Value: String);
+procedure TAPEv2Tags.SetISBN(const Value: AnsiString);
 begin
   Values[_ape_ISBN] := Value;
 end;
 
-function TAPEv2Tags.GetISRC: String;
+function TAPEv2Tags.GetISRC: AnsiString;
 begin
   Result := AsString[_ape_ISRC];
 end;
 
-procedure TAPEv2Tags.SetISRC(const Value: String);
+procedure TAPEv2Tags.SetISRC(const Value: AnsiString);
 begin
   Values[_ape_ISRC] := Value;
 end;
 
-function TAPEv2Tags.GetBarCode: String;
+function TAPEv2Tags.GetBarCode: AnsiString;
 begin
   Result := AsString[_ape_BarCode];
 end;
 
-procedure TAPEv2Tags.SetBarCode(const Value: String);
+procedure TAPEv2Tags.SetBarCode(const Value: AnsiString);
 begin
   Values[_ape_BarCode] := Value;
 end;
 
-function TAPEv2Tags.GetLabelCode: String;
+function TAPEv2Tags.GetLabelCode: AnsiString;
 begin
   Result := AsString[_ape_LabelCode];
 end;
 
-procedure TAPEv2Tags.SetLabelCode(const Value: String);
+procedure TAPEv2Tags.SetLabelCode(const Value: AnsiString);
 begin
   Values[_ape_LabelCode] := Value;
 end;
 
-function TAPEv2Tags.GetCatalog: String;
+function TAPEv2Tags.GetCatalog: AnsiString;
 begin
   Result := AsString[_ape_Catalog];
 end;
 
-procedure TAPEv2Tags.SetCatalog(const Value: String);
+procedure TAPEv2Tags.SetCatalog(const Value: AnsiString);
 begin
   Values[_ape_Catalog] := Value;
 end;
@@ -1809,22 +1809,22 @@ begin
   Values[_ape_Genre] := Value;
 end;
 
-function TAPEv2Tags.GetYear: String;
+function TAPEv2Tags.GetYear: AnsiString;
 begin
   Result := AsWideString[_ape_Year];
 end;
 
-procedure TAPEv2Tags.SetYear(const Value: String);
+procedure TAPEv2Tags.SetYear(const Value: AnsiString);
 begin
   Values[_ape_Year] := Value;
 end;
 
-function TAPEv2Tags.GetRecordDate: String;
+function TAPEv2Tags.GetRecordDate: AnsiString;
 begin
   Result := AsString[_ape_RecordDate];
 end;
 
-procedure TAPEv2Tags.SetRecordDate(const Value: String);
+procedure TAPEv2Tags.SetRecordDate(const Value: AnsiString);
 begin
   Values[_ape_RecordDate] := Value;
 end;
@@ -1879,12 +1879,12 @@ begin
   Values[_ape_Bibliography] := Value;
 end;
 
-function TAPEv2Tags.GetTrack: String;
+function TAPEv2Tags.GetTrack: AnsiString;
 begin
   Result := AsString[_ape_Track];
 end;
 
-procedure TAPEv2Tags.SetTrack(const Value: String);
+procedure TAPEv2Tags.SetTrack(const Value: AnsiString);
 begin
   Values[_ape_Track] := Value;
 end;
