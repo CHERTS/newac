@@ -33,7 +33,7 @@ type
                               cb_input_eof : eof_callback; cb_input_close : close_callback; cb_output_open : open_callback;
                               cb_output_seek : seek_callback; cb_output_read : read_callback;
                               cb_output_write : write_callback; cb_output_close : close_callback; cb_data : Pointer); cdecl;
-  add_tag_t = procedure(key : PChar; key_len : LongWord; value : PChar; value_len : LongWord); cdecl;
+  add_tag_t = procedure(key : PAnsiChar; key_len : LongWord; value : PAnsiChar; value_len : LongWord); cdecl;
   start_encoder_t = procedure(state : Pointer); cdecl;
   process_block_t = function(state : Pointer) : Integer; cdecl;
   free_encoder_state_t = procedure(state : Pointer); cdecl;
@@ -47,7 +47,7 @@ var
   process_block : process_block_t;
   free_encoder_state : free_encoder_state_t;
 
-procedure AddTag(const Key : String; const Value : WideString);
+procedure AddTag(const Key : AnsiString; const Value : WideString);
 
 procedure LoadMPPEncLibrary;
 procedure UnloadMPPEncLibrary;
@@ -56,12 +56,12 @@ implementation
 var
   LibHandle : HMODULE = 0;
 
-procedure AddTag(const Key : String; const Value : WideString);
+procedure AddTag(const Key : AnsiString; const Value : WideString);
 var
   S : Utf8String;
 begin
   S := Utf8Encode(Value);
-  add_tag(PChar(Key), Length(Key), PChar(S), Length(S));
+  add_tag(PAnsiChar(Key), Length(Key), PAnsiChar(S), Length(S));
 end;
 
 procedure LoadMPPEncLibrary;

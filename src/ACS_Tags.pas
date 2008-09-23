@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.6
+  This file is a part of New Audio Components package 1.9
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -1999,9 +1999,9 @@ procedure ReadApe2Tags(Stream : TStream; const Tags : TAPEv2Tags);
 var
  Header : TApev2TagsHeader;
  i, j : Integer;
- key : array[0..511] of Char;
+ key : array[0..511] of AnsiChar;
  ValueLen, Flags : Integer;
- S : String;
+ S : AnsiString;
 begin
   Stream.Seek(-SizeOf(TApev2TagsHeader), soFromEnd);
   Stream.Read(Header, SizeOf(TApev2TagsHeader));
@@ -2021,25 +2021,25 @@ begin
     Stream.Read(S[1], ValueLen);
     if (Flags and $6) <> 0 then
       Continue; // This tag is not UTF-8 encoded text, skip it.
-    if PChar(@key[0]) = _ape_Artist then
+    if PAnsiChar(@key[0]) = _ape_Artist then
       Tags.SetArtist(Utf8Decode(Utf8String(S)))
     else
-    if PChar(@key[0]) = _ape_Album then
+    if PAnsiChar(@key[0]) = _ape_Album then
       Tags.SetAlbum(Utf8Decode(Utf8String(S)))
     else
-    if PChar(@key[0]) = _ape_Copyright then
+    if PAnsiChar(@key[0]) = _ape_Copyright then
       Tags.SetCopyright(Utf8Decode(Utf8String(S)))
     else
-    if PChar(@key[0]) = _ape_Genre then
+    if PAnsiChar(@key[0]) = _ape_Genre then
       Tags.SetGenre(Utf8Decode(Utf8String(S)))
     else
-    if PChar(@key[0]) = _ape_Year then
+    if PAnsiChar(@key[0]) = _ape_Year then
       Tags.SetYear(Utf8Decode(Utf8String(S)))
     else
-    if PChar(@key[0]) = _ape_Track then
+    if PAnsiChar(@key[0]) = _ape_Track then
       Tags.SetTrack(Utf8Decode(Utf8String(S)))
     else
-    if PChar(@key[0]) = _ape_Title then
+    if PAnsiChar(@key[0]) = _ape_Title then
       Tags.SetTitle(Utf8Decode(Utf8String(S)));
   end;
 end;
