@@ -119,20 +119,20 @@ type
   private
     class function ReadTagsInfo(InFile: HFILE; var TagsInfo: TId3v1TagsInfo): Boolean;
 
-    function GetTitle: String;
-    procedure SetTitle(const Value: String);
-    function GetArtist: String;
-    procedure SetArtist(const Value: String);
-    function GetAlbum: String;
-    procedure SetAlbum(const Value: String);
+    function GetTitle: AnsiString;
+    procedure SetTitle(const Value: AnsiString);
+    function GetArtist: AnsiString;
+    procedure SetArtist(const Value: AnsiString);
+    function GetAlbum: AnsiString;
+    procedure SetAlbum(const Value: AnsiString);
     function GetYear: Word;
     procedure SetYear(Value: Word);
-    function GetComment: String;
-    procedure SetComment(const Value: String);
+    function GetComment: AnsiString;
+    procedure SetComment(const Value: AnsiString);
     function GetTrack: Byte;
     procedure SetTrack(Value: Byte);
-    function GetGenre: String;
-    procedure SetGenre(const Value: String);
+    function GetGenre: AnsiString;
+    procedure SetGenre(const Value: AnsiString);
     function GetGenreId: TId3v1TagsGenreId;
     procedure SetGenreId(Value: TId3v1TagsGenreId);
   public
@@ -143,13 +143,13 @@ type
     function ReadFromFile(InFile: HFILE): Boolean; override;
     function WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean; override;
   published
-    property Title: String read GetTitle write SetTitle;
-    property Artist: String read GetArtist write SetArtist;
-    property Album: String read GetAlbum write SetAlbum;
+    property Title: AnsiString read GetTitle write SetTitle;
+    property Artist: AnsiString read GetArtist write SetArtist;
+    property Album: AnsiString read GetAlbum write SetAlbum;
     property Year: Word read GetYear write SetYear default 0;
-    property Comment: String read GetComment write SetComment;
+    property Comment: AnsiString read GetComment write SetComment;
     property Track: Byte read GetTrack write SetTrack default 0;
-    property Genre: String read GetGenre write SetGenre stored False;
+    property Genre: AnsiString read GetGenre write SetGenre stored False;
     property GenreId: TId3v1TagsGenreId read GetGenreId write SetGenreId
       default Id3v1TagsGenreIdDefault;
   end;
@@ -875,17 +875,17 @@ begin
     (TagsInfo.ID = ID3V1_ID);
 end;
 
-function TId3v1Tags.GetTitle: String;
+function TId3v1Tags.GetTitle: AnsiString;
 begin
   Result := AsString[_id3v1_Title];
 end;
 
-procedure TId3v1Tags.SetTitle(const Value: String);
+procedure TId3v1Tags.SetTitle(const Value: AnsiString);
 begin
   Values[_id3v1_Title] := Value;
 end;
 
-function TId3v1Tags.GetArtist: String;
+function TId3v1Tags.GetArtist: AnsiString;
 var
   tag_value: Variant;
 begin
@@ -894,17 +894,17 @@ begin
     Result := tag_value;
 end;
 
-procedure TId3v1Tags.SetArtist(const Value: String);
+procedure TId3v1Tags.SetArtist(const Value: AnsiString);
 begin
   Values[_id3v1_Artist] := Value;
 end;
 
-function TId3v1Tags.GetAlbum: String;
+function TId3v1Tags.GetAlbum: AnsiString;
 begin
   Result := AsString[_id3v1_Album];
 end;
 
-procedure TId3v1Tags.SetAlbum(const Value: String);
+procedure TId3v1Tags.SetAlbum(const Value: AnsiString);
 begin
   Values[_id3v1_Album] := Value;
 end;
@@ -919,12 +919,12 @@ begin
   Values[_id3v1_Year] := Value;
 end;
 
-function TId3v1Tags.GetComment: String;
+function TId3v1Tags.GetComment: AnsiString;
 begin
   Result := AsString[_id3v1_Comment];
 end;
 
-procedure TId3v1Tags.SetComment(const Value: String);
+procedure TId3v1Tags.SetComment(const Value: AnsiString);
 begin
   Values[_id3v1_Comment] := Value;
 end;
@@ -939,12 +939,12 @@ begin
   Values[_id3v1_Track] := Value;
 end;
 
-function TId3v1Tags.GetGenre: String;
+function TId3v1Tags.GetGenre: AnsiString;
 begin
   Result := Id3v1Genres[GenreId];
 end;
 
-procedure TId3v1Tags.SetGenre(const Value: String);
+procedure TId3v1Tags.SetGenre(const Value: AnsiString);
 var
   i: TId3v1TagsGenreId;
   buf: String;
@@ -966,7 +966,7 @@ begin
   if n in [Low(Result) .. High(Result)] then
     Result := n
   else
-    Result := 12; // other 
+    Result := 12; // other
 end;
 
 procedure TId3v1Tags.SetGenreId(Value: TId3v1TagsGenreId);
@@ -1007,7 +1007,7 @@ end;
 function TId3v1Tags.WriteToFile(OutFile: HFILE; Unicode: Boolean = True): Boolean;
 var
   tags_info: TId3v1TagsInfo;
-  buf: String;
+  buf: AnsiString;
   bytes_written: Cardinal;
 begin
   Result :=
