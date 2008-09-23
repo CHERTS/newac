@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.8
+  This file is a part of New Audio Components package v 1.9
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -58,6 +58,7 @@ type
     FAverageBitrate : TMp3Bitrate;
     FMaximumBitrate : TMP3Bitrate;
     FEnableBitReservoir : Boolean;
+    FStrictISO : Boolean;
     function BitrateToInt(br : TMp3Bitrate) : Word;
   protected
     procedure Done; override;
@@ -88,6 +89,7 @@ type
     property Original       : BOOL read FOriginal write FOriginal default true;
 
     property EnableBitReservoir : Boolean read FEnableBitReservoir write FEnableBitReservoir;
+    property StrinctISO : Boolean read FStrictISO write FStrictISO;
 
     //VBR encoding
 
@@ -114,12 +116,12 @@ implementation
 type
 
   TID3Tag = packed record
-    ID : array [0..2] of Char;
-    Title : array [0..29] of Char;
-    Artist : array [0..29] of Char;
-    Album : array [0..29] of Char;
-    Year : array [0..3] of Char;
-    Comment : array [0..29] of Char;
+    ID : array [0..2] of AnsiChar;
+    Title : array [0..29] of AnsiChar;
+    Artist : array [0..29] of AnsiChar;
+    Album : array [0..29] of AnsiChar;
+    Year : array [0..3] of AnsiChar;
+    Comment : array [0..29] of AnsiChar;
     Genre : Byte;
   end;
 
@@ -195,6 +197,7 @@ type
     Config.dwMaxBitrate := mbr;
     Config.dwVbrAbr_bps := abr;
     config.bNoRes := not FEnableBitReservoir;
+    config.bStrictIso := FStrictISO;
     if abr <> 0 then
       Config.nVbrMethod := 4
     else
@@ -218,7 +221,7 @@ type
   var
     res, l : LongWord;
     Tag : TID3Tag;
-    S : String;
+    S : AnsiString;
   begin
 (*    id3tag_init(_plgf);
 
@@ -234,27 +237,34 @@ type
     FStream.Write(mp3buf^, res);
     FillChar(Tag, SizeOf(Tag), 0);
     Tag.ID := 'TAG';
+
     S := Id3v1Tags.Title;
     l := Length(S);
     if l > 30 then l := 30;
     Move(S[1], Tag.Title[0], l);
+
+    S :='';
     S := Id3v1Tags.Artist;
     l := Length(S);
     if l > 30 then l := 30;
     Move(S[1], Tag.Artist[0], l);
+
     S := Id3v1Tags.Album;
     l := Length(S);
     if l > 30 then l := 30;
     Move(S[1], Tag.Album[0], l);
+
     S := Id3v1Tags.Comment;
     l := Length(S);
     if l > 30 then l := 30;
     Move(S[1], Tag.Comment[0], l);
     if Id3v1Tags.Year <> 0 then
+
     S := IntToStr(Id3v1Tags.Year);
     l := Length(S);
     if l = 4 then
       Move(S[1], Tag.Year[0], 4);
+
     FStream.Write(Tag, 128);
     if not FStreamAssigned then FStream.Free;
     beCloseStream(_Stream);
