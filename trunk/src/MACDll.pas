@@ -193,12 +193,12 @@ const
 ////////////////////////////////////////////////////////////////////////////////
 type
   ID3_TAG = record
-    TagHeader: array[1..3] of Char; // should equal 'TAG'
-    Title: array[1..30] of Char; // title
-    Artist: array[1..30] of Char; // artist
-    Album: array[1..30] of Char; // album
-    Year: array[1..4] of Char; // year
-    Comment: array[1..30] of Char; // comment
+    TagHeader: array[1..3] of AnsiChar; // should equal 'TAG'
+    Title: array[1..30] of AnsiChar; // title
+    Artist: array[1..30] of AnsiChar; // artist
+    Album: array[1..30] of AnsiChar; // album
+    Year: array[1..4] of AnsiChar; // year
+    Comment: array[1..30] of AnsiChar; // comment
     Track: Byte; // track
     Genre: Byte; // genre
   end;
@@ -214,11 +214,11 @@ type
 
 type
 
- macRemoveTag_t = function(pFilename: PChar): LongInt; stdcall;
+ macRemoveTag_t = function(pFilename: PAnsiChar): LongInt; stdcall;
 
  macCompressFile_t = function (
-  InputFile: PChar;
-  OutputFile: PChar;
+  InputFile: PAnsiChar;
+  OutputFile: PAnsiChar;
   CompressionLevel: LongInt;
   PercentageDone: PInteger;
   ProgressCalllback: macProgressCallback_t;
@@ -226,8 +226,8 @@ type
   ): LongInt; stdcall;
 
   macConvertFile_t = function(
-  InputFile: PChar;
-  OutputFile: PChar;
+  InputFile: PAnsiChar;
+  OutputFile: PAnsiChar;
   CompressionLevel: LongInt;
   var PercentageDone: Integer;
   ProgressCalllback: macProgressCallback_t;
@@ -235,8 +235,8 @@ type
   ): LongInt; stdcall;
 
   macDecompressFile_t = function(
-  InputFile: PChar;
-  OutputFile: PChar;
+  InputFile: PAnsiChar;
+  OutputFile: PAnsiChar;
   var PercentageDone: Integer; //Pointer;
   ProgressCalllback: macProgressCallback_t;
   var KillFlag: Integer
@@ -257,7 +257,7 @@ type
   ): LongInt; stdcall;
 
   macGetID3Tag_t = function(
-  pFilename: PChar;
+  pFilename: PAnsiChar;
   pID3Tag: pID3_TAG
   ): LongInt; stdcall;
 
@@ -270,25 +270,25 @@ type
   macGetVersionNumber_t = function(): LongInt; stdcall;
 
   macShowFileInfoDialog_t = function(
-  Filename: PChar;
+  Filename: PAnsiChar;
   HWndWindow: HWND
   ): LongInt; stdcall;
 
   macTagFileSimple_t = function(
-  pFilename: PChar;
-  pArtist: PChar;
-  pAlbum: PChar;
-  pTitle: PChar;
-  pComment: PChar;
-  pGenre: PChar;
-  pYear: PChar;
-  pTrack: PChar;
+  pFilename: PAnsiChar;
+  pArtist: PAnsiChar;
+  pAlbum: PAnsiChar;
+  pTitle: PAnsiChar;
+  pComment: PAnsiChar;
+  pGenre: PAnsiChar;
+  pYear: PAnsiChar;
+  pTrack: PAnsiChar;
   bClearFirst: boolean;
   bUseOldID3: boolean
   ): LongInt; stdcall;
 
   macVerifyFile_t = function(
-  InputFile: PChar;
+  InputFile: PAnsiChar;
   var PercentageDone: Integer;
   ProgressCalllback: macProgressCallback_t;
   var KillFlag: Integer
@@ -376,7 +376,7 @@ Usage:
   int nMaxAudioBytes = MAX_AUDIO_BYTES_UNKNOWN, int nCompressionLevel = COMPRESSION_LEVEL_NORMAL,
   const unsigned char * pHeaderData = NULL, int nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION) = 0;}
     function Start(
-      pOutputFilename: PChar;
+      pOutputFilename: PAnsiChar;
       pwfeInput: PWaveFormatEx;
       nMaxAudioBytes: Integer = MAX_AUDIO_BYTES_UNKNOWN;
       nCompressionLevel: Integer = COMPRESSION_LEVEL_NORMAL;
@@ -722,7 +722,7 @@ int nHeaderBytes = CREATE_WAV_HEADER_ON_DECOMPRESSION);}
 
   c_APECompress_Start_t = function(
   hAPECompress: APE_COMPRESS_HANDLE;
-  pOutputFilename: PChar;
+  pOutputFilename: PAnsiChar;
   pwfeInput: PWaveFormatEx;
   nMaxAudioBytes: Integer = MAX_AUDIO_BYTES_UNKNOWN;
   nCompressionLevel: Integer = COMPRESSION_LEVEL_NORMAL;
@@ -769,7 +769,7 @@ begin
   Result := c_APECompress_Kill(FHandle);
 end;
 
-function TAPECompress.Start(pOutputFilename: PChar;
+function TAPECompress.Start(pOutputFilename: PAnsiChar;
   pwfeInput: PWaveFormatEx; nMaxAudioBytes, nCompressionLevel: Integer;
   pHeaderData: Pointer; nHeaderBytes: Integer): LongInt;
 begin

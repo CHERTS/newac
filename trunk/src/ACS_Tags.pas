@@ -558,12 +558,12 @@ const
   _ape_SubTitle       = 'Subtitle';
   _ape_Comment        = 'Comment';
 
-  _vorbis_Album  = 'album';
-  _vorbis_Artist = 'artist';
-  _vorbis_Date   = 'date';
-  _vorbis_Genre  = 'genre';
-  _vorbis_Title  = 'title';
-  _vorbis_Track  = 'tracknumber';
+  _vorbis_Album   : AnsiString = 'album';
+  _vorbis_Artist  : AnsiString = 'artist';
+  _vorbis_Date    : AnsiString = 'date';
+  _vorbis_Genre   : AnsiString = 'genre';
+  _vorbis_Title   : AnsiString = 'title';
+  _vorbis_Track   : AnsiString = 'tracknumber';
 
 type
 
@@ -751,7 +751,8 @@ begin
       varInteger :
         Result := IntToStr(tag_value);
       varString,
-      varOleStr  :
+      varOleStr,
+      258  :
         Result := tag_value;
     end;
   end;
@@ -1810,7 +1811,7 @@ end;
 
 function TAPEv2Tags.GetYear: String;
 begin
-  Result := AsString[_ape_Year];
+  Result := AsWideString[_ape_Year];
 end;
 
 procedure TAPEv2Tags.SetYear(const Value: String);

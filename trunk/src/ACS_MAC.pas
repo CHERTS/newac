@@ -169,7 +169,7 @@ begin
     PChar(String((FWideFileName))),
  ---Ross *)
 (* Ross--- *)
-    PChar(String(FWideFileName)),
+    PAnsiChar(AnsiString(FWideFileName)),
 (* ---Ross *)
     @WaveFormatEx,
     FMaxAudioBytes,
@@ -191,8 +191,8 @@ begin
   APECompress := nil;
   FInput.Flush;
   if not APEv2Tags.Empty then
-      macTagFileSimple(PChar(String(FWideFileName)), PChar(Utf8Encode(APEv2Tags.Artist)), PChar(Utf8Encode(APEv2Tags.Album)), PChar(Utf8Encode(APEv2Tags.Title)),
-        PChar(Utf8Encode(APEv2Tags.Comment)), PChar(Utf8Encode(APEv2Tags.Genre)), PChar(Utf8Encode(APEv2Tags.Year)), PChar(Utf8Encode(APEv2Tags.Track)), True, False);
+      macTagFileSimple(PAnsiChar(AnsiString(FWideFileName)), PAnsiChar(Utf8Encode(APEv2Tags.Artist)), PAnsiChar(Utf8Encode(APEv2Tags.Album)), PAnsiChar(Utf8Encode(APEv2Tags.Title)),
+        PAnsiChar(Utf8Encode(APEv2Tags.Comment)), PAnsiChar(Utf8Encode(APEv2Tags.Genre)), PAnsiChar(Utf8Encode(APEv2Tags.Year)), PAnsiChar(Utf8Encode(APEv2Tags.Track)), True, False);
 end;
 
 function TMACOut.DoOutput;
@@ -276,7 +276,7 @@ begin
   if FOpened = 0 then
   begin
     _APEv2Tags.Clear;
-    if macGetID3Tag(PChar(String(FWideFileName)), @Tag) = 0 then
+    if macGetID3Tag(PAnsiChar(AnsiString(FWideFileName)), @Tag) = 0 then
     begin
       _APEv2Tags.Album := Tag.Album;
       _APEv2Tags.Artist := Tag.Artist;
