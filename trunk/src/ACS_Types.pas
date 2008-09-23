@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.7
+  This file is a part of New Audio Components package v 1.9
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -113,7 +113,7 @@ type
   PWaveFormatExtensible = ^TWaveFormatExtensible;
 
   TApev2TagsHeader = record
-    Preamble : array[0..7] of Char; //( 'A', 'P', 'E', 'T', 'A', 'G', 'E', 'X' )
+    Preamble : array[0..7] of AnsiChar; //( 'A', 'P', 'E', 'T', 'A', 'G', 'E', 'X' )
     Version : LongWord;
     TagSize : LongWord;  //Tag size in bytes including footer and all tag items excluding the header
     ItemsCount : LongWord; //Number of items in the Tag (n)
