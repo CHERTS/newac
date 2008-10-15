@@ -39,7 +39,7 @@ RemoteSymbols=0
 MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
-ExeDescription=New Audio Components v 1.8
+ExeDescription=New Audio Components v 1.9
 [Directories]
 OutputDir=
 UnitOutputDir=
@@ -64,9 +64,9 @@ RootDir=
 IncludeVerInfo=1
 AutoIncBuild=1
 MajorVer=1
-MinorVer=8
+MinorVer=9
 Release=0
-Build=21
+Build=8
 Debug=0
 PreRelease=0
 Special=0
@@ -77,13 +77,13 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=
-FileVersion=1.8.0.21
+FileVersion=1.9.0.8
 InternalName=
 LegalCopyright=Copyright (c) 2002-2008 Andrei Borovsky
 LegalTrademarks=
 OriginalFilename=
 ProductName=New Audio Components
-ProductVersion=1.8
+ProductVersion=1.9
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
