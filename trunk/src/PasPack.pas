@@ -157,8 +157,10 @@ type
 
 implementation
 
+{$IFDEF __DEBUG}
   var
     F1, F2 : System.Text;
+{$ENDIF}
 
   constructor TPPFastEncoder.Create;
   begin
@@ -888,7 +890,9 @@ implementation
 
   end;
 
+{$IFDEF __DEBUG}
 initialization
+
   System.Assign(F1, 'C:\output\debug1.txt');
   System.Rewrite(F1);
   System.Assign(F2, 'C:\output\debug2.txt');
@@ -897,4 +901,5 @@ initialization
 finalization
   System.Close(F1);
   System.Close(F2);
+{$ENDIF}  
 end.

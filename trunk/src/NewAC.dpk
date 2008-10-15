@@ -25,6 +25,7 @@ package NewAC;
 {$R 'AudioDMO.dcr'}
 {$R 'NewAC_AVI.dcr'}
 {$R 'NewAC_DSP.dcr'}
+{$R 'NewACPack.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -46,7 +47,7 @@ package NewAC;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'New Audio Components v 1.8'}
+{$DESCRIPTION 'New Audio Components v 1.9'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -108,6 +109,7 @@ contains
   msdmo in 'msdmo.pas',
   NewAC_AVI in 'NewAC_AVI.pas',
   FFTReal in 'fftreal.pas',
-  NewAC_DSP in 'NewAC_DSP.pas';
+  NewAC_DSP in 'NewAC_DSP.pas',
+  NewACPack in 'NewACPack.pas';
 
 end.
