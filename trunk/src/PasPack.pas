@@ -12,18 +12,22 @@ const
   U = 0.0001;
   Beta = 0.9;
 
+  TotalFramesOffset = 10;
+  LBLOffset = 34;
+
 type
 
   TFileHeader = packed record
     Magic : array[0..3] of Char;
-    Channels : Word;
-    BitsPerSample : Word;
+    Channels : Byte;
+    BitsPerSample : Byte;
     SampleRate : Word;
     Version : Word;
     TotalFrames : LongWord;
     FramesInBlock : Word;
     VectorLen : Word;
     u, Beta : Double;
+    LBL : Word;
   end;
 
   TBlockHeader = packed record
@@ -56,7 +60,7 @@ type
     destructor Destroy;
     procedure Init(BPS, Channels, Samplerate : Word); virtual;
     procedure QueryBuffer(var Buffer : Pointer; var BufLength : LongWord);
-    procedure Encode; virtual;
+    procedure Encode(LastBlock : Boolean = False); virtual;
     procedure EncodeLastBlock(BufLength : LongWord);
   end;
 
@@ -68,7 +72,7 @@ type
     destructor Destroy;
     procedure Init(BPS, Channels, Samplerate : Word); override;
     procedure SetJoinedStereo;
-    procedure Encode; override;
+    procedure Encode(LastBlock : Boolean = False); override;
   end;
 
   TPPBaseDecoder = class
@@ -125,7 +129,7 @@ type
     destructor Destroy;
     procedure Init(BPS, Channels, Samplerate : Word); override;
     procedure SetFilterLength(Length : Word);
-    procedure Encode; override;
+    procedure Encode(LastBlock : Boolean = False); override;
   end;
 
   TPPAdaptiveDecoder = class(TPPBaseDecoder)
@@ -211,31 +215,37 @@ implementation
     P : PArrayOfByte;
     BS : LongWord;
     BlockHeader : TBlockHeader;
+    FIB : Word;
 //    TestData : array[0..4095] of Integer;
   begin
+    if LastBlock then
+      FIB := FileHeader.LBL
+    else
+      FIB := FileHeader.FramesInBlock;
     if not HeaderWritten then
     begin
       FileStream.Write(FileHeader, SizeOf(FileHeader));
       WriteX0;
+      FileHeader.TotalFrames := FileHeader.VectorLen;
       InitFilter;
       HeaderWritten := True;
       Exit;
     end;
     Deinterlace;
-    for i := 0 to FileHeader.FramesInBlock -1 do
+    for i := 0 to FIB -1 do
       for j := 0 to FileHeader.Channels -1 do
       begin
         Filter(j, i);
       end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FIB], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     if (FileHeader.Channels = 2) and (FileHeader.u > 0) then
-      for i := 0 to FileHeader.FramesInBlock -1 do
+      for i := 0 to FIB - 1 do
           Y[1][i] := Y[1][i] - Y[0][i];
     for j := 0 to FileHeader.Channels -1 do
-      for i := 0 to FileHeader.FramesInBlock -1 do
-        OutData[j*FileHeader.FramesInBlock + i] := Y[j][i];
-    GolombNewBlock(@OutData[0], FileHeader.FramesInBlock*FileHeader.Channels, P, BS, BlockHeader.M);
+      for i := 0 to FIB - 1 do
+        OutData[j*FIB + i] := Y[j][i];
+    GolombNewBlock(@OutData[0], FIB*FileHeader.Channels, P, BS, BlockHeader.M);
 (*    GolombDecodeBlock(@TestData[0], FileHeader.FramesInBlock*FileHeader.Channels, P, BS, BlockHeader.M);
     for i := 0 to FileHeader.FramesInBlock*FileHeader.Channels -1 do
     if  OutData[i] <> TestData[i] then
@@ -243,7 +253,7 @@ implementation
     BlockHeader.BlockSize := BS;
     FileStream.Write(BlockHeader, SizeOf(BlockHeader));
     FileStream.Write(P^, BlockHeader.BlockSize);
-    Inc(FileHeader.TotalFrames, FileHeader.FramesInBlock);
+    Inc(FileHeader.TotalFrames, FIB);
     FreeMem(P);
   end;
 
@@ -335,6 +345,7 @@ implementation
     BlockHeader : TBlockHeader;
     Block : PArrayOfByte;
     BlockLen : LongWord;
+    FIB : Word;
   begin
     if FramesRead = 0 then
     begin
@@ -342,7 +353,7 @@ implementation
       Interlace;
       Buffer := FBuffer;
       BufLength := FileHeader.VectorLen*FileHeader.Channels*(FileHeader.BitsPerSample div 8);
-      Inc(FramesRead);
+      Inc(FramesRead, FileHeader.VectorLen);
       Exit;
     end;
     if FramesRead > FileHeader.TotalFrames then
@@ -351,32 +362,36 @@ implementation
       BufLength := 0;
       Exit;
     end;
+    if (FileHeader.TotalFrames - FramesRead) > FileHeader.FramesInBlock then
+      FIB := FileHeader.FramesInBlock
+    else
+      FIB := FileHeader.TotalFrames - FramesRead;
     FileStream.Read(BlockHeader, SizeOf(BlockHeader));
     GetMem(Block, BlockHeader.BlockSize);
     BlockLen := BlockHeader.BlockSize;
     FileStream.Read(Block^, BlockLen);
-    GolombDecodeBlock(@InData[0], FileHeader.FramesInBlock*FileHeader.Channels, Block, BlockHeader.BlockSize, BlockHeader.M);
+    GolombDecodeBlock(@InData[0], FIB*FileHeader.Channels, Block, BlockHeader.BlockSize, BlockHeader.M);
     FreeMem(Block);
     if (FileHeader.Channels = 2) and (FileHeader.u > 0) then
-      for i := 0 to FileHeader.FramesInBlock -1 do
-        InData[FileHeader.FramesInBlock + i] := InData[FileHeader.FramesInBlock + i] + InData[i];
-    for i := 0 to FileHeader.VectorLen -1 do
-      for j := 0 to FileHeader.Channels -1 do
+      for i := 0 to FileHeader.FramesInBlock - 1 do
+        InData[FIB + i] := InData[FileHeader.FramesInBlock + i] + InData[i];
+    for i := 0 to FileHeader.VectorLen - 1 do
+      for j := 0 to FileHeader.Channels - 1 do
         X[j][i] := X0[j][i];
-    for i := 0 to FileHeader.FramesInBlock -1 do
-      for j := 0 to FileHeader.Channels -1 do
-        X[j][i + FileHeader.VectorLen] := InData[FileHeader.FramesInBlock*j + i];
-    for j := 0 to FileHeader.Channels -1 do
-      for i := 0 to FileHeader.FramesInBlock -1 do
+    for i := 0 to FileHeader.FramesInBlock - 1 do
+      for j := 0 to FileHeader.Channels - 1 do
+        X[j][i + FileHeader.VectorLen] := InData[FIB*j + i];
+    for j := 0 to FileHeader.Channels - 1 do
+      for i := 0 to FIB - 1 do
       begin
         Restore(j, i);
       end;
-    for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+    for j := 0 to FileHeader.Channels - 1 do
+      Move(X[j][FIB], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     Interlace;
     Buffer := FBuffer;
     BufLength := FBufferSize;
-    Inc(FramesRead);
+    Inc(FramesRead, FIB);
   end;
 
   constructor TPPBaseEncoder.Create;
@@ -465,9 +480,10 @@ implementation
   procedure TPPBaseEncoder.EncodeLastBlock;
   begin
     FBufferSize := BufLength;
-    Encode;
-    FileStream.Seek(12, soFromBeginning);
-    FileStream.Write(FileHeader.TotalFrames, 4);
+    FileHeader.LBL := FBufferSize div (FileHeader.Channels*(FileHeader.BitsPerSample div 8));
+    Encode(True);
+    FileStream.Seek(0, soFromBeginning);
+    FileStream.Write(FileHeader, SizeOf(FileHeader));
     FileStream.Seek(0, soFromEnd);
   end;
 
@@ -636,7 +652,12 @@ implementation
     BS : LongWord;
     BlockHeader : TBlockHeader;
     e : Integer;
+    FIB : Word;
   begin
+    if LastBlock then
+       FIB := FileHeader.LBL
+    else
+       FIB := FileHeader.FramesInBlock;
     if not HeaderWritten then
     begin
       FileStream.Write(FileHeader, SizeOf(FileHeader));
@@ -646,22 +667,22 @@ implementation
       Exit;
     end;
     Deinterlace;
-    for i := 0 to FileHeader.FramesInBlock -1 do
+    for i := 0 to FIB - 1 do
       for j := 0 to FileHeader.Channels -1 do
       begin
         Filter(j, i);
         Recalculate(j, i, e);
       end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FIB], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     for j := 0 to FileHeader.Channels -1 do
-      for i := 0 to FileHeader.FramesInBlock -1 do
+      for i := 0 to FIB - 1 do
         OutData[j*FileHeader.FramesInBlock + i] := Y[j][i];
-    GolombNewBlock(@OutData[0], FileHeader.FramesInBlock*FileHeader.Channels, P, BS, BlockHeader.M);
+    GolombNewBlock(@OutData[0], FIB*FileHeader.Channels, P, BS, BlockHeader.M);
     BlockHeader.BlockSize := BS;
     FileStream.Write(BlockHeader, SizeOf(BlockHeader));
     FileStream.Write(P^, BlockHeader.BlockSize);
-    Inc(FileHeader.TotalFrames, FileHeader.FramesInBlock);
+    Inc(FileHeader.TotalFrames, FIB);
     FreeMem(P);
   end;
 
@@ -703,6 +724,7 @@ implementation
     Block : PArrayOfByte;
     BlockLen : LongWord;
     Error : Integer;
+    FIB : Word;
   begin
     if FramesRead = 0 then
     begin
@@ -710,7 +732,7 @@ implementation
       Interlace;
       Buffer := FBuffer;
       BufLength := FileHeader.VectorLen*FileHeader.Channels*(FileHeader.BitsPerSample div 8);
-      Inc(FramesRead);
+      Inc(FramesRead, FileHeader.VectorLen);
       Exit;
     end;
     if FramesRead > FileHeader.TotalFrames then
@@ -719,21 +741,25 @@ implementation
       BufLength := 0;
       Exit;
     end;
+    if (FileHeader.TotalFrames - FramesRead) > FileHeader.FramesInBlock then
+      FIB := FileHeader.FramesInBlock
+    else
+      FIB := FileHeader.TotalFrames - FramesRead;
     FileStream.Read(BlockHeader, SizeOf(BlockHeader));
     GetMem(Block, BlockHeader.BlockSize);
     BlockLen := BlockHeader.BlockSize;
     FileStream.Read(Block^, BlockLen);
-    GolombDecodeBlock(@InData[0], FileHeader.FramesInBlock*FileHeader.Channels, Block, BlockHeader.BlockSize, BlockHeader.M);
+    GolombDecodeBlock(@InData[0], FIB*FileHeader.Channels, Block, BlockHeader.BlockSize, BlockHeader.M);
     FreeMem(Block);
-    for i := 0 to FileHeader.VectorLen -1 do
-      for j := 0 to FileHeader.Channels -1 do
+    for i := 0 to FileHeader.VectorLen - 1 do
+      for j := 0 to FileHeader.Channels - 1 do
         X[j][i] := X0[j][i];
-    for i := 0 to FileHeader.FramesInBlock -1 do
-      for j := 0 to FileHeader.Channels -1 do
+    for i := 0 to FIB -1 do
+      for j := 0 to FileHeader.Channels - 1 do
         X[j][i + FileHeader.VectorLen] := InData[FileHeader.FramesInBlock*j + i];
-    for j := 0 to FileHeader.Channels -1 do
+    for j := 0 to FileHeader.Channels - 1 do
     begin
-      for i := 0 to FileHeader.FramesInBlock -1 do
+      for i := 0 to FIB - 1 do
       begin
         Error := X[j][i + FileHeader.VectorLen];
         Restore(j, i);
@@ -741,11 +767,11 @@ implementation
       end;
     end;
     for j := 0 to FileHeader.Channels -1 do
-      Move(X[j][FileHeader.FramesInBlock], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
+      Move(X[j][FIB], X0[j][0], FileHeader.VectorLen*SizeOf(X0[j][0]));
     Interlace;
     Buffer := FBuffer;
     BufLength := FBufferSize;
-    Inc(FramesRead);
+    Inc(FramesRead, FIB);
   end;
 
   function TPPAdaptiveDecoder.ReadHeader;

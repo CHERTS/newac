@@ -40,13 +40,14 @@ type
     FBuffer : Pointer;
     BufLen : LongWord;
     procedure DecoderFactory;
+    function GetCodecType : TCodecType;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
-    property CodecType : TCodecType read FCodecType;
+    property CodecType : TCodecType read GetCodecType;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
@@ -105,7 +106,7 @@ implementation
     Result := True;
     Encoder.Encode;
     Encoder.QueryBuffer(Buffer, BufLen);
-    FInput.FillBuffer(Buffer, BufLen, EndOfInput);
+    BufLen := FInput.FillBuffer(Buffer, BufLen, EndOfInput);
   end;
 
   procedure TPasPackOut.Done;
@@ -221,4 +222,11 @@ implementation
   begin
     Result := False // No support for seeking yet
   end;
+
+  function TPasPackIn.GetCodecType;
+  begin
+    OpenFile;
+    Result := FCodecType;
+  end;
+
 end.
