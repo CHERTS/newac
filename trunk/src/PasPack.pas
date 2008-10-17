@@ -59,7 +59,7 @@ type
     constructor Create(const OutputStream : TStream);
     destructor Destroy;
     procedure Init(BPS, Channels, Samplerate : Word); virtual;
-    procedure QueryBuffer(var Buffer : Pointer; var BufLength : LongWord);
+    procedure QueryBuffer(var Buffer : Pointer; var BufLength : LongWord); virtual;
     procedure Encode(LastBlock : Boolean = False); virtual;
     procedure EncodeLastBlock(BufLength : LongWord);
   end;
@@ -128,6 +128,7 @@ type
     constructor Create(const OutputStream : TStream);
     destructor Destroy;
     procedure Init(BPS, Channels, Samplerate : Word); override;
+    procedure QueryBuffer(var Buffer : Pointer; var BufLength : LongWord); virtual;
     procedure SetFilterLength(Length : Word);
     procedure Encode(LastBlock : Boolean = False); override;
   end;
@@ -664,7 +665,7 @@ implementation
       WriteX0;
       InitFilter;
       HeaderWritten := True;
-      Exit;
+//      Exit;
     end;
     Deinterlace;
     for i := 0 to FIB - 1 do
@@ -913,8 +914,14 @@ implementation
     InitFilter;
     FramesRead := 0;
     Result := True;
-
   end;
+
+  procedure TPPAdaptiveEncoder.QueryBuffer;
+  begin
+    Buffer := FBuffer;
+    BufLength := FBufferSize;
+  end;
+
 
 {$IFDEF __DEBUG}
 initialization
@@ -927,5 +934,5 @@ initialization
 finalization
   System.Close(F1);
   System.Close(F2);
-{$ENDIF}  
+{$ENDIF}
 end.
