@@ -63,6 +63,7 @@ type
 
   (* Class: TSincFilter
     This component implements a windowed-sinc filter.
+    The filter can work in low-pass, high-pass, band-pass, band-reject, or all-pass mode.
     A descendant of <TAuConverter>. *)
 
   TSincFilter = class(TAuConverter)
