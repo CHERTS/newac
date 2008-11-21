@@ -1,8 +1,8 @@
-Format: 1.4
+Format: Development Release 01-12-2008 (1.35 base)
 
 
 Title: NewAC
-SubTitle: v1.7.1
+SubTitle: v1.8
 
 Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
@@ -79,16 +79,9 @@ Group: Main Units  {
    File: AudioPass  (src\AudioPass.pas)
    File: AuSampleRate  (src\AuSampleRate.pas)
    File: NewAC_AVI  (src\NewAC_AVI.pas)
-   File: libsamplerate.pas  (src\libsamplerate.pas)
-   File: MACDll.pas  (src\MACDll.pas)
-   File: ogg.pas  (src\ogg.pas)
-   File: ovencode  (src\ovencode.pas)
-   File: VorbisEnc.pas  (src\VorbisEnc.pas)
-   File: VorbisFile.pas  (src\VorbisFile.pas)
-   File: WaveConverter.pas  (src\WaveConverter.pas)
-   File: WavPackDLL  (src\WavPackDLL.pas)
-   File: wmfintf.pas  (src\wmfintf.pas)
    File: NewAC_DSP  (src\NewAC_DSP.pas)
+   File: d3d9types...h d3d9.h  (src\_Direct3D9.pas)
+   File: EncAPI.idl  (src\_DirectShow9.pas)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
@@ -116,16 +109,6 @@ Group: Tutorials  {
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
    File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
-
-Group: DUnit  {
-
-   File: ACS_FLAC TestCases  (dunit\Test_ACS_FLAC.pas)
-   File: ACS_MAC TestCases  (dunit\Test_ACS_MAC.pas)
-   File: ACS_WavPack TestCases  (dunit\Test_ACS_WavPack.pas)
-   File: uLog  (dunit\uLog.pas)
-   File: uTestBase  (dunit\uTestBase.pas)
-   File: uUtility  (dunit\uUtility.pas)
-   }  # Group: DUnit
 
 Group: Index  {
 
