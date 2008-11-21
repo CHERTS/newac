@@ -2,7 +2,7 @@ Format: 1.4
 
 
 Title: NewAC
-SubTitle: v1.8
+SubTitle: v1.9
 
 Footer: Content (c) 2008 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
