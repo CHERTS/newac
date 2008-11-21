@@ -1,5 +1,5 @@
-copy e:\All\doc\config\newac.css e:\naturaldocs\Styles
+copy c:\newac\doc\config\newac.css c:\naturaldocs-1-.4\Styles
 @rem NaturalDocs.bat needs us to be in d:\utils\naturaldocs (where the script lives)
 e:
-cd e:\naturaldocs
-NaturalDocs.bat -s newac -img e:\All\doc\images -i e:\All\ -o html e:\All\doc\html -p e:\All\doc\config
+cd c:\naturaldocs-1-.4
+NaturalDocs.bat -s newac -img c:\newac\doc\images -i c:\newac\ -o html c:\newac\doc\html -p c:\newac\doc\config
