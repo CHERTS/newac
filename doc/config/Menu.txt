@@ -1,4 +1,4 @@
-Format: Development Release 01-12-2008 (1.35 base)
+Format: 1.4
 
 
 Title: NewAC
@@ -109,6 +109,13 @@ Group: Tutorials  {
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
    File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
+
+File: ACS_FLAC TestCases  (dunit\Test_ACS_FLAC.pas)
+File: ACS_MAC TestCases  (dunit\Test_ACS_MAC.pas)
+File: ACS_WavPack TestCases  (dunit\Test_ACS_WavPack.pas)
+File: uLog  (dunit\uLog.pas)
+File: uTestBase  (dunit\uTestBase.pas)
+File: uUtility  (dunit\uUtility.pas)
 
 Group: Index  {
 
