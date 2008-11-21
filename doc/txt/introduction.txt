@@ -17,6 +17,7 @@ Contributors:
 	- Eriks Aleksans: many useful suggestions.
 	- Wayne Thursby: preparing documentation and not breaking things (not entirely, at least)
 	- Christophe De Vocht: updated ACS_LAME unit.
+	- Michael Reisch: TCDDBInfo component 
 
 Section: On the Web
 	
@@ -31,6 +32,12 @@ Section: On the Web
 
 Section: Version History
 	Short list of new features for each NewAC version.
+
+Vaersion: NewAC 1.9
+	- Experimental delphi-based compresor added.
+	- Delphi 2009 compatibility added.
+	- TCDDBInfo component added
+	- Small bugs fixed.	
 
 Version: NewAC 1.8
 	- TFastResampler component (fully Delphi-based) for fast resampling.
