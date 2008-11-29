@@ -167,8 +167,8 @@ var
 begin
   Offset := 0;
   NewLength := 0;
-  clm := 0;
-  NewM := 0;
+ // clm := 0;
+  //NewM := 0;
   max := 0;
   for i := 0 to DataLength-1 do
     if (Abs(Data[i]) > max) then
