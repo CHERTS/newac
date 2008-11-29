@@ -720,7 +720,6 @@ implementation
   procedure TPPAdaptiveDecoder.Decode;
     var
     i, j : Integer;
-    P : PSmallInt;
     BlockHeader : TBlockHeader;
     Block : PArrayOfByte;
     BlockLen : LongWord;
