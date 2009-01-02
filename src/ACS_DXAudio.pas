@@ -311,7 +311,6 @@ var
   PlayTime, CTime : LongWord;
 begin
   Result := True;
-  if not Busy then Exit;
   if not CanOutput then
   begin
     Result := False;
@@ -623,7 +622,7 @@ end;
 
 procedure TDXAudioOut.SetFramesInBuffer;
 begin
-  if not Busy then
+  if Thread.Suspended then
     FFramesInBuffer := value;
 end;
 

@@ -717,7 +717,6 @@ var
   Ptr : Pointer;
 begin
   Result := True;
-  if not Busy then Exit;
   if Abort or (not CanOutput) then
   begin
     Result := False;
