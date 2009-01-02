@@ -622,7 +622,7 @@ end;
 
 procedure TDXAudioOut.SetFramesInBuffer;
 begin
-  if Thread.Suspended then
+  if Status = tosIdle then
     FFramesInBuffer := value;
 end;
 

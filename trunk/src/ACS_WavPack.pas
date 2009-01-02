@@ -500,7 +500,7 @@ end;
 
 procedure TWVOut.SetCorrectionsStream(Value: TStream);
 begin
-  if Thread.Suspended and (FCorrectionsStream <> Value) then begin
+  if (Status = tosIdle) and (FCorrectionsStream <> Value) then begin
     if (FCorrectionsStream <> nil) and not FCorrectionsStreamAssigned then
       FCorrectionsStream.Free();
 
