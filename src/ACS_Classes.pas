@@ -1145,6 +1145,7 @@ end;
 constructor TAuOutput.Create;
   begin
     inherited Create(AOwner);
+    Thread := nil;
     if not (csDesigning in ComponentState) then
     begin
       Dirty := 0;
@@ -1221,9 +1222,14 @@ constructor TAuOutput.Create;
 
   function TAuOutput.GetStatus;
   begin
+    if not Assigned(Thread) then
+    begin
+      Result := tosIdle;
+      Exit;
+    end;
     if not Thread.Suspended then
     begin
-      if Self.Thread.Paused then Result := tosPaused
+      if Thread.Paused then Result := tosPaused
       else Result := tosPlaying;
     end else Result := tosIdle;
   end;
@@ -1240,7 +1246,7 @@ constructor TAuOutput.Create;
 
   procedure TAuOutput.SetInput;
   begin
-    if not Thread.Suspended then
+    if Status <> tosIdle  then
     begin
       Stop(False);
       FInput := vInput;
