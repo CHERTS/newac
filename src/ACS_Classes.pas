@@ -1188,7 +1188,7 @@ constructor TAuOutput.Create;
       Inc(Dirty);
       if Dirty > 1 then
       begin
-        Dirty := 0;
+        Dec(Dirty);
         raise EAuException.Create('Component is busy');
       end;
       Thread.Stop := False;
