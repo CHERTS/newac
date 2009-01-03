@@ -76,7 +76,6 @@ type
   TAuThread = class(TThread)
   private
     PauseEvent : TEvent;
-    procedure RaiseDoneEvent;
   public
     DoNotify : Boolean; // Flag that determines if OnDone should be raised a the end of output
                         // default value is True, may be set to False in Stop method.
@@ -235,8 +234,6 @@ type
     The ancestor class for all output components. *)
 
   TAuOutput = class(TComponent)
-  private
-    Dirty : Word;
   protected
     FStopped : Boolean; // indicates that the output is terminated by calling Stop
                         // So that Done could know the output is stopped forcibly. Currently only TWaveOut usese this.
@@ -248,7 +245,9 @@ type
     FInput : TAuInput;
     FOnDone : TOutputDoneEvent;
     FOnProgress : TOutputProgressEvent;
+    Busy : Boolean;  // Set to true by Run and to False by WhenDone.
     FOnThreadException : TThreadExceptionEvent;
+    RunCS : TCriticalSection;
     function GetPriority : {$IFDEF LINUX} Integer; {$ENDIF} {$IFDEF WIN32} TThreadPriority; {$ENDIF}
     function GetProgress : Integer;
     procedure SetInput(vInput : TAuInput); virtual;
@@ -789,7 +788,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure PostOnProgress(Sender : TComponent; Handler :TOutputProgressEvent);
-    procedure PostOnDone(Sender : TComponent; Thread : TAuThread; Handler :TOutputProgressEvent);
+    procedure PostOnDone(Sender : TComponent; Thread : TAuThread);
     procedure PostGenericEvent(Sender : TComponent; Handler : TGenericEvent);
     procedure Execute; override;
     procedure ClearEvents(Sender : TComponent);
@@ -863,7 +862,6 @@ end;
     Events := TList.Create;
     CS := TCriticalSection.Create;
     _Evt := TEvent.Create(nil, False, False, 'mainevent');
-    Priority := tpTimeCritical;
   end;
 
   destructor TEventHandler.Destroy;
@@ -949,9 +947,14 @@ end;
         begin
           while not CurrentEvent.Thread.Suspended do
             Sleep(10);
+          TAuOutput(CurrentEvent.Sender).Busy := False;
           ClearEvents(CurrentEvent.Sender);
-        end;
-        Synchronize(CallHandler);
+          if (Assigned(TAuOutput(CurrentEvent.Sender).FOnDone)) and (Assigned(TAuOutput(CurrentEvent.Sender).Thread.DoNotify)) then
+          begin
+            CurrentEvent.DoneEvent := TAuOutput(CurrentEvent.Sender).FOnDone;
+            Synchronize(CallHandler);
+          end;
+        end else Synchronize(CallHandler);
         Dispose(CurrentEvent);
       end;
       _Evt.WaitFor(100);
@@ -966,7 +969,6 @@ end;
     e._type := etOnDone;
     e.Sender := Sender;
     e.Thread := Thread;
-    e.DoneEvent := Handler;
     AddEvent(e);
   end;
 
@@ -1063,11 +1065,6 @@ end;
     PauseEvent.WaitFor(10000);
   end;
 
-  procedure TAuThread.RaiseDoneEvent;
-  begin
-     if Assigned(TAuOutput(Parent).FOnDone) then
-        EventHandler.PostOnDone(Parent, Self, TAuOutput(Parent).FOnDone);
-   end;
 
 
   procedure TAuThread.Execute;
@@ -1116,16 +1113,16 @@ end;
           (Parent as TAuOutput).FExceptionMessage := E.Message;
           if Assigned((Parent as TAuOutput).FOnThreadException) then
              EventHandler.PostGenericEvent(Parent, (Parent as TAuOutput).FOnThreadException);
-      //    Stop := True;
+          Stop := True;
         end;
       end;
       Stop := False;
       try
         ParentComponent.WhenDone;
       except
+        ParentComponent.Busy := False;
       end;
-      if DoNotify then
-         RaiseDoneEvent;
+       EventHandler.PostOnDone(Parent, Self);
        Stopped := True;
        if not Terminated then Self.Suspend;
     end; //  while not Terminated do
@@ -1135,6 +1132,7 @@ procedure TAuOutput.BlockingRun;
 var
   bAbort: Boolean;
 begin
+  Busy := True;
   Prepare;
   bAbort := False;
   CanOutput := True;
@@ -1145,11 +1143,10 @@ end;
 constructor TAuOutput.Create;
   begin
     inherited Create(AOwner);
-    Thread := nil;
     if not (csDesigning in ComponentState) then
     begin
-      Dirty := 0;
       FStopped := False;
+      RunCS := TCriticalSection.Create;
       Thread := TAuThread.Create;
       Thread.Parent := Self;
       Thread.DoNotify := True;
@@ -1169,33 +1166,44 @@ constructor TAuOutput.Create;
         Thread.WaitFor;
         Thread.Free;
         ReleaseEventHandler;
+        RunCS.Free;
       end;
     inherited Destroy;
   end;
 
   procedure TAuOutput.WhenDone;
   begin
+    if not Busy then Exit;
     CanOutput := False;
     Done;
     FStopped := False;
+    Busy := False;
   end;
 
   procedure TAuOutput.Run;
   begin
+    RunCS.Enter;
     FExceptionMessage := '';
-    if not Assigned(FInput) then raise EAuException.Create('Input is not assigned');
-    if Thread.Suspended then
+    if Busy then
     begin
-      Inc(Dirty);
-      if Dirty > 1 then
+      RunCS.Leave;
+      raise EAuException.Create('Component is Busy');
+    end;
+    Busy := True;
+    if not Assigned(FInput) then
+    begin
+      RunCS.Leave;
+      raise EAuException.Create('Input is not assigned');
+    end;
+    try
+      if Thread.Suspended then
       begin
-        Dec(Dirty);
-        raise EAuException.Create('Component is busy');
+        Thread.Stop := False;
+        Thread.Resume;
       end;
-      Thread.Stop := False;
-      Thread.Resume;
-      Dirty := 0;
-    end else raise EAuException.Create('Component is busy');
+    finally
+      RunCS.Leave;
+    end;
   end;
 
   procedure TAuOutput.Stop;
@@ -1222,14 +1230,9 @@ constructor TAuOutput.Create;
 
   function TAuOutput.GetStatus;
   begin
-    if not Assigned(Thread) then
+    if Busy then
     begin
-      Result := tosIdle;
-      Exit;
-    end;
-    if not Thread.Suspended then
-    begin
-      if Thread.Paused then Result := tosPaused
+      if Self.Thread.Paused then Result := tosPaused
       else Result := tosPlaying;
     end else Result := tosIdle;
   end;
@@ -1246,7 +1249,7 @@ constructor TAuOutput.Create;
 
   procedure TAuOutput.SetInput;
   begin
-    if Status <> tosIdle  then
+    if Busy then
     begin
       Stop(False);
       FInput := vInput;
@@ -1273,7 +1276,7 @@ constructor TAuOutput.Create;
   begin
     if FInput = nil then
       raise EAuException.Create('Input is not assigned.');
-    If not Thread.Suspended then
+    If Busy then
     begin
       Thread.SetPause := True;
       Thread.WaitForPause;
@@ -1283,7 +1286,7 @@ constructor TAuOutput.Create;
 
   procedure TAuOutput.Resume;
   begin
-    If not Thread.Suspended then
+    If Busy then
     begin
       FInput._Resume;
       Thread.SetPause := False;

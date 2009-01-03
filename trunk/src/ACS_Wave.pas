@@ -1261,7 +1261,7 @@ end;
 
 procedure TWaveOut.SetWavType;
 begin
-  if Status <> tosIdle then Exit;
+  if Busy then Exit;
   if (WT = wtPCM) or (WT = wtDVIADPCM) then
   FWavType := WT;
 end;
@@ -1902,7 +1902,7 @@ end;
 
   procedure TWaveOut.SetBlockSize;
   begin
-    if Status = tosIdle then
+    if not Busy then
     if BS <> 0 then
     if (BS mod 4) = 0 then FBlockAlign := BS;
   end;
