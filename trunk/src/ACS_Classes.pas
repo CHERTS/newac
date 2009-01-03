@@ -949,7 +949,7 @@ end;
             Sleep(10);
           TAuOutput(CurrentEvent.Sender).Busy := False;
           ClearEvents(CurrentEvent.Sender);
-          if (Assigned(TAuOutput(CurrentEvent.Sender).FOnDone)) and (Assigned(TAuOutput(CurrentEvent.Sender).Thread.DoNotify)) then
+          if (Assigned(TAuOutput(CurrentEvent.Sender).FOnDone)) and (TAuOutput(CurrentEvent.Sender).Thread.DoNotify) then
           begin
             CurrentEvent.DoneEvent := TAuOutput(CurrentEvent.Sender).FOnDone;
             Synchronize(CallHandler);
