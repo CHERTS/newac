@@ -55,10 +55,10 @@ type
   protected
     (* Function: Sleep
       This method should be called from within the thread's Execute method.
-      Suspends the thread execution.
+      Sleep suspends the thread execution.
       The thread execution is resumed on one of the following conditions:
       - Wake is called by an external thread.
-      - Exit(Async) is called by an external thread.
+      - Quit or QuitAsync is called by an external thread.
       - SendToThread or PostToThread is called by an external thread.
       If Sleep is called between the Quit/QuitAsync call and the cancelation point the sleep returns immediately.
       OnSleep event handler is called in the main thread context after the thread has gome to sleep.
@@ -80,8 +80,12 @@ type
        - On PostToThread/SendToThread an appropriate procedure or method are called.
        *)
     procedure CancelationPoint;
+    procedure SendToMain(Proc : TExtThreadProcedure); overload;
+    procedure SendToMain(Method : TExtThreadMethod); overload;
+    procedure PostToMain(Proc : TExtThreadProcedure; Sender : Pointer = nil; CanCancel : Boolean = True); overload;
+    procedure PostToMain(Method : TExtThreadMethod; Sender : Pointer  = nil; CanCancel : Boolean = True); overload;
     (* Property: OnBeforePause
-     OnBeforePause handler is called before the thread goes to sleep as requested by Pause or PauseAsync.
+     OnBeforePause handler is called before the thread goes to sleep at CancellationPoint as requested by Pause or PauseAsync.
      The handler is executed in the context of the thread being paused, not the external thread.
     *)
     property OnBeforePause : TExtThreadMethod read FOnBeforePause write FOnBeforePause;
@@ -94,11 +98,12 @@ type
      OnBeforeExit handler is called before the thread terminates either due to call to ExitThread or due to call to Quit/QuitAsync.
      The handler is executed in the context of the thread being treminated, not the external thread.
     *)
-    procedure SendToMain(Proc : TExtThreadProcedure); overload;
-    procedure SendToMain(Method : TExtThreadMethod); overload;
-    procedure PostToMain(Proc : TExtThreadProcedure; Sender : Pointer = nil; CanCancel : Boolean = True); overload;
-    procedure PostToMain(Method : TExtThreadMethod; Sender : Pointer  = nil; CanCancel : Boolean = True); overload;
     property OnBeforeExit : TExtThreadMethod read FOnBeforeWake write FOnBeforeWake;
+    (* Property: OnBeforeSleep
+     OnBeforeExit handler is called before the thread goes to sleep as a result of a Sleep call.
+     You can use this handler to detect if the Sleep call was successful.
+     The handler is executed in the context of the thread being treminated, not the external thread.
+    *)
     property OnBeforeSleep : TExtThreadMethod read FOnBeforeSleep write FOnBeforeSleep;
   public
     (* if CreateSleeping is set to True the thread will run up to the first CancelationPoint and that sleep. *)
@@ -113,7 +118,7 @@ type
     procedure Pause;
     (* Function: PauseAsync
        This method should be called from an external thread.
-       Does the same as Suspends the thread execution. PauseAsync returns at once and the thread may still be running at the moment.
+       Suspends the thread execution. PauseAsync returns at once and the thread may still be running at the moment.
        If the thread is alredy in sleeping state Pause does nothing.
     *)
     procedure PauseAsync;
@@ -229,7 +234,7 @@ var
   procedure TExtThread.Sleep;
   begin
     EnterExclusive(FLockedInt);
-    if not (FCancelationAction in [caNone, caSleep]) then // Do not Sleep!
+    if FCancelationAction <> caNone then // Do not Sleep!
     begin
       LeaveExclusive(FLockedInt);
       Exit;
@@ -266,6 +271,7 @@ var
     EnterExclusive(FLockedExt);
     if (FCancelationAction = caNone) and (FThreadState <> tsSleeping) then
        FCancelationAction := caSleep;
+    _Wake;
     LeaveExclusive(FLockedExt);
   end;
 
