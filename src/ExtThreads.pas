@@ -52,10 +52,6 @@ type
     procedure LeaveExclusive(var Lock : LongWord);
     procedure CallExtThreadEvent;
     procedure _Wake;
-    procedure SendToMain(Proc : TExtThreadProcedure); overload;
-    procedure SendToMain(Method : TExtThreadMethod); overload;
-    procedure PostToMain(Proc : TExtThreadProcedure; Sender : Pointer = nil; CanCancel : Boolean = True); overload;
-    procedure PostToMain(Method : TExtThreadMethod; Sender : Pointer  = nil; CanCancel : Boolean = True); overload;
   protected
     (* Function: Sleep
       This method should be called from within the thread's Execute method.
@@ -98,6 +94,10 @@ type
      OnBeforeExit handler is called before the thread terminates either due to call to ExitThread or due to call to Quit/QuitAsync.
      The handler is executed in the context of the thread being treminated, not the external thread.
     *)
+    procedure SendToMain(Proc : TExtThreadProcedure); overload;
+    procedure SendToMain(Method : TExtThreadMethod); overload;
+    procedure PostToMain(Proc : TExtThreadProcedure; Sender : Pointer = nil; CanCancel : Boolean = True); overload;
+    procedure PostToMain(Method : TExtThreadMethod; Sender : Pointer  = nil; CanCancel : Boolean = True); overload;
     property OnBeforeExit : TExtThreadMethod read FOnBeforeWake write FOnBeforeWake;
     property OnBeforeSleep : TExtThreadMethod read FOnBeforeSleep write FOnBeforeSleep;
   public
