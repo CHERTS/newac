@@ -111,15 +111,16 @@ type
     destructor Destroy; override;
     (* Function: Pause
        This method should be called from an external thread.
-       Suspends the thread execution on the next CancelationPoint. Pause returns only after the thread is actually paused (the CancelationPoint has been reached within the thread's Execute Method) or when thread cannot go to sleep for some reason.
+       The same as PauseAsync but blocks until the thread actualy goes to sleep. Pause returns only after the thread is actually paused (the CancelationPoint has been reached within the thread's Execute Method) or when thread cannot go to sleep for some reason.
        If the thread is alredy in sleeping state Pause does nothing.
        Calls to Wake, Quit/QuitAsync, or SendToThread/PostToThread cause the thread to resume execution.
     *)
     procedure Pause;
     (* Function: PauseAsync
        This method should be called from an external thread.
-       Suspends the thread execution. PauseAsync returns at once and the thread may still be running at the moment.
-       If the thread is alredy in sleeping state Pause does nothing.
+       Suspends the thread execution at the next CancelationPoint. PauseAsync returns at once and the thread may still be running at the moment.
+       PauseAsync wakes sleeping thread so that it went to dleep on the next Cancellation point.
+       If there is a pending quit or method execute equest Pause does nothing.
     *)
     procedure PauseAsync;
     (* Function: Wake
@@ -269,7 +270,7 @@ var
   procedure TExtThread.PauseAsync;
   begin
     EnterExclusive(FLockedExt);
-    if (FCancelationAction = caNone) and (FThreadState <> tsSleeping) then
+    if FCancelationAction = caNone then
        FCancelationAction := caSleep;
     _Wake;
     LeaveExclusive(FLockedExt);
