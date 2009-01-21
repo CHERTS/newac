@@ -43,13 +43,13 @@ type
     FOnWake : TExtThreadEvent;
     FEventToCall : TExtThreadEvent;
     FThreadState : TExtThreadState;
-    FLockedInt, FLockedExt : LongWord;
+    FLockedInt : LongWord;
     procedure ExecuteEvents;
     procedure Resume;
     procedure Suspend;
     procedure Terminate;
-    procedure EnterExclusive(var Lock : LongWord);
-    procedure LeaveExclusive(var Lock : LongWord);
+    procedure EnterExclusive(Internal : Boolean);
+    procedure LeaveExclusive(Internal : Boolean);
     procedure CallExtThreadEvent;
     procedure _Wake;
   protected
@@ -68,8 +68,9 @@ type
        This method should be called from within the thread's Execute method.
        Use this method to exit the thread's Execute method.
        OnBeforeExit event handler is called before the method returns. All pending requests from PostToThread/SendToThread are also executed.
+       Calling this method is the preferred way (along with Quit/QuitAsync) of exiting the thread procedure.
      *)
-    procedure ExitThread;
+    procedure ExitThread(ExitCode : LongWord);
     (* Function: CancelationPoint
        This method should be called from within the thread's Execute method.
        Call this method to execute any actions requested from external thread.
@@ -129,7 +130,11 @@ type
     procedure Wake;
     procedure Quit;
     procedure QuitAsync;
-    (* if called after the call to QuitAsync, SendToThread does nothing *)
+    (* Function: SendToThread
+       Makes a procedure or a method to be executed within the thread context at a cancellation point.
+       SendToThread blocks the calling thread until the procedure or method are executed.
+       Don't call any TExtThread methods from the procedure or method passed via SendToThread as it may block the thread.
+       if called after the call to QuitAsync, SendToThread does nothing. *)
     procedure SendToThread(Proc : TExtThreadProcedure); overload;
     procedure SendToThread(Method : TExtThreadMethod); overload;
     procedure PostToThread(Proc : TExtThreadProcedure); overload;
@@ -182,7 +187,6 @@ var
     else
       FCancelationAction := caNone;
     FLockedInt := 0;
-    FLockedExt := 0;
     FThreadState := tsRunning;
     InitializeCriticalSection(FExlusive);
     FWake := CreateEvent(nil, True, False, nil);
@@ -200,15 +204,23 @@ var
 
   procedure TextThread.EnterExclusive;
   begin
-    if Lock = 0 then
+    if Internal then
+    begin
+      if FLockedInt = 0 then
+        EnterCriticalSection(FExlusive);
+      Inc(FLockedInt);
+    end else
       EnterCriticalSection(FExlusive);
-    Inc(Lock);
   end;
 
-  procedure TextThread.LeaveExclusive;
+  procedure TextThread.LeaveExclusive(Internal : Boolean);
   begin
-    Dec(Lock);
-    if Lock = 0 then
+    if Internal then
+    begin
+      Dec(FLockedInt);
+      if FLockedInt = 0 then
+        LeaveCriticalSection(FExlusive);
+    end else
       LeaveCriticalSection(FExlusive);
   end;
 
@@ -234,10 +246,10 @@ var
 
   procedure TExtThread.Sleep;
   begin
-    EnterExclusive(FLockedInt);
+    EnterExclusive(True);
     if FCancelationAction <> caNone then // Do not Sleep!
     begin
-      LeaveExclusive(FLockedInt);
+      LeaveExclusive(True);
       Exit;
     end;
     ResetEvent(FWake);
@@ -248,7 +260,7 @@ var
       FEventToCall := FOnSleep;
       Synchronize(CallExtThreadEvent);
     end;
-    LeaveExclusive(FLockedInt);
+    LeaveExclusive(True);
     WaitForSingleObject(FWake, INFINITE);
     ResetEvent(FWake);
     FThreadState := tsRunning;
@@ -261,19 +273,19 @@ var
 
   procedure TExtThread.Wake;
   begin
-    EnterExclusive(FLockedExt);
+    EnterExclusive(False);
     if FCancelationAction = caSleep then FCancelationAction := caNone;
     _Wake;
-    LeaveExclusive(FLockedExt);
+    LeaveExclusive(False);
   end;
 
   procedure TExtThread.PauseAsync;
   begin
-    EnterExclusive(FLockedExt);
+    EnterExclusive(False);
     if FCancelationAction = caNone then
        FCancelationAction := caSleep;
     _Wake;
-    LeaveExclusive(FLockedExt);
+    LeaveExclusive(False);
   end;
 
   procedure TExtThread.Pause;
@@ -288,11 +300,11 @@ var
 
   procedure TExtThread.QuitAsync;
   begin
-    EnterExclusive(FLockedExt);
+    EnterExclusive(False);
     FCancelationAction := caTerminate;
     FThreadState := tsTerminating;
     _Wake;
-    LeaveExclusive(FLockedExt);
+    LeaveExclusive(False);
   end;
 
   procedure TExtThread.Quit;
@@ -323,7 +335,7 @@ var
   begin
     while FCancelationAction <> caNone do
     begin
-      EnterExclusive(FLockedInt);
+      EnterExclusive(True);
       if FCancelationAction = caSleep then
       begin
         if Assigned(FOnBeforePause) then FOnBeforePause;
@@ -335,7 +347,7 @@ var
           FEventToCall := FOnPause;
           Synchronize(CallExtThreadEvent);
         end;
-        LeaveExclusive(FLockedInt);
+        LeaveExclusive(True);
         WaitForSingleObject(FWake, INFINITE);
         ResetEvent(FWake);
         FThreadState := tsRunning;
@@ -352,79 +364,81 @@ var
         ExecuteEvents;
         if Assigned(FOnBeforeExit) then FOnBeforeExit;
         FThreadState := tsTerminated;
-        LeaveExclusive(FLockedInt);
-        Exit;
+        DoTerminate;
+        LeaveExclusive(True);
+        Self.ExitThread(0);
       end;
       if FCancelationAction = caExecute then
       begin
         ExecuteEvents;
         FCancelationAction := caNone;
       end;
-      LeaveExclusive(FLockedInt);
+      LeaveExclusive(True);
     end;
   end;
 
-  procedure TExtThread.ExitThread;
+  procedure TExtThread.ExitThread(ExitCode : LongWord);
   begin
-    EnterExclusive(FLockedInt);
+    EnterExclusive(True);
     ExecuteEvents;
     if Assigned(FOnBeforeExit) then FOnBeforeExit;
     FThreadState := tsTerminated;
     FCancelationAction := caTerminate;
-    LeaveExclusive(FLockedInt);
-    Exit;
+    DoTerminate;
+    LeaveExclusive(True);
+    Windows.ExitThread(ExitCode);
   end;
 
   procedure TExtThread.SendToMain(Proc: TExtThreadProcedure);
   begin
-    EnterExclusive(FLockedInt);
+    EnterExclusive(True);
     Synchronize(Proc);
-    LeaveExclusive(FLockedInt);
+    LeaveExclusive(True);
   end;
 
   procedure TExtThread.SendToMain(Method : TExtThreadMethod);
   begin
-    EnterExclusive(FLockedInt);
+    EnterExclusive(True);
     Synchronize(Method);
-    LeaveExclusive(FLockedInt);
+    LeaveExclusive(True);
   end;
 
   procedure TExtThread.PostToMain(Proc : TExtThreadProcedure; Sender : Pointer  = nil; CanCancel : Boolean = True);
   var
     Evt : PEventRecord;
   begin
-    EnterExclusive(FLockedInt);
+    EnterExclusive(True);
     New(Evt);
     Evt.Proc := Proc;
     Evt.Method := nil;
     Evt.Sender := Sender;
     Evt.Cancellable := CanCancel;
     ExtrnEventHandler.AddEvent(Evt);
-    LeaveExclusive(FLockedInt);
+    LeaveExclusive(True);
   end;
 
   procedure TExtThread.PostToMain(Method : TExtThreadMethod; Sender : Pointer  = nil; CanCancel : Boolean = True);
   var
     Evt : PEventRecord;
   begin
-    EnterExclusive(FLockedInt);
+    EnterExclusive(True);
     New(Evt);
     Evt.Proc := nil;
     Evt.Method := Method;
     Evt.Sender := Sender;
     Evt.Cancellable := CanCancel;
     ExtrnEventHandler.AddEvent(Evt);
-    LeaveExclusive(FLockedInt);
+    LeaveExclusive(True);
   end;
 
   procedure TExtThread.PostToThread(Proc: TExtThreadProcedure);
   var
     EvntRec : PEventRecord;
   begin
-    EnterExclusive(FLockedExt);
+    EnterExclusive(False);
     if not (FCancelationAction in [caNone, caSleep, caExecute]) then
     begin
-      LeaveExclusive(FLockedExt);
+      LeaveExclusive(False);
       Exit;
     end;
     FCancelationAction := caExecute;
@@ -433,7 +447,7 @@ var
     EvntRec.Method := nil;
     FEventList.Add(EvntRec);
     _Wake;
-    LeaveExclusive(FLockedExt);
+    LeaveExclusive(False);
   end;
 
   procedure TExtThread.SendToThread(Proc: TExtThreadProcedure);
@@ -450,10 +464,10 @@ var
   var
     EvntRec : PEventRecord;
   begin
-    EnterExclusive(FLockedExt);
+    EnterExclusive(False);
     if not (FCancelationAction in [caNone, caSleep, caExecute]) then
     begin
-      LeaveExclusive(FLockedExt);
+      LeaveExclusive(False);
       Exit;
     end;
     FCancelationAction := caExecute;
@@ -462,7 +476,7 @@ var
     EvntRec.Method := Method;
     FEventList.Add(EvntRec);
     _Wake;
-    LeaveExclusive(FLockedExt);
+    LeaveExclusive(False);
   end;
 
   procedure TExtThread.SendToThread(Method : TExtThreadMethod);
