@@ -648,7 +648,7 @@ implementation
       begin
         CutOff := FLowFreq/FInput.SampleRate;
         if CutOff >= 0.5 then
-          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+          raise EAuException.Create('Cut-off frequency should be less than half of sample rate');
         CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A, B);
         SetLength(A, FNumberOfPoles + 1);
         SetLength(B, FNumberOfPoles);
@@ -657,7 +657,7 @@ implementation
       begin
         CutOff := FHighFreq/FInput.SampleRate;
         if CutOff >= 0.5 then
-          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+          raise EAuException.Create('Cut-off frequency should be less than half of sample rate');
         CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A, B);
         SetLength(A, FNumberOfPoles + 1);
         SetLength(B, FNumberOfPoles);
@@ -666,13 +666,13 @@ implementation
       begin
         CutOff := FLowFreq/FInput.SampleRate;
         if CutOff >= 0.5 then
-          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+          raise EAuException.Create('Cut-off frequency should be less than half of sample rate');
         CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A, B);
         SetLength(A, FNumberOfPoles +1);
         SetLength(B, FNumberOfPoles);
         CutOff := FHighFreq/FInput.SampleRate;
         if CutOff >= 0.5 then
-          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+          raise EAuException.Create('Cut-off frequency should be less than half of sample rate');
         CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A1, B1);
         SetLength(A1, FNumberOfPoles +1);
         SetLength(B1, FNumberOfPoles);
@@ -681,13 +681,13 @@ implementation
       begin
         CutOff := FLowFreq/FInput.SampleRate;
         if CutOff >= 0.5 then
-          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+          raise EAuException.Create('Cut-off frequency should be less than half of sample rate');
         CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, False, A, B);
         SetLength(A, FNumberOfPoles +1);
         SetLength(B, FNumberOfPoles);
         CutOff := FHighFreq/FInput.SampleRate;
         if CutOff >= 0.5 then
-          raise EAuException.Create('Cut-off frequency shouild be less than half of sample rate');
+          raise EAuException.Create('Cut-off frequency should be less than half of sample rate');
         CalculateChebyshev(CutOff, FRipple, FNumberOfPoles, True, A1, B1);
         SetLength(A1, FNumberOfPoles +1);
         SetLength(B1, FNumberOfPoles);
