@@ -94,6 +94,7 @@ type
     procedure Execute; override;
     procedure SoftSleep;
     procedure SoftWake;
+    procedure SoftPause;
   end;
 
 (* Class: TAuInput
@@ -1069,7 +1070,7 @@ end;
 
   procedure TAuThread.WaitForPause;
   begin
-    PauseEvent.WaitFor(10000);
+    PauseEvent.WaitFor(5000);
   end;
 
   procedure TAuThread.SoftSleep;
@@ -1078,6 +1079,15 @@ end;
     Sleeping := True;
     SoftSleepEvent.WaitFor(INFINITE);
     Sleeping := False;
+  end;
+
+  procedure TAuThread.SoftPause;
+  begin
+    SoftSleepEvent.ResetEvent;
+    Paused := True;
+    PauseEvent.SetEvent;
+    SoftSleepEvent.WaitFor(INFINITE);
+    Paused := False;
   end;
 
   procedure TAuThread.SoftWake;
@@ -1113,18 +1123,10 @@ end;
           end;
           if SetPause then
           begin
-            if (not Paused) and (not Stop) then
-              PauseEvent.SetEvent;
-            Paused := True;
-            Res := True;
-            Sleep(50);
-          end else
-          begin
-            if Paused and (not Stop) then
-              PauseEvent.SetEvent;
-            Paused := False;
-            Res := ParentComponent.DoOutput(Stop);
+            SetPause := False;
+            SoftPause;
           end;
+          Res := ParentComponent.DoOutput(Stop);
         end; // while (not Stop) and Res do
       except
         on E : Exception do
@@ -1232,7 +1234,7 @@ constructor TAuOutput.Create;
     Thread.Stopped := False;
     Thread.Stop := True;
     if Thread.Paused then
-      Thread.SetPause := False;
+      Thread.SoftWake;
     if not Async then
     begin
       EventHandler.BlockEvents(Self);
@@ -1305,11 +1307,10 @@ constructor TAuOutput.Create;
 
   procedure TAuOutput.Resume;
   begin
-    If Busy then
+    If Busy and Thread.Paused then
     begin
       FInput._Resume;
-      Thread.SetPause := False;
-      Thread.WaitForPause;
+      Thread.SoftWake;
     end;
   end;
 
