@@ -76,6 +76,7 @@ type
   TAuThread = class(TThread)
   private
     PauseEvent : TEvent;
+    SoftSleepEvent : TEvent;
   public
     DoNotify : Boolean; // Flag that determines if OnDone should be raised a the end of output
                         // default value is True, may be set to False in Stop method.
@@ -86,10 +87,13 @@ type
     Stop : Boolean;
     SetPause, Paused : Boolean;
     Delay : Integer;
+    Sleeping : Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure WaitForPause;
     procedure Execute; override;
+    procedure SoftSleep;
+    procedure SoftWake;
   end;
 
 (* Class: TAuInput
@@ -945,7 +949,7 @@ end;
         CurrentEvent := GetEvent;
         if CurrentEvent._type = etOnDone then
         begin
-          while not CurrentEvent.Thread.Suspended do
+          while not CurrentEvent.Thread.Sleeping do
             Sleep(10);
           TAuOutput(CurrentEvent.Sender).Busy := False;
           ClearEvents(CurrentEvent.Sender);
@@ -1050,13 +1054,16 @@ end;
 
   constructor TAuThread.Create;
   begin
-    inherited Create(True);
+    inherited Create(False);
     PauseEvent := TEvent.Create(nil, False, False, 'pause_event');
+    SoftSleepEvent := TEvent.Create(nil, False, False, 'ssleep_event');
+    Sleeping := False;
   end;
 
   destructor TAuThread.Destroy;
   begin
     PauseEvent.Free;
+    SoftSleepEvent.Free;
     inherited Destroy;
   end;
 
@@ -1065,13 +1072,25 @@ end;
     PauseEvent.WaitFor(10000);
   end;
 
+  procedure TAuThread.SoftSleep;
+  begin
+    SoftSleepEvent.ResetEvent;
+    Sleeping := True;
+    SoftSleepEvent.WaitFor(INFINITE);
+    Sleeping := False;
+  end;
 
+  procedure TAuThread.SoftWake;
+  begin
+    SoftSleepEvent.SetEvent;
+  end;
 
   procedure TAuThread.Execute;
   var
     ParentComponent : TAuOutput;
     Res : Boolean;
   begin
+    SoftSleep;
     ParentComponent := TAuOutput(Parent);
     Stop := False;
     while not Terminated do
@@ -1124,7 +1143,7 @@ end;
       end;
        EventHandler.PostOnDone(Parent, Self);
        Stopped := True;
-       if not Terminated then Self.Suspend;
+       if not Terminated then Self.SoftSleep;
     end; //  while not Terminated do
   end;
 
@@ -1161,8 +1180,8 @@ constructor TAuOutput.Create;
       begin
         Stop(False);
         Thread.Terminate;
-        while Thread.Suspended do
-          Thread.Resume;
+        if Thread.Sleeping then
+          Thread.SoftWake;
         Thread.WaitFor;
         Thread.Free;
         ReleaseEventHandler;
@@ -1196,10 +1215,10 @@ constructor TAuOutput.Create;
       raise EAuException.Create('Input is not assigned');
     end;
     try
-      if Thread.Suspended then
+      if Thread.Sleeping then
       begin
         Thread.Stop := False;
-        Thread.Resume;
+        Thread.SoftWake;
       end;
     finally
       RunCS.Leave;
@@ -1218,7 +1237,7 @@ constructor TAuOutput.Create;
     begin
       EventHandler.BlockEvents(Self);
       EventHandler.ClearEvents(Self);
-      while (not Thread.Suspended) and (not Thread.Stopped) do
+      while (not Thread.Sleeping) and (not Thread.Stopped) do
       begin
         if Thread.Delay > 5 then sleep(Delay);
         CheckSynchronize; // to release possible deadlocks

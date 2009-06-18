@@ -535,6 +535,7 @@ type
     FLACIn := TFLACIn(client_data);
     if metadata._type = FLAC__METADATA_TYPE_STREAMINFO then
     begin
+//      LongWord(metadata) := LongWord(metadata) + 4;
       FI := metadata.stream_info;
       FLACIn.FSR := FI.sample_rate;
       FLACIn.FChan := FI.channels;
