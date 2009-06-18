@@ -171,7 +171,7 @@ const
    *)
 
   FLAC__STREAM_DECODER_READ_STATUS_ABORT = 2;
-  //**< An unrecoverable error occurred.  The decoder will return from the process call. */
+  //**< An unrecoverable error occurred.  The decoder will return from the process call. */
 
 //=============================================================================/
 
@@ -280,7 +280,7 @@ FLAC__SUBFRAME_TYPE_LPC = 3; ///**< linear prediction */
 
 type
 
-  FLAC__FrameHeader = record
+  FLAC__FrameHeader = packed record
     blocksize : unsigned; ///**< The number of samples per subframe. */
     sample_rate : unsigned;  ////**< The sample rate in Hz. */
     channels : unsigned; ///**< The number of channels (== number of subframes). */
@@ -298,21 +298,21 @@ type
 
   PFLAC__FrameHeader = ^FLAC__FrameHeader;
 
-  FLAC__FrameFooter = record
+  FLAC__FrameFooter = packed record
     crc : FLAC__uint16;
   end;
 
   PFLAC__FrameFooter = ^FLAC__FrameFooter;
 
-  FLAC__Subframe_Constant = record
+  FLAC__Subframe_Constant = packed record
     value : FLAC__int32;
   end;
 
-  FLAC__Subframe_Verbatim = record
+  FLAC__Subframe_Verbatim = packed record
     data : PFLAC__int32;
   end;
 
-  FLAC__Frame = record
+  FLAC__Frame = packed record
     header : FLAC__FrameHeader;
     // IMPORTANT: There is much more data in this structure actually,
     // but we don't care about the rest of it.
@@ -322,30 +322,31 @@ type
 
   PFLAC__Frame = ^FLAC__Frame;
 
-  FLAC__StreamMetadata_StreamInfo = record
+  FLAC__StreamMetadata_StreamInfo = packed record
     min_blocksize, max_blocksize : unsigned;
     min_framesize, max_framesize : unsigned;
     sample_rate : unsigned;
     channels : unsigned;
     bits_per_sample : unsigned;
+    d1 : single;
     total_samples : FLAC__uint64;
     md5sum : array[0..15] of FLAC__byte;
   end;
 
-  FLAC__StreamMetadata_VorbisComment_Entry = record
+  FLAC__StreamMetadata_VorbisComment_Entry = packed record
     length : FLAC__uint32;
     entry : PFLAC__byte;
   end;
 
   PFLAC__StreamMetadata_VorbisComment_Entry = ^FLAC__StreamMetadata_VorbisComment_Entry;
 
-  FLAC__StreamMetadata_VorbisComment = record
+  FLAC__StreamMetadata_VorbisComment = packed record
     vendor_string : FLAC__StreamMetadata_VorbisComment_Entry;
     num_comments : FLAC__uint32;
     comments : PFLAC__StreamMetadata_VorbisComment_Entry;
   end;
 
-  FLAC__StreamMetadata = record
+  FLAC__StreamMetadata = packed record
     _type : FLAC__MetadataType;
     is_last : FLAC__bool;
     length : LongWord;
