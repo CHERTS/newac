@@ -15,7 +15,13 @@ unit ACS_Procs;
 interface
 
 uses
-  SysUtils, ACS_Types, Math;
+  SysUtils, ACS_Types, Math
+
+  {$IFDEF WIN32}
+  , Windows
+  {$ENDIF}
+
+  ;
 
 type
 
@@ -25,6 +31,9 @@ type
   function FindLibs(const Pattern : String) : String;
 {$ENDIF}
 
+var
+
+  FastCopyMem : procedure(Dest, Src : Pointer; Count : LongWord);
 
   // Direction = 1 - forward FFT, Direction = -1 - inverse FFT.
   procedure ComplexFFT(Data : PComplexArray; DataSize, Direction : Integer);
@@ -1077,5 +1086,72 @@ end;
     Result := q;
   end;
 
+  function SSESupported : Boolean;
+  var
+    Flag : LongWord;
+  begin
+    asm
+      PUSH EBX;
+      MOV EAX, 1;
+      CPUID;
+      MOV Flag, EDX;
+      POP EBX;
+    end;
+    Result := (Flag and (1 shl 25)) <> 0;
+  end;
+
+  procedure CopySSE(Dest, Src : Pointer; Count : LongWord);
+  begin
+    if ((LongWord(Dest) mod 16) <> 0) or ((LongWord(Src) mod 16) <> 0) then
+    begin
+      CopyMemory(Dest, Src, Count);
+      Exit;
+    end;
+
+    asm
+        PUSH ESI;
+        PUSH EDI;
+        MOV EDI, Dest;
+        MOV ESI, Src;
+        MOV ECX, Count;
+
+        MOV EAX, ECX;
+        SUB ECX, EDI;
+        SUB ECX, EAX;
+        AND ECX, 15;
+        SUB EAX, ECX;
+        JLE @l2;
+
+        EMMS;
+        REP MOVSB;
+        MOV ECX, EAX;
+        AND EAX, 15
+        SHR ECX, 4
+        JZ	@l2;
+        SUB	EDI, ESI;
+   @l1: MOVDQA	XMM0, [ESI];
+        MOVDQA	[EDI+ESI], XMM0;
+        ADD ESI, 16;
+        DEC ECX;
+        JNZ @l1;
+        EMMS;
+        ADD	EDI, ESI;
+
+   @l2: ADD ECX, EAX;
+        REP MOVSB;
+
+   @l3: POP EDI;
+        POP ESI;
+    end;
+  end;
+
+initialization
+  if SSESupported then
+  begin
+    FastCopyMem := CopySSE;
+  end else
+  begin
+    FastCopyMem := CopyMemory;
+  end;
 
 end.

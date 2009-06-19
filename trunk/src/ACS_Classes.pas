@@ -20,7 +20,7 @@ uses
   Windows,
 {$ENDIF}
   Classes, SysUtils, SyncObjs,
-  ACS_Types, ACS_Tags;
+  ACS_Types, ACS_Procs, ACS_Tags;
 
 type
 
@@ -1641,7 +1641,7 @@ constructor TAuOutput.Create;
     Result := BufferSize;
     GetData(P, Result);
     if P <> nil then
-      Move(P^, Buffer^, Result);
+      FastCopyMem(Buffer, P, Result);
   end;
 
   function TAuInput.FillBuffer;
