@@ -1711,7 +1711,7 @@ implementation
     begin
      writer.writer.AllocateSample(len, writer.buffer);
      writer.buffer.GetBuffer(buf);
-     Move(Buffer^, Buf^, len);
+     FastCopyMem(Buf, Buffer, len);
      writer.buffer.SetLength(len);
      writer.TotalTime := writer.TotalTime + Round(len/writer.BytesPerSecond/0.1e-6);
      res := writer.writer.WriteSample(writer.input, writer.TotalTime, 0, writer.buffer);
@@ -1837,7 +1837,7 @@ implementation
        pSample.GetBufferAndLength(Buffer, Length);
        GetMem(SI, SizeOf(TSampleInfo));
        GetMem(SI.Data, Length);
-       Move(Buffer^, SI.Data^, Length);
+       FastCopyMem(SI.Data, Buffer, Length);
        SI.Length := Length;
        SI.Offset := 0;
        FReader.CriticalSection.Enter;
@@ -1928,7 +1928,7 @@ implementation
   begin
      writer.writer.AllocateSample(len, writer.buffer);
      writer.buffer.GetBuffer(buf);
-     Move(Buffer^, Buf^, len);
+     FastCopyMem(Buf, Buffer, len);
      writer.buffer.SetLength(len);
      writer.TotalTime := writer.TotalTime + Round(len/writer.BytesPerSecond/0.1e-6);
      res := preprocessor.WMWriterPreprocess.PreprocessSample(writer.input, writer.TotalTime, 0, writer.buffer);
