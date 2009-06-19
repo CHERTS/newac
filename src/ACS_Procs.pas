@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package v 1.8
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 2.0
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -1101,11 +1101,44 @@ end;
   end;
 
   procedure CopySSE(Dest, Src : Pointer; Count : LongWord);
+  var
+    RemDest, RemSrc, i : Integer;
   begin
-    if ((LongWord(Dest) mod 16) <> 0) or ((LongWord(Src) mod 16) <> 0) then
+    RemDest := LongWord(Dest) mod 16;
+    RemSrc := LongWord(Src) mod 16;
+    if (RemDest <> 0) or (RemSrc <> 0) then
     begin
-      CopyMemory(Dest, Src, Count);
-      Exit;
+      if RemDest <> RemSrc then
+      begin
+          CopyMemory(Dest, Src, Count);
+          Exit;
+      end;
+      if (RemDest mod 4) = 0 then
+      begin
+        for i := 0 to ((16 - RemDest) div 4)  - 1 do
+        begin
+          PLongWord(Dest)^ := PLongWord(Src)^;
+          inc(LongWord(Dest), 4);
+          inc(LongWord(Src), 4);
+        end;
+      end else
+      if (RemDest mod 2) = 0 then
+      begin
+        for i := 0 to ((16 - RemDest) div 2)  - 1 do
+        begin
+          PWord(Dest)^ := PWord(Src)^;
+          inc(LongWord(Dest), 2);
+          inc(LongWord(Src), 2);
+        end;
+      end else
+      begin
+        for i := 0 to 15 - RemDest do
+        begin
+          PByte(Dest)^ := PByte(Src)^;
+          inc(LongWord(Dest));
+          inc(LongWord(Src));
+        end;
+      end;
     end;
 
     asm

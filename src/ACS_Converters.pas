@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package 1.8
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 2.0
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -179,7 +179,7 @@ type
     X3, Y3 : array[0..7] of array of Single;
     IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
     FOutSampleRate : Word;
-    offsX, OffsY : Integer;
+    offsX, OffsY, Base : Integer;
     InputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;
@@ -1276,7 +1276,7 @@ implementation
             Y0[j][i + OffsY] := Acc;
           end;
         for j := 0 to SamplesInFrame - 1 do
-          Move(Y0[j][OffsY], X1[j][OffsX], SizeOf(Single)*FramesRead);
+          FastCopyMem(@X1[j][OffsX], @Y0[j][OffsY], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1293,7 +1293,7 @@ implementation
             Y1[j][i + OffsY] := Acc;
           end;
         for j := 0 to SamplesInFrame - 1 do
-          Move(Y1[j][OffsY], X2[j][OffsX], SizeOf(Single)*FramesRead);
+          FastCopyMem(@X2[j][OffsX], @Y1[j][OffsY], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1310,7 +1310,7 @@ implementation
             Y2[j][i + OffsY] := Acc;
           end;
         for j := 0 to SamplesInFrame - 1 do
-          Move(Y2[j][OffsY], X3[j][OffsX], SizeOf(Single)*FramesRead);
+          FastCopyMem(@X3[j][OffsX], @Y2[j][OffsY], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1349,7 +1349,7 @@ implementation
             Y0[j][i + OffsY] := Acc;
           end;
         for j :=  0 to SamplesInFrame - 1 do
-            Move(Y0[j][OffsY], X1[j][OffsX], SizeOf(Single)*FramesRead);
+            FastCopyMem(@X1[j][OffsX], @Y0[j][OffsY], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1366,7 +1366,7 @@ implementation
             Y1[j][i + OffsY] := Acc;
           end;
         for j :=  0 to SamplesInFrame - 1 do
-            Move(Y1[j][OffsY], X2[j][OffsX], SizeOf(Single)*FramesRead);
+            FastCopyMem(@X2[j][OffsX], @Y1[j][OffsY], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1383,7 +1383,7 @@ implementation
             Y2[j][i + OffsY] := Acc;
           end;
         for j :=  0 to SamplesInFrame - 1 do
-            Move(Y2[j][OffsY], X3[j][OffsX], SizeOf(Single)*FramesRead);
+            FastCopyMem(@X3[j][OffsX], @Y2[j][OffsY], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
