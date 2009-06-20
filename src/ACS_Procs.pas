@@ -534,29 +534,40 @@ implementation
   end;
 
   procedure MultSingleArrays(Op1, Op2 : PSingle; DataSize : Integer);
-  var
-    P : Pointer;
-  begin
-    LongWord(P) := LongWord(Op1) + LongWord(DataSize*4);
-    while Op1 <> P do
-    begin
-      Op1^ := Op1^*Op2^;
-      Inc(Op1);
-      Inc(Op2);
-    end;
+  asm
+      PUSH ESI;
+      PUSH EDI;
+      MOV ESI, Op1;
+      MOV EDI, Op2;
+      MOV ECX, DataSize;
+      SUB EDI, ESI;
+ @l0: FLD DWORD PTR [ESI];
+      FMUL DWORD PTR [EDI+ESI];
+      FSTP DWORD PTR [ESI];
+      ADD ESI, 4;
+      LOOP @l0;
+      POP EDI;
+      POP ESI;
   end;
 
   procedure MultAndSumSingleArrays(Op1, Op2 : PSingle; var Accumulator : Single; DataSize : Integer);
-  var
-    P : Pointer;
-  begin
-    LongWord(P) := LongWord(Op1) + LongWord(DataSize*4);
-    while Op1 <> P do
-    begin
-      Accumulator := Accumulator + Op1^*Op2^;
-      Inc(Op1);
-      Inc(Op2);
-    end;
+  asm
+      PUSH ESI;
+      PUSH EDI;
+      MOV ESI, Op1;
+      MOV EDI, Op2;
+      MOV EAX, Accumulator;
+      MOV ECX, DataSize;
+      SUB EDI, ESI;
+      FLD DWORD PTR [EAX];
+ @l0: FLD DWORD PTR [ESI];
+      FMUL DWORD PTR [EDI+ESI];
+      FADDP;
+      ADD ESI, 4;
+      LOOP @l0;
+      FSTP DWORD PTR [EAX];
+      POP EDI;
+      POP ESI;
   end;
 
   procedure MultAndSumXSingleArrays(A, X : PSingle; var Accumulator : Single; DataSize : Integer);
