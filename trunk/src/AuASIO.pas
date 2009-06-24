@@ -101,6 +101,11 @@ type
     property OnDriverReset : TGenericEvent read FOnDriverReset write FOnDriverReset;
   end;
 
+  //IMPORTANT
+  //     ASIOTrue :  begin EventHandler.PostGenericEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
+ //     ASIOFalse :  OutputComponent.ProcessBuffer(OutputComponent);
+
+
 
 implementation
 
@@ -136,7 +141,7 @@ procedure AsioBufferSwitchOutput(doubleBufferIndex: longint; directProcess: TASI
 begin
   BufferIndex := doubleBufferIndex;
    case directProcess of
-     ASIOTrue :  begin EventHandler.PostGenericEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
+     ASIOTrue :  begin EventHandler.PostNonGuiEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
      ASIOFalse :  OutputComponent.ProcessBuffer(OutputComponent);
    end;
 end;
