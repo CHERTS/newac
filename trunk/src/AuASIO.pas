@@ -1,3 +1,12 @@
+(*
+  This file is a part of New Audio Components package 2.0
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  See the LICENSE file for more details.
+  You can contact me at anb@symmetrica.net
+*)
+
+(* $Id$ *)
+
 unit AuASIO;
 
 interface
@@ -32,6 +41,7 @@ type
     FOnDriverReset : TGenericEvent;
     FNewSampleRate : Integer;
     DoReset : Boolean;
+    DevStopped : Boolean;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -39,12 +49,12 @@ type
     function GetOutputBPS : Integer;
     function GetMaxOutputChannels : Integer;
     function GetLatency : Integer;
-    function FillBuffer(Buffer : Pointer; var EOF : Boolean) : Integer;
+    function FillBuffer(var EOF : Boolean) : Integer;
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
     procedure Prepare; override;
-    procedure ProcessBuffer(sender : TASIOAudioOut);
+    procedure ProcessBuffer(sender : TComponent);
     procedure CallProcessBuffer;
   public
     constructor Create(AOwner: TComponent); override;
@@ -101,24 +111,20 @@ var
   GStop : Boolean = False;
   GBuffer : Pointer;
   BufferIndex : Integer;
+  iBuf : array[0..$FFFF] of Byte;
 
-procedure TASIOAudioOut.ProcessBuffer(sender : TASIOAudioOut);
+procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
   s1, s2 : TASIOInt64;
-  b1, b2 : PBuffer32;
   i : Integer;
 begin
    Device.GetSamplePosition(s1, s2);
-   FillBuffer(BufferInfo[0].buffers[BufferIndex], GStop);
-   FastCopyMem(BufferInfo[1].buffers[BufferIndex], BufferInfo[0].buffers[BufferIndex], OutputComponent.FBufferSize*4);
-   b1 := BufferInfo[0].buffers[BufferIndex];
-   b2 := BufferInfo[1].buffers[BufferIndex];
-   sender.Device.OutputReady;
-   for i:= 0 to OutputComponent.FBufferSize - 1 do
-   begin
-     if Odd(i) then b2[i] := 0
-     else b1[i] := 0;
-   end;
+   FillBuffer(GStop);
+   if FOutputChannels = 2 then
+     DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
+   else
+   FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+   TASIOAudioOut(sender).Device.OutputReady;
 
 end;
 
@@ -237,7 +243,7 @@ begin
   ASIOInit;
   Chan := FOutputChannels;
   SR := FInput.SampleRate;
-  if Device.CanSampleRate(Round(SR)) = ASIOFalse then
+  if Device.CanSampleRate(SR) <> ASE_OK then
     raise EAuException.Create(Format('ASIO driver doesn''t support sample rate of %d. Use resampler.', [SR]))
   else  Device.SetSampleRate(Round(SR));
   BPS := FInput.BitsPerSample;
@@ -251,15 +257,22 @@ begin
     GetMem(Buf, FBufferSize);
     FInternalBufSize := FBufferSize;
   end;
-  FillBuffer(BufferInfo[0].buffers[0], GStop);
+  AsioBufferSwitchOutput(1, AsioTrue);
   FastCopyMem(BufferInfo[0].buffers[1], BufferInfo[0].buffers[0], FBufferSize);
   Device.Start;
+  DevStopped := False;
 end;
 
 function TASIOAudioOut.DoOutput(Abort: Boolean) : Boolean;
 begin
   if Abort or GStop then
   begin
+    if not DevStopped then
+    begin
+     if Device <> nil then
+      Device.Stop;
+      DevStopped := True;
+    end;
     Result := False;
     Exit;
   end;
@@ -284,9 +297,13 @@ begin
       GetMem(Buf, FBufferSize);
       FInternalBufSize := FBufferSize;
     end;
-    FillBuffer(Buf, GStop);
+    FillBuffer(GStop);
     OutputEvent.WaitFor(INFINITE);
-    FastCopyMem(BufferInfo[0].buffers[BufferIndex], Buf, FBufferSize);
+    if FOutputChannels = 2 then
+       DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
+    else
+     FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+    Device.OutputReady;
   end else
   begin
     sleep(100);
@@ -296,7 +313,12 @@ end;
 procedure TASIOAudioOut.Done;
 begin
   GStop := True;
-  Device.Stop;
+  if not DevStopped then
+  begin
+    if Device <> nil then
+    Device.Stop;
+    DevStopped := True;
+  end;
   AsioDone;
   if not FDirectOperation then
      FreeMem(Buf);
@@ -371,6 +393,7 @@ procedure TASIOAudioOut.ASIODone;
 begin
   if not ASIOStarted then Exit;
   ASIOStarted := False;
+  if Device <> nil then
   Device.DisposeBuffers;
   Device := nil;
 end;
@@ -408,7 +431,7 @@ begin
   Result := Device.CanSampleRate(D) <> 0;
 end;
 
-function  TASIOAudioOut.FillBuffer(Buffer: Pointer; var EOF: Boolean) : Integer;
+function  TASIOAudioOut.FillBuffer(var EOF: Boolean) : Integer;
 var
   i,  Len, count : Integer;
   Buf16 : PBuffer16;
@@ -416,27 +439,26 @@ var
 begin
   if (BPS = 16) and (OutputBPS = 32) then
   begin
-    FillChar(Buffer^, FBufferSize, 0);
-    Len := FInput.FillBuffer(Buffer, FBufferSize shr 1, EOF);
-    count := FBufferSize shr 2;
-    Buf16 := Buffer;
-    Buf32 := Buffer;
+    FillChar(iBuf, (FBufferSize shl 2)*FOutputChannels, 0);
+    Len := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
+    count := FBufferSize*FOutputChannels;
+    Buf16 := @iBuf;
+    Buf32 := @iBuf;
     for i := Count - 1 downto 0 do
       Buf32[i] := Buf16[i] shl 16;
     Len := Len shl 1;
     Exit;
   end;
 
-  Result := FInput.FillBuffer(Buffer, FBufferSize shl 2, EOF);
+  Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 2)*FOutputChannels, EOF);
 end;
 
 procedure TASIOAudioOut.CallProcessBuffer;
 var
- m : TMethod;
+ m : TGenericEvent;
 begin
-  m.Code := Self.MethodAddress('ProcessBuffer');
-  m.Data := Self;
-  EventHandler.PostGenericEvent(TComponent(Self), TGenericEvent(m));
+  m := ProcessBuffer;
+  EventHandler.PostGenericEvent(TComponent(Self), m);
 end;
 
 procedure TASIOAudioOut.Pause;
