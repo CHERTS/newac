@@ -116,9 +116,11 @@ var
 procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
   s1, s2 : TASIOInt64;
-  i : Integer;
+  OldStopped : Bool;
 begin
    if Device = nil then Exit;
+   OldStopped := Thread.Stopped;
+   Thread.Stopped := False;
    Device.GetSamplePosition(s1, s2);
    FillBuffer(GStop);
    if FOutputChannels = 2 then
@@ -127,15 +129,15 @@ begin
    FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady <> ASE_NotPresent;
-
+   Thread.Stopped := OldStopped;
 end;
 
 procedure AsioBufferSwitchOutput(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;
 begin
   BufferIndex := doubleBufferIndex;
    case directProcess of
-     ASIOFalse :  begin EventHandler.PostGenericEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
-     ASIOTrue  :  OutputComponent.ProcessBuffer(OutputComponent);
+     ASIOTrue :  begin EventHandler.PostGenericEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
+     ASIOFalse :  OutputComponent.ProcessBuffer(OutputComponent);
    end;
 end;
 
