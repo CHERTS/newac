@@ -110,6 +110,7 @@ var
   OutputComponent : TASIOAudioOut;
   GStop : Boolean = False;
   GBuffer : Pointer;
+  CallOutputReady : Boolean = True;
   BufferIndex : Integer;
   iBuf : array[0..$FFFF] of Byte;
 
@@ -124,7 +125,8 @@ begin
      DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
    else
    FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
-   TASIOAudioOut(sender).Device.OutputReady;
+   if CallOutputReady then
+      CallOutputReady := TASIOAudioOut(sender).Device.OutputReady <> ASE_NotPresent;
 
 end;
 
