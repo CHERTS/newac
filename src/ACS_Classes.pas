@@ -762,7 +762,7 @@ type
 
   TACSBufferMode = (bmBlock, bmReport);
 
-  TEventType = (etOnProgress, etOnDone, etGeneric);
+  TEventType = (etOnProgress, etOnDone, etGeneric, etNonGUI);
 
   TEventRecord = record
     _type : TEventType;
@@ -787,6 +787,7 @@ type
     CurrentEvent : PEventRecord;
     BlockedSender : TComponent;
     procedure AddEvent(Event : PEventRecord);
+    procedure PrependEvent(Event : PEventRecord);
     function GetEvent : PEventRecord;
     procedure CallHandler;
   public
@@ -795,6 +796,7 @@ type
     procedure PostOnProgress(Sender : TComponent; Handler :TOutputProgressEvent);
     procedure PostOnDone(Sender : TComponent; Thread : TAuThread);
     procedure PostGenericEvent(Sender : TComponent; Handler : TGenericEvent);
+    procedure PostNonGuiEvent(Sender : TComponent; Handler : TGenericEvent);
     procedure Execute; override;
     procedure ClearEvents(Sender : TComponent);
     procedure BlockEvents(Sender : TComponent);
@@ -921,6 +923,16 @@ end;
     _Evt.SetEvent;
   end;
 
+  procedure TEventHandler.PrependEvent;
+  begin
+    CS.Enter;
+    if Event.Sender <> BlockedSender then
+      Events.Insert(0, Event);
+    CS.Leave;
+    _Evt.SetEvent;
+  end;
+
+
   function TEventHandler.GetEvent;
   begin
     CS.Enter;
@@ -937,7 +949,6 @@ end;
     if CurrentEvent._type = etOnProgress then
         CurrentEvent.ProgressEvent(CurrentEvent.Sender)
     else
-    if CurrentEvent._type = etGeneric then
         CurrentEvent.GenericEvent(CurrentEvent.Sender);
   end;
 
@@ -959,7 +970,11 @@ end;
             CurrentEvent.DoneEvent := TAuOutput(CurrentEvent.Sender).FOnDone;
             Synchronize(CallHandler);
           end;
-        end else Synchronize(CallHandler);
+        end else
+        if CurrentEvent._type = etNonGui then
+                CallHandler
+        else
+        Synchronize(CallHandler);
         Dispose(CurrentEvent);
       end;
       _Evt.WaitFor(100);
@@ -998,6 +1013,18 @@ end;
     e.GenericEvent := Handler;
     AddEvent(e);
   end;
+
+  procedure TEventHandler.PostNonGuiEvent;
+  var
+    e : PEventRecord;
+  begin
+    New(e);
+    e._type := etNonGui;
+    e.Sender := Sender;
+    e.GenericEvent := Handler;
+    PrependEvent(e);
+  end;
+
 
   constructor TAuInput.Create;
   begin
