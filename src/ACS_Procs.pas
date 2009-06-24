@@ -173,6 +173,8 @@ var
 
   function GCD(a, b : Integer) : Integer;
 
+  procedure DeinterleaveStereo32(Src, Dst1, Dst2 : Pointer; Samples : Integer);
+
 implementation
 
 {$IFDEF LINUX}
@@ -1095,6 +1097,23 @@ end;
       r := p mod q;
     end;
     Result := q;
+  end;
+
+  procedure DeinterleaveStereo32(Src, Dst1, Dst2 : Pointer; Samples : Integer);
+  var
+    S, D1, D2 : PBuffer32;
+    i : Integer;
+  begin
+    S := Src;
+    D1 := Dst1;
+    D2 := Dst2;
+    for i := 0 to Samples - 1 do
+    begin
+      D1[i] := S[i shl 1];
+      D2[i] := S[(i shl 1) + 1];
+    end;
+
+
   end;
 
   function SSESupported : Boolean;
