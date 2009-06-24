@@ -17,7 +17,6 @@ uses
 type
   TASIOAudioOut = class(TAuOutput)
   private
-    OutputEvent : TEvent;
     device : IOpenASIO;
     Devices : TAsioDriverList;
     Chan, SR, BPS : Integer;
@@ -35,7 +34,6 @@ type
     ASIOStarted : Boolean;
     BufferInfo : array [0..16] of TAsioBufferInfo;
     Callbacks         : TASIOCallbacks;
-    FDirectOperation  : Boolean;
     FOnSampleRateChanged : TGenericEvent;
     FOnLatencyChanged : TGenericEvent;
     FOnDriverReset : TGenericEvent;
@@ -62,7 +60,8 @@ type
     procedure ReleaseASIODriver;
     procedure Pause;
     procedure Resume;
-    public function IsSampleRateSupported(SR : Integer) : Boolean;
+    function IsSampleRateSupported(SR : Integer) : Boolean;
+    procedure ShowSetupDlg;
     (* Property: DeviceCount
          This read only property returns the number of logical ASIO devices. *)
     property DeviceCount : Integer read FDeviceCount;
@@ -86,7 +85,6 @@ type
          device in your system. Valid numbers range from 0 to <DeviceCount> -
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
-    property DirectOperation : Boolean read FDirectOperation write FDirectOperation;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
          This can happen if the component receives data at slow rate from a
@@ -106,6 +104,7 @@ type
 
 implementation
 
+
 var
   OutputComponent : TASIOAudioOut;
   GStop : Boolean = False;
@@ -119,6 +118,7 @@ var
   s1, s2 : TASIOInt64;
   i : Integer;
 begin
+   if Device = nil then Exit;
    Device.GetSamplePosition(s1, s2);
    FillBuffer(GStop);
    if FOutputChannels = 2 then
@@ -133,14 +133,10 @@ end;
 procedure AsioBufferSwitchOutput(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;
 begin
   BufferIndex := doubleBufferIndex;
-  if OutputComponent.FDirectOperation then
-  begin
    case directProcess of
-     ASIOFalse :  OutputComponent.CallProcessBuffer;
+     ASIOFalse :  begin EventHandler.PostGenericEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
      ASIOTrue  :  OutputComponent.ProcessBuffer(OutputComponent);
    end;
-   end else
-      OutputComponent.OutputEvent.SetEvent;
 end;
 
 procedure AsioSampleRateDidChange(sRate: TASIOSampleRate); cdecl;
@@ -211,15 +207,12 @@ begin
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange;
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
-  FDirectOperation := True;
-  OutputEvent := TEvent.Create(nil, False, False, 'ASIOevt');
 end;
 
 destructor TASIOAudioOut.Destroy;
 begin
   AsioDone;
   SetLength(Devices, 0);
-  OutputEvent.Free;
   inherited Destroy;
 end;
 
@@ -254,11 +247,6 @@ begin
        raise EAuException.Create(Format('ASIO driver cannot handle %d BPS directly. Use BPS converter.', [BPS]));
   GStop := False;
   DoReset := False;
-  if not FDirectOperation then
-  begin
-    GetMem(Buf, FBufferSize);
-    FInternalBufSize := FBufferSize;
-  end;
   AsioBufferSwitchOutput(1, AsioTrue);
   FastCopyMem(BufferInfo[0].buffers[1], BufferInfo[0].buffers[0], FBufferSize);
   Device.Start;
@@ -291,25 +279,7 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-  if not FDirectOperation then
-  begin
-    if FBufferSize > FInternalBufSize then
-    begin
-      FreeMem(Buf);
-      GetMem(Buf, FBufferSize);
-      FInternalBufSize := FBufferSize;
-    end;
-    FillBuffer(GStop);
-    OutputEvent.WaitFor(INFINITE);
-    if FOutputChannels = 2 then
-       DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
-    else
-     FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
-    Device.OutputReady;
-  end else
-  begin
-    sleep(100);
-  end;
+  sleep(100);
 end;
 
 procedure TASIOAudioOut.Done;
@@ -322,8 +292,6 @@ begin
     DevStopped := True;
   end;
   AsioDone;
-  if not FDirectOperation then
-     FreeMem(Buf);
   DoReset := False;
   FInput.Flush;
 end;
@@ -473,6 +441,15 @@ procedure TASIOAudioOut.Resume;
 begin
   Device.Start;
   inherited Resume;
+end;
+
+procedure TASIOAudioOut.ShowSetupDlg;
+begin
+  ASIODone;
+  ASIOInit;
+  Device.ControlPanel;
+  ASIODone;
+  ASIOInit;
 end;
 
 end.
