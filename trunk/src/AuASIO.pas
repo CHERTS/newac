@@ -19,6 +19,17 @@ type
   TASIOPositionEvent = procedure(Sender : TComponent; SamplePosition, TimeStamp : Int64) of object;
   TASIOBufferSize = (absPreferred, absMinimum, absMaximum);
 
+  (* Class: TASIOAudioOut
+      Performs audio playback using low latency ASIO drivers.
+      Descends from <TAuOutput>.
+      On Windows ASIO drivers bypass some OS layaers which makes them suitable for a real-time audio processing.
+      You will need an ASIO audo driver too use this component.
+      Free ASIO driver that can be installed on top of any WDM (Windows) driver is available at http://www.asio4all.com.
+      This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
+      One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
+      It is your software that should tune itself up to an ASIO driver and not vice versa.
+ *)
+
   TASIOAudioOut = class(TAuOutput)
   private
     device : IOpenASIO;
@@ -51,6 +62,8 @@ type
     function GetMaxOutputChannels : Integer;
     function GetLatency : Integer;
     function FillBuffer(var EOF : Boolean) : Integer;
+    function GetSampleRate : Integer;
+    procedure SetSampleRate(SR : Integer);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -60,10 +73,17 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function: ReleaseASIODriver
+        Call this method to release hold on ASIO driver so thst other applications could use audio subsystem.
+        Driver is released automatically when the audio playback is done. *)
     procedure ReleaseASIODriver;
     procedure Pause;
     procedure Resume;
+    (* Function: IsSampleRateSupported
+        Returns True if the specified sample rate is supported by the driver and False otherwise.  *)
     function IsSampleRateSupported(SR : Integer) : Boolean;
+    (* Function: ShowSetupDlg
+        Brings up ASIO properties dialog window.  *)
     procedure ShowSetupDlg;
     (* Property: DeviceCount
          This read only property returns the number of logical ASIO devices. *)
@@ -73,13 +93,21 @@ type
          specified by its number. Valid numbers range from 0 to
          <DeviceCount> - 1. *)
     property DeviceName[Number : Integer] : String read GetDeviceName;
-    (* Property: Underruns
-         This read only property returns the number of internal buffer
-         underruns that have occurred during playback. *)
+    (* Property: OutputBPS
+         This read only property returns the number of bits per sample supported by the driver. Whatever this value is TASIOAudioOut also supports 16 bps input using internal conversion. *)
     property OutputBPS : Integer read GetOutputBPS;
+    (* Property: MaxOutputChannels
+         This read only property returns the maximum number of output channels provided by the driver. You can use input with less channels than this value but not more.
+         ASIO properties setup may change this value (see <ShowSetupDlg>). *)
     property MaxOutputChannels : Integer read GetMaxOutputChannels;
+    (* Property: MaxOutputChannels
+         This read only property returns the maximum number of output channels provided by the driver.
+         ASIO properties setup may change this value (see <ShowSetupDlg>). *)
     property Latency : Integer read GetLatency;
-    property NewSampleRate : Integer read FNewSampleRate;
+    (* Property: SampleRate
+         Use this property to change the ASIO driver sample rate while doing playback.  Note however that not all sample rates are supported.
+         If the requested sample rate is not supported, the property's value doesn't change. *)
+    property SampleRate : Integer read GetSampleRate write SetSampleRate;
   published
     (* Property: DeviceNumber
          Use this property to select the playback device by number. The
@@ -87,10 +115,18 @@ type
          device in your system. Valid numbers range from 0 to <DeviceCount> -
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    (* Property: SampleRate
+         Use this property to select the ASIO buffer size. Available options are absMinimum - minimum allowed buffer size, absPreferred - preferred buffer size, absMaximum - maximum aloowed buffer size.
+         Larger buffer sizes increase latency. *)
     property ASIOBufferSize : TASIOBufferSize read FASIOBufferSize write FASIOBufferSize;
     property OnSampleRateChanged : TGenericEvent read FOnSampleRateChanged write FOnSampleRateChanged;
     property OnLatencyChanged : TGenericEvent read FOnLatencyChanged write FOnLatencyChanged;
     property OnDriverReset : TGenericEvent read FOnDriverReset write FOnDriverReset;
+    (* Property: OnPositionChanged
+         If assigned this event handler is called every time  the system is about to fetch a new audio data block.
+         The blocks are about 512 audio samlples in size so the operation is almost immediate.
+         The event handler is passed the current sample number and a timestamp from the beginning of playback.
+         Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback. *)
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
   end;
 
@@ -463,5 +499,22 @@ begin
   ASIODone;
   ASIOInit;
 end;
+
+procedure TASIOAudioOut.SetSampleRate;
+begin
+  if Device <> nil then
+    Device.SetSampleRate(SR);
+end;
+
+function TASIOAudioOut.GetSampleRate;
+var
+  D : Double;
+begin
+  if Device <> nil then
+    Device.GetSampleRate(D)
+  else D := 44100;
+  Result := Round(D);
+end;
+
 
 end.
