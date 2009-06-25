@@ -179,7 +179,7 @@ type
     X3, Y3 : array[0..7] of array of Single;
     IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
     FOutSampleRate : Word;
-    offsX, OffsY, Base : Integer;
+    offsX, OffsY : Integer;
     InputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
     _Buffer : array of Byte;

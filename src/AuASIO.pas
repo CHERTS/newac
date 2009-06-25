@@ -15,19 +15,20 @@ uses
   SysUtils, Classes, Forms, SyncObjs, ACS_Types, ACS_Procs, ACS_Classes, Windows, AsioList, OpenAsio, Asio;
 
 type
+
+  TASIOPositionEvent = procedure(Sender : TComponent; SamplePosition, TimeStamp : Int64) of object;
+  TASIOBufferSize = (absPreferred, absMinimum, absMaximum);
+
   TASIOAudioOut = class(TAuOutput)
   private
     device : IOpenASIO;
     Devices : TAsioDriverList;
     Chan, SR, BPS : Integer;
-    Buf : PBuffer8;
-    FInternalBufSize : Integer;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
-    FUnderruns, _TmpUnderruns : LongWord;
 //    FOnUnderrun : TUnderrunEvent;
     FLatency, FBufferSize : Integer;
-    FSupportedChannels, FSupportedBPS, FOutputSampleRate : Integer;
+    FSupportedChannels : Integer;
     FOutputChannels : Integer;
     FOutputBPS : Integer;
     FFloat,  FPacked32 : Boolean;
@@ -40,6 +41,8 @@ type
     FNewSampleRate : Integer;
     DoReset : Boolean;
     DevStopped : Boolean;
+    FOnPositionChanged : TASIOPositionEvent;
+    FASIOBufferSize : TASIOBufferSize;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -73,7 +76,6 @@ type
     (* Property: Underruns
          This read only property returns the number of internal buffer
          underruns that have occurred during playback. *)
-    property Underruns : LongWord read FUnderruns;
     property OutputBPS : Integer read GetOutputBPS;
     property MaxOutputChannels : Integer read GetMaxOutputChannels;
     property Latency : Integer read GetLatency;
@@ -85,20 +87,11 @@ type
          device in your system. Valid numbers range from 0 to <DeviceCount> -
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
-    (* Property: OnUnderrun
-         OnUnderrun event is raised when the component has run out of data.
-         This can happen if the component receives data at slow rate from a
-         slow CD-ROM unit or a network link. You will also get OnUnderrun
-         event when unpausing paused playback (this is a normal situation).
-         Usually TDXAudioOut successfully recovers from underruns by itself,
-         but this causes pauses in playback so if you start to receive
-         OnUnderrun events, you may try to increase the speed rate of data
-         passing to the component, if you can. Yo can check the <Underruns>
-         property for the total number of underruns. *)
-//    property OnUnderrun : TUnderrunEvent read FOnUnderrun write FOnUnderrun;
+    property ASIOBufferSize : TASIOBufferSize read FASIOBufferSize write FASIOBufferSize;
     property OnSampleRateChanged : TGenericEvent read FOnSampleRateChanged write FOnSampleRateChanged;
     property OnLatencyChanged : TGenericEvent read FOnLatencyChanged write FOnLatencyChanged;
     property OnDriverReset : TGenericEvent read FOnDriverReset write FOnDriverReset;
+    property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
   end;
 
   //IMPORTANT
@@ -113,7 +106,6 @@ implementation
 var
   OutputComponent : TASIOAudioOut;
   GStop : Boolean = False;
-  GBuffer : Pointer;
   CallOutputReady : Boolean = True;
   BufferIndex : Integer;
   iBuf : array[0..$FFFF] of Byte;
@@ -126,12 +118,19 @@ begin
    if Device = nil then Exit;
    OldStopped := Thread.Stopped;
    Thread.Stopped := False;
-   Device.GetSamplePosition(s1, s2);
+   if Assigned(FOnPositionChanged) then
+   begin
+     Device.GetSamplePosition(s1, s2);
+     FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
+   end;
    FillBuffer(GStop);
    if FOutputChannels = 2 then
      DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
    else
-   FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+   begin
+     FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+     FastCopyMem(BufferInfo[1].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+   end;
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady <> ASE_NotPresent;
    Thread.Stopped := OldStopped;
@@ -141,8 +140,8 @@ procedure AsioBufferSwitchOutput(doubleBufferIndex: longint; directProcess: TASI
 begin
   BufferIndex := doubleBufferIndex;
    case directProcess of
-     ASIOTrue :  begin EventHandler.PostNonGuiEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
-     ASIOFalse :  OutputComponent.ProcessBuffer(OutputComponent);
+     ASIOFalse :  begin EventHandler.PostNonGuiEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
+     ASIOTrue :  OutputComponent.ProcessBuffer(OutputComponent);
    end;
 end;
 
@@ -287,6 +286,7 @@ begin
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
   sleep(100);
+  Result := True;
 end;
 
 procedure TASIOAudioOut.Done;
@@ -305,7 +305,7 @@ end;
 
 procedure TASIOAudioOut.ASIOInit;
 var
-  i, Dummie : Integer;
+  i, Dummie, min, max, pref : Integer;
   chi : TAsioChannelInfo;
 begin
   FFloat := False;
@@ -326,7 +326,12 @@ begin
   end else
     raise EAuException.Create('Failed to open ASIO device');
   Device.GetChannels(Dummie, FSupportedChannels);
-  Device.GetBufferSize(Dummie, Dummie, FBufferSize, Dummie);
+  Device.GetBufferSize(min, max, pref, Dummie);
+  case FASIOBufferSize of
+    absPreferred: FBufferSize := pref;
+    absMinimum: FBufferSize := min;
+    absMaximum: FBufferSize := max;
+  end;
   if (FoutputChannels < 1) or (FOutputChannels > FSupportedChannels) then
      raise EAuException.Create(Format('ASIO: %d channels are not available.', [FOutputChannels]));
   for i := 0  to FOutputChannels - 1 do
@@ -336,6 +341,7 @@ begin
     BufferInfo[i].buffers[0] := nil;
     BufferInfo[i].buffers[1] := nil;
   end;
+  // TODO: Add multichannel support
   if Device.CreateBuffers(@BufferInfo, 2, FBufferSize, Callbacks) <> ASE_OK then
      raise EAuException.Create('ASIO: failed to create output buffers.');
   chi.channel := 0;
@@ -410,20 +416,19 @@ end;
 
 function  TASIOAudioOut.FillBuffer(var EOF: Boolean) : Integer;
 var
-  i,  Len, count : Integer;
+  i,  count : Integer;
   Buf16 : PBuffer16;
   Buf32 : PBuffer32;
 begin
   if (BPS = 16) and (OutputBPS = 32) then
   begin
     FillChar(iBuf, (FBufferSize shl 2)*FOutputChannels, 0);
-    Len := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
+    Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
     count := FBufferSize*FOutputChannels;
     Buf16 := @iBuf;
     Buf32 := @iBuf;
     for i := Count - 1 downto 0 do
       Buf32[i] := Buf16[i] shl 16;
-    Len := Len shl 1;
     Exit;
   end;
 
