@@ -26,6 +26,7 @@ package NewAC;
 {$R 'NewAC_AVI.dcr'}
 {$R 'NewAC_DSP.dcr'}
 {$R 'NewACPack.dcr'}
+{$R 'AuASIO.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -47,7 +48,7 @@ package NewAC;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'New Audio Components v 1.9'}
+{$DESCRIPTION 'New Audio Components v 2.0'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -108,8 +109,12 @@ contains
   _DirectShow9 in '_DirectShow9.pas',
   msdmo in 'msdmo.pas',
   NewAC_AVI in 'NewAC_AVI.pas',
-  FFTReal in 'fftreal.pas',
+  fftreal in 'fftreal.pas',
   NewAC_DSP in 'NewAC_DSP.pas',
-  NewACPack in 'NewACPack.pas';
+  NewACPack in 'NewACPack.pas',
+  AuASIO in 'AuASIO.pas',
+  OpenASIO in 'OpenASIO.pas',
+  ASIO in 'ASIO.pas',
+  AsioList in 'AsioList.pas';
 
 end.

@@ -6,7 +6,7 @@ unit acs_reg;
 interface
 
 uses
-  Classes, ACS_DXAudio,
+  Classes, ACS_DXAudio, AuASIO,
   ACS_CDROM, ACS_AudioMix, ACS_Converters, NewAC_DSP,
   ACS_Misc, ACS_Vorbis, ACS_Wave, ACS_Filters, ACS_LAME, ACS_smpeg, ACS_MAC, ACS_Streams, ACS_FLAC, AuSampleRate, ACS_WavPack, ACS_WinMedia, ACS_TTA, AudioPass, ACS_OptimFROG, ACS_TAK, ACS_MPC, AudioDMO, NewAC_AVI, NewACPack, mr_cddb;
 
@@ -16,7 +16,7 @@ implementation
 
 procedure Register();
 begin
-  RegisterComponents('Audio I/O', [TDXAudioIn, TDXAudioOut, TCDIn, TWMStreamedIn, TWMStreamedOut,
+  RegisterComponents('Audio I/O', [TDXAudioIn, TDXAudioOut, TASIOAudioOut, TCDIn, TWMStreamedIn, TWMStreamedOut,
   TInputList, TMemoryIn, TVorbisIn, TVorbisOut,
   TWaveIn, TWaveOut, TMP3In, TMP3Out, TMACIn, TMACOut, TStreamIn, TStreamOut, TFLACIn, TFLACOut, TWVIn, TWVOut, TWMIn,
   TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TTAKIn, TMPCIn, TMPCOut, TWMADualPassOut, TAVIIn, TPasPackIn, TPaspackOut]);
