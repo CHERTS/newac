@@ -143,6 +143,7 @@ type
     FRecTime : Integer;
     BufferInfo : array [0..16] of TAsioBufferInfo;
     FLatency : Integer;
+    BytesInBuf : Integer;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -777,7 +778,7 @@ begin
     else raise EAuException.Create('ASIO: Unsupported sample format.');
   end;
   Device.GetLatencies(Dummie, FLatency);
-  FSampleSize := FBPS*8*FChan;
+  FSampleSize := FBPS*FChan div 8;
   ASIOStarted := True;
 end;
 
@@ -879,6 +880,70 @@ begin
  {$WARNINGS ON}
 end;
 
+procedure TASIOAudioIn.InitInternal;
+begin
+  if Busy then raise EAuException.Create('The component is busy');
+  if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid device number');
+{$WARNINGS OFF}
+  if FRecTime > 0 then FSamplesToRead := FRecTime*FFreq;
+{$WARNINGS ON}
+  FPosition := 0;
+  WriteIndex := 0;
+  ReadIndex := 0;
+  ReadOffset := 0;
+  GStop := False;
+  Busy := True;
+  ASIOInit;
+  FSampleSize := FChan*FBPS div 8;
+  if FSamplesToRead > 0 then
+    FSize := FSamplesToRead*FSampleSize
+  else
+    FSize := -1;
+  BytesInBuf := _BufSize*FChan*FBPS div 8;
+  Device.Start;
+end;
 
+procedure TASIOAudioIn.FlushInternal;
+begin
+  GStop := True;
+  Device.Stop;
+  ASIODone;
+  Busy := False;
+end;
+
+procedure TASIOAudioIn.GetDataInternal;
+begin
+  if not Busy then  raise EAuException.Create('The Stream is not opened');
+  if GStop then
+  begin
+    Buffer := nil;
+    Bytes := 0;
+    Exit;
+  end;
+  if ReadIndex >= WriteIndex then
+    Sleep(50);
+  if ReadIndex >= WriteIndex then
+     raise EAuException.Create('Reading data from ASIO failed.');
+  Buffer := @oBuf[(ReadIndex mod 4)*$400 + ReadOffset];
+  if Bytes >= BytesInBuf - ReadOffset then
+  begin
+    Bytes := BytesInBuf - ReadOffset;
+    ReadOffset := 0;
+    Inc(ReadIndex);
+  end else
+    Inc (ReadOffset, Bytes);
+end;
+
+procedure TASIOAudioIn._Pause;
+begin
+  if Device <> nil then
+    Device.Stop;
+end;
+
+procedure TASIOAudioIn._Resume;
+begin
+  if Device <> nil then
+    Device.Start;
+end;
 
 end.
