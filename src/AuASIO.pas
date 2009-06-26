@@ -898,14 +898,16 @@ end;
 procedure TASIOAudioIn.GetDataInternal;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
-  if GStop then
-  begin
-    Buffer := nil;
-    Bytes := 0;
-    Exit;
-  end;
   if ReadIndex >= WriteIndex then
-    Sleep(50);
+  begin
+    if GStop then
+    begin
+      Buffer := nil;
+      Bytes := 0;
+      Exit;
+    end else
+      Sleep(50);
+  end;
   if ReadIndex >= WriteIndex then
      raise EAuException.Create('Reading data from ASIO failed.');
   Buffer := @oBuf[(ReadIndex mod 4)*$400 + ReadOffset];
