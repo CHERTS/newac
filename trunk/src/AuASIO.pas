@@ -130,6 +130,98 @@ type
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
   end;
 
+  TASIOAudioIn = class(TAuInput)
+  private
+    device : IOpenASIO;
+    Devices : TAsioDriverList;
+    _BufSize : Integer;
+    FDeviceNumber : Integer;
+    FDeviceCount : Integer;
+    FBPS, FChan, FFreq : LongWord;
+    FMaxChan : Integer;
+    FSamplesToRead : Int64;
+    FRecTime : Integer;
+    BufferInfo : array [0..16] of TAsioBufferInfo;
+    FLatency : Integer;
+    procedure SetDeviceNumber(i : Integer);
+    function GetDeviceName(Number : Integer) : String;
+    procedure ASIOInit;
+    procedure ASIODone;
+    procedure SetRecTime(aRecTime : Integer);
+    function GetMaxOutputChannels : Integer;
+    function GetLatency : Integer;
+    procedure SetSampleRate(SR : Integer);
+  protected
+    function GetTotalTime : LongWord; override;
+    function GetTotalSamples : Int64; override;
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure _Pause; override;
+    procedure _Resume; override;
+    (* Function: IsSampleRateSupported
+        Returns True if the specified sample rate is supported by the driver and False otherwise.  *)
+    function IsSampleRateSupported(SR : Integer) : Boolean;
+    (* Property: DeviceCount
+         This read only property returns the number of logical DirectSound
+         input devices. *)
+    property DeviceCount : Integer read FDeviceCount;
+    (* Property: DeviceName[Number : Integer]
+         This read only array property returns the name of the device
+         specified by its number. Valid numbers range from 0 to
+         <DeviceCount> - 1. *)
+    property DeviceName[Number : Integer] : String read GetDeviceName;
+    (* Property: MaxOutputChannels
+         This read only property returns the maximum number of output channels provided by the driver. You can use input with less channels than this value but not more.
+         ASIO properties setup may change this value (see <ShowSetupDlg>). *)
+    property MaxOutputChannels : Integer read GetMaxOutputChannels;
+    (* Property: MaxOutputChannels
+         This read only property returns the maximum number of output channels provided by the driver.
+         ASIO properties setup may change this value (see <ShowSetupDlg>). *)
+    property Latency : Integer read GetLatency;
+    (* Property: InSampleRate
+        Use this property to set the sample rate of the audio stream the
+        component will provide. Possible values range from 4000 to 128000
+        (depends on the capabilities of your hardware). *)
+     property InSampleRate : Integer read GetSR write SetSampleRate;
+  published
+    (* Property: SamplesToRead
+         Use this property to set the number of samples (frames) the component
+         should record. If you set this property value to -1 the component
+         will be endlessly recording until you stop it. *)
+    property SamplesToRead : Int64 read FSamplesToRead write FSamplesToRead;
+    (* Property: DeviceNumber
+         Use this property to select the recording device by number. The
+         property default value is 0 which corresponds to the default audio
+         input device in your system. Valid numbers range from 0 to
+         <DeviceCount> - 1. *)
+    property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    (* Property: InChannels
+        Use this property to set the number of channels in the audio stream
+        the component will provide. Possible values are 1 (mono), and 2
+        (stereo). *)
+    property InChannels : LongWord read GetCh write FChan stored True;
+    (* Property: RecTime
+         Use this property to set the recording duration (in seconds). If set
+         this property overrides the value of <BytesToRead>. If you set this
+         property value to -1 (the default) the component will be endlessly
+         recording until you stop it. *)
+    property RecTime : Integer read FRecTime write SetRecTime;
+    (* Property: OnOverrun
+         OnOverrun event is raised when this component provides data faster
+         than the rest of audio-processing chain can consume. It indicates
+         that some data is lost. You may also get OnOverrun event when
+         unpausing paused recording (this is a normal situation). To get the
+         total number of overruns read the <Overruns> property. *)
+  end;
+
+
   //IMPORTANT
   //     ASIOTrue :  begin EventHandler.PostGenericEvent(OutputComponent, OutputComponent.ProcessBuffer); sleep(2); end;
  //     ASIOFalse :  OutputComponent.ProcessBuffer(OutputComponent);
@@ -141,10 +233,13 @@ implementation
 
 var
   OutputComponent : TASIOAudioOut;
+  InputComponent : TASIOAudioIn;
   GStop : Boolean = False;
   CallOutputReady : Boolean = True;
   BufferIndex : Integer;
   iBuf : array[0..$FFFF] of Byte;
+  oBuf : array[0..$FFFF] of Byte;
+  WriteIndex, ReadIndex, ReadOffset : LongWord;
 
 procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
@@ -235,6 +330,82 @@ begin
   params.timeInfo.flags := kSystemTimeValid or kSamplePositionValid;
   Result := nil;
 end;
+
+procedure AsioBufferSwitchInput(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;
+begin
+  if GStop  then
+    Exit;
+  if InputComponent.FChan = 1 then
+    FastCopyMem(@oBuf[(WriteIndex mod 4)*$4000], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+  else
+  begin
+    InterleaveStereo32(InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[BufferIndex2],
+       @oBuf[(WriteIndex mod 4)*$4000], InputComponent._BufSize);
+  end;
+  Inc(InputComponent.FPosition, InputComponent._BufSize*4);
+  if (InputComponent.FSamplesToRead >= 0) then
+    if InputComponent.FPosition >= FSize then
+        GStop := True;
+  Inc(WriteIndex);
+end;
+
+procedure AsioSampleRateDidChange2(sRate: TASIOSampleRate); cdecl;
+begin
+  InputComponent.FNewSampleRate := Round(sRate);
+  if Assigned(InputComponent.FOnSampleRateChanged) then
+    EventHandler.PostGenericEvent(InputComponent, InputComponent.FOnSampleRateChanged);
+end;
+
+function AsioMessage2(selector, value: longint; message: pointer; opt: pdouble): longint; cdecl;
+begin
+  Result := 0;
+
+  case selector of
+    kAsioSelectorSupported    :   // return 1 if a selector is supported
+      begin
+        case value of
+          kAsioEngineVersion        :  Result := 1;
+          kAsioResetRequest         :  Result := 1;
+          kAsioBufferSizeChange     :  Result := 0;
+          kAsioResyncRequest        :  Result := 1;
+          kAsioLatenciesChanged     :  Result := 1;
+          kAsioSupportsTimeInfo     :  Result := 1;
+          kAsioSupportsTimeCode     :  Result := 1;
+          kAsioSupportsInputMonitor :  Result := 0;
+        end;
+      end;
+    kAsioEngineVersion        :  Result := 2;   // ASIO 2 is supported
+    kAsioResetRequest         :
+      begin
+        InputComponent.ASIODone;
+        InputComponent.ASIOInit;
+        Result := 1;
+      end;
+    kAsioBufferSizeChange     :
+      begin
+        InputComponent.ASIODone;
+        InputComponent.ASIOInit;
+        Result := 1;
+      end;
+    kAsioResyncRequest        :  ;
+    kAsioLatenciesChanged     :
+      begin
+        if Assigned(InputComponent.FOnLatencyChanged) then
+        EventHandler.PostGenericEvent(InputComponent, InputComponent.FOnLatencyChanged);
+        Result := 1;
+      end;
+    kAsioSupportsTimeInfo     :  Result := 1;
+    kAsioSupportsTimeCode     :  Result := 0;
+    kAsioSupportsInputMonitor :  ;
+  end;
+end;
+
+function AsioBufferSwitchTimeInfo2(var params: TASIOTime; doubleBufferIndex: longint; directProcess: TASIOBool): PASIOTime; cdecl;
+begin
+  params.timeInfo.flags := kSystemTimeValid or kSamplePositionValid;
+  Result := nil;
+end;
+
 
 
 constructor TASIOAudioOut.Create;
@@ -515,6 +686,199 @@ begin
   else D := 44100;
   Result := Round(D);
 end;
+
+constructor TASIOAudioIn.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  InputComponent := Self;
+  Self.Devices := nil;
+  ListAsioDrivers(Self.Devices);
+  FDeviceCount := Length(Devices);
+  Self.FChan := 2;
+  Self.FFreq := 44100;
+  FSize := -1;
+  FRecTime := -1;
+  FSamplesToRead := -1;
+  Callbacks.bufferSwitch := AuAsio.AsioBufferSwitchInput;
+  Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange2;
+  Callbacks.asioMessage := AuAsio.AsioMessage2;
+  Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo2;
+end;
+
+destructor TDXAudioIn.Destroy;
+begin
+  ASIODone;
+  inherited Destroy;
+end;
+
+procedure TASIOAudioIn.ASIOInit;
+var
+  i, Dummie, min, max, pref : Integer;
+  chi : TAsioChannelInfo;
+begin
+  FFloat := False;
+  FPacked32 := False;
+  if ASIOStarted then Exit;
+  if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid ASIO device number');
+  if OpenAsioCreate(Devices[FDeviceNumber].id, Device) then
+  begin
+      if (Device <> nil) then
+      begin
+        if not Succeeded(Device.Init(TForm(Self.Owner).Handle)) then
+        begin
+          Device := nil;  // RELEASE
+          raise EAuException.Create('Failed to initialize ASIO device');
+        end;
+      end else
+        raise EAuException.Create('Failed to open ASIO device');
+  end else
+    raise EAuException.Create('Failed to open ASIO device');
+  Device.GetChannels(Dummie, FMaxChannels);
+  Device.GetBufferSize(min, max, pref, Dummie);
+  case FASIOBufferSize of
+    absPreferred: _BufSize := pref;
+    absMinimum: _BufSize := min;
+    absMaximum: _BufSize := max;
+  end;
+  if (FChan < 1) or (FChan > FMaxChannels) then
+     raise EAuException.Create(Format('ASIO: %d channels are not available.', [FMaxChannels]));
+  for i := 0  to FChan - 1 do
+  begin
+    BufferInfo[i].isInput := ASIOTrue;
+    BufferInfo[i].channelNum := i;
+    BufferInfo[i].buffers[0] := nil;
+    BufferInfo[i].buffers[1] := nil;
+  end;
+  // TODO: Add multichannel support
+  if Device.CreateBuffers(@BufferInfo, 2, FBufferSize, Callbacks) <> ASE_OK then
+     raise EAuException.Create('ASIO: failed to create output buffers.');
+  chi.channel := 0;
+  chi.isInput := ASIOFalse;
+  Device.GetChannelInfo(chi);
+   case chi.vType of
+      ASIOSTInt16LSB   :  FBPS := 16;
+      ASIOSTInt24LSB   :  FBPS := 24;
+      ASIOSTInt32LSB   :  FBPS := 32;
+      ASIOSTFloat32LSB :
+                        begin
+                          FBPS := 32;
+                          FFloat := True;
+                        end;
+    ASIOSTInt32LSB16 :
+                        begin
+                          FBPS := 16;
+                          FPacked32 := True;
+                        end;
+    ASIOSTInt32LSB24 :
+                        begin
+                          FBPS := 24;
+                          FPacked32 := True;
+                        end;
+    else raise EAuException.Create('ASIO: Unsupported sample format.');
+  end;
+  Device.GetLatencies(Dummie, FLatency);
+  FSampleSize := FBPS*8*FChan;
+  ASIOStarted := True;
+end;
+
+procedure TASIOAudioIn.ASIODone;
+begin
+  if not ASIOStarted then Exit;
+  ASIOStarted := False;
+  if Device <> nil then
+  Device.DisposeBuffers;
+  Device := nil;
+end;
+
+function TASIOAudioIn.GetMaxOutputChannels;
+begin
+  ASIOInit;
+  Result := FMaxChan;
+end;
+
+function TASIOAudioIn.GetLatency;
+begin
+  ASIOInit;
+  Result := FLatency;
+end;
+
+
+function TASIOAudioIn.IsSampleRateSupported(SR: Integer) : Boolean;
+var
+  D : Double;
+begin
+  ASIOInit;
+  D := SR;
+  Result := Device.CanSampleRate(D) <> 0;
+end;
+
+procedure TASIOAudioIn.SetDeviceNumber(i : Integer);
+begin
+  if FDeviceCount = 0 then Exit;
+  if (i < 0) or (i >= FDeviceCount) then
+    raise EAuException.Create(Format('Device number out of range: %d', [i]));
+  FDeviceNumber := i;
+end;
+
+function TASIOAudioIn.GetDeviceName(Number : Integer) : String;
+begin
+  if (Number < 0) or (Number >= FDeviceCount) then
+    raise EAuException.Create(Format('Device number out of range: %d', [Number]));
+  Result := String(@Devices[Number].name[0]);
+end;
+
+procedure TASIOAudioIn.SetSampleRate;
+begin
+  ASIOInit;
+  Device.SetSampleRate(SR);
+  FFreq := GetSampleRate;
+end;
+
+function TASIOAudioIn.GetTotalTime : LongWord;
+var
+  BytesPerSec : Integer;
+begin
+  ASIOInit;
+  BytesPerSec := Self.InSampleRate*FSampleSize;
+  if FSamplesToRead < 0 then Result := 0
+  else
+  Result := Round(FSamplesToRead/BytesPerSec);
+end;
+
+function TASIOAudioIn.GetTotalSamples : Int64;
+begin
+  Result := FSamplesToRead;
+end;
+
+function TASIOAudioIn.GetBPS : LongWord;
+begin
+  ASIOInit;
+  Result := FBPS;
+end;
+
+function TASIOAudioIn.GetCh : LongWord;
+begin
+  Result := FChan;
+end;
+
+function TASIOAudioIn.GetSR : LongWord;
+var
+  D : Double;
+begin
+  ASIOInit;
+  Device.GetSampleRate(D);
+  Result := Round(D);
+end;
+
+procedure TASIOAudioIn.SetRecTime;
+begin
+  FRecTime := aRecTime;
+{$WARNINGS OFF}
+  if FRecTime >= 0 then FSamplesToRead := FRecTime*FFreq
+  else FSamplesToRead := -1;
+ {$WARNINGS ON}
+end;
+
 
 
 end.
