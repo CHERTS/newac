@@ -100,9 +100,8 @@ type
          This read only property returns the maximum number of output channels provided by the driver. You can use input with less channels than this value but not more.
          ASIO properties setup may change this value (see <ShowSetupDlg>). *)
     property MaxOutputChannels : Integer read GetMaxOutputChannels;
-    (* Property: MaxOutputChannels
-         This read only property returns the maximum number of output channels provided by the driver.
-         ASIO properties setup may change this value (see <ShowSetupDlg>). *)
+    (* Property: Latency
+         Read this property to get the latency value (in samples). *)
     property Latency : Integer read GetLatency;
     (* Property: SampleRate
          Use this property to change the ASIO driver sample rate while doing playback.  Note however that not all sample rates are supported.
@@ -173,6 +172,9 @@ type
     (* Function: IsSampleRateSupported
         Returns True if the specified sample rate is supported by the driver and False otherwise.  *)
     function IsSampleRateSupported(SR : Integer) : Boolean;
+    (* Function: ShowSetupDlg
+        Brings up ASIO properties dialog window.  *)
+    procedure ShowSetupDlg;
     (* Property: DeviceCount
          This read only property returns the number of logical DirectSound
          input devices. *)
@@ -186,9 +188,8 @@ type
          This read only property returns the maximum number of output channels provided by the driver. You can use input with less channels than this value but not more.
          ASIO properties setup may change this value (see <ShowSetupDlg>). *)
     property MaxOutputChannels : Integer read GetMaxOutputChannels;
-    (* Property: MaxOutputChannels
-         This read only property returns the maximum number of output channels provided by the driver.
-         ASIO properties setup may change this value (see <ShowSetupDlg>). *)
+    (* Property: Latency
+         Read this property to get the latency value in samples. *)
     property Latency : Integer read GetLatency;
     (* Property: InSampleRate
         Use this property to set the sample rate of the audio stream the
@@ -234,6 +235,10 @@ type
 
 implementation
 
+const
+  oBufSize = $3FFFF;
+  BlockSize = $8000;
+  BlockAlign = 8;
 
 var
   OutputComponent : TASIOAudioOut;
@@ -242,7 +247,7 @@ var
   CallOutputReady : Boolean = True;
   BufferIndex : Integer;
   iBuf : array[0..$FFFF] of Byte;
-  oBuf : array[0..$FFFF] of Byte;
+  oBuf : array[0..oBufSize] of Byte;
   WriteIndex, ReadIndex, ReadOffset : LongWord;
 
 procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
@@ -340,11 +345,11 @@ begin
   if GStop  then
     Exit;
   if InputComponent.FChan = 1 then
-    FastCopyMem(@oBuf[(WriteIndex mod 4)*$4000], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+    FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
   else
   begin
     InterleaveStereo32(InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex],
-       @oBuf[(WriteIndex mod 4)*$4000], InputComponent._BufSize);
+       @oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent._BufSize);
   end;
   Inc(InputComponent.FPosition, InputComponent._BufSize*4);
   if (InputComponent.FSamplesToRead >= 0) then
@@ -910,7 +915,7 @@ begin
   end;
   if ReadIndex >= WriteIndex then
      raise EAuException.Create('Reading data from ASIO failed.');
-  Buffer := @oBuf[(ReadIndex mod 4)*$400 + ReadOffset];
+  Buffer := @oBuf[(ReadIndex mod BlockAlign)*BlockSize + ReadOffset];
   if Bytes >= BytesInBuf - ReadOffset then
   begin
     Bytes := BytesInBuf - ReadOffset;
@@ -931,5 +936,15 @@ begin
   if Device <> nil then
     Device.Start;
 end;
+
+procedure TASIOAudioIn.ShowSetupDlg;
+begin
+  ASIODone;
+  ASIOInit;
+  Device.ControlPanel;
+  ASIODone;
+  ASIOInit;
+end;
+
 
 end.
