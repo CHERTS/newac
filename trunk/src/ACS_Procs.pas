@@ -1127,7 +1127,7 @@ end;
     for i := 0 to Samples - 1 do
     begin
       D[i shl 1] := S1[i];
-      D2[(i shl 1) + 1] := S2[i];
+      D[(i shl 1) + 1] := S2[i];
     end;
   end;
 
