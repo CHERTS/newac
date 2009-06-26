@@ -175,6 +175,8 @@ var
 
   procedure DeinterleaveStereo32(Src, Dst1, Dst2 : Pointer; Samples : Integer);
 
+  procedure InterleaveStereo32(Src1, Src2, Dst : Pointer; Samples : Integer);
+
 implementation
 
 {$IFDEF LINUX}
@@ -1112,9 +1114,23 @@ end;
       D1[i] := S[i shl 1];
       D2[i] := S[(i shl 1) + 1];
     end;
-
-
   end;
+
+  procedure InterleaveStereo32(Src1, Src2, Dst : Pointer; Samples : Integer);
+  var
+    D, S1, S2 : PBuffer32;
+    i : Integer;
+  begin
+    S1 := Src1;
+    S2 := Src2;
+    D := Dst;
+    for i := 0 to Samples - 1 do
+    begin
+      D[i shl 1] := S1[i];
+      D2[(i shl 1) + 1] := S2[i];
+    end;
+  end;
+
 
   function SSESupported : Boolean;
   var
