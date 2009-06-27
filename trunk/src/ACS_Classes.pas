@@ -741,12 +741,12 @@ type
        tosPlaying (the component records data) and tpsPaused. *)
     property Status : TOutputStatus read GetStatus;
     (* Property: WideFileName
-       Use this proeprty to set or get the file name the data is written to in Unicode charset.
+       Use this property to set or get the file name the data is written to in Unicode charset.
        The value assigned to this prperty overrides <FileName> *)
     property WideFileName : WideString read FWideFileName write SetWideFileName;
   published
     (* Property: FileName
-       Use this proeprty to set or get the file name the data is written to in 8-bit charset.
+       Use this property to set or get the file name the data is written to in 8-bit charset.
        The value assigned to this prperty overrides <WideFileName> *)
     property FileName : String read FFileName write SetFileName;
   end;
@@ -1127,6 +1127,7 @@ end;
     ParentComponent : TAuOutput;
     Res : Boolean;
   begin
+    Sleeping := True;
     SoftSleep;
     ParentComponent := TAuOutput(Parent);
     Stop := False;
@@ -1209,7 +1210,7 @@ constructor TAuOutput.Create;
       begin
         Stop(False);
         Thread.Terminate;
-        if Thread.Sleeping then
+        while Thread.Sleeping do
           Thread.SoftWake;
         Thread.WaitFor;
         Thread.Free;
@@ -1244,7 +1245,7 @@ constructor TAuOutput.Create;
       raise EAuException.Create('Input is not assigned');
     end;
     try
-      if Thread.Sleeping then
+      while Thread.Sleeping do
       begin
         Thread.Stop := False;
         Thread.SoftWake;
@@ -1260,7 +1261,7 @@ constructor TAuOutput.Create;
     Thread.DoNotify := Async;
     Thread.Stopped := False;
     Thread.Stop := True;
-    if Thread.Paused then
+    while Thread.Paused do
       Thread.SoftWake;
     if not Async then
     begin
@@ -1337,6 +1338,7 @@ constructor TAuOutput.Create;
     If Busy and Thread.Paused then
     begin
       FInput._Resume;
+      while Thread.Paused do
       Thread.SoftWake;
     end;
   end;
