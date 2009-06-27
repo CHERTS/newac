@@ -129,6 +129,17 @@ type
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
   end;
 
+  (* Class: TASIOAudioIn
+      Performs audio recording from a sound card using low latency ASIO drivers.
+      Descends from <TAuInput>.
+      On Windows ASIO drivers bypass some OS layaers which makes them suitable for a real-time audio processing.
+      You will need an ASIO audo driver too use this component.
+      Free ASIO driver that can be installed on top of any WDM (Windows) driver is available at http://www.asio4all.com.
+      This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
+      One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
+      It is your software that should tune itself up to an ASIO driver and not vice versa.
+ *)
+
   TASIOAudioIn = class(TAuInput)
   private
     device : IOpenASIO;
@@ -147,6 +158,7 @@ type
     FOnLatencyChanged : TGenericEvent;
     ASIOStarted : Boolean;
     FASIOBufferSize : TASIOBufferSize;
+    FOnPositionChanged : TASIOPositionEvent;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -193,8 +205,7 @@ type
     property Latency : Integer read GetLatency;
     (* Property: InSampleRate
         Use this property to set the sample rate of the audio stream the
-        component will provide. Possible values range from 4000 to 128000
-        (depends on the capabilities of your hardware). *)
+        component will provide. Note that only limited number of sample rates is supported by ASIO (see <IsSampleRateSupported>).  *)
      property InSampleRate : LongWord read GetSR write SetSampleRate;
   published
     (* Property: SamplesToRead
@@ -224,6 +235,13 @@ type
          Larger buffer sizes increase latency. *)
     property ASIOBufferSize : TASIOBufferSize read FASIOBufferSize write FASIOBufferSize;
     property OnLatencyChanged : TGenericEvent read FOnLatencyChanged write FOnLatencyChanged;
+    (* Property: OnPositionChanged
+         If assigned this event handler is called every time  the ASIO is about to record a new audio data block.
+         The blocks are about 512 audio samlples in size so the operation is almost immediate.
+         The event handler is passed the current sample number and a timestamp from the beginning of playback.
+         Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback. *)
+    property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
+
   end;
 
 
@@ -341,7 +359,9 @@ begin
 end;
 
 procedure AsioBufferSwitchInput(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;
-begin
+var
+   s1, s2 : TASIOInt64;
+ begin
   if GStop  then
     Exit;
   if InputComponent.FChan = 1 then
@@ -356,6 +376,12 @@ begin
     if InputComponent.FPosition >= InputComponent.FSize then
         GStop := True;
   Inc(WriteIndex);
+  if Assigned(InputComponent.FOnPositionChanged) then
+  begin
+    if InputComponent.Device <> nil then
+      InputComponent.Device.GetSamplePosition(s1, s2);
+    InputComponent.FOnPositionChanged(InputComponent, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo);
+  end;
 end;
 
 procedure AsioSampleRateDidChange2(sRate: TASIOSampleRate); cdecl;
