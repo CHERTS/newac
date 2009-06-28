@@ -159,6 +159,8 @@ type
     ASIOStarted : Boolean;
     FASIOBufferSize : TASIOBufferSize;
     FOnPositionChanged : TASIOPositionEvent;
+    HoldEvent : TEvent;
+    FPlayRecording : Boolean;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -181,6 +183,9 @@ type
     destructor Destroy; override;
     procedure _Pause; override;
     procedure _Resume; override;
+    (* Function: HoldOff
+        Pass True to HoldOff if you want to temporarily disable recording. The Whole processing chain is bloacked untill you call HoldOff(False). *)
+    procedure HoldOff(b : Boolean);
     (* Function: IsSampleRateSupported
         Returns True if the specified sample rate is supported by the driver and False otherwise.  *)
     function IsSampleRateSupported(SR : Integer) : Boolean;
@@ -234,12 +239,16 @@ type
          Use this property to select the ASIO buffer size. Available options are absMinimum - minimum allowed buffer size, absPreferred - preferred buffer size, absMaximum - maximum aloowed buffer size.
          Larger buffer sizes increase latency. *)
     property ASIOBufferSize : TASIOBufferSize read FASIOBufferSize write FASIOBufferSize;
+    (* Property: PlayRecording
+         If this property is set to True the system plays out the audio data being recorded. Otherwise recording goes mutely. *)
+    property PlayRecording : Boolean read FPlayRecording write FPlayRecording;
     property OnLatencyChanged : TGenericEvent read FOnLatencyChanged write FOnLatencyChanged;
     (* Property: OnPositionChanged
          If assigned this event handler is called every time  the ASIO is about to record a new audio data block.
          The blocks are about 512 audio samlples in size so the operation is almost immediate.
          The event handler is passed the current sample number and a timestamp from the beginning of playback.
-         Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback. *)
+         Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback.
+         You can call the output component's Stop method  from this handler but not pause. Use the <HoldOff> method if you want to pause recording from this event handler. *)
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
 
   end;
@@ -376,6 +385,18 @@ var
     if InputComponent.FPosition >= InputComponent.FSize then
         GStop := True;
   Inc(WriteIndex);
+  if InputComponent.FPlayRecording then
+  begin
+    FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4);
+    if InputComponent.FChan = 1 then
+       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+    else
+       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+  end else
+  begin
+    FillChar(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex]^, InputComponent._BufSize*4, 0);
+    FillChar(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex]^, InputComponent._BufSize*4, 0);
+  end;
   if Assigned(InputComponent.FOnPositionChanged) then
   begin
     if InputComponent.Device <> nil then
@@ -722,6 +743,7 @@ end;
 constructor TASIOAudioIn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  HoldEvent := TEvent.Create(nil, True, True, 'holdevent');
   InputComponent := Self;
   Self.Devices := nil;
   ListAsioDrivers(Self.Devices);
@@ -740,6 +762,7 @@ end;
 
 destructor TASIOAudioIn.Destroy;
 begin
+  HoldEvent.Free;
   ASIODone;
   inherited Destroy;
 end;
@@ -780,8 +803,14 @@ begin
     BufferInfo[i].buffers[0] := nil;
     BufferInfo[i].buffers[1] := nil;
   end;
-  // TODO: Add multichannel support
-  if Device.CreateBuffers(@BufferInfo, 2, _BufSize, Callbacks) <> ASE_OK then
+  for i := FChan  to FChan + 1 do
+  begin
+    BufferInfo[i].isInput := ASIOFalse;
+    BufferInfo[i].channelNum := i;
+    BufferInfo[i].buffers[0] := nil;
+    BufferInfo[i].buffers[1] := nil;
+  end;
+  if Device.CreateBuffers(@BufferInfo, FChan + 2, _BufSize, Callbacks) <> ASE_OK then
      raise EAuException.Create('ASIO: failed to create output buffers.');
   chi.channel := 0;
   chi.isInput := ASIOFalse;
@@ -929,6 +958,7 @@ end;
 procedure TASIOAudioIn.GetDataInternal;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
+  HoldEvent.WaitFor(INFINITE);
   if ReadIndex >= WriteIndex then
   begin
     if GStop then
@@ -972,5 +1002,12 @@ begin
   ASIOInit;
 end;
 
+procedure TASIOAudioIn.HoldOff(b: Boolean);
+begin
+  if b then
+    HoldEvent.ResetEvent
+  else
+    HoldEvent.SetEvent;
+end;
 
 end.
