@@ -276,6 +276,7 @@ type
     procedure ASIOInit;
     procedure ASIODone;
     function GetLatency : Integer;
+    procedure ProcessBuffers(Sender : TComponent);
   protected
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
@@ -549,41 +550,10 @@ begin
 end;
 
 procedure AsioBufferSwitchDuplex(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;
-var
-   s1, s2 : TASIOInt64;
- begin
-  if GStop  then
-    Exit;
-  if InputComponent.FChan = 1 then
-    FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
-  else
-  begin
-    InterleaveStereo32(InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex],
-       @oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent._BufSize);
-  end;
-  Inc(InputComponent.FPosition, InputComponent._BufSize*4);
-  if (InputComponent.FSamplesToRead >= 0) then
-    if InputComponent.FPosition >= InputComponent.FSize then
-        GStop := True;
-  Inc(WriteIndex);
-  if InputComponent.FPlayRecording then
-  begin
-    FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4);
-    if InputComponent.FChan = 1 then
-       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
-    else
-       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex], InputComponent._BufSize*4)
-  end else
-  begin
-    FillChar(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex]^, InputComponent._BufSize*4, 0);
-    FillChar(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex]^, InputComponent._BufSize*4, 0);
-  end;
-  if Assigned(InputComponent.FOnPositionChanged) then
-  begin
-    if InputComponent.Device <> nil then
-      InputComponent.Device.GetSamplePosition(s1, s2);
-    InputComponent.FOnPositionChanged(InputComponent, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo);
-  end;
+begin
+  BufferIndex := doubleBufferIndex;
+  EventHandler.PostNonGuiEvent(DuplexComponent, DuplexComponent.ProcessBuffers);
+  sleep(2);
 end;
 
 procedure AsioSampleRateDidChange3(sRate: TASIOSampleRate); cdecl;
@@ -611,21 +581,21 @@ begin
     kAsioEngineVersion        :  Result := 2;   // ASIO 2 is supported
     kAsioResetRequest         :
       begin
-        InputComponent.ASIODone;
-        InputComponent.ASIOInit;
+        DuplexComponent.ASIODone;
+        DuplexComponent.ASIOInit;
         Result := 1;
       end;
     kAsioBufferSizeChange     :
       begin
-        InputComponent.ASIODone;
-        InputComponent.ASIOInit;
+        DuplexComponent.ASIODone;
+        DuplexComponent.ASIOInit;
         Result := 1;
       end;
     kAsioResyncRequest        :  ;
     kAsioLatenciesChanged     :
       begin
-        if Assigned(InputComponent.FOnLatencyChanged) then
-        EventHandler.PostGenericEvent(InputComponent, InputComponent.FOnLatencyChanged);
+        if Assigned(DuplexComponent.FOnLatencyChanged) then
+        EventHandler.PostGenericEvent(DuplexComponent, DuplexComponent.FOnLatencyChanged);
         Result := 1;
       end;
     kAsioSupportsTimeInfo     :  Result := 1;
@@ -1327,5 +1297,40 @@ begin
   Result := FLatency;
 end;
 
+procedure Mix32(Op1, Op2 : PBuffer32; DataSize : Integer);
+var
+  i : Integer;
+begin
+  for i:= 0 to DataSize - 1 do
+    Op1 := Round((Op1 + Op2)/2);
+end;
+
+procedure TASIOAudioDuplex.ProcessBuffers(Sender: TComponent);
+var
+  s1, s2 : TASIOInt64;
+begin
+   if Device = nil then Exit;
+   if Assigned(FOnPositionChanged) then
+   begin
+     Device.GetSamplePosition(s1, s2);
+     FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
+   end;
+   FInput.FillBuffer(@iBuf, _BufSize*2*FBPS div 8, GStop);
+   InterleaveStereo32(BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex],
+       @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize);
+   if FEchoRecording then
+   begin
+     Mix32(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize);
+     if FRecordInput then
+       FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2*FBPS div 8);
+   end else
+   begin
+     if FRecordInput then
+       Mix32(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize);
+   end;
+   Inc(WriteIndex);
+   DeinterleaveStereo32(@iBuf, BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], _BufSize);
+   Device.OutputReady;
+end;
 
 end.
