@@ -358,6 +358,7 @@ const
 var
   OutputComponent : TASIOAudioOut;
   InputComponent : TASIOAudioIn;
+  DuplexComponent  : TASIOAudioDuplex;
   GStop : Boolean = False;
   CallOutputReady : Boolean = True;
   BufferIndex : Integer;
@@ -1193,15 +1194,13 @@ constructor TASIOAudioDuplex.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   HoldEvent := TEvent.Create(nil, True, True, 'holdevent');
-  InputComponent := Self;
+  DuplexComponent := Self;
   Self.Devices := nil;
   ListAsioDrivers(Self.Devices);
   FDeviceCount := Length(Devices);
   Self.FChan := 2;
   Self.FFreq := 44100;
   FSize := -1;
-  FRecTime := -1;
-  FSamplesToRead := -1;
   Callbacks.bufferSwitch := AuAsio.AsioBufferSwitchDuplex;
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange3;
   Callbacks.asioMessage := AuAsio.AsioMessage3;
@@ -1320,6 +1319,12 @@ begin
   if (Number < 0) or (Number >= FDeviceCount) then
     raise EAuException.Create(Format('Device number out of range: %d', [Number]));
   Result := String(@Devices[Number].name[0]);
+end;
+
+function TASIOAudioDuplex.GetLatency;
+begin
+  ASIOInit;
+  Result := FLatency;
 end;
 
 
