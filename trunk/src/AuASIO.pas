@@ -12,7 +12,7 @@ unit AuASIO;
 interface
 
 uses
-  SysUtils, Classes, Forms, SyncObjs, ACS_Types, ACS_Procs, ACS_Classes, Windows, AsioList, OpenAsio, Asio;
+  SysUtils, Classes, Forms, SyncObjs, ACS_Types, ACS_Procs, ACS_Classes, Windows, AsioList, OpenAsio, Asio, Math;
 
 type
 
@@ -340,6 +340,8 @@ type
          Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback.
          You can call the output component's Stop method  from this handler but not pause. Use the <HoldOff> method if you want to pause recording from this event handler. *)
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
+    property EchoRecording : Boolean read FEchoRecording write FEchoRecording;
+    property RecordInput : Boolean read FRecordInput write FRecordInput;
   end;
 
 
@@ -552,8 +554,12 @@ end;
 procedure AsioBufferSwitchDuplex(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;
 begin
   BufferIndex := doubleBufferIndex;
-  EventHandler.PostNonGuiEvent(DuplexComponent, DuplexComponent.ProcessBuffers);
-  sleep(2);
+  if directProcess = ASIOTrue then
+     DuplexComponent.ProcessBuffers(DuplexComponent)
+  else begin
+    sleep(2);
+    EventHandler.PostNonGuiEvent(DuplexComponent, DuplexComponent.ProcessBuffers);
+  end;
 end;
 
 procedure AsioSampleRateDidChange3(sRate: TASIOSampleRate); cdecl;
@@ -1300,9 +1306,18 @@ end;
 procedure Mix32(Op1, Op2 : PBuffer32; DataSize : Integer);
 var
   i : Integer;
+  f1, f2 : Single;
 begin
   for i:= 0 to DataSize - 1 do
-    Op1[i] := Round((Op1[i] + Op2[i])/2);
+  begin
+    f1 := Op1[i]/$80000000;
+    f2 :=  Op2[i]/$80000000;
+    f1 := (f1 + f2)/2;
+    if f1 > 1 then f1 :=1;
+    if f1 < -1 then f1 := -1;
+    Op1[i] := Floor(f1*$80000000);
+  end;
+//    Op1[i] := Round(Int64(Op1[i] + Op2[i])/3);
 end;
 
 procedure TASIOAudioDuplex.ProcessBuffers(Sender: TComponent);
@@ -1320,13 +1335,13 @@ begin
        @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize);
    if FEchoRecording then
    begin
-     Mix32(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize);
+     Mix32(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2);
      if FRecordInput then
        FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2*FBPS div 8);
    end else
    begin
      if FRecordInput then
-       Mix32(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize);
+       Mix32(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2);
    end;
    Inc(WriteIndex);
    DeinterleaveStereo32(@iBuf, BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], _BufSize);
@@ -1349,6 +1364,7 @@ begin
   FPosition := 0;
   FSize := -1;
   Device.Start;
+  BytesInBuf := _BufSize*FChan*FBPS div 8;
 end;
 
 procedure TASIOAudioDuplex.FlushInternal;
