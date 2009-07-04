@@ -1208,7 +1208,7 @@ begin
         raise EAuException.Create('Failed to open ASIO device');
   end else
     raise EAuException.Create('Failed to open ASIO device');
-  Device.GetChannels(Dummie, FChan);
+  Device.GetChannels(Dummie, Integer(FChan));
   if FChan > 2 then FChan := 2;
 
   Device.GetBufferSize(min, max, pref, Dummie);
@@ -1302,7 +1302,7 @@ var
   i : Integer;
 begin
   for i:= 0 to DataSize - 1 do
-    Op1 := Round((Op1 + Op2)/2);
+    Op1[i] := Round((Op1[i] + Op2[i])/2);
 end;
 
 procedure TASIOAudioDuplex.ProcessBuffers(Sender: TComponent);
@@ -1331,6 +1331,92 @@ begin
    Inc(WriteIndex);
    DeinterleaveStereo32(@iBuf, BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], _BufSize);
    Device.OutputReady;
+end;
+
+procedure TASIOAudioDuplex.InitInternal;
+begin
+  if not Assigned(FInput) then
+  raise EAuException.Create('Input not assigned');
+  Busy := True;
+  FInput.Init;
+  ASIOInit;
+  if FInput.BitsPerSample <> FBPS then
+    raise EAuException.Create(Format('Input sample is not %d bit', [FBPS]));
+  if FInput.SampleRate <> FFreq then
+    raise EAuException.Create(Format('Input sample rate is not %d Hz', [FFreq]));
+  if FInput.Channels <> FChan then
+    raise EAuException.Create(Format('Input is not %d channel', [FChan]));
+  FPosition := 0;
+  FSize := -1;
+  Device.Start;
+end;
+
+procedure TASIOAudioDuplex.FlushInternal;
+begin
+  GStop := True;
+  Device.Stop;
+  Finput.Flush;
+  ASIODone;
+  Busy := False;
+end;
+
+procedure TASIOAudioDuplex.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+begin
+  if not Busy then  raise EAuException.Create('The Stream is not opened');
+  HoldEvent.WaitFor(INFINITE);
+  if ReadIndex >= WriteIndex then
+  begin
+    if GStop then
+    begin
+      Buffer := nil;
+      Bytes := 0;
+      Exit;
+    end else
+      Sleep(50);
+  end;
+  if ReadIndex >= WriteIndex then
+     raise EAuException.Create('Reading data from ASIO failed.');
+  Buffer := @oBuf[(ReadIndex mod BlockAlign)*BlockSize + ReadOffset];
+  if Bytes >= BytesInBuf - ReadOffset then
+  begin
+    Bytes := BytesInBuf - ReadOffset;
+    ReadOffset := 0;
+    Inc(ReadIndex);
+  end else
+    Inc (ReadOffset, Bytes);
+end;
+
+procedure TASIOAudioDuplex._Pause;
+begin
+  if Device <> nil then
+    Device.Stop;
+  if FInput <> nil then
+    FInput._Pause;
+end;
+
+procedure TASIOAudioDuplex._Resume;
+begin
+  if FInput <> nil then
+    FInput._Resume;
+  if Device <> nil then
+    Device.Start;
+end;
+
+procedure TASIOAudioDuplex.ShowSetupDlg;
+begin
+  ASIODone;
+  ASIOInit;
+  Device.ControlPanel;
+  ASIODone;
+  ASIOInit;
+end;
+
+procedure TASIOAudioDuplex.HoldOff(b: Boolean);
+begin
+  if b then
+    HoldEvent.ResetEvent
+  else
+    HoldEvent.SetEvent;
 end;
 
 end.
