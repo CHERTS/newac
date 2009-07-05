@@ -23,7 +23,7 @@ type
       Performs audio playback using low latency ASIO drivers.
       Descends from <TAuOutput>.
       On Windows ASIO drivers bypass some OS layaers which makes them suitable for a real-time audio processing.
-      You will need an ASIO audo driver too use this component.
+      You will need an ASIO audo driver to use this component.
       Free ASIO driver that can be installed on top of any WDM (Windows) driver is available at http://www.asio4all.com.
       This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
       One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
@@ -133,7 +133,7 @@ type
       Performs audio recording from a sound card using low latency ASIO drivers.
       Descends from <TAuInput>.
       On Windows ASIO drivers bypass some OS layaers which makes them suitable for a real-time audio processing.
-      You will need an ASIO audo driver too use this component.
+      You will need an ASIO audo driver to use this component.
       Free ASIO driver that can be installed on top of any WDM (Windows) driver is available at http://www.asio4all.com.
       This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
       One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
@@ -253,6 +253,23 @@ type
 
   end;
 
+ (* Class: TASIOAudioDuplex
+      Allows simultaneous recording and playback using ASIO drivers.
+      Descends from <TAuConverter>.
+      THis component reads its input and plays it vis ASIO output device while recording data from ASIO input device.
+      The recorded data may be mixed with the input.
+      Technically this component is a converter so it sits in the middle of the audio-processing chain like this^
+
+      -> inlut to be played -> [TASIOAudioDuplex instance (input is played, output is recorded)] -> output (recorded data possibly mixed with the input data) ->
+
+      On Windows ASIO drivers bypass some OS layaers which makes them suitable for a real-time audio processing.
+      You will need an ASIO audo driver to use this component.
+      Free ASIO driver that can be installed on top of any WDM (Windows) driver is available at http://www.asio4all.com.
+      This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
+      One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
+      It is your software that should tune itself up to an ASIO driver and not vice versa.
+ *)
+
   TASIOAudioDuplex = class(TAuConverter)
   private
     device : IOpenASIO;
@@ -317,8 +334,7 @@ type
     property Channels : LongWord read GetCh;
     (* Property: BitsPerSample
         Read this property to get the sample format for the input data in the audio stream
-        the component will provide. Possible values are 1 (mono), and 2
-        (stereo). *)
+        the component will provide. Possible values are 32. *)
     property BitsPerSample : LongWord read GetBPS;
 
   published
@@ -340,7 +356,11 @@ type
          Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback.
          You can call the output component's Stop method  from this handler but not pause. Use the <HoldOff> method if you want to pause recording from this event handler. *)
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
+    (* Property: EchoRecording
+         If this property is set to True the system mixes input audio data with data being recorded and plays both. *)
     property EchoRecording : Boolean read FEchoRecording write FEchoRecording;
+    (* Property: RecordInput
+         If this property is set to True the system mixes input audio data with data being recorded and passes the mix as its output. *)
     property RecordInput : Boolean read FRecordInput write FRecordInput;
   end;
 
@@ -1303,7 +1323,17 @@ begin
   Result := FLatency;
 end;
 
-procedure Mix32(Op1, Op2 : PBuffer32; DataSize : Integer);
+ procedure Mix32(Op1, Op2 : PBuffer32; DataSize : Integer);
+var
+  i : Integer;
+begin
+  for i:= 0 to DataSize - 1 do
+  begin
+    Op1[i] := Round(Op1[i]/2.01 + Op2[i]/2.01);
+  end;
+end;
+
+(*procedure Mix32(Op1, Op2 : PBuffer32; DataSize : Integer);
 var
   i : Integer;
   f1, f2 : Single;
@@ -1318,7 +1348,7 @@ begin
     Op1[i] := Floor(f1*$80000000);
   end;
 //    Op1[i] := Round(Int64(Op1[i] + Op2[i])/3);
-end;
+end; *)
 
 procedure TASIOAudioDuplex.ProcessBuffers(Sender: TComponent);
 var
