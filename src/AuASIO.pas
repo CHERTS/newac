@@ -503,25 +503,30 @@ var
     FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
   else
   begin
-    InterleaveStereo32(InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex],
-       @oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent._BufSize);
+    if InputComponent.FBPS = 32 then
+      InterleaveStereo32(InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex],
+         @oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent._BufSize)
+    else
+    if InputComponent.FBPS = 16 then
+      InterleaveStereo16(InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex],
+         @oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent._BufSize)
   end;
-  Inc(InputComponent.FPosition, InputComponent._BufSize*4);
+  Inc(InputComponent.FPosition, InputComponent._BufSize*(InputComponent.FBPS shr 3));
   if (InputComponent.FSamplesToRead >= 0) then
     if InputComponent.FPosition >= InputComponent.FSize then
         GStop := True;
   Inc(WriteIndex);
   if InputComponent.FPlayRecording then
   begin
-    FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4);
+    FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*(InputComponent.FBPS shr 3));
     if InputComponent.FChan = 1 then
-       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*(InputComponent.FBPS shr 3))
     else
-       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex], InputComponent._BufSize*(InputComponent.FBPS shr 3))
   end else
   begin
-    FillChar(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex]^, InputComponent._BufSize*4, 0);
-    FillChar(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex]^, InputComponent._BufSize*4, 0);
+    FillChar(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex]^, InputComponent._BufSize*(InputComponent.FBPS shr 3), 0);
+    FillChar(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex]^, InputComponent._BufSize*(InputComponent.FBPS shr 3), 0);
   end;
   if Assigned(InputComponent.FOnPositionChanged) then
   begin
