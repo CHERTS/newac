@@ -403,12 +403,25 @@ begin
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
    end;
    FillBuffer(GStop);
-   if FOutputChannels = 2 then
-     DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
-   else
+   if Self.FOutputBPS = 16 then
    begin
-     FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
-     FastCopyMem(BufferInfo[1].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+     if FOutputChannels = 2 then
+       DeinterleaveStereo16(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
+     else
+     begin
+       FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*2);
+       FastCopyMem(BufferInfo[1].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*2);
+     end;
+   end;
+   if Self.FOutputBPS = 32 then
+   begin
+     if FOutputChannels = 2 then
+       DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
+     else
+     begin
+       FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+       FastCopyMem(BufferInfo[1].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
+     end;
    end;
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady <> ASE_NotPresent;
@@ -476,6 +489,7 @@ end;
 function AsioBufferSwitchTimeInfo(var params: TASIOTime; doubleBufferIndex: longint; directProcess: TASIOBool): PASIOTime; cdecl;
 begin
   params.timeInfo.flags := kSystemTimeValid or kSamplePositionValid;
+  AsioBufferSwitchOutput(doubleBufferIndex, directProcess);
   Result := nil;
 end;
 
@@ -568,6 +582,7 @@ end;
 function AsioBufferSwitchTimeInfo2(var params: TASIOTime; doubleBufferIndex: longint; directProcess: TASIOBool): PASIOTime; cdecl;
 begin
   params.timeInfo.flags := kSystemTimeValid or kSamplePositionValid;
+  AsioBufferSwitchInput(doubleBufferIndex, directProcess);
   Result := nil;
 end;
 
@@ -624,7 +639,7 @@ begin
         EventHandler.PostGenericEvent(DuplexComponent, DuplexComponent.FOnLatencyChanged);
         Result := 1;
       end;
-    kAsioSupportsTimeInfo     :  Result := 1;
+    kAsioSupportsTimeInfo     :  Result := 0;
     kAsioSupportsTimeCode     :  Result := 0;
     kAsioSupportsInputMonitor :  ;
   end;
@@ -633,6 +648,7 @@ end;
 function AsioBufferSwitchTimeInfo3(var params: TASIOTime; doubleBufferIndex: longint; directProcess: TASIOBool): PASIOTime; cdecl;
 begin
   params.timeInfo.flags := kSystemTimeValid or kSamplePositionValid;
+  AsioBufferSwitchDuplex(doubleBufferIndex, directProcess);
   Result := nil;
 end;
 
@@ -670,7 +686,7 @@ function TASIOAudioOut.GetDeviceName(Number : Integer) : String;
 begin
   if (Number < 0) or (Number >= FDeviceCount) then
     raise EAuException.Create(Format('Device number out of range: %d', [Number]));
-  Result := String(@Devices[Number].name[0]);
+  Result := String(Devices[Number].name);
 end;
 
 procedure TASIOAudioOut.Prepare;
@@ -691,7 +707,8 @@ begin
   DoReset := False;
   AsioBufferSwitchOutput(1, AsioTrue);
   FastCopyMem(BufferInfo[0].buffers[1], BufferInfo[0].buffers[0], FBufferSize);
-  Device.Start;
+  if Device.Start <> ASE_OK then
+  raise EAuException.Create('Cannot start ASIO driver');
   DevStopped := False;
 end;
 
@@ -777,6 +794,14 @@ begin
     BufferInfo[i].buffers[0] := nil;
     BufferInfo[i].buffers[1] := nil;
   end;
+ (* for i := FOutputChannels  to FOutputChannels + 1 do
+  begin
+    BufferInfo[i].isInput := ASIOTrue;
+    BufferInfo[i].channelNum := i;
+    BufferInfo[i].buffers[0] := nil;
+    BufferInfo[i].buffers[1] := nil;
+  end; *)
+
   // TODO: Add multichannel support
   if Device.CreateBuffers(@BufferInfo, 2, FBufferSize, Callbacks) <> ASE_OK then
      raise EAuException.Create('ASIO: failed to create output buffers.');
@@ -867,8 +892,10 @@ begin
       Buf32[i] := Buf16[i] shl 16;
     Exit;
   end;
-
+  if (BPS = 32) and (OutputBPS = 32) then
   Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 2)*FOutputChannels, EOF);
+  if (BPS = 16) and (OutputBPS = 16) then
+  Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
 end;
 
 procedure TASIOAudioOut.CallProcessBuffer;
@@ -1045,7 +1072,7 @@ function TASIOAudioIn.GetDeviceName(Number : Integer) : String;
 begin
   if (Number < 0) or (Number >= FDeviceCount) then
     raise EAuException.Create(Format('Device number out of range: %d', [Number]));
-  Result := String(@Devices[Number].name[0]);
+  Result := String(Devices[Number].name[0]);
 end;
 
 procedure TASIOAudioIn.SetSampleRate;
@@ -1314,7 +1341,7 @@ function TASIOAudioDuplex.GetDeviceName(Number : Integer) : String;
 begin
   if (Number < 0) or (Number >= FDeviceCount) then
     raise EAuException.Create(Format('Device number out of range: %d', [Number]));
-  Result := String(@Devices[Number].name[0]);
+  Result := String(Devices[Number].name[0]);
 end;
 
 function TASIOAudioDuplex.GetLatency;
