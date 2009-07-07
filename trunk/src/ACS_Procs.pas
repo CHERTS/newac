@@ -177,6 +177,7 @@ var
   procedure DeinterleaveStereo16(Src, Dst1, Dst2 : Pointer; Samples : Integer);
 
   procedure InterleaveStereo32(Src1, Src2, Dst : Pointer; Samples : Integer);
+  procedure InterleaveStereo16(Src1, Src2, Dst : Pointer; Samples : Integer);
 
 implementation
 
@@ -1147,6 +1148,22 @@ end;
       D[(i shl 1) + 1] := S2[i];
     end;
   end;
+
+  procedure InterleaveStereo16(Src1, Src2, Dst : Pointer; Samples : Integer);
+  var
+    D, S1, S2 : PBuffer16;
+    i : Integer;
+  begin
+    S1 := Src1;
+    S2 := Src2;
+    D := Dst;
+    for i := 0 to Samples - 1 do
+    begin
+      D[i shl 1] := S1[i];
+      D[(i shl 1) + 1] := S2[i];
+    end;
+  end;
+
 
 
   function SSESupported : Boolean;
