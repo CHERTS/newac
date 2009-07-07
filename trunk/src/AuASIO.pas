@@ -28,6 +28,7 @@ type
       This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
       One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
       It is your software that should tune itself up to an ASIO driver and not vice versa.
+      The sample formats currently supported by the NewAC ASIO components are 16/32 bps mono/stereo.
  *)
 
   TASIOAudioOut = class(TAuOutput)
@@ -138,7 +139,8 @@ type
       This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
       One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
       It is your software that should tune itself up to an ASIO driver and not vice versa.
- *)
+      The sample formats currently supported by the NewAC ASIO components are 16/32 bps mono/stereo.
+  *)
 
   TASIOAudioIn = class(TAuInput)
   private
@@ -260,8 +262,10 @@ type
       The recorded data may be mixed with the input.
       Technically this component is a converter so it sits in the middle of the audio-processing chain like this^
 
-      -> inlut to be played -> [TASIOAudioDuplex instance (input is played, output is recorded)] -> output (recorded data possibly mixed with the input data) ->
+      -> input to be played -> [TASIOAudioDuplex instance (input is played, output is recorded)] -> output (recorded data possibly mixed with the input data) ->
 
+      The number of bits per sample of the input should be the same as the recodrded number of bits per sample (currently either 16 or 32).
+      The sample rates also should be the same.
       On Windows ASIO drivers bypass some OS layaers which makes them suitable for a real-time audio processing.
       You will need an ASIO audo driver to use this component.
       Free ASIO driver that can be installed on top of any WDM (Windows) driver is available at http://www.asio4all.com.
@@ -1365,6 +1369,17 @@ begin
   end;
 end;
 
+ procedure Mix16(Op1, Op2 : PBuffer16; DataSize : Integer);
+var
+  i : Integer;
+begin
+  for i:= 0 to DataSize - 1 do
+  begin
+    Op1[i] := Round(Op1[i]/2.01 + Op2[i]/2.01);
+  end;
+end;
+
+
 (*procedure Mix32(Op1, Op2 : PBuffer32; DataSize : Integer);
 var
   i : Integer;
@@ -1397,16 +1412,30 @@ begin
        @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize);
    if FEchoRecording then
    begin
-     Mix32(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2);
+     if FBPS = 32 then
+       Mix32(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2)
+     else
+     if FBPS = 16 then
+       Mix16(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2);
      if FRecordInput then
        FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2*FBPS div 8);
    end else
    begin
      if FRecordInput then
-       Mix32(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2);
+     begin
+       if FBPS = 32 then
+         Mix32(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2)
+       else
+       if FBPS = 16 then
+         Mix16(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2);
+     end;
    end;
    Inc(WriteIndex);
-   DeinterleaveStereo32(@iBuf, BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], _BufSize);
+   if FBPS = 32 then
+   DeinterleaveStereo32(@iBuf, BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], _BufSize)
+   else
+   if FBPS = 16 then
+   DeinterleaveStereo16(@iBuf, BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], _BufSize);
    Device.OutputReady;
 end;
 
