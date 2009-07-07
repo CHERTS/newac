@@ -178,7 +178,7 @@ type
     X2, Y2 : array[0..7] of array of Single;
     X3, Y3 : array[0..7] of array of Single;
     IFrames, OFrames, ISize, OSize, MaxSize, MaxFrames : LongWord;
-    FOutSampleRate : Word;
+    FOutSampleRate : LongWord;
     offsX, OffsY : Integer;
     InputBuffer : array of Single;
     SampleSize, FrameSize, SamplesInFrame : Word;
@@ -196,7 +196,7 @@ type
   published
     (* Property: OutSampleRate
        Use this property to set the resampler's output sample rate. *)
-    property OutSampleRate : Word read FOutSampleRate write FOutSampleRate;
+    property OutSampleRate : LongWord read FOutSampleRate write FOutSampleRate;
   end;
 
   (* Class: TAudioConverter
