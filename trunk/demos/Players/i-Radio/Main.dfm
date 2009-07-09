@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 539
   Top = 393
-  Width = 369
-  Height = 218
   Caption = 'i-Radio ;)'
+  ClientHeight = 191
+  ClientWidth = 361
   Color = 3763336
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,7 +15,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   DesignSize = (
     361
-    184)
+    191)
   PixelsPerInch = 96
   TextHeight = 13
   object Label14: TLabel
@@ -24,12 +24,28 @@ object Form1: TForm1
     Width = 3
     Height = 13
   end
+  object Label15: TLabel
+    Left = 297
+    Top = 45
+    Width = 38
+    Height = 13
+    Caption = 'Label15'
+  end
+  object Label16: TLabel
+    Left = 232
+    Top = 45
+    Width = 38
+    Height = 13
+    Caption = 'Latency'
+  end
   object BitBtn1: TBitBtn
     Left = 8
     Top = 40
     Width = 65
     Height = 25
     Caption = 'Play'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -39,9 +55,11 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
-    NumGlyphs = 2
   end
   object BitBtn3: TBitBtn
     Left = 152
@@ -49,13 +67,15 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
-    NumGlyphs = 2
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 165
+    Top = 172
     Width = 361
     Height = 19
     Panels = <
@@ -63,11 +83,10 @@ object Form1: TForm1
         Width = 50
       end>
     ParentColor = True
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 84
+    Top = 91
     Width = 361
     Height = 81
     Align = alBottom
@@ -281,12 +300,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 73
+    Top = 80
     Width = 361
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 5
   end
   object ComboBox1: TComboBox
@@ -301,16 +318,18 @@ object Form1: TForm1
   end
   object OpenDialog1: TOpenDialog
     Filter = 'WAX Shortcuts|*.wax|ASX Shortcuts|*.asx'
-    Left = 80
+    Left = 136
     Top = 152
   end
   object DXAudioOut1: TDXAudioOut
-    Input = WMStreamedIn1
+    Input = AudioSynchronizer1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
+    FramesInBuffer = 65536
+    PollingInterval = 200
     OnUnderrun = DXAudioOut1Underrun
-    Left = 48
+    Left = 96
     Top = 152
   end
   object WMStreamedIn1: TWMStreamedIn
@@ -321,10 +340,25 @@ object Form1: TForm1
     EnableUDP = False
     MaxWaitMilliseconds = 10000
     ProxyPort = 0
-    StretchFactor = 1
+    StretchFactor = 1.000000000000000000
     OnStreamOpened = WMStreamedIn1StreamOpened
     OnStartedPlaying = WMStreamedIn1StartedPlaying
     Left = 8
+    Top = 152
+  end
+  object AudioSynchronizer1: TAudioSynchronizer
+    Input = WMStreamedIn1
+    Latency = 1500
+    Threshold = 2000
+    Left = 56
+    Top = 152
+  end
+  object AudioHiResTimer1: TAudioHiResTimer
+    Interval = 1000
+    Resolution = 5
+    FireOnce = False
+    OnTimer = AudioHiResTimer1Timer
+    Left = 192
     Top = 152
   end
 end

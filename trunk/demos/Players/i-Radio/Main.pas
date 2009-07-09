@@ -10,7 +10,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, ACS_Classes,
-  Buttons, ACS_WinMedia, ACS_DXAudio;
+  Buttons, ACS_WinMedia, ACS_DXAudio, AuSynch;
 
 type
   TForm1 = class(TForm)
@@ -38,6 +38,10 @@ type
     Label14: TLabel;
     WMStreamedIn1: TWMStreamedIn;
     ComboBox1: TComboBox;
+    AudioSynchronizer1: TAudioSynchronizer;
+    AudioHiResTimer1: TAudioHiResTimer;
+    Label15: TLabel;
+    Label16: TLabel;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
@@ -50,6 +54,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure WMStreamedIn1StreamOpened(Sender: TComponent);
     procedure WMStreamedIn1StartedPlaying(Sender: TComponent);
+    procedure AudioHiResTimer1Timer(Sender: TComponent);
   private
     { Private declarations }
     SL : TStringList;
@@ -68,6 +73,7 @@ procedure TForm1.BitBtn1Click(Sender: TObject);
 var
   Secs : String;
 begin
+  Self.AudioHiResTimer1.Start;
   WMStreamedIn1.FileName := SL.Values[ComboBox1.Text];
   StatusBar1.Panels[0].Text := WMStreamedIn1.FileName;
   WMStreamedIn1.BufferingTime := 2;
@@ -93,6 +99,11 @@ end;
 procedure TForm1.AudioOut1Progress(Sender: TComponent);
 begin
   ProgressBar1.Position := DXAudioOut1.Progress;
+end;
+
+procedure TForm1.AudioHiResTimer1Timer(Sender: TComponent);
+begin
+  Label15.Caption := IntToStr(Self.AudioSynchronizer1.DeltaTime);
 end;
 
 procedure TForm1.AudioOut1Done(Sender: TComponent);
@@ -131,6 +142,7 @@ end;
 procedure TForm1.DXAudioOut1Underrun(Sender: TComponent);
 begin
   Label14.Caption := 'Underruns: ' + IntToStr(DXAudioOut1.Underruns);
+  Self.AudioSynchronizer1.Reset;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
