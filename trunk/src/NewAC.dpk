@@ -27,6 +27,7 @@ package NewAC;
 {$R 'NewAC_DSP.dcr'}
 {$R 'NewACPack.dcr'}
 {$R 'AuASIO.dcr'}
+{$R 'AuSynch.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -115,6 +116,8 @@ contains
   AuASIO in 'AuASIO.pas',
   OpenASIO in 'OpenASIO.pas',
   ASIO in 'ASIO.pas',
-  AsioList in 'AsioList.pas';
+  AsioList in 'AsioList.pas',
+  mr_cddb in 'mr_cddb.pas',
+  AuSynch in 'AuSynch.pas';
 
 end.
