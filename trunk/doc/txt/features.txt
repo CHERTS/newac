@@ -4,8 +4,9 @@ Topic: General Features
 
 With NewAC Delphi components package components you can:
 
-- Play audio using your sound card.
-- Record audio from your sound card.
+- Play audio using your sound card and DirectSound.
+- Record audio from your sound card and DirectSound.
+- Play and record audio using low-latency ASIO drivers.
 - Acquire audio data from live Internet audio streams (WMA, MP3).
 - Broadcast audio over the network.
 - Rip audio CDs.

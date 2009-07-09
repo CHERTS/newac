@@ -33,7 +33,12 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
-Vaersion: NewAC 1.9
+Version: NewAC 2.0
+	- Low-latency ASIO drivers support added.
+	- Real-time audio components (TAudioSynchronizer, TAudioHiResTimer) added. 
+	- Some minor improvements.
+
+Version: NewAC 1.9
 	- Experimental delphi-based compresor added.
 	- Delphi 2009 compatibility added.
 	- TCDDBInfo component added
