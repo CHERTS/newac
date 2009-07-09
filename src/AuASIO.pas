@@ -9,6 +9,9 @@
 
 unit AuASIO;
 
+(* Title: AuASIO
+    Components for working with ASIO drivers *)
+
 interface
 
 uses
