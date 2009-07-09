@@ -9,6 +9,9 @@
 
 unit AuSynch;
 
+(* Title: AuSynch
+    Components for real time audio processing *)
+
 interface
 
 uses
