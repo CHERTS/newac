@@ -93,7 +93,8 @@ type
     (* Property: Latency
       While TAudioSynchronizer tries to eliminate the lag between audio data coming in and the time of playback,
       there is always some inevitable latency which the component should not try to eliminate.
-      Use this property to set this latency value in milliseconds. You may need to increase this value during the audio operation in case  the data is lost for eample.
+      Use this property to set this latency value in milliseconds. You may need to increase this value during the audio operation in case  the data is lost for example
+      (the other way to deal with data dropped is to <Reset> the synchronizer).
       The Latency value should always be less than that of <Threshold>.
       See i-Radio demo on how operate <Latency> *)
     property Latency : Word read FLatency write FLatency;
