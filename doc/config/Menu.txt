@@ -81,10 +81,10 @@ Group: Main Units  {
    File: NewAC_AVI  (src\NewAC_AVI.pas)
    File: NewAC_DSP  (src\NewAC_DSP.pas)
    File: AuASIO  (src\AuASIO.pas)
-   File: AuSynch    (src\AuSynch.pas)
-   
+   File: AuSynch  (src\AuSynch.pas)
    File: d3d9types...h d3d9.h  (src\_Direct3D9.pas)
    File: EncAPI.idl  (src\_DirectShow9.pas)
+   File: ExtThreads.pas  (src\ExtThreads.pas)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
