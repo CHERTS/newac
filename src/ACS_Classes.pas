@@ -1083,8 +1083,8 @@ end;
   constructor TAuThread.Create;
   begin
     inherited Create(False);
-    PauseEvent := TEvent.Create(nil, False, False, 'pause_event');
-    SoftSleepEvent := TEvent.Create(nil, False, False, 'ssleep_event');
+    PauseEvent := TEvent.Create(nil, False, False, '');
+    SoftSleepEvent := TEvent.Create(nil, False, False, '');
     Sleeping := False;
   end;
 
