@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ACS_Classes, ACS_Vorbis, StdCtrls, ComCtrls, 
+  Dialogs, ACS_Classes, ACS_Vorbis, StdCtrls, ComCtrls,
   ACS_DXAudio, Spin, ExtCtrls, ACS_Wave, ACS_FLAC;
 
 type
