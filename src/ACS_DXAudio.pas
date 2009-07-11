@@ -134,6 +134,7 @@ type
     FRecTime : Integer;
     FOverruns : LongWord;
     FOnOverrun : TOverrunEvent;
+    FEchoRecording, RecordingEchoed : Boolean;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure OpenAudio;
@@ -168,6 +169,9 @@ type
          overruns that have occurred during recording. *)
     property Overruns : LongWord read FOverruns;
   published
+    (* Property: FramesInBuffer
+         Use this property to set the length of the internal recording buffer.
+         Smaller values result in lower latency and more overruns. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
     property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
     (* Property: SamplesToRead
@@ -197,7 +201,7 @@ type
         (depends on the capabilities of your hardware). *)
     property InSampleRate : LongWord read GetSR write FFreq stored True;
     (* Property: RecTime
-         Use this property to set the recording duration (in seconds). If set
+         Use this property to set the recording duration (in seconds). If set,
          this property overrides the value of <BytesToRead>. If you set this
          property value to -1 (the default) the component will be endlessly
          recording until you stop it. *)
@@ -209,6 +213,11 @@ type
          unpausing paused recording (this is a normal situation). To get the
          total number of overruns read the <Overruns> property. *)
     property OnOverrun : TOverrunEvent read FOnOverrun write FOnOverrun;
+    (* Property: EchoRecording
+         When this property is set to True, the component plays back audio data what is being recorded.
+         If you want to echo recording you should set this property to True before you start recording.
+         Later you can set it to False tu turn echoing off and then back to True to turn it on. *)
+    property EchoRecording : Boolean read FEchoRecording write FEchoRecording;
   end;
 
 implementation
@@ -425,7 +434,7 @@ begin
   FSize := -1;
   FRecTime := -1;
   FSamplesToRead := -1;
-  FFramesInBuffer := $10000;
+  FFramesInBuffer := $8000;
   FPollingInterval := 200;
 //  if not (csDesigning in ComponentState) then
 //  begin
@@ -518,18 +527,28 @@ begin
     FSize := -1;
   OpenAudio;
   DSW_StartInput(DSW);
+  if FEchoRecording then
+  begin
+    DSW_InitOutputDevice(DSW, @(Devices.dinfo[FDeviceNumber].guid));
+    DSW_InitOutputBuffer(DSW, 0, FBPS, FFreq, FChan, _BufSize);
+    DSW_StartOutput(DSW);
+  end;
+  RecordingEchoed := FEchoRecording;
 end;
 
 procedure TDXAudioIn.FlushInternal;
 begin
   DSW_StopInput(DSW);
+  if RecordingEchoed then
+    DSW_StopOutput(DSW);
   CloseAudio;
   Busy := False;
 end;
 
 procedure TDXAudioIn.GetDataInternal;
 var
-  l : INteger;
+  l : Integer;
+  l1 : LongWord;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
   if  (FSamplesToRead >=0) and (FPosition >= FSize) then
@@ -553,6 +572,14 @@ begin
     end;
 //    l := l - (l mod 1024);
     DSW_ReadBlock(DSW, @Buf[0], l);
+    if RecordingEchoed then
+    begin
+        DSW_QueryOutputSpace(DSW, l1);
+        if FEchoRecording then
+          DSW_WriteBlock(DSW, @Buf[0], l)
+        else
+          DSW_FillEmptySpace(DSW, 0);
+    end;
     BufEnd := l;
   end;
   if Bytes > (BufEnd - BufStart) then
@@ -604,11 +631,15 @@ end;
 procedure TDXAudioIn._Pause;
 begin
   DSW_StopInput(DSW);
+  if RecordingEchoed then
+    DSW_StopOutput(DSW);
 end;
 
 procedure TDXAudioIn._Resume;
 begin
   DSW_StartInput(DSW);
+  if RecordingEchoed then
+    DSW_RestartOutput(DSW);
 end;
 
 procedure TDXAudioOut.SetVolume;

@@ -1128,8 +1128,8 @@ end;
     Res : Boolean;
   begin
     Sleeping := True;
-    SoftSleep;
     ParentComponent := TAuOutput(Parent);
+    SoftSleep;
     Stop := False;
     while not Terminated do
     begin
