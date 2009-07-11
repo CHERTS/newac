@@ -17,7 +17,7 @@ implementation
 procedure Register();
 begin
   RegisterComponents('Audio I/O', [TDXAudioIn, TDXAudioOut, TASIOAudioIn, TASIOAudioOut, TASIOAudioDuplex, TCDIn, TWMStreamedIn, TWMStreamedOut,
-  TInputList, TMemoryIn, TVorbisIn, TVorbisOut,
+  TAudioPlayList, TMemoryIn, TVorbisIn, TVorbisOut,
   TWaveIn, TWaveOut, TMP3In, TMP3Out, TMACIn, TMACOut, TStreamIn, TStreamOut, TFLACIn, TFLACOut, TWVIn, TWVOut, TWMIn,
   TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TTAKIn, TMPCIn, TMPCOut, TWMADualPassOut, TAVIIn]);
   RegisterComponents('Audio Processing', [TAudioMixer, TFastResampler, TRealTimeMixer, TAudioConverter, TACMConverter,
