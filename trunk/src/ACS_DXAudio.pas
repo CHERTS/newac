@@ -206,6 +206,11 @@ type
          property value to -1 (the default) the component will be endlessly
          recording until you stop it. *)
     property RecTime : Integer read FRecTime write SetRecTime;
+    (* Property: EchoRecording
+         When this property is set to True, the component plays back audio data what is being recorded.
+         If you want to echo recording you should set this property to True before you start recording.
+         Later you can set it to False to turn echoing off and then back to True to turn it on. *)
+    property EchoRecording : Boolean read FEchoRecording write FEchoRecording;
     (* Property: OnOverrun
          OnOverrun event is raised when this component provides data faster
          than the rest of audio-processing chain can consume. It indicates
@@ -213,11 +218,6 @@ type
          unpausing paused recording (this is a normal situation). To get the
          total number of overruns read the <Overruns> property. *)
     property OnOverrun : TOverrunEvent read FOnOverrun write FOnOverrun;
-    (* Property: EchoRecording
-         When this property is set to True, the component plays back audio data what is being recorded.
-         If you want to echo recording you should set this property to True before you start recording.
-         Later you can set it to False tu turn echoing off and then back to True to turn it on. *)
-    property EchoRecording : Boolean read FEchoRecording write FEchoRecording;
   end;
 
 implementation
