@@ -189,84 +189,49 @@ type
     procedure Prepare; override;
   end;
 
-  (* Class: TInputItem
 
-     Descends from TCollectionItem.
+  TPlayItemChangedEvent = procedure(Sender : TComponent) of object;
 
-     Objects of this class are the elements of the <TInputList.InputItems>
-     collection. *)
+ (* Class: TAudioPlayList
+    A descendant of <TAuConverter> which enables input comonents to play series of files without gaps.
+    Suppose you want to build a chain that plays several mp3 files from a predefined list.
+    Your chain may look like this:
+    TMP3In - >> TAudioPlayList - >> TDxAudioOut
+    Now you assign the list of mp3s to be played to TAudioPlayList's <Files> property and start playback.
+    TAudioPlayList will manage the files that TMP3In will play.
+    There are some limitations with this component however.
+    All the input files should have the same audio data paramters (sample rates, bits per sample, number of channels).
+    No file name is assigned to the input component before you start playback, so you should not enquire about any properties of the file input being playd before you have started the playback.
+    TAudioPlayList allows you to construct play lists from the files of the same format. See AudioPlayer demo on how to make play lists of the files of different formats. *)
 
-  TInputItem = class(TCollectionItem)
-  protected
-    FInput : TAuInput;
-    function GetOwner : TPersistent; override;
-  published
-    (* Property: Input
-       Use this property to assign an input component to the collection
-       element. If a playing TInputList component reaches a TInputItem without
-       an Input assigned, it raises an exception. *)
-    property Input : TAuInput read FInput write FInput;
-  end;
-
-  TInputItems = class(TOwnedCollection)
-  end;
-
-  TInputChangedEvent = procedure(Sender : TComponent) of object;
-
-  (* Class: TInputList
-
-     Descends from <TAuInput>.
-
-     This component can play consecutively audio data from several attached
-     input components. It is not a good choice for building a player's
-     playlist as all the input audio sources attached to the component must
-     have the same audio stream parameters (sample rate, bits per sample,
-     number of channels), it is rather a tool for concatenating audio data
-     from several different sources as the audio is played seamlessly when the
-     component switches from one input source to the other. *)
-
-  TInputList = class(TAuInput)
+  TAudioPlayList = class(TAuConverter)
   private
-    FCurrentInput : Integer;
-    FInputItems : TInputItems;
-    CS : TCriticalSection;
-    FOnInputChanged : TInputChangedEvent;
-    FIndicateProgress : Boolean;
-    procedure SetCurrentInput(aInput : Integer);
-    procedure SetInputItems(aItems : TInputItems);
+    FFiles : TStringList;
+    FCurrentItem : Word;
+    FOnPlayItemChanged : TPlayItemChangedEvent;
+    procedure SetFiles(f : TStringList);
+    procedure SetCurrentItem(ci : Word);
   protected
-    function GetBPS : LongWord; override;
-    function GetCh : LongWord; override;
-    function GetSR : LongWord; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    (* Property: CurrentInput
-       Use this property to get the index of the audio source being played or
-       to set the index of the audio source to be played. If you assign a new
-       value to this property the new input will start playing at once. The
-       valid values for this property range from 0  to <InputItems>.Count - 1
-       *)
-    property CurrentInput : Integer read FCurrentInput write SetCurrentInput;
   published
-    (* Property: IndicateProgress
-       Use this property to tell the component if it should report playback
-       progress on the current item being played. *)
-    property IndicateProgress : Boolean read FIndicateProgress write FIndicateProgress;
-    (* Property: InputItems
-       This property is the collection of <TInputItem> elements that describe
-       attached input components. *)
-    property InputItems : TInputItems read FInputItems write SetInputItems;
-    (* Property: OnInputChanged
-       Raised when the component has finished playing one input source and is
-       starting to play the next one. It is not raised when you change the
-       value of the <CurrentInput> property. *)
-    property OnInputChanged : TInputChangedEvent read FOnInputChanged write FOnInputChanged;
+    (* Property: Files
+      The list of files to be played. The list elements should be full file paths. You can edit this list on the fly while performing playback. *)
+    property Files : TStringList read FFiles write SetFiles stored True;
+    (* Property: CurrentItem
+      The index of the play list element currently being played (or the element that will be played when you start playback).
+      The first item in the play list has an index of zero.
+      This value changes when the play list switches to the new element.
+      You can change this value to switch the file being played. *)
+    property CurrentItem : Word read FCurrentItem write SetCurrentItem;
+    (* Property: OnPlayItemChanged
+      This event is triggered when the play lists switches from one item to another.  *)
+     property OnPlayItemChanged : TPlayItemChangedEvent read FOnPlayItemChanged write FOnPlayItemChanged;
   end;
-
 
 implementation
 
@@ -743,167 +708,80 @@ begin
   Result := Collection;
 end;
 
-constructor TInputList.Create;
+constructor TAudioPlayList.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-  FInputItems := TInputItems.Create(Self, TInputItem);
-  FPosition := 0;
-  FSize := -1;
-  FIndicateProgress := True;
-  if not (csDesigning in ComponentState) then
-    CS := TCriticalSection.Create;
+  inherited;
+  FFiles := TStringList.Create;
 end;
 
-destructor TInputList.Destroy;
+destructor TAudioPlayList.Destroy;
 begin
-  if not (csDesigning in ComponentState) then
-  CS.Free;
-  FInputItems.Free;
-  Inherited Destroy;
+  FFiles.Free;
+  inherited;
 end;
 
-procedure TInputList.SetCurrentInput;
-var
-  I : TInputItem;
+procedure TAudioPlayList.SetFiles(f: TStringList);
 begin
-  if aInput <> 0 then
-  if (aInput < 0) or (aInput >= FInputItems.Count) then
-  raise EAuException.Create('List index out of bounds: ' + IntToStr(aInput));
+  FFiles.Assign(f);
+end;
+
+procedure TAudioPlayList.SetCurrentItem(ci: Word);
+begin
+  if (ci <> 0) and (ci > FFiles.Count - 1) then Exit;
+  FCurrentItem := ci;
   if Busy then
   begin
-    CS.Enter;
-    I := TInputItem(InputItems.Items[FCurrentInput]);
-    I.Input.Flush;
-    I := TInputItem(InputItems.Items[aInput]);
-    I.Input.Init;
-    if FIndicateProgress then
-    FSize := I.Input.Size
-    else FSize := -1;
-    FPosition := 0;
-    CS.Leave;
-  end;
-  FCurrentInput := aInput;
-end;
-
-function TInputList.GetBPS;
-var
-  I : TInputItem;
-begin
-  Result := 0;
-  if Busy then
-  begin
-    I := TInputItem(InputItems.Items[FCurrentInput]);
-    Result := I.Input.BitsPerSample;
-  end else
-  if InputItems.Count > 0 then
-  begin
-    I := TInputItem(InputItems.Items[0]);
-    Result := I.Input.BitsPerSample;
+    _Lock;
+    FInput.Flush;
+    TAuFileIn(Finput).FileName := FFiles.Strings[FCurrentItem];
+    FInput.Init;
+    _Unlock;
+    if Assigned(FOnPlayItemChanged) then
+      EventHandler.PostGenericEvent(Self, FOnPlayItemChanged);
   end;
 end;
 
-function TInputList.GetCh;
-var
-  I : TInputItem;
+procedure TAudioPlayList.InitInternal;
 begin
-  Result := 0;
-  if Busy then
-  begin
-    I := TInputItem(InputItems.Items[FCurrentInput]);
-    Result := I.Input.Channels;
-  end else
-  if InputItems.Count > 0 then
-  begin
-    I := TInputItem(InputItems.Items[0]);
-    Result := I.Input.Channels;
-  end;
-end;
-
-function TInputList.GetSR;
-var
-  I : TInputItem;
-begin
-  Result := 0;
-  if Busy then
-  begin
-    I := TInputItem(InputItems.Items[FCurrentInput]);
-    Result := I.Input.SampleRate;
-  end else
-  if InputItems.Count > 0 then
-  begin
-    I := TInputItem(InputItems.Items[0]);
-    Result := I.Input.SampleRate;
-  end;
-end;
-
-procedure TInputList.InitInternal;
-var
-  I : TInputItem;
-begin
-  if Busy then
-  raise EAuException.Create('The component is busy.');
-  if InputItems.Count = 0 then
-  raise EAuException.Create('No input items in the list.');
-  I := TInputItem(InputItems.Items[FCurrentInput]);
-  if not Assigned(I.Input) then
-  raise EAuException.Create('No input assigned to the input item '+IntToStr(FCurrentInput));
+  if FInput = nil then
+    raise EAuException.Create('Input is not assigned.');
+  if not (Finput is TAuFileIn) then
+    raise EAuException.Create('PlayList input should be a file-reading component.');
   Busy := True;
-  I.Input.Init;
-  if FIndicateProgress then
-  FSize := I.Input.Size
-  else FSize := -1;
-  FPosition := 0;
+  if FCurrentItem < FFiles.Count - 1 then
+        TAuFileIn(Finput).FileName := FFiles.Strings[FCurrentItem]
+  else
+       TAuFileIn(Finput).FileName := FFiles.Strings[0];
+  FInput.Init;
+  FSize:= -1;
 end;
 
-procedure TInputList.FlushInternal;
-var
-  I : TInputItem;
+procedure TAudioPlayList.FlushInternal;
 begin
-  I := TInputItem(InputItems.Items[FCurrentInput]);
-  I.Input.Flush;
-  FCurrentInput := 0;
+  Finput.Flush;
   Busy := False;
 end;
 
-procedure TInputList.GetDataInternal;
+procedure TAudioPlayList.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
 var
-  I : TInputItem;
-  BytesTmp : LongWord;
+  TmpBytes : LongWord;
 begin
-  CS.Enter;
-  try
-    BytesTmp := Bytes;
-    I := TInputItem(InputItems.Items[FCurrentInput]);
-    I.Input.GetData(Buffer, Bytes);
-    while Bytes = 0 do
+  TmpBytes := Bytes;
+  FInput.GetData(Buffer, Bytes);
+  if Bytes = 0 then
+  begin
+    if FCurrentItem < FFiles.Count - 1 then
     begin
-      if FCurrentInput < InputItems.Count -1 then
-      begin
-        I.Input.Flush;
-        Inc(FCurrentInput);
-        if Assigned(FonInputChanged) then
-          EventHandler.PostGenericEvent(Self, FOnInputChanged);
-        I := TInputItem(InputItems.Items[FCurrentInput]);
-        if not Assigned(I.Input) then
-          raise EAuException.Create('No input assigned to the input item '+IntToStr(FCurrentInput));
-        I.Input.Init;
-        if FIndicateProgress then
-          FSize := I.Input.Size
-        else FSize := -1;
-        FPosition := 0;
-        Bytes := BytesTmp;
-        I.Input.GetData(Buffer, Bytes);
-      end else Break;
+      Finput.Flush;
+      Inc(FCurrentItem);
+      TAuFileIn(Finput).FileName := FFiles.Strings[FCurrentItem];
+      Finput.Init;
+      Bytes := TmpBytes;
+      FInput.GetData(Buffer, Bytes);
+      if Assigned(FOnPlayItemChanged) then
+        EventHandler.PostGenericEvent(Self, FOnPlayItemChanged);
     end;
-    if FIndicateProgress then
-      FPosition := I.Input.Position;
-  finally
-    CS.Leave;
   end;
 end;
 
-procedure TInputList.SetInputItems;
-begin
-  FInputItems.Assign(aItems);
-end;
 end.
