@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 150
   Top = 88
-  Width = 339
-  Height = 244
   Caption = 'Sound Recorder'
+  ClientHeight = 217
+  ClientWidth = 331
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -60,7 +60,7 @@ object Form1: TForm1
   object Label7: TLabel
     Left = 56
     Top = 168
-    Width = 14
+    Width = 6
     Height = 13
     Caption = '0'
   end
@@ -84,14 +84,13 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 191
+    Top = 198
     Width = 331
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object StopButton: TButton
     Left = 248
@@ -177,7 +176,7 @@ object Form1: TForm1
   object VorbisOut1: TVorbisOut
     Input = DXAudioIn1
     OnDone = OutputDone
-    Compression = 0.200000002980232
+    Compression = 0.200000002980232200
     Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
@@ -192,11 +191,14 @@ object Form1: TForm1
     OnDone = OutputDone
     WavType = wtPCM
     BlockSize = 512
+    CreateNonMsHeaders = False
     FileMode = foRewrite
     Left = 64
     Top = 176
   end
   object DXAudioIn1: TDXAudioIn
+    FramesInBuffer = 65536
+    PollingInterval = 200
     SamplesToRead = -1
     DeviceNumber = 0
     InBitsPerSample = 8
