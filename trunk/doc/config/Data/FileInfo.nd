@@ -1,6 +1,6 @@
 1.4
 Pascal
-H:\repo\newac\demos\Players\i-Radio\Main.pas	1247156314	0	H:\repo\newac\demos\Players\i-Radio\Main.pas
+H:\repo\newac\demos\Players\i-Radio\Main.pas	1247163966	0	H:\repo\newac\demos\Players\i-Radio\Main.pas
 H:\repo\newac\src\_MSAcm.pas	1245137991	0	H:\repo\newac\src\_MSAcm.pas
 H:\repo\newac\demos\Tutorial\ReadMe.txt	1245137995	0	H:\repo\newac\demos\Tutorial\ReadMe.txt
 H:\repo\newac\src\ACS_Streams.pas	1245137991	1	ACS_Streams
@@ -67,9 +67,9 @@ H:\repo\newac\src\fftreal.pas	1245137991	0	H:\repo\newac\src\fftreal.pas
 H:\repo\newac\demos\Converters\Wav2PP\Main.pas	1245137998	0	H:\repo\newac\demos\Converters\Wav2PP\Main.pas
 H:\repo\newac\src\libmpdec.pas	1245137991	0	H:\repo\newac\src\libmpdec.pas
 H:\repo\newac\src\libwma1.pas	1245404925	1	libwma1.pas
-H:\repo\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas	1245138005	0	H:\repo\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas
+H:\repo\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas	1247268666	0	H:\repo\newac\demos\Recorders-rippers\DirectSoundRecorder\Main.pas
 H:\repo\newac\src\ACS_Vorbis.pas	1245137991	1	ACS_Vorbis
-H:\repo\newac\src\ACS_DXAudio.pas	1245250294	1	ACS_DXAudio
+H:\repo\newac\src\ACS_DXAudio.pas	1247271774	1	ACS_DXAudio
 H:\repo\newac\demos\Converters\Wav2FLAC\Main.pas	1245138000	0	H:\repo\newac\demos\Converters\Wav2FLAC\Main.pas
 H:\repo\newac\src\NewAC_DSP.pas	1245137991	1	NewAC_DSP
 H:\repo\newac\src\AuASIO.pas	1247162680	1	AuASIO
@@ -113,7 +113,7 @@ H:\repo\newac\src\ACS_WinMedia.pas	1245250333	1	ACS_WinMedia
 H:\repo\newac\demos\Converters\Wav2Ogg-2\Main.pas	1245138001	0	H:\repo\newac\demos\Converters\Wav2Ogg-2\Main.pas
 H:\repo\newac\demos\Players\APEPlayer\Main.pas	1245137992	0	H:\repo\newac\demos\Players\APEPlayer\Main.pas
 H:\repo\newac\demos\Players\NetworkRadioStation\Main.pas	1245137993	0	H:\repo\newac\demos\Players\NetworkRadioStation\Main.pas
-H:\repo\newac\src\ACS_Classes.pas	1246107478	1	ACS_Classes
+H:\repo\newac\src\ACS_Classes.pas	1247271774	1	ACS_Classes
 H:\repo\newac\dunit\uUtility.pas	1245137976	1	uUtility
 H:\repo\newac\demos\Converters\Wav2WV\Main.pas	1245138003	0	H:\repo\newac\demos\Converters\Wav2WV\Main.pas
 H:\repo\newac\demos\Players\CDPlayer\Main.pas	1245137992	0	H:\repo\newac\demos\Players\CDPlayer\Main.pas
