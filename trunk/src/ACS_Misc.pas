@@ -703,11 +703,6 @@ begin
   FInput.Flush;
 end;
 
-function TInputItem.GetOwner;
-begin
-  Result := Collection;
-end;
-
 constructor TAudioPlayList.Create(AOwner: TComponent);
 begin
   inherited;
