@@ -52,7 +52,7 @@ object Form5: TForm5
     object Label1: TLabel
       Left = 8
       Top = 8
-      Width = 75
+      Width = 62
       Height = 13
       Align = alCustom
       Caption = 'Now Playing:'
@@ -60,7 +60,7 @@ object Form5: TForm5
     object Label2: TLabel
       Left = 89
       Top = 8
-      Width = 392
+      Width = 31
       Height = 13
       Caption = 'Label2'
     end
@@ -127,11 +127,6 @@ object Form5: TForm5
   end
   object AudioPlayList1: TAudioPlayList
     Input = MP3In1
-    Files.Strings = (
-      'C:\Music\e-rotic\E-rotic - Give Me Delight.mp3'
-      'C:\Music\CCCatch\01 - Summer Kiss.mp3'
-      'C:\Music\CCCatch\02 - Don'#39't Be A Hero.mp3'
-      'C:\Music\CCCatch\02 - Soul Survivor.mp3')
     CurrentItem = 0
     OnPlayItemChanged = AudioPlayList1PlayItemChanged
     Left = 120
