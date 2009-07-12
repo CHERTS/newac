@@ -200,8 +200,9 @@ type
     Now you assign the list of mp3s to be played to TAudioPlayList's <Files> property and start playback.
     TAudioPlayList will manage the files that TMP3In will play.
     There are some limitations with this component however.
-    All the input files should have the same audio data paramters (sample rates, bits per sample, number of channels).
+    All the input files should have the same audio data parameters (sample rates, bits per sample, number of channels).
     No file name is assigned to the input component before you start playback, so you should not enquire about any properties of the file input being playd before you have started the playback.
+    It is ok to check the input file properties from the <OnPlayItemChanged> event handler.
     TAudioPlayList allows you to construct play lists from the files of the same format. See AudioPlayer demo on how to make play lists of the files of different formats. *)
 
   TAudioPlayList = class(TAuConverter)
@@ -229,7 +230,7 @@ type
       You can change this value to switch the file being played. *)
     property CurrentItem : Word read FCurrentItem write SetCurrentItem;
     (* Property: OnPlayItemChanged
-      This event is triggered when the play lists switches from one item to another.  *)
+      This event is triggered when the new item from the playlist starts to play.  *)
      property OnPlayItemChanged : TPlayItemChangedEvent read FOnPlayItemChanged write FOnPlayItemChanged;
   end;
 
@@ -748,6 +749,8 @@ begin
   else
        TAuFileIn(Finput).FileName := FFiles.Strings[0];
   FInput.Init;
+  if Assigned(FOnPlayItemChanged) then
+      EventHandler.PostGenericEvent(Self, FOnPlayItemChanged);
   FSize:= -1;
 end;
 
