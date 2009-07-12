@@ -15,6 +15,8 @@ Following is the short description of each demo:
 
 • NetworkRadioStation – simple network audio broadcasting station.
 
+• NetworkRadioStation-2 – simple network audio broadcasting station that uses a gapless mp3 playlist (TAudioPlayList component).
+
 • OggPlayer – the Ogg Vorbis format payer that shows Vorbis tags and the current bitrate.
 
 • WMPlayer – the Windows Media Audio (WMA) payer that shows Id3V2 tags.
