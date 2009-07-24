@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package v 1.8.1
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 2.1
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -230,8 +230,54 @@ type
       You can change this value to switch the file being played. *)
     property CurrentItem : Word read FCurrentItem write SetCurrentItem;
     (* Property: OnPlayItemChanged
-      This event is triggered when the new item from the playlist starts to play.  *)
+      This event is triggered when the new item from the playlist starts to play.
+      It is safe to get input file properties from this event's handler.  *)
      property OnPlayItemChanged : TPlayItemChangedEvent read FOnPlayItemChanged write FOnPlayItemChanged;
+  end;
+
+  TCueItem = record
+    Performer : AnsiString;
+    Title : AnsiString;
+    BeginIndex : LongWord;
+    EndIndex : LongWord;
+  end;
+
+  TCueSplitter = class(TAuConverter)
+  private
+    FItems : array of TCueItem;
+    FCueFile : AnsiString;
+    FCurrentItem : Byte;
+    procedure ParseCue;
+    procedure SetCurrentItem(ci : Word);
+    function GetAlbum : AnsiString;
+    function GetPerformer : AnsiString;
+    function GetTitle : AnsiString;
+    function GetLength : LongWord;
+    function GetItemsCount : Byte;
+  protected
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    (* Property: CueFile
+      The name of the cue-shit file. *)
+    property CueFile : AnsiString read FCueFile write FCueFile stored;
+    (* Property: ItemsCount
+      The total number of items in the cue-shit.
+   *)
+    property ItemsCount : Byte read GetItemsCount;
+    (* Property: CurrentItem
+      The index of the item to be extracted.
+      The first item in the play list has an index of zero.
+   *)
+    property CurrentItem : Byte read FCurrentItem write SetCurrentItem;
+    property Album : AnsiString read GetAlbum;
+    property Performer : AnsiString read GetPerformer;
+    property Title : AnsiString read GetTitle;
+    property Length : LongWord read GetLength;
   end;
 
 implementation
