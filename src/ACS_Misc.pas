@@ -247,24 +247,21 @@ type
     FItems : array of TCueItem;
     FCueFile : AnsiString;
     FCurrentItem : Byte;
+    FAlbum : AnsiString;
+    FPerformer : AnsiString;
+    FItemsCount : Byte;
     procedure ParseCue;
     procedure SetCurrentItem(ci : Word);
     function GetAlbum : AnsiString;
     function GetPerformer : AnsiString;
     function GetTitle : AnsiString;
-    function GetLength : LongWord;
     function GetItemsCount : Byte;
   protected
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
-    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  published
-    (* Property: CueFile
-      The name of the cue-shit file. *)
-    property CueFile : AnsiString read FCueFile write FCueFile stored;
     (* Property: ItemsCount
       The total number of items in the cue-shit.
    *)
@@ -278,6 +275,10 @@ type
     property Performer : AnsiString read GetPerformer;
     property Title : AnsiString read GetTitle;
     property Length : LongWord read GetLength;
+  published
+    (* Property: CueFile
+      The name of the cue-shit file. *)
+    property CueFile : AnsiString read FCueFile write FCueFile stored;
   end;
 
 implementation
@@ -826,6 +827,211 @@ begin
         EventHandler.PostGenericEvent(Self, FOnPlayItemChanged);
     end;
   end;
+end;
+
+destructor TCueSplitter.Destroy;
+begin
+  FItems := nil;
+  inherited;
+end;
+
+procedure TCueSplitter.ParseCue;
+const
+  beforeTracks = 1;
+  NewTrack = 2;
+var
+  SL : TStringList;
+  State : Integer;
+  i, p, pos : Integer;
+  Min, sec, millisec : Integer;
+function ExtractString(const S : String; pos : Integer) : String;
+var
+  i : Integer;
+  ksp : Boolean;
+begin
+  Result := '';
+  ksp := False;
+  for i:= pos to Length(S) do
+  begin
+    if S[i] < 33 then
+    begin
+      if ksp then Result := Result + S[i];
+    end else
+    begin
+      if S[i] = '"' then ksp := True
+      else Result := Result + S[i];
+    end;
+  end;
+end;
+
+function ExtractDigits(const S : String; var pos : Integer) : String;
+var
+  i : Integer;
+  ind : Boolean;
+begin
+  Result := '';
+  ind := False;
+  for i:= pos to Length(S) do
+  begin
+    if S[i] in ['0'..'9'] < 33 then
+    begin
+      ind := True;
+      Result := Result + S[i];
+    end else
+    begin
+      if ind then
+      begin
+        pos := i;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+begin
+  if ItemsCount > 0 then
+    Exit;
+  FPerformer := '';
+  FAlbum := '';
+  SetLength(FItems, 255);
+  ItemsCount := 0;
+  SL := TStringList.Create;
+  if FCueFile = '' then
+     raise EAuException.Create('Cue-file not set');
+  SL.LoadFromFile(FCueFile);
+  State := beforeTracks;
+  for i := 0 to SL.Count - 1 do
+  begin
+    case State of
+      beforeTracks:
+      begin
+        p := AnsiPos('PERFORMER', SL.Strings[i]);
+        if p > 0 then
+        begin
+          FPerformer := ExtractString(SL.Strings[i], p + 9);
+        end;
+        p := AnsiPos('TITLE', SL.Strings[i]);
+        if p > 0 then
+        begin
+          FAlbum := ExtractString(SL.Strings[i], p + 5);
+        end;
+        p := AnsiPos('TRACK', SL.Strings[i]);
+        if p > 0 then
+        begin
+          State := NewTrack;
+          FItems[FItemsCount].BeginIndex := 0;
+          FItems[FItemsCount].EndIndex := 0;
+          FItems[FItemsCount].Performer := FPerformer;
+          Inc(FItemsCount);
+        end;
+      end;
+      NewTrack :
+      begin
+        p := AnsiPos('INDEX', SL.Strings[i]);
+        if p > 0 then
+        begin
+          pos := p + 5;
+          if IntToStr(ExtractDigits(SL.Strings[i], pos)) = 0 then
+          begin
+            if ItemsCount > 1 then
+            begin
+              Inc(pos);
+              Min := IntToStr(ExtractDigits(SL.Strings[i], pos));
+              Inc(pos);
+              Sec := IntToStr(ExtractDigits(SL.Strings[i], pos));
+              Inc(pos);
+              MilliSec := Round(IntToStr(ExtractDigits(SL.Strings[i], pos))*1000/75);
+              MilliSec := Min*60000 + Sec*1000 + MilliSec;
+              FItems[FItemsCount-2].EndIndex := MilliSec;
+            end;
+          end else
+          begin
+            Inc(pos);
+            Min := IntToStr(ExtractDigits(SL.Strings[i], pos));
+            Inc(pos);
+            Sec := IntToStr(ExtractDigits(SL.Strings[i], pos));
+            Inc(pos);
+            MilliSec := Round(IntToStr(ExtractDigits(SL.Strings[i], pos))*1000/75);
+            MilliSec := Min*60000 + Sec*1000 + MilliSec;
+            FItems[FItemsCount-1].BeginIndex := MilliSec;
+            if FItemsCount > 1 then
+              if FItems[FItemsCount-2].EndIndex = 0 then
+                FItems[FItemsCount-2].EndIndex := MilliSec;
+          end;
+        end;
+        p := AnsiPos('PERFORMER', SL.Strings[i]);
+        if p > 0 then
+        begin
+          FItems[FItemsCount-1].Performer := ExtractString(SL.Strings[i], p + 9);
+        end;
+        p := AnsiPos('TITLE', SL.Strings[i]);
+        if p > 0 then
+        begin
+          FItems[FItemsCount-1].Title := ExtractString(SL.Strings[i], p + 5);
+        end;
+        p := AnsiPos('TRACK', SL.Strings[i]);
+        if p > 0 then
+        begin
+          FItems[FItemsCount].BeginIndex := 0;
+          FItems[FItemsCount].EndIndex := 0;
+          FItems[FItemsCount].Performer := FPerformer;
+          Inc(FItemsCount);
+        end;
+      end;
+   end;
+  end;
+  SL.Free;
+end;
+
+procedure TCueSplitter.SetCurrentItem(ci: Word);
+begin
+  ParseCue;
+  if (ci = 0) or (ci < ItemsCount)  then
+    FCurrentItem := ci
+  else
+    raise EAuException.Create('Item index out of bounds');
+end;
+
+function TCueSplitter.GetItemsCount;
+begin
+  ParseCue;
+  Result :=  FItemsCount;
+end;
+
+function TCueSplitter.GetAlbum;
+begin
+  ParseCue;
+  Result := FAlbum;
+end;
+
+function TCueSplitter.GetPerformer;
+begin
+  ParseCue;
+  Result := FItems[FCurrentItem].Performer;
+end;
+
+function TCueSplitter.GetTitle;
+begin
+  ParseCue;
+  Result := FItems[FCurrentItem].Title;
+end;
+
+procedure TCueSplitter.InitInternal;
+var
+  FSR : LongWord;
+begin
+  if not Assigned(FInput) then
+  raise EAuException.Create('Input is not assigned.');
+  ParseCue;
+  Busy := True;
+  FPosition := 0;
+  FSR := FInput.SampleRate;
+  TAuSeekableStreamedInput(Finput).StartSample := Round(FItems[FCurrentItem].BeginIndex/1000*FSR);
+  if FCurrentItem = FItemsCount -1 then
+     TAuSeekableStreamedInput(Finput).EndSample := -1
+  else
+     TAuSeekableStreamedInput(Finput).EndSample := Round(FItems[FCurrentItem].EndIndex/1000*FSR);
+  FInput.Init;
 end;
 
 end.
