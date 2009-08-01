@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.0
+  This file is a part of New Audio Components package 2.1
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -441,6 +441,12 @@ type
     *)
     function Seek(SampleNum : Int64) : Boolean;
     constructor Create(AOwner: TComponent); override;
+  end;
+
+  TAuSeekableStreamedInput = class(TAuStreamedInput)
+    public
+      property StartSample;
+      property EndSample;
   end;
 
 (* Class: TAuStreamedOutput
