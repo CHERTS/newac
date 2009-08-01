@@ -196,7 +196,9 @@ type
     A descendant of <TAuConverter> which enables input comonents to play series of files without gaps.
     Suppose you want to build a chain that plays several mp3 files from a predefined list.
     Your chain may look like this:
+
     TMP3In - >> TAudioPlayList - >> TDxAudioOut
+
     Now you assign the list of mp3s to be played to TAudioPlayList's <Files> property and start playback.
     TAudioPlayList will manage the files that TMP3In will play.
     There are some limitations with this component however.
@@ -242,6 +244,19 @@ type
     EndIndex : LongWord;
   end;
 
+ (* Class: TCueSplitter
+    Descends from <TAuConverter>.
+    This class splits long audiotracks containing many compositions into fragments according to the information obtained
+    from a cue-sheet file. The TCueSplitter should be put into audio-processing chain after the input component that reads the audiofile to be split.
+    For example, the audio chain to split a long flac into separate flac-encoded fragments foloowing the cue-sheeit file might look like this:
+
+    TFLACIn - >> TCueSplitter - >> TFLACOut
+
+    This component expects ints input to be a seekable TAuFileIn descending component.
+    Set  the input component's <FileName> property to the name of the multi-composition file described by the cue-sheet.
+    Set TCueSplitter's <CueFile> property to the name of the appropriaate cue-sheet file and set the composition to be extracted to the <CurrentItem> property.
+  *)
+
   TCueSplitter = class(TAuConverter)
   private
     FItems : array of TCueItem;
@@ -251,11 +266,12 @@ type
     FPerformer : AnsiString;
     FItemsCount : Byte;
     procedure ParseCue;
-    procedure SetCurrentItem(ci : Word);
+    procedure SetCurrentItem(ci : Byte);
     function GetAlbum : AnsiString;
     function GetPerformer : AnsiString;
     function GetTitle : AnsiString;
     function GetItemsCount : Byte;
+    procedure SetCueFile(const fn : AnsiString);
   protected
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
@@ -263,22 +279,30 @@ type
   public
     destructor Destroy; override;
     (* Property: ItemsCount
-      The total number of items in the cue-shit.
+      The total number of tracks in the cue-sheet.
    *)
     property ItemsCount : Byte read GetItemsCount;
     (* Property: CurrentItem
       The index of the item to be extracted.
-      The first item in the play list has an index of zero.
+      The valid values range from 0 to ItemsCount-1.
    *)
     property CurrentItem : Byte read FCurrentItem write SetCurrentItem;
+    (* Property: Album
+      Returns the name of the album (The cue-sheet header title)
+   *)
     property Album : AnsiString read GetAlbum;
+    (* Property: Performer
+      Returns the name of the current performer
+   *)
     property Performer : AnsiString read GetPerformer;
+    (* Property: Performer
+      Returns the name of the current composition
+   *)
     property Title : AnsiString read GetTitle;
-    property Length : LongWord read GetLength;
   published
     (* Property: CueFile
-      The name of the cue-shit file. *)
-    property CueFile : AnsiString read FCueFile write FCueFile stored;
+      The name of the cue-sheet file. *)
+    property CueFile : AnsiString read FCueFile write SetCueFile;
   end;
 
 implementation
@@ -853,7 +877,7 @@ begin
   ksp := False;
   for i:= pos to Length(S) do
   begin
-    if S[i] < 33 then
+    if S[i] < Char(33) then
     begin
       if ksp then Result := Result + S[i];
     end else
@@ -873,7 +897,7 @@ begin
   ind := False;
   for i:= pos to Length(S) do
   begin
-    if S[i] in ['0'..'9'] < 33 then
+    if S[i] in ['0'..'9'] then
     begin
       ind := True;
       Result := Result + S[i];
@@ -889,12 +913,12 @@ begin
 end;
 
 begin
-  if ItemsCount > 0 then
+  if FItemsCount > 0 then
     Exit;
   FPerformer := '';
   FAlbum := '';
   SetLength(FItems, 255);
-  ItemsCount := 0;
+  FItemsCount := 0;
   SL := TStringList.Create;
   if FCueFile = '' then
      raise EAuException.Create('Cue-file not set');
@@ -931,27 +955,27 @@ begin
         if p > 0 then
         begin
           pos := p + 5;
-          if IntToStr(ExtractDigits(SL.Strings[i], pos)) = 0 then
+          if StrToInt(ExtractDigits(SL.Strings[i], pos)) = 0 then
           begin
-            if ItemsCount > 1 then
+            if FItemsCount > 1 then
             begin
               Inc(pos);
-              Min := IntToStr(ExtractDigits(SL.Strings[i], pos));
+              Min := StrToInt(ExtractDigits(SL.Strings[i], pos));
               Inc(pos);
-              Sec := IntToStr(ExtractDigits(SL.Strings[i], pos));
+              Sec := StrToInt(ExtractDigits(SL.Strings[i], pos));
               Inc(pos);
-              MilliSec := Round(IntToStr(ExtractDigits(SL.Strings[i], pos))*1000/75);
+              MilliSec := Round(StrToInt(ExtractDigits(SL.Strings[i], pos))*1000/75);
               MilliSec := Min*60000 + Sec*1000 + MilliSec;
               FItems[FItemsCount-2].EndIndex := MilliSec;
             end;
           end else
           begin
             Inc(pos);
-            Min := IntToStr(ExtractDigits(SL.Strings[i], pos));
+            Min := StrToInt(ExtractDigits(SL.Strings[i], pos));
             Inc(pos);
-            Sec := IntToStr(ExtractDigits(SL.Strings[i], pos));
+            Sec := StrToInt(ExtractDigits(SL.Strings[i], pos));
             Inc(pos);
-            MilliSec := Round(IntToStr(ExtractDigits(SL.Strings[i], pos))*1000/75);
+            MilliSec := Round(StrToInt(ExtractDigits(SL.Strings[i], pos))*1000/75);
             MilliSec := Min*60000 + Sec*1000 + MilliSec;
             FItems[FItemsCount-1].BeginIndex := MilliSec;
             if FItemsCount > 1 then
@@ -983,7 +1007,7 @@ begin
   SL.Free;
 end;
 
-procedure TCueSplitter.SetCurrentItem(ci: Word);
+procedure TCueSplitter.SetCurrentItem(ci: Byte);
 begin
   ParseCue;
   if (ci = 0) or (ci < ItemsCount)  then
@@ -1016,6 +1040,14 @@ begin
   Result := FItems[FCurrentItem].Title;
 end;
 
+procedure TCueSplitter.SetCueFile(const fn: AnsiString);
+begin
+  FItems := nil;
+  FItemsCount := 0;
+  FCurrentItem := 0;
+  FCueFile := fn;
+end;
+
 procedure TCueSplitter.InitInternal;
 var
   FSR : LongWord;
@@ -1033,5 +1065,18 @@ begin
      TAuSeekableStreamedInput(Finput).EndSample := Round(FItems[FCurrentItem].EndIndex/1000*FSR);
   FInput.Init;
 end;
+
+procedure TCueSplitter.GetDataInternal;
+begin
+   FInput.GetData(Buffer, Bytes);
+   Inc(FPosition, Bytes);
+end;
+
+procedure TCueSplitter.FlushInternal;
+begin
+  FInput.Flush;
+  Busy := False;
+end;
+
 
 end.
