@@ -21,7 +21,7 @@ type
 
  (* Class: TDTSIn
       Descends from <TAuFileIn>.
-      This component decods DTS-encoded audio streams.
+      This component decodes DTS-encoded audio streams.
       You will need libdca.dll (included with other NewAC dlls) to use the component.
  *)
 
