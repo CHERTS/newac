@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 1.8
+  This file is a part of New Audio Components package v 2.1
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -493,7 +493,7 @@ implementation
         FStream := TAuFileStream.Create(FWideFileName, fmOpenRead or fmShareDenyWrite);
       except
         FValid := False;
-        Exit;
+        raise EAuException.Create('Failed to open stream');
       end;
       Callbacks.read_func := cbRead;
       Callbacks.close_func := cbClose;

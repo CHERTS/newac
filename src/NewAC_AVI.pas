@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.8
+  This file is a part of New Audio Components package 2.1
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -219,7 +219,7 @@ implementation
       else
       begin
         FHasAudio := False;
-        Exit;
+        raise EAuException.Create('');
       end;
       AVIStream.Info(StreamInfo, SizeOf(StreamInfo));
       _StartSample := StreamInfo.dwStart;
