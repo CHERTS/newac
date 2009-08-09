@@ -1,13 +1,29 @@
+(*
+  This file is a part of New Audio Components package 2.1
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  See the LICENSE file for more details.
+  You can contact me at anb@symmetrica.net
+*)
+
 (* $Id$ *)
 
 unit NewACDTS;
 
+(* Title: NewACDTS
+    Digital Theater System (DTS) decoder component *)
+
 interface
 
 uses
-  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, libdca;
+  Windows, Classes, SysUtils, math, ACS_Classes, ACS_Procs, ACS_Types, libdca;
 
 type
+
+ (* Class: TDTSIn
+      Descends from <TAuFileIn>.
+      This component decods DTS-encoded audio streams.
+      You will need libdca.dll (included with other NewAC dlls) to use the component.
+ *)
 
   TDTSIn = class(TAuFileIn)
   private
@@ -22,30 +38,18 @@ type
     BlockCount, CurrentBlock : Integer;
     FBitRate : LongWord;
     FFlags : Integer;
+    __EOF : Boolean;
     function ReadFrame : Boolean;
     function GetBitrate : LongWord;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
-    function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-   (* Property: ReportSize
-       Due to internal limitations the component cannot report the exact audio
-       stream size when dealing with some compression formats. Setting
-       ReportSize to False forces the component not to report the audio stream
-       size at all. Set this property to False if you are saving AVI audio
-       data as a .wav file. *)
-    property ReportSize : Boolean read FReportSize write FReportSize;
-    (* Property: HasAudio
-       Read this property to determine the bit rate fo the DTS file.
+    (* Property: BitRate
+       Read this property to determine the bit rate for the DTS file.
     *)
     property BitRate : LongWord read GetBitrate;
-  published
-    property EndSample;
-    property StartSample;
   end;
 
 
@@ -65,7 +69,7 @@ implementation
     begin
       FStream.Seek(i+CurPos, soFromBeginning);
       FStream.Read(tmpbuf, 14);
-      FrameSize := dca_syncinfo(state, tmpbuf, FFlags, sample_rate, bit_rate, frame_length);
+      FrameSize := dca_syncinfo(state, @tmpbuf[0], FFlags, sample_rate, bit_rate, frame_length);
       if FrameSize <> 0 then
       begin
         Result := True;
@@ -73,8 +77,8 @@ implementation
         FBitRate := bit_rate;
         FBPS := 16;
         SetLength(FrameBuf, FrameSize);
-        Move(tmpbuf, FrameBuf[1], 14);
-        FStream.Read(FrameBuf[15], FrameSize-14);
+        Move(tmpbuf, FrameBuf[0], 14);
+        FStream.Read(FrameBuf[14], FrameSize-14);
         ChanInfo := FFlags and DCA_CHANNEL_MASK;
         case ChanInfo of
           0 : FChan := 1;
@@ -109,7 +113,8 @@ implementation
         raise EAuException.Create('Failed to open stream');
       end;
       state := dca_init(0);
-      CurrentBlock := 0;
+      CurrentBlock := 1;
+      BlockCount := 1;
       FValid := ReadFrame;
       if FValid = False then
       begin
@@ -120,15 +125,90 @@ implementation
       _SampleSize := (FBPS div 8) * FChan;
       FSeekable := False;
       Inc(FOpened);
-      _Buf := nil;
-      _BufSize := 0;
+      SetLength(_Buf, 256*FChan);
+      _BufSize := 256*FChan*2;
       Offset := 0;
       BufEnd := 0;
+      __EOF := False;
     end;
     finally
       OpenCS.Leave;
     end;
   end;
 
+  procedure TDTSIn.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+  var
+    level, bias : Single;
+    samples : psingle;
+    i, j, Res : Integer;
+    SamplesReq : Integer;
+  begin
+    if Offset >= BufEnd then
+    begin
+      if CurrentBlock > BlockCount then
+      begin
+        if not ReadFrame then
+          if FStream.Position < FStream.Size then
+          raise EAuException.Create('Sync lost')
+        else begin
+          Bytes := 0;
+          Buffer := nil;
+        end;
+        CurrentBlock := 1;
+      end;
+      if CurrentBlock = 1 then
+      begin
+        FFlags := FFlags or DCA_ADJUST_LEVEL;
+        level := 1;
+        bias := 0;
+        res := dca_frame(state, @FrameBuf[0], FFlags, level, bias);
+        if res <> 0 then
+          raise EAuException.Create('');
+        BlockCount := dca_blocks_num(state);
+      end;
+      dca_block(state);
+      samples := psingle(dca_samples(state));
+      for i := 0 to FChan - 1 do
+        for j := 0 to 255 do
+        begin
+          _Buf[j*FChan + i] := Floor(samples^*High(SmallInt));
+          Inc(samples);
+        end;
+      Offset := 0;
+      BufEnd := 256;
+      Inc(CurrentBlock);
+    end;
+    Bytes := Bytes - (Bytes mod _SampleSize);
+    SamplesReq := Bytes div _SampleSize;
+    if SamplesReq > BufEnd - Offset then
+       SamplesReq := BufEnd - Offset;
+    Buffer := @_Buf[Offset*FChan];
+    Bytes := SamplesReq*_SampleSize;
+    Inc(Offset, SamplesReq);
+  end;
+
+  procedure TDTSIn.CloseFile;
+  begin
+    OpenCS.Enter;
+    try
+    if FOpened > 0 then
+    begin
+      dca_free(state);
+      _buf := nil;
+      FrameBuf := nil;
+      if not FStreamAssigned then
+         FStream.Free;
+      FOpened  := 0;
+    end;
+    finally
+      OpenCS.Leave;
+    end;
+  end;
+
+  function TDTSIn.GetBitrate;
+  begin
+    OpenFile;
+    Result := FBitRate;
+  end;
 
 end.

@@ -558,6 +558,8 @@ implementation
     if FOpened > 0 then
     begin
       ov_clear(VFile);
+      if not FStreamAssigned then
+         FStream.Free;
       FOpened  := 0;
     end;  
     finally
