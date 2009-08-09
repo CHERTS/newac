@@ -28,6 +28,7 @@ package NewAC;
 {$R 'NewACPack.dcr'}
 {$R 'AuASIO.dcr'}
 {$R 'AuSynch.dcr'}
+{$R 'NewACDTS.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
