@@ -65,7 +65,7 @@ implementation
   begin
     Result := False;
     CurPos := FStream.Position;
-    for i := 0 to 255 do
+    for i := 0 to 4096 do
     begin
       FStream.Seek(i+CurPos, soFromBeginning);
       FStream.Read(tmpbuf, 14);
