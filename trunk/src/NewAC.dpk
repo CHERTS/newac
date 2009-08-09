@@ -118,6 +118,8 @@ contains
   ASIO in 'ASIO.pas',
   AsioList in 'AsioList.pas',
   mr_cddb in 'mr_cddb.pas',
-  AuSynch in 'AuSynch.pas';
+  AuSynch in 'AuSynch.pas',
+  libdca in 'libdca.pas',
+  NewACDTS in 'NewACDTS.pas';
 
 end.

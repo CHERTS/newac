@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 1.8
+  This file is a part of New Audio Components package v. 2.1
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -613,7 +613,8 @@ implementation
       if not FStreamAssigned then FStream := TAuFileStream.Create(FWideFileName, fmOpenRead or fmShareDenyWrite);
       lwma_reader_init(reader, FStream, FHighPrecision, CNToShortInt);
       FValid := reader.has_audio;
-      if reader.reader = nil then Exit;
+      if reader.reader = nil then
+        raise EAuException.Create('');
       if reader._protected then
         raise EAuException.Create('File is protected');
       FDuration := lwma_reader_get_duration(reader);
@@ -864,7 +865,8 @@ implementation
       if Assigned(FOnStreamOpened) then
         EventHandler.PostGenericEvent(Self, FOnStreamOpened);
       FValid := reader.has_audio;
-      if reader.reader = nil then Exit;
+      if reader.reader = nil then
+        raise EAuException.Create('');
       FChan := reader.channels;
       FBPS := reader.BitsPerSample;
       FSR := reader.SampleRate;
