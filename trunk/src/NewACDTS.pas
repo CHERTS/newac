@@ -65,10 +65,15 @@ implementation
   begin
     Result := False;
     CurPos := FStream.Position;
-    for i := 0 to 4096 do
+    for i := 0 to 4096*256 do
     begin
       FStream.Seek(i+CurPos, soFromBeginning);
       FStream.Read(tmpbuf, 14);
+      if FStream.Position >=  FStream.Size then
+      begin
+        Result := False;
+        Exit;
+      end;
       FrameSize := dca_syncinfo(state, @tmpbuf[0], FFlags, sample_rate, bit_rate, frame_length);
       if FrameSize <> 0 then
       begin
@@ -148,9 +153,10 @@ implementation
       if CurrentBlock > BlockCount then
       begin
         if not ReadFrame then
-          if FStream.Position < FStream.Size then
+        if FStream.Position < FStream.Size then
           raise EAuException.Create('Sync lost')
-        else begin
+        else
+        begin
           Bytes := 0;
           Buffer := nil;
         end;
