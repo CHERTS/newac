@@ -1197,29 +1197,68 @@ type
   end;
 
 
-  function WMCreateSyncReader(pUnkCert: IUnknown; dwRights: LongWord; out ppSyncReader: IWMSyncReader): HRESULT; stdcall;
+  WMCreateSyncReader_t = function (pUnkCert: IUnknown; dwRights: LongWord; out ppSyncReader: IWMSyncReader): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateSyncReader}
-  function WMCreateWriter(pUnkCert: IUnknown; out ppWriter: IWMWriter): HRESULT; stdcall;
+  WMCreateWriter_t = function (pUnkCert: IUnknown; out ppWriter: IWMWriter): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateWriter}
-  function WMCreateWriterFileSink(out ppSink: IWMWriterFileSink ): HRESULT; stdcall;
+  WMCreateWriterFileSink_t = function (out ppSink: IWMWriterFileSink ): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateWriterFileSink}
-  function WMCreateProfileManager(out ppProfileManager: IWMProfileManager): HRESULT; stdcall;
+  WMCreateProfileManager_t = function (out ppProfileManager: IWMProfileManager): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateProfileManager}
-  function WMCreateReader(pUnkCert: IUnknown; dwRights: LongWord; out ppReader: IWMReader): HRESULT; stdcall;
+  WMCreateReader_t = function (pUnkCert: IUnknown; dwRights: LongWord; out ppReader: IWMReader): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateReader}
-  function WMCreateWriterNetworkSink(out ppSink: IWMWriterNetworkSink): HRESULT; stdcall;
+  WMCreateWriterNetworkSink_t = function (out ppSink: IWMWriterNetworkSink): HRESULT; stdcall;
   {$EXTERNALSYM WMCreateWriterNetworkSink}
 
+var
+  WMVCoreLoaded : Boolean = False;
+  WMCreateSyncReader : WMCreateSyncReader_t;
+  WMCreateWriter : WMCreateWriter_t;
+  WMCreateWriterFileSink : WMCreateWriterFileSink_t;
+  WMCreateProfileManager : WMCreateProfileManager_t;
+  WMCreateReader : WMCreateReader_t;
+  WMCreateWriterNetworkSink : WMCreateWriterNetworkSink_t;
+
+
+  procedure LoadWMVCore;
+  procedure UnloadWMVCore;
 
 implementation
 
 const
   WMVCORE = 'WMVCORE.DLL';
 
-  function WMCreateSyncReader; external WMVCORE name 'WMCreateSyncReader';
-  function WMCreateWriter; external WMVCORE name 'WMCreateWriter';
-  function WMCreateWriterFileSink; external WMVCORE name 'WMCreateWriterFileSink';
-  function WMCreateProfileManager; external WMVCORE name 'WMCreateProfileManager';
-  function WMCreateReader; external WMVCORE name 'WMCreateReader';
-  function WMCreateWriterNetworkSink; external WMVCORE name 'WMCreateWriterNetworkSink';
+var
+  WMVHandle : HMODULE = 0;
+
+procedure LoadWMVCore;
+begin
+  if WMVCoreLoaded then Exit;
+  WMVHandle := LoadLibrary(WMVCORE);
+  if WMVHandle <> 0 then
+  begin
+    WMVCoreLoaded := True;
+    WMCreateSyncReader := GetProcAddress(WMVHandle, 'WMCreateSyncReader');
+    WMCreateWriter := GetProcAddress(WMVHandle, 'WMCreateWriter');
+    WMCreateWriterFileSink := GetProcAddress(WMVHandle, 'WMCreateWriterFileSink');
+    WMCreateProfileManager := GetProcAddress(WMVHandle, 'WMCreateProfileManager');
+    WMCreateReader := GetProcAddress(WMVHandle, 'WMCreateReader');
+    WMCreateWriterNetworkSink := GetProcAddress(WMVHandle, 'WMCreateWriterNetworkSink');
+  end;
+end;
+
+
+procedure UnloadWMVCore;
+begin
+  if not WMVCoreLoaded then Exit;
+  WMVCoreLoaded := False;
+  if WMVHandle <> 0 then FreeLibrary(WMVHandle);
+end;
+
+initialization
+  LoadWMVCore;
+
+finalization
+  UnloadWMVCore;
+
 end.
