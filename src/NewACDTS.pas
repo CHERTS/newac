@@ -177,7 +177,7 @@ implementation
       for i := 0 to FChan - 1 do
         for j := 0 to 255 do
         begin
-          _Buf[j*FChan + i] := Floor(samples^*High(SmallInt));
+          _Buf[j*FChan + i] := Floor(samples^*(High(SmallInt)));
           Inc(samples);
         end;
       Offset := 0;
