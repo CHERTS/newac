@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.0
+  This file is a part of New Audio Components package 2.1
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -31,7 +31,7 @@ type
       This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
       One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
       It is your software that should tune itself up to an ASIO driver and not vice versa.
-      The sample formats currently supported by the NewAC ASIO components are 16/32 bps mono/stereo.
+      The sample formats currently supported by the NewAC ASIO components are 16/32 bps mono/stereo/5.1 surround.
  *)
 
   TASIOAudioOut = class(TAuOutput)
@@ -412,6 +412,9 @@ begin
    FillBuffer(GStop);
    if Self.FOutputBPS = 16 then
    begin
+     if FOutputChannels = 6 then
+        DeinterleaveSurround16(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], BufferInfo[4].buffers[BufferIndex], BufferInfo[5].buffers[BufferIndex], OutputComponent.FBufferSize)
+     else
      if FOutputChannels = 2 then
        DeinterleaveStereo16(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
      else
@@ -422,6 +425,9 @@ begin
    end;
    if Self.FOutputBPS = 32 then
    begin
+     if FOutputChannels = 6 then
+        DeinterleaveSurround32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], BufferInfo[4].buffers[BufferIndex], BufferInfo[5].buffers[BufferIndex], OutputComponent.FBufferSize)
+     else
      if FOutputChannels = 2 then
        DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
      else
@@ -815,7 +821,7 @@ begin
   end; *)
 
   // TODO: Add multichannel support
-  if Device.CreateBuffers(@BufferInfo, 2, FBufferSize, Callbacks) <> ASE_OK then
+  if Device.CreateBuffers(@BufferInfo, FOutputChannels, FBufferSize, Callbacks) <> ASE_OK then
      raise EAuException.Create('ASIO: failed to create output buffers.');
   chi.channel := 0;
   chi.isInput := ASIOFalse;

@@ -176,6 +176,10 @@ var
   procedure DeinterleaveStereo32(Src, Dst1, Dst2 : Pointer; Samples : Integer);
   procedure DeinterleaveStereo16(Src, Dst1, Dst2 : Pointer; Samples : Integer);
 
+  procedure DeinterleaveSurround32(Src, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6 : Pointer; Samples : Integer);
+  procedure DeinterleaveSurround16(Src, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6 : Pointer; Samples : Integer);
+
+
   procedure InterleaveStereo32(Src1, Src2, Dst : Pointer; Samples : Integer);
   procedure InterleaveStereo16(Src1, Src2, Dst : Pointer; Samples : Integer);
 
@@ -1130,6 +1134,52 @@ end;
     begin
       D1[i] := S[i shl 1];
       D2[i] := S[(i shl 1) + 1];
+    end;
+  end;
+
+  procedure DeinterleaveSurround32(Src, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6 : Pointer; Samples : Integer);
+  var
+    S, D1, D2, D3, D4, D5, D6 : PBuffer32;
+    i : Integer;
+  begin
+    S := Src;
+    D1 := Dst1;
+    D2 := Dst2;
+    D3 := Dst3;
+    D4 := Dst4;
+    D5 := Dst5;
+    D6 := Dst6;
+    for i := 0 to Samples - 1 do
+    begin
+      D1[i] := S[i*6];
+      D2[i] := S[(i*6) + 1];
+      D3[i] := S[(i*6) + 2];
+      D4[i] := S[(i*6) + 3];
+      D5[i] := S[(i*6) + 4];
+      D6[i] := S[(i*6) + 5];
+    end;
+  end;
+
+  procedure DeinterleaveSurround16(Src, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6 : Pointer; Samples : Integer);
+  var
+    S, D1, D2, D3, D4, D5, D6 : PBuffer16;
+    i : Integer;
+  begin
+    S := Src;
+    D1 := Dst1;
+    D2 := Dst2;
+    D3 := Dst3;
+    D4 := Dst4;
+    D5 := Dst5;
+    D6 := Dst6;
+    for i := 0 to Samples - 1 do
+    begin
+      D1[i] := S[i*6];
+      D2[i] := S[(i*6) + 1];
+      D3[i] := S[(i*6) + 2];
+      D4[i] := S[(i*6) + 3];
+      D5[i] := S[(i*6) + 4];
+      D6[i] := S[(i*6) + 5];
     end;
   end;
 
