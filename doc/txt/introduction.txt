@@ -33,6 +33,12 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
+Version: NewAC 2.1
+	- DTS decoder added.
+	- TAudioPlaylist component which allows gapless playback added. 
+	- TCueSplitter component added (splits audiotracks automatically using cue-sheets).
+	- ASIO output now supports 5.1 channels.
+
 Version: NewAC 2.0
 	- Low-latency ASIO drivers support added.
 	- Real-time audio components (TAudioSynchronizer, TAudioHiResTimer) added. 
