@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.0
+  This file is a part of New Audio Components package v. 2.1
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -59,6 +59,7 @@ type
     FillByte : Byte;
     FUnderruns, _TmpUnderruns : LongWord;
     FOnUnderrun : TUnderrunEvent;
+    FVolume : longint; //DW - for more reliable volume control
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
@@ -330,6 +331,7 @@ begin
   begin
     Len := FInput.FillBuffer(Buf, _BufSize, EndOfInput);
     DSW_WriteBlock(DSW, @Buf[0], Len);
+    Volume := FVolume; //DW
     DSW_StartOutput(DSW);
     StartInput := False;
   end;
@@ -391,6 +393,7 @@ begin
   inherited Create(AOwner);
   FFramesInBuffer := $10000;
   FPollingInterval := 200;
+  FVolume := 0; //DW
   DSW_EnumerateOutputDevices(@Devices);
   FDeviceCount := Devices.devcount;
 end;
@@ -644,12 +647,14 @@ end;
 
 procedure TDXAudioOut.SetVolume;
 begin
+  FVolume := Value; //DW
   dsw_SetVolume(DSW, value);
 end;
 
 function TDXAudioOut.GetVolume;
 begin
   dsw_GetVolume(DSW, Result);
+  FVolume := Result; //DW
 end;
 
 procedure TDXAudioOut.SetFramesInBuffer;
