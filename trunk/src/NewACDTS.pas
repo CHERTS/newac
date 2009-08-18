@@ -39,6 +39,7 @@ type
     FBitRate : LongWord;
     FFlags : Integer;
     __EOF : Boolean;
+    FExtractFromVOB : Boolean;
     function ReadFrame : Boolean;
     function GetBitrate : LongWord;
   protected
@@ -50,6 +51,7 @@ type
        Read this property to determine the bit rate for the DTS file.
     *)
     property BitRate : LongWord read GetBitrate;
+    property ExtractFromVOB : Boolean read FExtractFromVOB write FExtractFromVOB;
   end;
 
 
@@ -58,8 +60,7 @@ implementation
   function TDTSIn.ReadFrame;
   var
     CurPos : Int64;
-    tmpbuf : array[0..13] of Byte;
-    i : Integer;
+    i, j, rest : Integer;
     sample_rate, bit_rate, frame_length : Integer;
     ChanInfo : Integer;
   begin
@@ -68,22 +69,18 @@ implementation
     for i := 0 to 4096*256 do
     begin
       FStream.Seek(i+CurPos, soFromBeginning);
-      FStream.Read(tmpbuf, 14);
+      FStream.Read(FrameBuf[0], 14);
       if FStream.Position >=  FStream.Size then
       begin
         Result := False;
         Exit;
       end;
-      FrameSize := dca_syncinfo(state, @tmpbuf[0], FFlags, sample_rate, bit_rate, frame_length);
+      FrameSize := dca_syncinfo(state, @FrameBuf[0], FFlags, sample_rate, bit_rate, frame_length);
       if FrameSize <> 0 then
       begin
-        Result := True;
         FSR := sample_rate;
         FBitRate := bit_rate;
         FBPS := 16;
-        SetLength(FrameBuf, FrameSize);
-        Move(tmpbuf, FrameBuf[0], 14);
-        FStream.Read(FrameBuf[14], FrameSize-14);
         ChanInfo := FFlags and DCA_CHANNEL_MASK;
         case ChanInfo of
           0 : FChan := 1;
@@ -95,6 +92,19 @@ implementation
         end;
           if (FFlags and DCA_LFE) <> 0 then
             Inc(FChan);
+        if FExtractFromVOB then
+        begin
+          if FChan <> 6 then
+            Continue;
+          if (FSR <> 44100) and (FSR <> 48000) then
+            Continue;
+          if (FSR = 44100) and (FBitrate <> 1411000) then
+            Continue;
+          if (FSR = 48000) and (FBitrate <> 1536000) then
+            Continue;
+        end;
+        FStream.Read(FrameBuf[14], FrameSize-14);
+        Result := True;
         Break;
       end;
     end;
@@ -117,6 +127,7 @@ implementation
       except
         raise EAuException.Create('Failed to open stream');
       end;
+      SetLength(FrameBuf, 32*1024);
       state := dca_init(0);
       CurrentBlock := 1;
       BlockCount := 1;
