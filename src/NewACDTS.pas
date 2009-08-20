@@ -57,6 +57,10 @@ type
     *)
     property BitRate : LongWord read GetBitrate;
   published
+    (* Property: Extract
+       Set this property to True if you are going to extract DTS stream from a *.VOB file.
+       Otherwise this property should be set to False.
+    *)
     property Extract : Boolean read FExtract write FExtract;
   end;
 
