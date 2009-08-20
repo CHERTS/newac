@@ -24,6 +24,8 @@ type
  (* Class: TDTSIn
       Descends from <TAuFileIn>.
       This component decodes DTS-encoded audio streams.
+      TDTSIn can extract DTS-encoded streams from *.wav files containing DTS,
+      *.nrg and *.iso images of DTS-encoded audio CDs, and *.VOB files that contain DTS audio streams.
       You will need libdca.dll (included with other NewAC dlls) to use the component.
  *)
 
