@@ -19,6 +19,8 @@ uses
 
 type
 
+  TReadFunc = function : Boolean of object;
+
  (* Class: TDTSIn
       Descends from <TAuFileIn>.
       This component decodes DTS-encoded audio streams.
@@ -39,8 +41,11 @@ type
     FBitRate : LongWord;
     FFlags : Integer;
     __EOF : Boolean;
-    FExtractFromVOB : Boolean;
+    FExtract : Boolean;
+    ReadFunc : TReadFunc;
+    StreamSize : Int64;
     function ReadFrame : Boolean;
+    function ExtractFrame : Boolean;
     function GetBitrate : LongWord;
   protected
     procedure OpenFile; override;
@@ -51,16 +56,21 @@ type
        Read this property to determine the bit rate for the DTS file.
     *)
     property BitRate : LongWord read GetBitrate;
-    property ExtractFromVOB : Boolean read FExtractFromVOB write FExtractFromVOB;
+  published
+    property Extract : Boolean read FExtract write FExtract;
   end;
 
 
 implementation
 
+  const
+    SafeOffset : Integer = 0;
+
+
   function TDTSIn.ReadFrame;
   var
     CurPos : Int64;
-    i, j, rest : Integer;
+    i : Integer;
     sample_rate, bit_rate, frame_length : Integer;
     ChanInfo : Integer;
   begin
@@ -70,7 +80,7 @@ implementation
     begin
       FStream.Seek(i+CurPos, soFromBeginning);
       FStream.Read(FrameBuf[0], 14);
-      if FStream.Position >=  FStream.Size then
+      if FStream.Position >=  StreamSize then
       begin
         Result := False;
         Exit;
@@ -92,20 +102,70 @@ implementation
         end;
           if (FFlags and DCA_LFE) <> 0 then
             Inc(FChan);
-        if FExtractFromVOB then
-        begin
-          if FChan <> 6 then
-            Continue;
-          if (FSR <> 44100) and (FSR <> 48000) then
-            Continue;
-          if (FSR = 44100) and (FBitrate <> 1411000) then
-            Continue;
-          if (FSR = 48000) and (FBitrate <> 1536000) then
-            Continue;
-        end;
         FStream.Read(FrameBuf[14], FrameSize-14);
         Result := True;
         Break;
+      end;
+    end;
+  end;
+
+  function TDTSIn.ExtractFrame;
+  var
+    CurPos : Int64;
+    i : Integer;
+    sample_rate, bit_rate, frame_length : Integer;
+    ChanInfo : Integer;
+  begin
+    Result := False;
+    while FStream.Position < StreamSize do
+    begin
+      FStream.Read(FrameBuf[0], 4);
+      if PLongWord(@FrameBuf[0])^ = $180FE7F then
+//      if FrameBuf[3] = 1 then
+      begin
+        FStream.Read(FrameBuf[4], 10);
+        FrameSize := dca_syncinfo(state, @FrameBuf[0], FFlags, sample_rate, bit_rate, frame_length);
+        if FrameSize <> 0 then
+        begin
+          FSR := sample_rate;
+          FBitRate := bit_rate;
+          FBPS := 16;
+          ChanInfo := FFlags and DCA_CHANNEL_MASK;
+          case ChanInfo of
+            0 : FChan := 1;
+            1,2,3,4 : FChan := 2;
+            5,6 : FChan := 3;
+            7,8 : FChan := 4;
+            9 : FChan := 5;
+            10 : FChan := 6;
+          end;
+          if (FFlags and DCA_LFE) <> 0 then
+            Inc(FChan);
+          if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000)) then
+          begin
+            FStream.Seek(-10, soFromCurrent);
+            Continue;
+          end;
+          if FStream.Position >= FStream.Size - FrameSize + 14 then
+          begin
+            STreamSize := FStream.Position;
+            Break;
+          end;
+
+          FStream.Read(FrameBuf[14], FrameSize-14);
+          Result := True;
+          Break;
+        end else
+        FStream.Seek(-10, soFromCurrent);
+      end else
+       // FStream.Seek(-3, soFromCurrent);
+      begin
+        case FrameBuf[3] of
+          $80 : FStream.Seek(-3, soFromCurrent);
+          $FE : FStream.Seek(-2, soFromCurrent);
+          $7F : FStream.Seek(-1, soFromCurrent);
+          else;
+        end;
       end;
     end;
   end;
@@ -131,7 +191,16 @@ implementation
       state := dca_init(0);
       CurrentBlock := 1;
       BlockCount := 1;
-      FValid := ReadFrame;
+      if FExtract then
+      begin
+        ReadFunc := ExtractFrame;
+        StreamSize := FStream.Size - SafeOffset;
+      end else
+      begin
+        ReadFunc := ReadFrame;
+        StreamSize := FStream.Size;
+      end;
+      FValid := ReadFunc;
       if FValid = False then
       begin
         OpenCS.Leave;
@@ -163,10 +232,11 @@ implementation
     begin
       if CurrentBlock > BlockCount then
       begin
-        if not ReadFrame then
-        if FStream.Position < FStream.Size then
+        if not ReadFunc then
+        if FStream.Position < StreamSize then
+        begin
           raise EAuException.Create('Sync lost')
-        else
+        end else
         begin
           Bytes := 0;
           Buffer := nil;
