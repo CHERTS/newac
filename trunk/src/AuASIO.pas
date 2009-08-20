@@ -31,7 +31,7 @@ type
       This component also requires openasio.dll which you will find along with other third-party NewAC libraries.
       One important feature of ASIO drivers is that they offer only a limited choise of sampling rates and sample formats.
       It is your software that should tune itself up to an ASIO driver and not vice versa.
-      The sample formats currently supported by the NewAC ASIO components are 16/32 bps mono/stereo/5.1 surround.
+      The sample formats currently supported by the NewAC ASIO components are 16/24/32 bps mono/stereo/5.1 surround.
  *)
 
   TASIOAudioOut = class(TAuOutput)
@@ -718,9 +718,6 @@ begin
     raise EAuException.Create(Format('ASIO driver doesn''t support sample rate of %d. Use resampler.', [SR]))
   else  Device.SetSampleRate(Round(SR));
   BPS := FInput.BitsPerSample;
-  if BPS <> FOutputBPS then
-    if BPS <> 16 then
-       raise EAuException.Create(Format('ASIO driver cannot handle %d BPS directly. Use BPS converter.', [BPS]));
   GStop := False;
   DoReset := False;
   AsioBufferSwitchOutput(1, AsioTrue);
@@ -901,7 +898,7 @@ var
 begin
   if (BPS = 16) and (OutputBPS = 32) then
   begin
-    FillChar(iBuf, (FBufferSize shl 2)*FOutputChannels, 0);
+//    FillChar(iBuf, (FBufferSize shl 2)*FOutputChannels, 0);
     Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
     count := FBufferSize*FOutputChannels;
     Buf16 := @iBuf;
@@ -909,11 +906,22 @@ begin
     for i := Count - 1 downto 0 do
       Buf32[i] := Buf16[i] shl 16;
     Exit;
-  end;
+  end else
   if (BPS = 32) and (OutputBPS = 32) then
-  Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 2)*FOutputChannels, EOF);
+  Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 2)*FOutputChannels, EOF)
+  else
   if (BPS = 16) and (OutputBPS = 16) then
-  Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
+  Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF)
+  else
+  if (BPS = 24) and (OutputBPS = 32) then
+  begin
+    Result := FInput.FillBuffer(@iBuf[0], FBufferSize*3*FOutputChannels, EOF);
+    Convert24To32(@iBuf[0], FBufferSize*3*FOutputChannels);
+  end else
+  begin
+    Result := 0;
+    raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
+  end;
 end;
 
 procedure TASIOAudioOut.CallProcessBuffer;
