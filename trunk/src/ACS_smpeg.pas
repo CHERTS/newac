@@ -34,21 +34,13 @@ type
 implementation
 
   procedure TMP3In.OpenFile;
-  var
-    Buffer : Pointer;
-    Bytes : LongWord;
   begin
-    inherited;
-    Seek(TotalSamples);
-    Bytes := 1024;
-    GetData(Buffer, Bytes);
-    while bytes <> 0 do
+    if FOpened = 0 then
     begin
-      FSize := FSize + Bytes;
-      Bytes := 1024;
-      GetData(Buffer, Bytes);
-    end;
-    Seek(0);
-    FTotalSamples := FSize div (FChan*(FBPS div 8));
+      inherited;
+      FSize := FSize + (FSR div 3)*(FChan*(FBPS div 8));
+      FTotalSamples := FTotalSamples + (FSR div 3);
+    end else
+      Inherited;
   end;
 end.
