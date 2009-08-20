@@ -27,8 +27,28 @@ type
    descends from <TWMIn> *)
 
   TMP3In = class (TWMIn)
+  protected
+    procedure OpenFile; override;
   end;
 
 implementation
 
+  procedure TMP3In.OpenFile;
+  var
+    Buffer : Pointer;
+    Bytes : LongWord;
+  begin
+    inherited;
+    Seek(TotalSamples);
+    Bytes := 1024;
+    GetData(Buffer, Bytes);
+    while bytes <> 0 do
+    begin
+      FSize := FSize + Bytes;
+      Bytes := 1024;
+      GetData(Buffer, Bytes);
+    end;
+    Seek(0);
+    FTotalSamples := FSize div (FChan*(FBPS div 8));
+  end;
 end.
