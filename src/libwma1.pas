@@ -988,28 +988,28 @@ implementation
      begin
        if sync_reader.buffer <> nil then
        begin
-	 sync_reader.buffer.GetBufferAndLength(buf, len);
+	       sync_reader.buffer.GetBufferAndLength(buf, len);
          if sync_reader.offset < len then
          begin
            if bufsize < (len - sync_reader.offset) then
              copylen :=  bufsize
            else
              copylen := len - sync_reader.offset;
-	   LongWord(buffer) := LongWord(buf) + sync_reader.offset;
-	   bufsize := copylen;
-	   sync_reader.offset := sync_reader.offset + copylen;
-	   Exit;
-	 end;
+	         LongWord(buffer) := LongWord(buf) + sync_reader.offset;
+	         bufsize := copylen;
+	         sync_reader.offset := sync_reader.offset + copylen;
+	         Exit;
+	       end;
 	// sync_reader.buffer._Release;
          sync_reader.buffer := nil;
-	 sync_reader.offset := 0;
+	       sync_reader.offset := 0;
        end;
        res := sync_reader.reader.GetNextSample(sync_reader.stream, sync_reader.buffer, time, duration, flags, Output, w);
        if res <> S_OK then
        begin
 //         raise Exception.Create(IntToHex(Res, 8));
-	 buffer := nil;
-	 bufsize := 0;
+	       buffer := nil;
+	       bufsize := 0;
          Exit;
        end;
      end;
