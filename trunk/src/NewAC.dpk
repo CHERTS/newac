@@ -29,6 +29,7 @@ package NewAC;
 {$R 'AuASIO.dcr'}
 {$R 'AuSynch.dcr'}
 {$R 'NewACDTS.dcr'}
+{$R 'NewACAC3.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -121,6 +122,7 @@ contains
   mr_cddb in 'mr_cddb.pas',
   AuSynch in 'AuSynch.pas',
   libdca in 'libdca.pas',
-  NewACDTS in 'NewACDTS.pas';
+  NewACDTS in 'NewACDTS.pas',
+  NewACAC3 in 'NewACAC3.pas';
 
 end.
