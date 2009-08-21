@@ -7,31 +7,29 @@
 
 (* $Id$ *)
 
-unit NewACDTS;
+unit NewACAC3;
 
-(* Title: NewACDTS
-    Digital Theater System (DTS) decoder component *)
+(* Title: NewACAC3
+    Dolby Digital (AC-3) decoder component *)
 
 interface
 
 uses
-  Windows, Classes, SysUtils, math, ACS_Classes, ACS_Procs, ACS_Types, libdca;
+  Windows, Classes, SysUtils, math, ACS_Classes, ACS_Procs, ACS_Types, liba52;
 
 type
 
   TReadFunc = function : Boolean of object;
 
- (* Class: TDTSIn
+ (* Class: TAC3In
       Descends from <TAuFileIn>.
-      This component decodes DTS-encoded audio streams.
-      TDTSIn can extract DTS-encoded streams from *.wav files containing DTS,
-      *.nrg and *.iso images of DTS-encoded audio CDs, and *.VOB files that contain DTS audio streams.
-      You will need libdca.dll (included with other NewAC dlls) to use the component.
+      This component decodes AC-3 encoded audio streams.
+      You will need liba52.dll (included with other NewAC dlls) to use the component.
  *)
 
-  TDTSIn = class(TAuFileIn)
+  TAC3In = class(TAuFileIn)
   private
-    state : pdca_state;
+    state : pa52_state;
     _Buf : array of SmallInt;
     FrameBuf : array of Byte;
     FrameSize : Integer;
@@ -43,11 +41,11 @@ type
     FBitRate : LongWord;
     FFlags : Integer;
     __EOF : Boolean;
-    FExtract : Boolean;
+//    FExtract : Boolean;
     ReadFunc : TReadFunc;
     StreamSize : Int64;
     function ReadFrame : Boolean;
-    function ExtractFrame : Boolean;
+//    function ExtractFrame : Boolean;
     function GetBitrate : LongWord;
   protected
     procedure OpenFile; override;
@@ -55,15 +53,15 @@ type
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
   public
     (* Property: BitRate
-       Read this property to determine the bit rate for the DTS file.
+       Read this property to determine the bit rate for the AC-3 file.
     *)
     property BitRate : LongWord read GetBitrate;
-  published
-    (* Property: Extract
-       Set this property to True if you are going to extract DTS stream from a *.VOB file.
-       Otherwise this property should be set to False.
-    *)
-    property Extract : Boolean read FExtract write FExtract;
+ // published
+    //(* Property: Extract
+      // Set this property to True if you are going to extract DTS stream from a *.VOB file.
+       //Otherwise this property should be set to False.
+    //*)
+   // property Extract : Boolean read FExtract write FExtract;
   end;
 
 
@@ -73,11 +71,11 @@ implementation
     SafeOffset : Integer = 0;
 
 
-  function TDTSIn.ReadFrame;
+  function TAC3In.ReadFrame;
   var
     CurPos : Int64;
     i : Integer;
-    sample_rate, bit_rate, frame_length : Integer;
+    sample_rate, bit_rate : Integer;
     ChanInfo : Integer;
   begin
     Result := False;
@@ -85,37 +83,36 @@ implementation
     for i := 0 to 4096*256 do
     begin
       FStream.Seek(i+CurPos, soFromBeginning);
-      FStream.Read(FrameBuf[0], 14);
+      FStream.Read(FrameBuf[0], 7);
       if FStream.Position >=  StreamSize then
       begin
         Result := False;
         Exit;
       end;
-      FrameSize := dca_syncinfo(state, @FrameBuf[0], FFlags, sample_rate, bit_rate, frame_length);
+      FrameSize := a52_syncinfo(@FrameBuf[0], FFlags, sample_rate, bit_rate);
       if FrameSize <> 0 then
       begin
         FSR := sample_rate;
         FBitRate := bit_rate;
         FBPS := 16;
-        ChanInfo := FFlags and DCA_CHANNEL_MASK;
+        ChanInfo := FFlags and A52_CHANNEL_MASK;
         case ChanInfo of
-          0 : FChan := 1;
-          1,2,3,4 : FChan := 2;
-          5,6 : FChan := 3;
-          7,8 : FChan := 4;
-          9 : FChan := 5;
-          10 : FChan := 6;
+          0, 1 : FChan := 1;
+          2, 10 : FChan := 2;
+          3,4 : FChan := 3;
+          5,6 : FChan := 4;
+          7 : FChan := 5;
         end;
-          if (FFlags and DCA_LFE) <> 0 then
+          if (FFlags and A52_LFE) <> 0 then
             Inc(FChan);
-        FStream.Read(FrameBuf[14], FrameSize-14);
+        FStream.Read(FrameBuf[7], FrameSize-7);
         Result := True;
         Break;
       end;
     end;
   end;
 
-  function TDTSIn.ExtractFrame;
+ (* function TAC3In.ExtractFrame;
   var
     CurPos : Int64;
     i : Integer;
@@ -130,13 +127,13 @@ implementation
 //      if FrameBuf[3] = 1 then
       begin
         FStream.Read(FrameBuf[4], 10);
-        FrameSize := dca_syncinfo(state, @FrameBuf[0], FFlags, sample_rate, bit_rate, frame_length);
+        FrameSize := a52_syncinfo(state, @FrameBuf[0], FFlags, sample_rate, bit_rate, frame_length);
         if FrameSize <> 0 then
         begin
           FSR := sample_rate;
           FBitRate := bit_rate;
           FBPS := 16;
-          ChanInfo := FFlags and DCA_CHANNEL_MASK;
+          ChanInfo := FFlags and a52_CHANNEL_MASK;
           case ChanInfo of
             0 : FChan := 1;
             1,2,3,4 : FChan := 2;
@@ -145,7 +142,7 @@ implementation
             9 : FChan := 5;
             10 : FChan := 6;
           end;
-          if (FFlags and DCA_LFE) <> 0 then
+          if (FFlags and a52_LFE) <> 0 then
             Inc(FChan);
           if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000)) then
           begin
@@ -174,18 +171,18 @@ implementation
         end;
       end;
     end;
-  end;
+  end; *)
 
-  procedure TDTSIn.OpenFile;
+  procedure TAC3In.OpenFile;
   begin
     OpenCS.Enter;
     try
     if FOpened = 0 then
     begin
-      LoadDCALib;
+      LoadA52Lib;
       FValid := False;
-      if not LibDCALoaded then
-      raise EAuException.Create(LibDCAPath + ' library could not be loaded.');
+      if not LibA52Loaded then
+      raise EAuException.Create(LibA52Path + ' library could not be loaded.');
       FValid := False;
       if not FStreamAssigned then
       try
@@ -194,14 +191,14 @@ implementation
         raise EAuException.Create('Failed to open stream');
       end;
       SetLength(FrameBuf, 32*1024);
-      state := dca_init(0);
+      state := a52_init();
       CurrentBlock := 1;
-      BlockCount := 1;
-      if FExtract then
+      BlockCount := 6;
+   (*   if FExtract then
       begin
         ReadFunc := ExtractFrame;
         StreamSize := FStream.Size - SafeOffset;
-      end else
+      end else *)
       begin
         ReadFunc := ReadFrame;
         StreamSize := FStream.Size;
@@ -227,7 +224,7 @@ implementation
     end;
   end;
 
-  procedure TDTSIn.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+  procedure TAC3In.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
   var
     level, bias : Single;
     samples : psingle;
@@ -251,16 +248,15 @@ implementation
       end;
       if CurrentBlock = 1 then
       begin
-        FFlags := FFlags or DCA_ADJUST_LEVEL;
+        FFlags := FFlags or A52_ADJUST_LEVEL;
         level := 1;
         bias := 0;
-        res := dca_frame(state, @FrameBuf[0], FFlags, level, bias);
+        res := a52_frame(state, @FrameBuf[0], FFlags, level, bias);
         if res <> 0 then
-          raise EAuException.Create('');
-        BlockCount := dca_blocks_num(state);
+          raise EAuException.Create('Error reading AC3 frame');
       end;
-      dca_block(state);
-      samples := psingle(dca_samples(state));
+      a52_block(state);
+      samples := psingle(a52_samples(state));
       for i := 0 to FChan - 1 do
         for j := 0 to 255 do
         begin
@@ -280,13 +276,13 @@ implementation
     Inc(Offset, SamplesReq);
   end;
 
-  procedure TDTSIn.CloseFile;
+  procedure TAC3In.CloseFile;
   begin
     OpenCS.Enter;
     try
     if FOpened > 0 then
     begin
-      dca_free(state);
+      a52_free(state);
       _buf := nil;
       FrameBuf := nil;
       if not FStreamAssigned then
@@ -298,7 +294,7 @@ implementation
     end;
   end;
 
-  function TDTSIn.GetBitrate;
+  function TAC3In.GetBitrate;
   begin
     OpenFile;
     Result := FBitRate;
