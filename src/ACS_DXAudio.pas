@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.1
+  This file is a part of New Audio Components package v. 2.2
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -23,7 +23,7 @@ uses
   (* Constants: DirectX Buffers
       These constants determine the buffer size of DX and thus the delay heard
       when beginning audio playback.
-    
+
     DS_BUFFER_SIZE - $10000; Size in frames, not bytes
     DS_POLLING_INTERVAL - 200; in milliseconds
   *)
@@ -100,7 +100,13 @@ type
          device in your system. Valid numbers range from 0 to <DeviceCount> -
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    (* Property: FramesInBuffer
+         Use this property to set the length of the internal playback buffer.
+         Smaller values result in lower latency and (possibly) more underruns. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
+    (* Property: PollingInterval
+         This property sets the audio output device polling interval in milliseconds. The less <FramesInBuffer> value is the less this polling interval should be.
+         Otherwise many underruns will occur. *)
     property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
@@ -172,8 +178,11 @@ type
   published
     (* Property: FramesInBuffer
          Use this property to set the length of the internal recording buffer.
-         Smaller values result in lower latency and more overruns. *)
+         Smaller values result in lower latency and (possibly) more overruns. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
+    (* Property: PollingInterval
+         This property sets the audio input device polling interval in milliseconds. The less <FramesInBuffer> value is the less this polling interval should be.
+         Otherwise many overruns will occur. *)
     property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
     (* Property: SamplesToRead
          Use this property to set the number of samples (frames) the component
@@ -391,8 +400,8 @@ end;
 constructor TDXAudioOut.Create;
 begin
   inherited Create(AOwner);
-  FFramesInBuffer := $10000;
-  FPollingInterval := 200;
+  FFramesInBuffer := $8000;
+  FPollingInterval := 100;
   FVolume := 0; //DW
   DSW_EnumerateOutputDevices(@Devices);
   FDeviceCount := Devices.devcount;
