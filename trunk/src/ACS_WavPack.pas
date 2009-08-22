@@ -30,7 +30,12 @@ type
 
   (* Class: TWVIn
       WavPack decoder, descends from <TAuTaggedFileIn>. Requires
-      wavpackdll.dll. *)
+      wavpackdll.dll.
+      Full WavPack stream may consist of two files the main file
+       (*.wv) and the file correction stream (*.wvc). The *.wvc file is optional.
+       If you set a *.wv file name, the codec will searche for a *.wvc file with the same name,
+       and will raise an exception if the file is not found. Since *.wvc is optional
+       its absence doesn't necessarily indicate an error and the exception may be ignored in the application. *)
 
   TWVIn = class(TAuTaggedFileIn)
   private
@@ -55,7 +60,7 @@ type
 
     (* Property: CorrectionsStream
        WavPack can use two separate files for encoded content: the main file
-       (*.wv) and the file stream (*.wvc). If you set a file name, the codec
+       (*.wv) and the file correction stream (*.wvc). If you set a file name, the codec
        searches for additional file by itself, but if you provide a TStream as
        a source of data you have to set up the correction stream yourself (if
        you have one).
