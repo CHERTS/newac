@@ -294,6 +294,30 @@ type
     property OutSampleRate : Integer read FOutSampleRate write FOutSampleRate;
   end;
 
+  TDownMixer = class(TAuConverter)
+  private
+    FFloatBuffer : array of Single;
+    FInputFrameSize : Word;
+    FOutputFrameSize : Word;
+    FSampleSize : Word;
+    FRearGain : Single;
+    FCentralGain : Single;
+    FTotalGain : Single;
+    FInverseLeftChannel : Boolean;
+  protected
+    function GetCh : LongWord; override;
+    function GetBPS : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property CentralGain : Single read FCentralGain write FCentralGain;
+    property RearGain : Single read FRearGain write FRearGain;
+    property TotalGain : Single read FTotalGain write FTotalGain;
+    property InverseLeftChannel : Boolean read FInverseLeftChannel write FInverseLeftChannel;
+  end;
 
 implementation
 
@@ -1440,6 +1464,118 @@ implementation
     FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
+  constructor TDownMixer.Create(AOwner: TComponent);
+  begin
+    inherited Create(AOwner);
+    FRearGain := 0.7;
+    FCentralGain := 0.5;
+    FTotalGain := 1;
+  end;
+
+  function TDownMixer.GetCh;
+  begin
+    Result := 2;
+  end;
+
+  function TDownMixer.GetBPS;
+  var
+    tbps : LongWord;
+  begin
+    tbps := Finput.BitsPerSample;
+    if tbps < 128 then
+    begin
+      if FFloatRequested then
+        Result := tbps + 128
+      else
+        Result := tbps;
+    end else
+    begin
+      if FFloatRequested then
+        Result := tbps
+      else
+        Result := tbps mod 128;
+    end;
+  end;
+
+  procedure TDownMixer.InitInternal;
+  begin
+    if not Assigned(FInput) then
+      raise EAuException.Create('Input is not assigned');
+    FInput.RequestFloat := True;
+    FInput.Init;
+    if FInput.Channels <> 6 then
+         raise EAuException.Create('TDownMixer input should be 5.1 channels');
+    Busy := True;
+    if Finput.BitsPerSample > 128 then
+      FSampleSize := SizeOf(Single)
+    else
+      FSampleSize := Finput.BitsPerSample div 8;
+    FInputFrameSize = FSampleSize*Finput.Channels;
+    if FFloatRequested then
+      FOutputFrameSize = SizeOf(Single)*2
+    else
+      FOutputFrameSize = (Finput.BitsPerSample div 8)*2;
+    if FInput.Size > 0 then
+      FSize := (FInput.Size div FInputFrameSize)*FOutputFrameSize
+    else
+      FSize := FInput.Size;
+    FPosition := 0;
+  end;
+
+  procedure TDownMixer.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+  var
+    FramesReq, BytesReq, SamplesReq, i : LongWord;
+    PS : PSingleArray;
+    Left, Right : Single;
+  begin
+    FramesReq := Bytes div FOutputFrameSize;
+    BytesReq := FramesReq*FInputFrameSize;
+    FInput.GetData(Buffer, BytesReq);
+    FramesReq := BytesReq div FOutputFrameSize;
+    if Finput.BitsPerSample > 128 then
+      PS := PSingleArray(Buffer)
+    else begin
+      if Length(FFloatBuffer) < FramesReq*Finput.Channels then
+        SetLength(FFloatBuffer, FramesReq*Finput.Channels);
+      PS := @FFloatBuffer[0];
+      SamplesReq := FramesReq*Finput.Channels;
+      case FSampleSize of
+        1 : ByteToSingle(PBuffer8(Buffer), PBufferSingle(PS), SamplesReq);
+        2 : SmallIntToSingle(PBuffer16(Buffer), PBufferSingle(PS), SamplesReq);
+        3 : Int24ToSingle(PBuffer8(Buffer), PBufferSingle(PS), SamplesReq);
+        4 : Int32ToSingle(PBuffer32(Buffer), PBufferSingle(PS), SamplesReq);
+      end;
+    end;
+    for i := 0 to FramesReq - 1 do
+    begin
+      if FInverseLeftChannel then
+        Left := (PS[i*6] - PS[i*6+3]*FRearGain - PS[i*6+2]*FCentralGain)*FTotalGain
+      else
+        Left := (PS[i*6] + PS[i*6+3]*FRearGain + PS[i*6+2]*FCentralGain)*FTotalGain;
+      Right := (PS[i*6+1] + PS[i*6+4]*FRearGain + PS[i*6+2]*FCentralGain)*FTotalGain;
+      PS[i*2] := Left;
+      PS[i*2 + 1] := Right;
+    end;
+    if not FFloatRequested then
+    begin
+      SamplesReq := SamplesReq div 3;
+      case FSampleSize mod 128 of
+        1 : SingleToByte(PBufferSingle(PS), PBuffer8(Buffer), SamplesReq);
+        2 : SingleToSmallInt(PBufferSingle(PS), PBuffer16(Buffer), SamplesReq);
+        3 : SingleToInt24(PBufferSingle(PS), PBuffer8(Buffer), SamplesReq);
+        4 : SingleToInt32(PBufferSingle(PS), PBuffer32(Buffer), SamplesReq);
+      end;
+    end;
+    Bytes := FramesReq*FOutputFrameSize;
+    Inc(FPosition, Bytes);
+  end;
+
+  procedure TDownMixer.FlushInternal;
+  begin
+    FInput.Flush;
+    FFloatBuffer := nil;
+    Busy := False;
+  end;
 
 {$WARNINGS ON}
 

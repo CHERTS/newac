@@ -10,7 +10,7 @@
 unit ACS_Classes;
 
 (* Title: ACS_Classes 
-    Ancestor classes for all input and output components. *)
+    NewAC core classes. *)
 
 interface
 
@@ -109,6 +109,7 @@ type
     BufStart, BufEnd : LongWord;
     DataCS : TCriticalSection;
     _EndOfStream : Boolean;
+    FFloatRequested : Boolean;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
     function GetBPS : LongWord; virtual; abstract;
@@ -119,6 +120,7 @@ type
     procedure InitInternal; virtual; abstract;
     procedure FlushInternal; virtual; abstract;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); virtual; abstract;
+    procedure SetRequestFloat(rf : Boolean); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -233,6 +235,7 @@ type
         TotalTime value may be valid only if the <Size> of the input is known.
     *)
     property TotalTime : LongWord read GetTotalTime;
+    property RequestFloat : Boolean read FFloatRequested write SetRequestFloat;
   end;
 
 (* Class: TAuOutput
@@ -682,6 +685,7 @@ type
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
+    procedure SetRequestFloat(rf: Boolean); override;
   public
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
@@ -1974,7 +1978,12 @@ end;
 function TAuInput.GetTotalSamples;
 begin
   Result := 0;
-end;  
+end;
+
+procedure TAuInput.SetRequestFloat(rf: Boolean);
+begin
+  FFloatRequested := rf;
+end;
 
 function TAudioTap.GetStatus;
 begin
@@ -2234,9 +2243,18 @@ end;
 function TAuConverter.GetBPS;
 begin
   if Assigned(FInput) then
-    Result := FInput.BitsPerSample
-  else
+  begin
+    Result := FInput.BitsPerSample;
+    if not FFloatRequested then
+       Result := Result mod 128;
+  end else
     Result := 0;
+end;
+
+procedure TAuConverter.SetRequestFloat(rf: Boolean);
+begin
+  FFloatRequested := rf;
+  if rf then FInput.RequestFloat := rf;
 end;
 
 function TAuConverter.GetCh;

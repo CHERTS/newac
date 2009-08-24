@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.8
+  This file is a part of New Audio Components package 2.2
   Copyright (c) 2002-2008 Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -527,7 +527,7 @@ end;
       DataCS.Leave;
       end;
     end else // if not (csDesigning in ComponentState) then
-      FInput2 := aInput;
+      FInput1 := aInput;
   end;
 
   procedure TRealTimeMixer.SetInput2;
