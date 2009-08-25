@@ -1552,7 +1552,7 @@ implementation
         SetLength(FFloatBuffer, SamplesReq);
       PS := @FFloatBuffer[0];
       case FSampleSize of
-        1 : ByteToSingle(PBuffer8(@FIntBuffer[0]), PBufferSingle(PS), SamplesReq);
+        1 : ByteToSingle(PBuffer8(Buffer), PBufferSingle(PS), SamplesReq);
         2 : SmallIntToSingle(PBuffer16(Buffer), PBufferSingle(PS), SamplesReq);
         3 : Int24ToSingle(PBuffer8(Buffer), PBufferSingle(PS), SamplesReq);
         4 : Int32ToSingle(PBuffer32(Buffer), PBufferSingle(PS), SamplesReq);
