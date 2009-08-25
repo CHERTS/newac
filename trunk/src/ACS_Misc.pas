@@ -1069,7 +1069,7 @@ end;
 procedure TCueSplitter.GetDataInternal;
 begin
    FInput.GetData(Buffer, Bytes);
-   Inc(FPosition, Bytes);
+//   Inc(FPosition, Bytes);
 end;
 
 procedure TCueSplitter.FlushInternal;

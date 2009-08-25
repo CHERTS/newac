@@ -23,7 +23,7 @@ begin
   TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TTAKIn, TMPCIn, TMPCOut, TWMADualPassOut, TAVIIn, TDTSIn, TAC3In]);
   RegisterComponents('Audio Processing', [TAudioMixer, TFastResampler, TRealTimeMixer, TAudioConverter, TACMConverter,
   TAudioProcessor, TMSResampler, TBWFilter, TSincFilter, TChebyshevFilter,
-  TStereoBalance, TResampler, TDitherer, TAudioPass, TNormalizer, TVoiceFilter, TFrequencyAnalysis, TConvolver, TDifferenceEquation]);
+  TStereoBalance, TResampler, TDitherer, TAudioPass, TNormalizer, TVoiceFilter, TFrequencyAnalysis, TConvolver, TDifferenceEquation, TDownMixer]);
   RegisterComponents('Audio Utilities',  [TCDPlayer, TNULLOut, TAudioHiResTimer, TAudioSynchronizer, TCDDBInfo, TCueSplitter]);
 end;
 

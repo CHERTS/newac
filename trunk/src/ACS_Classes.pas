@@ -685,7 +685,6 @@ type
     function GetBPS : LongWord; override;
     function GetCh : LongWord; override;
     function GetSR : LongWord; override;
-    procedure SetRequestFloat(rf: Boolean); override;
   public
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
@@ -2249,12 +2248,6 @@ begin
        Result := Result mod 128;
   end else
     Result := 0;
-end;
-
-procedure TAuConverter.SetRequestFloat(rf: Boolean);
-begin
-  FFloatRequested := rf;
-  if rf then FInput.RequestFloat := rf;
 end;
 
 function TAuConverter.GetCh;
