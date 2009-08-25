@@ -299,7 +299,7 @@ type
   TDownMixer = class(TAuConverter)
   private
     FFloatBuffer : array of Single;
-    FIntBuffer : array of Byte;
+//    FIntBuffer : array of Byte;
     FInputFrameSize : Word;
     FOutputFrameSize : Word;
     FSampleSize : Word;
@@ -315,7 +315,7 @@ type
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
-    constructor Create(AOwner: TComponent);
+    constructor Create(AOwner: TComponent); override;
   published
     property CentralGain : Single read FCentralGain write FCentralGain;
     property RearGain : Single read FRearGain write FRearGain;
@@ -1537,9 +1537,10 @@ implementation
   begin
     FramesReq := Bytes div FOutputFrameSize;
     BytesReq := FramesReq*FInputFrameSize;
-    if Length(FIntBuffer) < BytesReq then
-      SetLength(FIntBuffer, BytesReq);
-    BytesReq := FInput.FillBuffer(@FIntBuffer[0], BytesReq, EEOF);
+  (*  if Length(FIntBuffer) < BytesReq then
+      SetLength(FIntBuffer, BytesReq); *)
+//    BytesReq := FInput.FillBuffer(@FIntBuffer[0], BytesReq, EEOF);
+    FInput.GetData(Buffer, BytesReq);
     if BytesReq = 0 then
       Exit;
     FramesReq := BytesReq div FInputFrameSize;
@@ -1552,7 +1553,7 @@ implementation
       PS := @FFloatBuffer[0];
       case FSampleSize of
         1 : ByteToSingle(PBuffer8(@FIntBuffer[0]), PBufferSingle(PS), SamplesReq);
-        2 : SmallIntToSingle(PBuffer16(@FIntBuffer[0]), PBufferSingle(PS), SamplesReq);
+        2 : SmallIntToSingle(PBuffer16(Buffer), PBufferSingle(PS), SamplesReq);
         3 : Int24ToSingle(PBuffer8(Buffer), PBufferSingle(PS), SamplesReq);
         4 : Int32ToSingle(PBuffer32(Buffer), PBufferSingle(PS), SamplesReq);
       end;
@@ -1575,12 +1576,12 @@ implementation
       SamplesReq := FramesReq*2;
       case FSampleSize mod 128 of
         1 : SingleToByte(PBufferSingle(PS), PBuffer8(Buffer), SamplesReq);
-        2 : SingleToSmallInt(PBufferSingle(PS), PBuffer16(@FIntBuffer[0]), SamplesReq);
+        2 : SingleToSmallInt(PBufferSingle(PS), PBuffer16(Buffer), SamplesReq);
         3 : SingleToInt24(PBufferSingle(PS), PBuffer8(Buffer), SamplesReq);
         4 : SingleToInt32(PBufferSingle(PS), PBuffer32(Buffer), SamplesReq);
       end;
     end;
-    Buffer := @FIntBuffer[0];
+ //   Buffer := @FIntBuffer[0];
     Bytes := FramesReq*FOutputFrameSize;
   end;
 
