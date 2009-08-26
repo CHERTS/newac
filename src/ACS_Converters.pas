@@ -296,6 +296,18 @@ type
 
   TClippingEvent = procedure(Sender : TComponent) of object;
 
+  (* Class: TDownMixer
+     Descends from <TAuConverter>.
+     TDownMixer converts multi-channel (currently - only 5.1) audio to stereo.
+     The stereo channel data are calculated as follows:
+     - if JoinRear = False
+     - Left = FrontLeft + RearLeft*RearGain + Central*CentralGain
+     - Right = FrontRight + RearRight*RearGain + Central*CentralGain
+     - if JoinRear = True
+     - Left = FrontLeft + (RearLeft + RearRight)*RearGain + Central*CentralGain
+     - Right = FrontRight - (RearLeft + RearRight)*RearGain + Central*CentralGain
+   *)
+
   TDownMixer = class(TAuConverter)
   private
     FFloatBuffer : array of Single;
@@ -306,7 +318,7 @@ type
     FRearGain : Single;
     FCentralGain : Single;
     FTotalGain : Single;
-    FInverseLeftChannel : Boolean;
+    FJoinRear : Boolean;
     FOnCliping : TClippingEvent;
   protected
     function GetCh : LongWord; override;
@@ -317,11 +329,29 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
+    (* Property : CentralGain
+       CentralGain value (see the formulae above) reasonable values range from 0.5 to 0.7.
+       If this this value is too large, clipping may occur
+    *)
     property CentralGain : Single read FCentralGain write FCentralGain;
+    (* Property : RearGain
+       RearGain value (see the formulae above) reasonable values range from 0.5 to 0.7.
+       If this this value is too large, clipping may occur.
+    *)
     property RearGain : Single read FRearGain write FRearGain;
+    (* Property : TotalGain
+       The total output gain value. Reasonable values range from 0.5 to 1.0.
+       Decrease this value to prevent clipping.
+    *)
     property TotalGain : Single read FTotalGain write FTotalGain;
-    property InverseLeftChannel : Boolean read FInverseLeftChannel write FInverseLeftChannel;
-    property OnCliping : TClippingEvent read FOnCliping write FOnCliping;
+    (* Property : JoinRear
+       When set to True the component tries to emulate Dolby Surround Stereo.
+    *)
+    property JoinRear : Boolean read FJoinRear write FJoinRear;
+    (* Property : OnClipping
+       OnCliping event is raised whenever clipping occurs.
+    *)
+    property OnClipping : TClippingEvent read FOnCliping write FOnCliping;
   end;
 
 implementation
@@ -1542,7 +1572,11 @@ implementation
 //    BytesReq := FInput.FillBuffer(@FIntBuffer[0], BytesReq, EEOF);
     FInput.GetData(Buffer, BytesReq);
     if BytesReq = 0 then
+    begin
+      Bytes := 0;
+      Buffer := nil;
       Exit;
+    end;
     FramesReq := BytesReq div FInputFrameSize;
     SamplesReq := BytesReq div FSampleSize;
     if Finput.BitsPerSample > 128 then
@@ -1560,14 +1594,25 @@ implementation
     end;
     for i := 0 to FramesReq - 1 do
     begin
-      if FInverseLeftChannel then
-        Left := (PS[i*6] - PS[i*6+4]*FRearGain - PS[i*6+2]*FCentralGain)*FTotalGain
-      else
-        Left := (PS[i*6] + PS[i*6+4]*FRearGain + PS[i*6+2]*FCentralGain)*FTotalGain;
+      if FJoinRear then
+      begin
+        PS[i*6+4] := PS[i*6+4] + PS[i*6+5];
+        PS[i*6+5] := -PS[i*6+4];
+      end;
+      Left := (PS[i*6] + PS[i*6+4]*FRearGain + PS[i*6+2]*FCentralGain)*FTotalGain;
       Right := (PS[i*6+1] + PS[i*6+5]*FRearGain + PS[i*6+2]*FCentralGain)*FTotalGain;
-      if (Left > 1) or (Right > 1) then
+      if Abs(Left) > 1 then
+      begin
+        Left := 1*Sign(Left);
         if Assigned(FOnCliping) then
           EventHandler.PostGenericEvent(Self, FOnCliping);
+      end;
+      if Abs(Right) > 1 then
+      begin
+        Left := 1*Sign(Right);
+        if Assigned(FOnCliping) then
+          EventHandler.PostGenericEvent(Self, FOnCliping);
+      end;
       PS[i*2] := Left;
       PS[i*2 + 1] := Right;
     end;

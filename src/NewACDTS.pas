@@ -20,6 +20,7 @@ uses
 type
 
   TReadFunc = function : Boolean of object;
+  TDTSOutputChannels = (dts5dot1 = 0, dtsMono, dtsStereo, dtsStereoTotal, dtsQuadro);
 
  (* Class: TDTSIn
       Descends from <TAuFileIn>.
@@ -46,6 +47,7 @@ type
     FExtract : Boolean;
     ReadFunc : TReadFunc;
     StreamSize : Int64;
+    FOutputChannels : TDTSOutputChannels;
     function ReadFrame : Boolean;
     function ExtractFrame : Boolean;
     function GetBitrate : LongWord;
@@ -64,6 +66,11 @@ type
        Otherwise this property should be set to False.
     *)
     property Extract : Boolean read FExtract write FExtract;
+    (* Property: OutputChannels
+       This property controls the number of output channels. The default value is dts5dot1 which corresponds to the maximum available 5.1 channels.
+       If any other value is selscted the down-mixing is used by the decoder to provide less channels.
+    *)
+    property OutputChannels : TDTSOutputChannels read FOutputChannels write FOutputChannels;
   end;
 
 
@@ -97,6 +104,18 @@ implementation
         FSR := sample_rate;
         FBitRate := bit_rate;
         FBPS := 16;
+        if FOutputChannels > dts5dot1 then
+        begin
+          FFlags := FFlags and (not DCA_CHANNEL_MASK);
+          FFlags := FFlags and (not DCA_LFE);
+          case FOutputChannels of
+            dtsMono: ;
+            dtsStereo: FFlags := FFlags or DCA_STEREO;
+            dtsStereoTotal: FFlags := FFlags or DCA_STEREO_TOTAL;
+            dtsQuadro: FFlags := FFlags or DCA_2F2R;
+            else ;
+          end;
+        end;
         ChanInfo := FFlags and DCA_CHANNEL_MASK;
         case ChanInfo of
           0 : FChan := 1;
@@ -136,6 +155,18 @@ implementation
           FSR := sample_rate;
           FBitRate := bit_rate;
           FBPS := 16;
+          if FOutputChannels > dts5dot1 then
+          begin
+            FFlags := FFlags and (not DCA_CHANNEL_MASK);
+            FFlags := FFlags and (not DCA_LFE);
+            case FOutputChannels of
+              dtsMono: ;
+              dtsStereo: FFlags := FFlags or DCA_STEREO;
+              dtsStereoTotal: FFlags := FFlags or DCA_STEREO_TOTAL;
+              dtsQuadro: FFlags := FFlags or DCA_2F2R;
+              else ;
+            end;
+          end;
           ChanInfo := FFlags and DCA_CHANNEL_MASK;
           case ChanInfo of
             0 : FChan := 1;
