@@ -1,12 +1,13 @@
 (*
-  This file is a part of New Audio Components package v 1.8
-  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 2.2
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 
   ****************************************************************************
 
   TWVIn and TWVOut components are written by Sergei Borisov, <jr_ross@mail.ru>
+  with some important mmodifications by Andrey Borovsky.
 *)
 
 (* $Id$ *)
@@ -44,7 +45,10 @@ type
 
     FDecoder: TWavpackDecoder;
     FBuffer: array of Byte;
-
+    FHybrid : Boolean;
+    FLossless : Boolean;
+    function GetHybrid : Boolean;
+    function GetLossless : Boolean;
     procedure SetCorrectionsStream(Value: TStream);
 
     function GetId3v1Tags : TId3v1Tags;
@@ -68,6 +72,11 @@ type
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
 
+    (* Property: Hybrid
+       Returns True if the input WavPack stream is hybrid (i.e. consists of two sub-streams) and False otherwise.
+    *)
+    property Hybrid : Boolean read GetHybrid;
+
     (* Property: Id3v1Tags
        Read this property to get Id3v1Tags attached to the WavPack file.
     *)
@@ -79,6 +88,10 @@ type
     *)
 
     property APEv2Tags : TAPEv2Tags read GetAPEv2Tags;
+    (* Property: Hybrid
+       Returns True if the input WavPack stream is lossless and False otherwise.
+    *)
+    property Lossless : Boolean read GetLossless;
   published
     property EndSample;
     property StartSample;
@@ -141,8 +154,8 @@ type
     property CompressionLevel: TWVCompressionLevel read FCompressionLevel write FCompressionLevel default wvclFast;
 
     (* Property: HybridMode
-       WavPack can work in two modes: in hybrid mode it uses a single file to
-       store all the content. In two file mode there is a small, lossy file (similar to an MP3) and a correction file. The small file can play on its own, and sounds just fine. Optionally, the correction file, which is much larger, can be combined with the smaller one for completely lossless playback. See http://wavpack.com for more info. If this property is set to True the input content will be packed into a
+       WavPack can work in two modes: in hybrid mode it uses two files to store main and correction streams and a single-file mode when one stream stores all the data.
+       In the hybrid mode there is a small, lossy file (similar to an MP3) and a correction file. The small file can play on its own, and sounds just fine. Optionally, the correction file, which is much larger, can be combined with the smaller one for completely lossless playback. See http://wavpack.com for more info. If this property is set to True the input content will be packed into a
        single file or stream.
     *)
 
@@ -232,6 +245,19 @@ begin
   Result := _APEv2Tags;
 end;
 
+function TWVIn.GetHybrid;
+begin
+  OpenFile;
+  Result := FHybrid;
+end;
+
+function TWVIn.GetLossless;
+begin
+  OpenFile;
+  Result := FLossless;
+end;
+
+
 procedure TWVIn.OpenFile;
 var
   i{, n}: Integer;
@@ -251,25 +277,33 @@ begin
         else
           FStream := TAuFileStream.Create(
             FWideFileName, fmOpenRead or fmShareDenyWrite);
-
-      if not FCorrectionsStreamAssigned then
-        try
-          FCorrectionsStream := TAuFileStream.Create(
-            ChangeFileExt(FWideFileName, '.wvc'), fmOpenRead or fmShareDenyWrite);
-        except
-          FCorrectionsStream := nil;
-        end;
-
-      if FCorrectionsStream = nil then
-        FDecoder := TWavpackDecoder.Create(FStream,
-          nil,
-          [wvofTags])
+(* -- Modification by Andrei Borovsky 29-08-2009 -- *)
+      FDecoder := TWavpackDecoder.Create(FStream, nil, [wvofTags]);
+      FHybrid := False;
+      if (wvmfHybrid in FDecoder.Mode) then
+      begin
+        FHybrid := True;
+        FDecoder.Free;
+        if not FCorrectionsStreamAssigned then
+          try
+            FCorrectionsStream := TAuFileStream.Create(
+              ChangeFileExt(FWideFileName, '.wvc'), fmOpenRead or fmShareDenyWrite);
+            FDecoder := TWavpackDecoder.Create(FStream,
+              FCorrectionsStream, [wvofWVC, wvofTags]);
+          except
+            FCorrectionsStream := nil;
+            FDecoder := TWavpackDecoder.Create(FStream, nil, [wvofTags]);
+          end
+        else  FDecoder := TWavpackDecoder.Create(FStream, FCorrectionsStream, [wvofWVC, wvofTags]);
+      end;
+      if wvmfLossless in FDecoder.Mode then
+        FLossless := True
       else
-        FDecoder := TWavpackDecoder.Create(FStream,
-          FCorrectionsStream,
-          [wvofWVC, wvofTags]);
+        FLossless := False;
 
-      FValid := True;
+      if FDecoder.NumChannels <>0 then
+        FValid := True;
+(* -- End of modification by Andrei Borovsky 29-08-2009 -- *)
       FSeekable := True;
 
       FBPS := FDecoder.BitsPerSample;
