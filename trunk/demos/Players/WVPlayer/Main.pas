@@ -41,6 +41,8 @@ type
     SpeedButton4: TSpeedButton;
     SpeedButton5: TSpeedButton;
     DXAudioOut1: TDXAudioOut;
+    Label4: TLabel;
+    Label6: TLabel;
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -103,6 +105,15 @@ begin
     StatusBar1.Panels[0].Text := WVIn1.FileName;
     DXAudioOut1.Run;
     Label1.Caption := IntToStr(WVIn1.SampleRate) + ' Hz';
+    if WVIn1.Hybrid then
+        Label4.Caption := 'Hybrid'
+    else
+        Label4.Caption := 'Single file';
+    if WVIn1.Lossless then
+        Label6.Caption := 'Lossless'
+    else
+        Label6.Caption := 'Lossy';
+
     if WVIn1.Channels = 1 then Label17.Caption := 'Mono'
     else Label17.Caption := 'Stereo';
     Secs := IntToStr(WVIn1.TotalTime mod 60);

@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 244
   Top = 189
-  Width = 347
-  Height = 221
   Caption = 'WavPack Player'
+  ClientHeight = 219
+  ClientWidth = 339
   Color = clSilver
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -226,24 +226,23 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 168
+    Top = 200
     Width = 339
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
+    ExplicitTop = 175
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 76
+    Top = 86
     Width = 339
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 1
+    ExplicitTop = 83
   end
   object CheckBox1: TCheckBox
     Left = 8
@@ -256,16 +255,16 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 87
+    Top = 97
     Width = 339
-    Height = 81
+    Height = 103
     Align = alBottom
     BevelOuter = bvNone
     Color = clBlack
     TabOrder = 3
     DesignSize = (
       339
-      81)
+      103)
     object Label2: TLabel
       Left = 8
       Top = 8
@@ -465,6 +464,32 @@ object Form1: TForm1
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentColor = False
+      ParentFont = False
+    end
+    object Label4: TLabel
+      Left = 112
+      Top = 84
+      Width = 57
+      Height = 13
+      Caption = 'Single file'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clOlive
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label6: TLabel
+      Left = 184
+      Top = 84
+      Width = 49
+      Height = 13
+      Caption = 'Lossless'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clOlive
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
       ParentFont = False
     end
   end
