@@ -47,8 +47,10 @@ type
     FBuffer: array of Byte;
     FHybrid : Boolean;
     FLossless : Boolean;
+    FCueSheet : WideString;
     function GetHybrid : Boolean;
     function GetLossless : Boolean;
+    function GetCueSheet : WideString;
     procedure SetCorrectionsStream(Value: TStream);
 
     function GetId3v1Tags : TId3v1Tags;
@@ -71,6 +73,11 @@ type
     *)
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
+
+    (* Property: Cuesheet
+       Returns an embedded cue-sheet (if the input file contains one).
+    *)
+    property Cuesheet : WideString read GetCueSheet;
 
     (* Property: Hybrid
        Returns True if the input WavPack stream is hybrid (i.e. consists of two sub-streams) and False otherwise.
@@ -251,6 +258,12 @@ begin
   Result := FHybrid;
 end;
 
+function TWVIn.GetCueSheet;
+begin
+  OpenFile;
+  Result := FCueSheet;
+end;
+
 function TWVIn.GetLossless;
 begin
   OpenFile;
@@ -262,6 +275,7 @@ procedure TWVIn.OpenFile;
 var
   i{, n}: Integer;
   tag_id: AnsiString;
+  S : WideString;
 begin
   LoadWavpackDLL;
   if not WavpackDLL_Loaded then
@@ -303,6 +317,8 @@ begin
 
       if FDecoder.NumChannels <>0 then
         FValid := True;
+      FCueSheet := FDecoder.Tags['Cuesheet'];
+
 (* -- End of modification by Andrei Borovsky 29-08-2009 -- *)
       FSeekable := True;
 
