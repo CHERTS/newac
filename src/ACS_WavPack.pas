@@ -641,7 +641,8 @@ var
   tag_value: Variant;
 begin
   if FEncoder <> nil then begin
-    if not APEv2Tags.Empty then begin
+    if (not APEv2Tags.Empty) or (FCuesheet <> '') then begin
+      if not APEv2Tags.Empty then
       for i := 0 to APEv2Tags.IdCount - 1 do begin
         tag_id := APEv2Tags.Ids[i];
         tag_value := APEv2Tags[tag_id];
