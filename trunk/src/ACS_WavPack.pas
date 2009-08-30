@@ -121,6 +121,7 @@ type
     FCompressionLevel: TWVCompressionLevel;
     FHybridMode: Boolean;
     FBitrate: Single;
+    FCuesheet : WideString;
 
     FEncoder: TWavpackEncoder;
     FBufferInStart: Cardinal;
@@ -146,6 +147,11 @@ type
     *)
 
     property CorrectionsStream: TStream read FCorrectionsStream write SetCorrectionsStream;
+
+    (* Property: Cuesheet
+       Set this property value to embed a cue-sheet into the output file. *)
+    property Cuesheet : WideString read FCuesheet write FCuesheet;
+
   published
 
     (* Property: JointStereo
@@ -642,6 +648,8 @@ begin
         if VarIsType(tag_value, [varString, varOleStr]) then
           FEncoder.Tags[tag_id] := tag_value;
       end;
+      if FCuesheet <> '' then
+        FEncoder.Tags['Cuesheet'] := FCuesheet;
       FEncoder.WriteTags();
     end;
 
