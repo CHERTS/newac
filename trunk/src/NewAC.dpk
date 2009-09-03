@@ -51,7 +51,7 @@ package NewAC;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'New Audio Components v 2.1'}
+{$DESCRIPTION 'New Audio Components v 2.2'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -124,6 +124,6 @@ contains
   libdca in 'libdca.pas',
   NewACDTS in 'NewACDTS.pas',
   NewACAC3 in 'NewACAC3.pas',
-  _md5 in '_md5.pas';
+  DMXStreams in 'DMXStreams.pas';
 
 end.

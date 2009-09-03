@@ -15,7 +15,7 @@ unit NewACAC3;
 interface
 
 uses
-  Windows, Classes, SysUtils, math, ACS_Classes, ACS_Procs, ACS_Types, liba52;
+  Windows, Classes, SysUtils, math, ACS_Classes, ACS_Procs, ACS_Types, liba52, DMXStreams;
 
 type
 
@@ -23,7 +23,8 @@ type
 
  (* Class: TAC3In
       Descends from <TAuFileIn>.
-      This component decodes AC-3 encoded audio streams.
+      This component decodes AC-3 encoded audio streams either from AC-3 files or from VOB files.
+      Currently it cannot decode Wave-encoded AC-3 data.
       You will need liba52.dll (included with other NewAC dlls) to use the component.
  *)
 
@@ -41,11 +42,12 @@ type
     FBitRate : LongWord;
     FFlags : Integer;
     __EOF : Boolean;
-//    FExtract : Boolean;
+    FExtract : Boolean;
+    FDemuxer : TAuVOBAC3Demuxer;
+    FVobStream : TAC3VOBStream;
     ReadFunc : TReadFunc;
     StreamSize : Int64;
     function ReadFrame : Boolean;
-//    function ExtractFrame : Boolean;
     function GetBitrate : LongWord;
   protected
     procedure OpenFile; override;
@@ -56,12 +58,12 @@ type
        Read this property to determine the bit rate for the AC-3 file.
     *)
     property BitRate : LongWord read GetBitrate;
- // published
-    //(* Property: Extract
-      // Set this property to True if you are going to extract DTS stream from a *.VOB file.
-       //Otherwise this property should be set to False.
-    //*)
-   // property Extract : Boolean read FExtract write FExtract;
+    published
+    (* Property: VobAudioSubstream
+      VOB files may contain two AC-3 audio substreams. This property allows you to choose which audio stream to extract.
+      This property has any effect only if you are extracting AC-3 from VOB/MPEG-2 files.
+     *)
+     property VobAudioSubstream : TAC3VOBStream read FVobStream write FVOBStream;
   end;
 
 
@@ -69,48 +71,6 @@ implementation
 
   const
     SafeOffset : Integer = 0;
-
-
-  (* function TAC3In.ReadFrame;
-  var
-    CurPos : Int64;
-    i : Integer;
-    sample_rate, bit_rate : Integer;
-    ChanInfo : Integer;
-  begin
-    Result := False;
-    CurPos := FStream.Position;
-    for i := 0 to 4096*256 do
-    begin
-      FStream.Seek(i+CurPos, soFromBeginning);
-      FStream.Read(FrameBuf[0], 7);
-      if FStream.Position >=  StreamSize then
-      begin
-        Result := False;
-        Exit;
-      end;
-      FrameSize := a52_syncinfo(@FrameBuf[0], FFlags, sample_rate, bit_rate);
-      if FrameSize <> 0 then
-      begin
-        FSR := sample_rate;
-        FBitRate := bit_rate;
-        FBPS := 16;
-        ChanInfo := FFlags and A52_CHANNEL_MASK;
-        case ChanInfo of
-          0, 1 : FChan := 1;
-          2, 10 : FChan := 2;
-          3,4 : FChan := 3;
-          5,6 : FChan := 4;
-          7 : FChan := 5;
-        end;
-          if (FFlags and A52_LFE) <> 0 then
-            Inc(FChan);
-        FStream.Read(FrameBuf[7], FrameSize-7);
-        Result := True;
-        Break;
-      end;
-    end;
-  end;              *)
 
   function TAC3In.ReadFrame;
   var
@@ -159,7 +119,6 @@ implementation
         end else
         FStream.Seek(-5, soFromCurrent);
       end else
-       // FStream.Seek(-3, soFromCurrent);
       begin
         if FrameBuf[1] = $0B then
           FStream.Seek(-1, soFromCurrent);
@@ -168,6 +127,8 @@ implementation
   end;
 
   procedure TAC3In.OpenFile;
+  var
+    Magic : LongWord;
   begin
     OpenCS.Enter;
     try
@@ -184,15 +145,26 @@ implementation
       except
         raise EAuException.Create('Failed to open stream');
       end;
+      FStream.Read(Magic, 4);
+      if Magic = $BA010000 then
+      begin
+        FExtract := True;
+        FStream.Free;
+      end else
+      begin
+        FExtract := False;
+        FStream.Seek(0, soFromBeginning);
+      end;
+      if FExtract then
+      begin
+        FDemuxer := TAuVOBAC3Demuxer.Create(FWideFileName, fmOpenRead or fmShareDenyWrite);
+        FDemuxer.Init(FVobStream);
+        FStream := FDemuxer;
+      end;
       SetLength(FrameBuf, 32*1024);
       state := a52_init();
       CurrentBlock := 1;
       BlockCount := 6;
-   (*   if FExtract then
-      begin
-        ReadFunc := ExtractFrame;
-        StreamSize := FStream.Size - SafeOffset;
-      end else *)
       begin
         ReadFunc := ReadFrame;
         StreamSize := FStream.Size;
