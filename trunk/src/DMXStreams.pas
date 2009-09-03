@@ -32,6 +32,7 @@ type
     procedure ReadBlock;
   public
     procedure Init(Stream : TAC3VOBStream = acvStreamFirst);
+ //   function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
 
@@ -78,6 +79,8 @@ const
    begin
      while Position < Size do
      begin
+       Position := Position + (Position mod 2048);
+
        inherited Read(InBuff[0], 2048);
        if  not IsPackHeader then
          continue;
@@ -126,5 +129,17 @@ const
      end;
    end;
 
+(*   function TAuVOBAC3Demuxer.Seek(const Offset: Int64; Origin: TSeekOrigin) : Int64;
+   var
+     i : Integer;
+   begin
+     for i := 0 to 2045 do
+       if PWord(@InBuff[i])^ = $770B then
+       begin
+         FastCopyMem(@Block[0], @InBuff[i], 2047 - i);
+         DataSize := DataSize - i;
+         Break;
+       end;
+   end;*)
 
 end.
