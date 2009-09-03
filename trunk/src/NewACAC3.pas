@@ -71,7 +71,7 @@ implementation
     SafeOffset : Integer = 0;
 
 
-  function TAC3In.ReadFrame;
+  (* function TAC3In.ReadFrame;
   var
     CurPos : Int64;
     i : Integer;
@@ -110,9 +110,9 @@ implementation
         Break;
       end;
     end;
-  end;
+  end;              *)
 
- (* function TAC3In.ExtractFrame;
+  function TAC3In.ReadFrame;
   var
     CurPos : Int64;
     i : Integer;
@@ -122,12 +122,11 @@ implementation
     Result := False;
     while FStream.Position < StreamSize do
     begin
-      FStream.Read(FrameBuf[0], 4);
-      if PLongWord(@FrameBuf[0])^ = $180FE7F then
-//      if FrameBuf[3] = 1 then
+      FStream.Read(FrameBuf[0], 2);
+      if PWord(@FrameBuf[0])^ = $770B then
       begin
-        FStream.Read(FrameBuf[4], 10);
-        FrameSize := a52_syncinfo(state, @FrameBuf[0], FFlags, sample_rate, bit_rate, frame_length);
+        FStream.Read(FrameBuf[2], 5);
+        FrameSize := a52_syncinfo(@FrameBuf[0], FFlags, sample_rate, bit_rate);
         if FrameSize <> 0 then
         begin
           FSR := sample_rate;
@@ -135,43 +134,38 @@ implementation
           FBPS := 16;
           ChanInfo := FFlags and a52_CHANNEL_MASK;
           case ChanInfo of
-            0 : FChan := 1;
-            1,2,3,4 : FChan := 2;
-            5,6 : FChan := 3;
-            7,8 : FChan := 4;
-            9 : FChan := 5;
-            10 : FChan := 6;
+            0, 1 : FChan := 1;
+            2, 10 : FChan := 2;
+            3,4 : FChan := 3;
+            5,6 : FChan := 4;
+            7 : FChan := 5;
           end;
           if (FFlags and a52_LFE) <> 0 then
             Inc(FChan);
-          if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000)) then
+          if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000) and (FSR <> 36000)) then
           begin
-            FStream.Seek(-10, soFromCurrent);
+            FStream.Seek(-5, soFromCurrent);
             Continue;
           end;
-          if FStream.Position >= FStream.Size - FrameSize + 14 then
+          if FStream.Position >= FStream.Size - FrameSize + 7 then
           begin
             STreamSize := FStream.Position;
             Break;
           end;
 
-          FStream.Read(FrameBuf[14], FrameSize-14);
+          FStream.Read(FrameBuf[7], FrameSize-7);
           Result := True;
           Break;
         end else
-        FStream.Seek(-10, soFromCurrent);
+        FStream.Seek(-5, soFromCurrent);
       end else
        // FStream.Seek(-3, soFromCurrent);
       begin
-        case FrameBuf[3] of
-          $80 : FStream.Seek(-3, soFromCurrent);
-          $FE : FStream.Seek(-2, soFromCurrent);
-          $7F : FStream.Seek(-1, soFromCurrent);
-          else;
-        end;
+        if FrameBuf[1] = $0B then
+          FStream.Seek(-1, soFromCurrent);
       end;
     end;
-  end; *)
+  end;
 
   procedure TAC3In.OpenFile;
   begin
