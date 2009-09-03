@@ -79,8 +79,9 @@ const
    begin
      while Position < Size do
      begin
-       Position := Position + (Position mod 2048);
+       if Position > 2048 then
 
+       Position := Position - (Position mod 2048);
        inherited Read(InBuff[0], 2048);
        if  not IsPackHeader then
          continue;
