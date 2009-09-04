@@ -45,7 +45,6 @@ type
     FExtract : Boolean;
     FDemuxer : TAuVOBAC3Demuxer;
     FVobStream : TAC3VOBStream;
-    ReadFunc : TReadFunc;
     StreamSize : Int64;
     function ReadFrame : Boolean;
     function GetBitrate : LongWord;
@@ -165,14 +164,10 @@ implementation
       state := a52_init();
       CurrentBlock := 1;
       BlockCount := 6;
-      begin
-        ReadFunc := ReadFrame;
-        StreamSize := FStream.Size;
-      end;
-      FValid := ReadFunc;
+      StreamSize := FStream.Size;
+      FValid := ReadFrame;
       if FValid = False then
       begin
-        OpenCS.Leave;
         Exit;
       end;
       FSize := -1;
@@ -201,7 +196,7 @@ implementation
     begin
       if CurrentBlock > BlockCount then
       begin
-        if not ReadFunc then
+        if not ReadFrame then
         if FStream.Position < StreamSize then
         begin
           raise EAuException.Create('Sync lost')
