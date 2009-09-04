@@ -25,8 +25,7 @@ type
     InBuff : array [0..2047] of Byte;
     DataSize : LongWord;
     FStream : Byte;
-    function IsPackHeader : Boolean;
-    function IsAudioPacketHeader(buf : PByte) : Boolean;
+    function IsAudioPacket : Boolean;
     function AudioPacketLenth(buf : PByte) : Integer;
     function IsAc3AudioStream(StreamID : Byte) : Boolean;
     procedure ReadBlock;
@@ -45,14 +44,9 @@ const
   AC3_FIRST_STREAM =	$80;
   AC3_SECOND_STREAM	= $81;
 
-  function TAuVOBAC3Demuxer.IsPackHeader : Boolean;
+  function TAuVOBAC3Demuxer.IsAudioPacket : Boolean;
   begin
-    Result := PLongWord(@InBuff[0])^ = $BA010000;
-  end;
-
-  function TAuVOBAC3Demuxer.IsAudioPacketHeader(buf : PByte) : Boolean;
-  begin
-    Result := PLongWord(buf)^ = $BD010000;
+    Result := (PLongWord(@InBuff[0])^ = $BA010000) and  (PLongWord(@InBuff[AC3_PACK_HEADER_LENGTH])^ = $BD010000);
   end;
 
   function TAuVOBAC3Demuxer.AudioPacketLenth(buf : PByte) : Integer;
@@ -75,25 +69,22 @@ const
 
    procedure TAuVOBAC3Demuxer.ReadBlock;
    var
-     packet_point, private_data_point, ac3_data_point : Integer;
+     DataStart, AudioDataStart : Integer;
    begin
      while Position < Size do
      begin
        if Position > 2048 then
        Position := Position - (Position mod 2048);
        inherited Read(InBuff[0], 2048);
-       if  not IsPackHeader then
+       if not IsAudioPacket then
          continue;
-    	 packet_point := AC3_PACK_HEADER_LENGTH;
-		   if not IsAudioPacketHeader(@InBuff[packet_point]) then
+    	 DataStart := AC3_PACK_HEADER_LENGTH + AudioPacketLenth(@InBuff[AC3_PACK_HEADER_LENGTH]);
+       if not IsAc3AudioStream(InBuff[DataStart]) then
          continue;
-    	 private_data_point := packet_point + AudioPacketLenth(@InBuff[packet_point]);
-       if not IsAc3AudioStream(InBuff[private_data_point]) then
-         continue;
-    		ac3_data_point  := private_data_point + AC3_PRIVATE_DATA_LENGTH;
-        FastCopyMem(@Block[0], @InBuff[ac3_data_point], SECTOR_SIZE-ac3_data_point);
-        DataSize := SECTOR_SIZE-ac3_data_point;
-        Break;
+    	 AudioDataStart  := DataStart + AC3_PRIVATE_DATA_LENGTH;
+       FastCopyMem(@Block[0], @InBuff[AudioDataStart], SECTOR_SIZE-AudioDataStart);
+       DataSize := SECTOR_SIZE-AudioDataStart;
+       Break;
      end;
    end;
 
