@@ -10,7 +10,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, ACS_Classes,
-  Buttons, ACS_DXAudio, NewACDTS, ACS_Misc;
+  Buttons, ACS_DXAudio, NewACDTS, ACS_Misc, AuASIO;
 
 type
   TForm1 = class(TForm)
@@ -19,7 +19,6 @@ type
     BitBtn2: TBitBtn;
     BitBtn3: TBitBtn;
     StatusBar1: TStatusBar;
-    DXAudioOut1: TDXAudioOut;
     DTSIn1: TDTSIn;
     AudioPlayList1: TAudioPlayList;
     Label1: TLabel;
@@ -27,6 +26,7 @@ type
     Label8: TLabel;
     Button1: TButton;
     ListBox1: TListBox;
+    DXAudioOut1: TDXAudioOut;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure BitBtn2Click(Sender: TObject);
