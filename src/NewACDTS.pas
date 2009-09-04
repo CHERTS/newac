@@ -240,7 +240,6 @@ implementation
       FValid := ReadFunc;
       if FValid = False then
       begin
-        OpenCS.Leave;
         Exit;
       end;
       FSize := -1;
