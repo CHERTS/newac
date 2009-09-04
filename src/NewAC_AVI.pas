@@ -219,7 +219,7 @@ implementation
       else
       begin
         FHasAudio := False;
-        raise EAuException.Create('');
+        Exit;
       end;
       AVIStream.Info(StreamInfo, SizeOf(StreamInfo));
       _StartSample := StreamInfo.dwStart;
