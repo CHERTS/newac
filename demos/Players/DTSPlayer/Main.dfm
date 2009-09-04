@@ -12,6 +12,9 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
+  DesignSize = (
+    341
+    263)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -119,6 +122,7 @@ object Form1: TForm1
     Top = 115
     Width = 325
     Height = 123
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Color = clNavy
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clAqua
@@ -131,21 +135,14 @@ object Form1: TForm1
     OnClick = ListBox1Click
   end
   object OpenDialog1: TOpenDialog
-    Filter = 'DTS-wav files|*.wav|DTS-dts files|*.dts'
+    DefaultExt = 'dts'
+    Filter = 'DTS-wav files|*.wav|DTS-dts files|*.dts|VOB files|*.vob'
     Left = 224
-    Top = 192
-  end
-  object DXAudioOut1: TDXAudioOut
-    Input = AudioPlayList1
-    OnDone = AudioOut1Done
-    DeviceNumber = 0
-    FramesInBuffer = 65536
-    PollingInterval = 200
-    Left = 152
     Top = 192
   end
   object DTSIn1: TDTSIn
     Loop = False
+    OutputChannels = dts5dot1
     Left = 16
     Top = 192
   end
@@ -154,6 +151,15 @@ object Form1: TForm1
     CurrentItem = 0
     OnPlayItemChanged = AudioPlayList1PlayItemChanged
     Left = 80
+    Top = 192
+  end
+  object DXAudioOut1: TDXAudioOut
+    Input = AudioPlayList1
+    OnDone = AudioOut1Done
+    DeviceNumber = 0
+    FramesInBuffer = 32768
+    PollingInterval = 100
+    Left = 152
     Top = 192
   end
 end
