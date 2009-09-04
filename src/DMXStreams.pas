@@ -80,7 +80,6 @@ const
      while Position < Size do
      begin
        if Position > 2048 then
-
        Position := Position - (Position mod 2048);
        inherited Read(InBuff[0], 2048);
        if  not IsPackHeader then
@@ -124,6 +123,11 @@ const
            FastCopyMem(@b[Count - C], @Block[0], DataSize);
            C := C - DataSize;
            ReadBlock;
+           if DataSize = 0 then
+           begin
+             Result := 0;
+             Exit;
+           end;
          end;
        end;
        Break;
