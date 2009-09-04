@@ -614,7 +614,7 @@ implementation
       lwma_reader_init(reader, FStream, FHighPrecision, CNToShortInt);
       FValid := reader.has_audio;
       if reader.reader = nil then
-        raise EAuException.Create('');
+        Exit;
       if reader._protected then
         raise EAuException.Create('File is protected');
       FDuration := lwma_reader_get_duration(reader);

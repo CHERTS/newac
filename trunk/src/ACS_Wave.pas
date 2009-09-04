@@ -800,13 +800,13 @@ const
             begin
               FValid := False;
               WaveConverter.Free;
-              raise EAuException.Create('');
+              Exit;
             end;
             if WaveConverter.Convert <> 0 then
             begin
               FValid := False;
               WaveConverter.Free;
-              raise EAuException.Create('');
+              Exit;
             end else
             begin
               _MS := TMemoryStream.Create;
