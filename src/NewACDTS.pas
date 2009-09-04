@@ -61,11 +61,6 @@ type
     *)
     property BitRate : LongWord read GetBitrate;
   published
-    (* Property: Extract
-       Set this property to True if you are going to extract DTS stream from a *.VOB file.
-       Otherwise this property should be set to False.
-    *)
-    property Extract : Boolean read FExtract write FExtract;
     (* Property: OutputChannels
        This property controls the number of output channels. The default value is dts5dot1 which corresponds to the maximum available 5.1 channels.
        If any other value is selscted the down-mixing is used by the decoder to provide less channels.
@@ -140,10 +135,18 @@ implementation
     i : Integer;
     sample_rate, bit_rate, frame_length : Integer;
     ChanInfo : Integer;
+    a : array[0..17] of Byte;
   begin
     Result := False;
     while FStream.Position < StreamSize do
     begin
+      if FStream.Position mod 2048 = 0 then
+      begin
+        FStream.Read(a, 18);
+        if (PLongWord(@a[0])^ <> $BA010000) or  (PLongWord(@a[14])^ <> $BD010000)
+        then
+        FStream.Seek(2030, soFromCurrent);
+      end;
       FStream.Read(FrameBuf[0], 4);
       if PLongWord(@FrameBuf[0])^ = $180FE7F then
 //      if FrameBuf[3] = 1 then
@@ -208,6 +211,8 @@ implementation
   end;
 
   procedure TDTSIn.OpenFile;
+  var
+   Magic : LongWord;
   begin
     OpenCS.Enter;
     try
@@ -228,6 +233,12 @@ implementation
       state := dca_init(0);
       CurrentBlock := 1;
       BlockCount := 1;
+      FStream.Read(Magic, 4);
+      if Magic = $BA010000 then
+         FExtract := True
+      else
+         FExtract := False;
+      FStream.Seek(0, soFromCurrent);
       if FExtract then
       begin
         ReadFunc := ExtractFrame;
