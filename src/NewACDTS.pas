@@ -297,7 +297,7 @@ implementation
         bias := 0;
         res := dca_frame(state, @FrameBuf[0], FFlags, level, bias);
         if res <> 0 then
-          raise EAuException.Create('');
+          raise EAuException.Create('Failed to decode DTS data.');
         BlockCount := dca_blocks_num(state);
       end;
       dca_block(state);
