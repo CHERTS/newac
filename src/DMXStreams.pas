@@ -70,12 +70,21 @@ const
    procedure TAuVOBAC3Demuxer.ReadBlock;
    var
      DataStart, AudioDataStart : Integer;
+     Modulo, i : Integer;
    begin
      while Position < Size do
      begin
-       if Position > 2048 then
-       Position := Position - (Position mod 2048);
-       inherited Read(InBuff[0], 2048);
+       Modulo := Position mod 2048;
+       if Modulo > 0 then
+       begin
+         Position := Position - Modulo ;
+         inherited Read(InBuff[0], 2048);
+         if not IsAudioPacket then
+         begin
+          inherited Read(InBuff[0], 2048);
+         end;
+       end else
+         inherited Read(InBuff[0], 2048);
        if not IsAudioPacket then
          continue;
     	 DataStart := AC3_PACK_HEADER_LENGTH + AudioPacketLenth(@InBuff[AC3_PACK_HEADER_LENGTH]);
