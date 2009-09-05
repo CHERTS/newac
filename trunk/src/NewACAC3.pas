@@ -79,12 +79,11 @@ implementation
     ChanInfo : Integer;
   begin
     Result := False;
+    FStream.Read(FrameBuf[0], 6);
     while FStream.Position < StreamSize do
     begin
-      FStream.Read(FrameBuf[0], 2);
-      if PWord(@FrameBuf[0])^ = $770B then
+      FStream.Read(FrameBuf[6], 1);
       begin
-        FStream.Read(FrameBuf[2], 5);
         FrameSize := a52_syncinfo(@FrameBuf[0], FFlags, sample_rate, bit_rate);
         if FrameSize <> 0 then
         begin
@@ -103,7 +102,7 @@ implementation
             Inc(FChan);
           if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000) and (FSR <> 36000)) then
           begin
-            FStream.Seek(-5, soFromCurrent);
+            for i := 0 to 5 do FrameBuf[i] := FrameBuf[i+1];  //FStream.Seek(-5, soFromCurrent);
             Continue;
           end;
           if FStream.Position >= FStream.Size - FrameSize + 7 then
@@ -116,11 +115,7 @@ implementation
           Result := True;
           Break;
         end else
-        FStream.Seek(-5, soFromCurrent);
-      end else
-      begin
-        if FrameBuf[1] = $0B then
-          FStream.Seek(-1, soFromCurrent);
+        for i := 0 to 5 do FrameBuf[i] := FrameBuf[i+1]; //FStream.Seek(-5, soFromCurrent);
       end;
     end;
   end;
