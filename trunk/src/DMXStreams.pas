@@ -21,7 +21,7 @@ type
   TAuVOBAC3Demuxer = class(TAuFileStream)
   private
     F : TFileStream;
-    Block : array [0..2047] of Byte;
+    Block : PBuffer8;
     InBuff : array [0..2047] of Byte;
     DataSize : LongWord;
     FStream : Byte;
@@ -91,7 +91,7 @@ const
        if not IsAc3AudioStream(InBuff[DataStart]) then
          continue;
     	 AudioDataStart  := DataStart + AC3_PRIVATE_DATA_LENGTH;
-       FastCopyMem(@Block[0], @InBuff[AudioDataStart], SECTOR_SIZE-AudioDataStart);
+       Block := @InBuff[AudioDataStart];    //FastCopyMem(@Block[0], @InBuff[AudioDataStart], SECTOR_SIZE-AudioDataStart);
        DataSize := SECTOR_SIZE-AudioDataStart;
        Break;
      end;
