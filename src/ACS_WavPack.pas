@@ -7,7 +7,7 @@
   ****************************************************************************
 
   TWVIn and TWVOut components are written by Sergei Borisov, <jr_ross@mail.ru>
-  with some important mmodifications by Andrey Borovsky.
+  with some important modifications by Andrey Borovsky.
 *)
 
 (* $Id$ *)
@@ -629,8 +629,10 @@ begin
   end;
 
 
-  size :=  FInput.Size div (FInput.Channels * ((FInput.BitsPerSample + 7) shr 3));
-  if size = 0 then size := $FFFFFFFF;
+  if Finput.Size >= 0 then
+     size :=  FInput.Size div (FInput.Channels * ((FInput.BitsPerSample + 7) shr 3))
+  else
+     size := $FFFFFFFF;
 
   if not FEncoder.Init(size)
   then
