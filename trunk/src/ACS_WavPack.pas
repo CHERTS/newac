@@ -577,6 +577,7 @@ const
 var
   bytes_per_sample: Integer;
   flags: TwvConfigFlags;
+  size : LongWord;
 begin
   LoadWavpackDLL;
   if not WavpackDLL_Loaded then
@@ -627,11 +628,14 @@ begin
       FEncoder.ChannelMask := 0;
   end;
 
-  if not FEncoder.Init(
-           FInput.Size div (FInput.Channels * ((FInput.BitsPerSample + 7) shr 3)))
+
+  size :=  FInput.Size div (FInput.Channels * ((FInput.BitsPerSample + 7) shr 3));
+  if size = 0 then size := $FFFFFFFF;
+
+  if not FEncoder.Init(size)
   then
     raise EAuException.CreateFmt(
-      'Wavpack file Init failed! (error: "%s")', [FEncoder.LastError]);
+      'Wavpack file Init failed (error: "%s")', [FEncoder.LastError]);
 end;
 
 procedure TWVOut.Done;
