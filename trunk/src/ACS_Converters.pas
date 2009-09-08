@@ -297,15 +297,16 @@ type
   TClippingEvent = procedure(Sender : TComponent) of object;
 
   (* Class: TDownMixer
+     TDownMixer converts multi-channel (currently only 5.1) audio to stereo.
      Descends from <TAuConverter>.
-     TDownMixer converts multi-channel (currently - only 5.1) audio to stereo.
      The stereo channel data are calculated as follows:
-     - if JoinRear = False
-     - Left = FrontLeft + RearLeft*RearGain + Central*CentralGain
-     - Right = FrontRight + RearRight*RearGain + Central*CentralGain
-     - if JoinRear = True
-     - Left = FrontLeft + (RearLeft + RearRight)*RearGain + Central*CentralGain
-     - Right = FrontRight - (RearLeft + RearRight)*RearGain + Central*CentralGain
+     > if JoinRear = False then
+     > Left = FrontLeft + RearLeft*RearGain + Central*CentralGain
+     > Right = FrontRight + RearRight*RearGain + Central*CentralGain
+
+     > if JoinRear = True then
+     > Left = FrontLeft + (RearLeft + RearRight)*RearGain + Central*CentralGain
+     > Right = FrontRight - (RearLeft + RearRight)*RearGain + Central*CentralGain
    *)
 
   TDownMixer = class(TAuConverter)
@@ -329,28 +330,24 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
-    (* Property : CentralGain
+    (* Property: CentralGain
        CentralGain value (see the formulae above) reasonable values range from 0.5 to 0.7.
        If this this value is too large, clipping may occur
     *)
     property CentralGain : Single read FCentralGain write FCentralGain;
-    (* Property : RearGain
-       RearGain value (see the formulae above) reasonable values range from 0.5 to 0.7.
-       If this this value is too large, clipping may occur.
-    *)
+    (* Property: RearGain
+       RearGain value (see the formulae above). Reasonable values range from 0.5 to 0.7.
+       If this this value is too large, clipping may occur. *)
     property RearGain : Single read FRearGain write FRearGain;
-    (* Property : TotalGain
+    (* Property: TotalGain
        The total output gain value. Reasonable values range from 0.5 to 1.0.
-       Decrease this value to prevent clipping.
-    *)
+       Decrease this value to prevent clipping. *)
     property TotalGain : Single read FTotalGain write FTotalGain;
-    (* Property : JoinRear
-       When set to True the component tries to emulate Dolby Surround Stereo.
-    *)
+    (* Property: JoinRear
+       When set to True the component tries to emulate Dolby Surround Stereo. *)
     property JoinRear : Boolean read FJoinRear write FJoinRear;
-    (* Property : OnClipping
-       OnCliping event is raised whenever clipping occurs.
-    *)
+    (* Property: OnClipping
+       OnCliping event is raised whenever clipping occurs.  *)
     property OnClipping : TClippingEvent read FOnCliping write FOnCliping;
   end;
 
