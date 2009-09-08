@@ -33,6 +33,12 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
+Version: NewAC 2.2
+	- AC-3 decoder added.
+	- DTS decoder is greatly improved.
+	- TDownMixer component is added (converts 5.1 to stereo lets you to control the parameters).
+	- TWVIn and TWVOut components are significantly improved.
+
 Version: NewAC 2.1
 	- DTS decoder added.
 	- TAudioPlaylist component which allows gapless playback added. 

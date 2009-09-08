@@ -17,6 +17,7 @@ With NewAC Delphi components package components you can:
 - Read and store audio in TStream classes, including TMemoryStream.
 - Split audiotracks automatically using cue-sheets.
 - Build gapless playlists from several audio-files.
+- Extract multi-channel audio from CD/DVD images.
 
 NewAC supports new Windows Vista DSP components: built in audio resampler and voice data DSP.
 
@@ -32,6 +33,7 @@ Suported formats:
 - WavPack: decoding, encoding, editing tags.
 - Musepack: decoding, encoding, editing tags.
 - DTS (Digital Theater System): decoding.
+- AC-3 (Dolby Digital): decoding.
 - OptimFROG: decoding.
 - TAK: decoding.
 
