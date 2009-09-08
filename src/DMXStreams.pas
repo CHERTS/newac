@@ -26,7 +26,6 @@ type
     DataSize : LongWord;
     FStream : Byte;
     function IsAudioPacket : Boolean;
-    function AudioPacketLenth(buf : PByte) : Integer;
     function IsAc3AudioStream(StreamID : Byte) : Boolean;
     procedure ReadBlock;
   public
@@ -49,10 +48,6 @@ const
     Result := (PLongWord(@InBuff[0])^ = $BA010000) and  (PLongWord(@InBuff[AC3_PACK_HEADER_LENGTH])^ = $BD010000);
   end;
 
-  function TAuVOBAC3Demuxer.AudioPacketLenth(buf : PByte) : Integer;
-  begin
-    Result := buf[8] + 9;
-  end;
   function TAuVOBAC3Demuxer.IsAc3AudioStream(StreamID : Byte) : Boolean;
   begin
     Result := (StreamID = FStream);
@@ -87,7 +82,7 @@ const
          inherited Read(InBuff[0], 2048);
        if not IsAudioPacket then
          continue;
-    	 DataStart := AC3_PACK_HEADER_LENGTH + AudioPacketLenth(@InBuff[AC3_PACK_HEADER_LENGTH]);
+    	 DataStart := AC3_PACK_HEADER_LENGTH + InBuff[AC3_PACK_HEADER_LENGTH + 8]+9;
        if not IsAc3AudioStream(InBuff[DataStart]) then
          continue;
     	 AudioDataStart  := DataStart + AC3_PRIVATE_DATA_LENGTH;
