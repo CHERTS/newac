@@ -84,7 +84,7 @@ type
     procedure Pause;
     procedure Resume;
     (* Function: IsSampleRateSupported
-        Returns True if the specified sample rate is supported by the driver and False otherwise.  *)
+        Returns True if the specified sample rate is supported by the driver and False otherwise. Call it before you start any other ASIO operation or the current operation will be aborted. *)
     function IsSampleRateSupported(SR : Integer) : Boolean;
     (* Function: ShowSetupDlg
         Brings up ASIO properties dialog window.  *)
@@ -192,7 +192,7 @@ type
         Pass True to HoldOff if you want to temporarily disable recording. The Whole processing chain is bloacked untill you call HoldOff(False). *)
     procedure HoldOff(b : Boolean);
     (* Function: IsSampleRateSupported
-        Returns True if the specified sample rate is supported by the driver and False otherwise.  *)
+        Returns True if the specified sample rate is supported by the driver and False otherwise. Call it before you start any other ASIO operation or the current operation will be aborted. *)
     function IsSampleRateSupported(SR : Integer) : Boolean;
     (* Function: ShowSetupDlg
         Brings up ASIO properties dialog window.  *)
@@ -887,7 +887,8 @@ var
 begin
   ASIOInit;
   D := SR;
-  Result := Device.CanSampleRate(D) <> 0;
+  Result := Device.CanSampleRate(D) = ASE_OK;
+  ASIODone;
 end;
 
 function  TASIOAudioOut.FillBuffer(var EOF: Boolean) : Integer;
@@ -1083,7 +1084,8 @@ var
 begin
   ASIOInit;
   D := SR;
-  Result := Device.CanSampleRate(D) <> 0;
+  Result := Device.CanSampleRate(D) = ASE_OK;
+  ASIODone;
 end;
 
 procedure TASIOAudioIn.SetDeviceNumber(i : Integer);
