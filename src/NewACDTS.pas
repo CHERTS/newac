@@ -62,8 +62,8 @@ type
     property BitRate : LongWord read GetBitrate;
   published
     (* Property: OutputChannels
-       This property controls the number of output channels. The default value is dts5dot1 which corresponds to the maximum available 5.1 channels.
-       If any other value is selscted the down-mixing is used by the decoder to provide less channels.
+       This property controls the number of output channels. The default value is dts5dot1 which corresponds to the maximum available channels (5.1 or less if the original stream contains less channels).
+       If any other value is selected the down-mixing is used by the decoder to provide less channels.
     *)
     property OutputChannels : TDTSOutputChannels read FOutputChannels write FOutputChannels;
   end;
@@ -181,7 +181,7 @@ implementation
           end;
           if (FFlags and DCA_LFE) <> 0 then
             Inc(FChan);
-          if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000)) then
+          if (FChan > 8) or ((FSR <> 44100) and (FSR <> 48000) and (FSR <> 36000)) then
           begin
             FStream.Seek(-10, soFromCurrent);
             Continue;

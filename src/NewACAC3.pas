@@ -19,7 +19,7 @@ uses
 
 type
 
-  TReadFunc = function : Boolean of object;
+  TAC3OutputChannels = (acc5dot1 = 0, accMono, accStereo);
 
  (* Class: TAC3In
       Descends from <TAuFileIn>.
@@ -46,6 +46,7 @@ type
     FDemuxer : TAuVOBAC3Demuxer;
     FVobStream : TAC3VOBStream;
     StreamSize : Int64;
+    FOutputChannels : TAC3OutputChannels;
     function ReadFrame : Boolean;
     function GetBitrate : LongWord;
   protected
@@ -63,6 +64,11 @@ type
       This property has any effect only if you are extracting AC-3 from VOB/MPEG-2 files.
      *)
      property VobAudioSubstream : TAC3VOBStream read FVobStream write FVOBStream;
+    (* Property: OutputChannels
+       This property controls the number of output channels. The default value is acc5dot1 which corresponds to the maximum available channels (5.1 or less if the original stream contains less channels).
+       If any other value is selected the down-mixing is used by the decoder to provide less channels.
+    *)
+     property OutputChannels : TAC3OutputChannels read FOutputChannels write FOutputChannels;
   end;
 
 
@@ -90,6 +96,16 @@ implementation
           FSR := sample_rate;
           FBitRate := bit_rate;
           FBPS := 16;
+          if FOutputChannels > acc5dot1 then
+          begin
+            FFlags := FFlags and (not A52_CHANNEL_MASK);
+            FFlags := FFlags and (not A52_LFE);
+            case FOutputChannels of
+              accMono: FFlags := FFlags or A52_MONO;
+              accStereo: FFlags := FFlags or A52_STEREO;
+              else ;
+            end;
+          end;
           ChanInfo := FFlags and a52_CHANNEL_MASK;
           case ChanInfo of
             0, 1 : FChan := 1;
@@ -100,7 +116,7 @@ implementation
           end;
           if (FFlags and a52_LFE) <> 0 then
             Inc(FChan);
-          if (FChan <> 6) or ((FSR <> 44100) and (FSR <> 48000) and (FSR <> 36000)) then
+          if (FChan > 8) or ((FSR <> 44100) and (FSR <> 48000) and (FSR <> 32000)) then
           begin
             for i := 0 to 5 do FrameBuf[i] := FrameBuf[i+1];  //FStream.Seek(-5, soFromCurrent);
             Continue;
