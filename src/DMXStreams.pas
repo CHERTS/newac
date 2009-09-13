@@ -34,6 +34,24 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
 
+  TAuAOBDemuxer = class(TAuFileStream)
+  private
+    F : TFileStream;
+    Block : PBuffer8;
+    InBuff : array [0..2047] of Byte;
+    DataSize : LongWord;
+    FStream : Byte;
+    function IsAudioPacket : Boolean;
+    function IsAudioPES(Ptr : PLongWord) : Boolean;
+    procedure ParseLPCMHeader(Offset : Integer);
+    procedure ReadBlock;
+  public
+    procedure Init(Stream : TAC3VOBStream = acvStreamFirst);
+    function Read(var Buffer; Count: Longint): Longint; override;
+  end;
+
+
+
 implementation
 
 const
@@ -141,5 +159,117 @@ const
          Break;
        end;
    end;*)
+
+     function TAuAOBDemuxer.IsAudioPacket : Boolean;
+  begin
+    Result := (PLongWord(@InBuff[0])^ = $BA010000) and  (PLongWord(@InBuff[AC3_PACK_HEADER_LENGTH])^ = $BB010000);
+  end;
+
+  function TAuAOBDemuxer.IsAudioPES(Ptr : PLongWord) : Boolean;
+  begin
+    Result := (Ptr^ = $BD010000);
+  end;
+
+   procedure TAuAOBDemuxer.Init(Stream : TAC3VOBStream = acvStreamFirst);
+   begin
+     DataSize := 0;
+     if Stream = acvStreamFirst then
+       FStream := AC3_FIRST_STREAM
+     else
+       FStream := AC3_SECOND_STREAM;
+   end;
+
+   procedure TAuAOBDemuxer.ReadBlock;
+   var
+     DataStart, AudioDataStart : Integer;
+     Modulo, i : Integer;
+   begin
+     while Position < Size do
+     begin
+       Modulo := Position mod 2048;
+       if Modulo > 0 then
+       begin
+         Position := Position - Modulo ;
+         inherited Read(InBuff[0], 2048);
+         if not IsAudioPacket then
+         begin
+          inherited Read(InBuff[0], 2048);
+         end;
+       end else
+         inherited Read(InBuff[0], 2048);
+       if not IsAudioPacket then
+         continue;
+    	 DataStart := AC3_PACK_HEADER_LENGTH + InBuff[AC3_PACK_HEADER_LENGTH + 5]+6;
+       if not IsAudioPES(@InBuff[DataStart]) then
+         continue;
+    	 AudioDataStart  := DataStart + AC3_PRIVATE_DATA_LENGTH;
+       for i := 0 to 255 do
+          if InBuff[AudioDataStart+i] = 10 then
+          begin
+            AudioDataStart := AudioDataStart+i;
+            Break;
+          end;
+       Block := @InBuff[AudioDataStart];    //FastCopyMem(@Block[0], @InBuff[AudioDataStart], SECTOR_SIZE-AudioDataStart);
+       if InBuff[AudioDataStart] <> 10 then
+         Continue;
+       ParseLPCMHeader(AudioDataStart);
+       DataSize := SECTOR_SIZE-AudioDataStart;
+       Break;
+     end;
+   end;
+
+   procedure TAuAOBDemuxer.ParseLPCMHeader(Offset : Integer);
+   var
+     IntOffset : Integer;
+     hl, fs : Integer;
+     chmask, ss, sr : Byte;
+   begin
+     IntOffset := Offset + 2;
+     hl := InBuff[IntOffset+1]*256 + InBuff[IntOffset];
+     IntOffset := Offset + 4;
+     fs := InBuff[IntOffset+1]*256 + InBuff[IntOffset];
+     chmask := InBuff[Offset + 10];
+     ss := InBuff[Offset + 7] shr 4;
+     sr := InBuff[Offset + 8] shr 4;
+     DataSize := ss + sr + hl+ fs + chmask;
+   end;
+
+   function TAuAOBDemuxer.Read(var Buffer; Count: Longint): Longint;
+   var
+     C : LongInt;
+     b : array of Byte;
+     i : Integer;
+   begin
+     Result := 0;
+     C := Count;
+     SetLength(b, C);
+     while (Position < Size) do
+     begin
+       while C > 0 do
+       begin
+         if DataSize >= C then
+         begin
+           FastCopyMem(@b[Count - C], @Block[0], C);
+           DataSize := DataSize - C;
+           FastCopyMem(@Block[0], @Block[C], DataSize);
+           Move(b[0], Buffer, Count);
+           Result := Count;
+           C := 0;
+         end else
+         begin
+           FastCopyMem(@b[Count - C], @Block[0], DataSize);
+           C := C - DataSize;
+           ReadBlock;
+           if DataSize = 0 then
+           begin
+             Result := 0;
+             Exit;
+           end;
+         end;
+       end;
+       Break;
+     end;
+   end;
+
 
 end.
