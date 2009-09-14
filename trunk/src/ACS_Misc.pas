@@ -1064,6 +1064,10 @@ begin
   else
      TAuSeekableStreamedInput(Finput).EndSample := Round(FItems[FCurrentItem].EndIndex/1000*FSR);
   FInput.Init;
+    if TAuSeekableStreamedInput(Finput).EndSample = -1 then
+      FSize := FInput.Size - TAuSeekableStreamedInput(Finput).StartSample*(Finput.BitsPerSample div 8)*Finput.Channels + (Finput.BitsPerSample div 8)*Finput.Channels
+    else
+      FSize := TAuSeekableStreamedInput(Finput).EndSample*(Finput.BitsPerSample div 8)*Finput.Channels - TAuSeekableStreamedInput(Finput).StartSample*(Finput.BitsPerSample div 8)*Finput.Channels + (Finput.BitsPerSample div 8)*Finput.Channels;
 end;
 
 procedure TCueSplitter.GetDataInternal;
