@@ -25,6 +25,7 @@ type
    QWORD = Int64;
 
    TNotifyProc = procedure(Dest : TComponent);
+   TErrorNotifyProc = procedure(Dest : TComponent; Reason : LongWord);
 
    TAudioStream = class(TInterfacedObject, IStream)
    private
@@ -124,7 +125,9 @@ type
      file_sink : IWMWriterFileSink;
      network_sink : IWMWriterNetworkSink;
      StatusCallback : IWMStatusCallback;
+     ErrorCallback : IWMStatusCallback;
      OnConnected, OnDisconnected : TNotifyProc;
+     OnError : TErrorNotifyProc;
    end;
 
    pwma_writer = ^wma_writer;
@@ -137,6 +140,15 @@ type
 
 
    TWMStatusCallback = class(TInterfacedObject, IWMStatusCallback)
+   private
+      FWriter : pwma_writer;
+   public
+      constructor Create(writer : pwma_writer);
+      function OnStatus(Status: TWMTStatus; hr: HRESULT; dwType: TWMTAttrDataType;
+        pValue: PBYTE; pvContext: Pointer): HRESULT; stdcall;
+   end;
+
+   TWMErrorCallback = class(TInterfacedObject, IWMStatusCallback)
    private
       FWriter : pwma_writer;
    public
@@ -199,7 +211,7 @@ type
    procedure lwma_async_reader_get_data(var async_reader : wma_async_reader; var buffer : Pointer; var bufsize : LongWord);
    procedure lwma_async_reader_free(var async_reader : wma_async_reader);
 
-  procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
+  procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar; Owner : TComponent; CallError : TErrorNotifyProc);
   procedure lwma_writer_set_audio_properties(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; Lossless, vbr : Boolean; DesiredBitrate : LongWord);
   procedure lwma_writer_set_audio_properties2(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
   procedure lwma_writer_set_audio_properties3(var writer : wma_writer; channels, BitsPerSample : Word; SampleRate : LongWord; VBR : LongBool; CodecIndex, FormatIndex : LongWord);
@@ -218,7 +230,7 @@ type
   procedure lwma_writer_write(var writer : wma_writer; Buffer : Pointer; len : LongWord);
   procedure lwma_writer_free(var writer : wma_writer);
 
-  procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc);
+  procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc; CallError : TErrorNotifyProc);
   procedure lwma_network_writer_free(var writer : wma_writer);
   function lwma_network_writer_get_connections_count(var writer : wma_writer) : LongWord;
   procedure lwma_network_writer_get_connection_info(var writer : wma_writer; connection : LongWord; var Address, Port : LongWord);
@@ -1096,13 +1108,16 @@ implementation
    StreamConfig := nil;
   end;
 
-   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar);
+   procedure lwma_writer_init(var writer : wma_writer; pwszFilename : PWChar; Owner : TComponent; CallError : TErrorNotifyProc);
    var
      pSinkBase : IWMWriterSink;
      pWriterAdvanced : IWMWriterAdvanced;
-   begin
+     RegisterCallback : IWMRegisterCallback;
+    begin
      CoInitialize(nil);
      FillChar(writer, SizeOf(writer), 0);
+     writer.Owner := Owner;
+     writer.OnError := CallError;
      if WMCreateWriterFileSink(writer.file_sink) <> S_OK then
        Exit;
      if WMCreateWriter(nil, writer.writer) <> S_OK then
@@ -1121,10 +1136,14 @@ implementation
        writer.writer := nil;
        exit;
      end;
+     writer.ErrorCallback := TWMErrorCallback.Create(@writer) as IWMStatusCallback;
+     RegisterCallback := writer.file_sink as IWMRegisterCallback;
+     RegisterCallback.Advise(writer.ErrorCallback, nil);
+     RegisterCallback := nil;
      Writer.Initialized := True;
    end;
 
-   procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc);
+   procedure lwma_network_writer_init(var writer : wma_writer; PortNumber, MaxClients : LongWord; Owner : TComponent; CallConnected, CallDisconnected : TNotifyProc; CallError : TErrorNotifyProc);
    var
     // pSinkBase : IWMWriterSink;
      pWriterAdvanced : IWMWriterAdvanced;
@@ -1725,6 +1744,8 @@ implementation
      writer.writer.EndWriting();
      writer.file_sink := nil;
      writer.writer := nil;
+     writer.ErrorCallback := nil;
+     writer.Initialized := False;
    end;
 
    procedure lwma_network_writer_free(var writer : wma_writer);
@@ -1735,6 +1756,7 @@ implementation
      writer.network_sink := nil;
      writer.writer := nil;
      writer.StatusCallback := nil;
+     writer.ErrorCallback := nil;
      writer.Initialized := False;
    end;
 
@@ -1863,6 +1885,20 @@ implementation
        FWriter.OnDisconnected(FWriter.Owner);
      Result := S_OK;
    end;
+
+   constructor TWMErrorCallback.Create;
+   begin
+     inherited Create;
+     FWriter := writer;
+   end;
+
+   function TWMErrorCallback.OnStatus;
+   begin
+     if Status in [WMT_ERROR, WMT_NO_RIGHTS, WMT_NO_RIGHTS_EX, WMT_ERROR_WITHURL] then
+        FWriter.OnError(FWriter.Owner, LongWord(Status));
+     Result := S_OK;
+   end;
+
 
   function lwma_network_writer_get_connections_count(var writer : wma_writer) : LongWord;
   var

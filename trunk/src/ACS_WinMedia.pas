@@ -152,6 +152,8 @@ type
       the codec and format directly. This component descends from
       <TAuTaggedFileOut>. *)
 
+  TOutputErrorEvent = procedure(Sender : TComponent; Reason : LongWord) of object;
+
   TWMAOut = class(TAuTaggedFileOut)
   private
     FCodecs : TStringList;
@@ -163,6 +165,7 @@ type
     FBitrate : LongWord;
     FLossless, FVBR : Boolean;
     FVBRQuality : Byte;
+    FOnOutputError : TOutputErrorEvent;
     function GetCodecs : TStringList;
     function GetCodecsCount : Word;
     function GetCodecName(Index : Word) : String;
@@ -249,6 +252,7 @@ type
        valid values range from 1 to 99. This property only has an effect if
        <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
+    property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
   (* Topic: A Note on Windows Media Formats
@@ -270,6 +274,7 @@ type
     FLossless, FVBR : Boolean;
     FVBRQuality : Byte;
     Writer : wma_writer;
+    FOnOutputError : TOutputErrorEvent;
     procedure SetId3v2Tags(Value: TId3v2Tags);
   protected
     procedure StartRecordInternal; override;
@@ -304,6 +309,7 @@ type
        valid values range from 1 to 99. This property has any effect only if
        <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
+    property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
 
@@ -514,6 +520,7 @@ type
     BufSize : Integer;
     FVBR : Boolean;
     Writer : wma_writer;
+    FOnOutputError : TOutputErrorEvent;
     function GetCodecs : TStringList;
     function GetCodecsCount : Word;
     function GetCodecName(Index : Word) : String;
@@ -569,6 +576,7 @@ type
        Use this property to switch between constant bitrate and variable
        bitrate encoding modes. *)
     property VBR : Boolean read FVBR write FVBR;
+    property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
 
@@ -585,6 +593,25 @@ implementation
     if Assigned((Dest as TWMStreamedOut).FOnClientDisconnected)  then
       EventHandler.PostGenericEvent(Dest, (Dest as TWMStreamedOut).FOnClientDisconnected);
   end;
+
+  procedure CallOnError(Dest : TComponent; Reason : LongWord);
+  begin
+    if Assigned((Dest as TWMAOut).FOnOutputError) then
+       (Dest as TWMAOut).FOnOutputError(Dest, Reason);
+  end;
+
+  procedure CallOnATError(Dest : TComponent; Reason : LongWord);
+  begin
+    if Assigned((Dest as TWMATap).FOnOutputError) then
+       (Dest as TWMATap).FOnOutputError(Dest, Reason);
+  end;
+
+  procedure CallOnDPError(Dest : TComponent; Reason : LongWord);
+  begin
+    if Assigned((Dest as TWMADualPassOut).FOnOutputError) then
+       (Dest as TWMADualPassOut).FOnOutputError(Dest, Reason);
+  end;
+
 
   constructor TWMIn.Create;
   begin
@@ -768,9 +795,9 @@ implementation
       if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
     FInput.Init;
     if FUseNetwork then
-      lwma_network_writer_init(Writer, FPort, FMaxClients, Self, CallOnConnected, CallOnDisconnected)
+      lwma_network_writer_init(Writer, FPort, FMaxClients, Self, CallOnConnected, CallOnDisconnected, CallOnError)
     else
-      lwma_writer_init(Writer, PWideChar(FWideFileName));
+      lwma_writer_init(Writer, PWideChar(FWideFileName), Self, CallOnError);
     if not Writer.Initialized then
       raise Exception.Create('Cannot create file');
     if FCodecIndex < 0 then
@@ -1045,7 +1072,7 @@ implementation
   procedure TWMATap.StartRecordInternal;
   begin
     if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
-    lwma_writer_init(Writer, PWideChar(FWideFileName));
+    lwma_writer_init(Writer, PWideChar(FWideFileName), Self, CallOnATError);
     if not Writer.Initialized then
       raise Exception.Create('Cannot create file');
       if not FVBR then
@@ -1229,7 +1256,7 @@ implementation
     if not (Finput is TAuFileIn) then
       raise EAuException.Create('Only files can be encoded in dual passes');
     FInput.Init;
-    lwma_writer_init(Writer, PWideChar(FWideFileName));
+    lwma_writer_init(Writer, PWideChar(FWideFileName), Self, CallOnDPError);
     if not Writer.Initialized then
       raise Exception.Create('Cannot create file');
     lwma_writer_set_audio_properties3(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FVBR, FCodecIndex, FFormatIndex);
