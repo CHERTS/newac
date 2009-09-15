@@ -271,6 +271,7 @@ type
     function GetPerformer : AnsiString;
     function GetTitle : AnsiString;
     function GetItemsCount : Byte;
+    function GetTime : LongWord;
     procedure SetCueFile(const fn : AnsiString);
   protected
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
@@ -299,6 +300,10 @@ type
       Returns the name of the current composition
    *)
     property Title : AnsiString read GetTitle;
+    (* Property: Time
+      Returns the current composition duration in seconds.
+   *)
+    property Time : LongWord read GetTime;
   published
     (* Property: CueFile
       The name of the cue-sheet file. *)
@@ -1038,6 +1043,23 @@ function TCueSplitter.GetTitle;
 begin
   ParseCue;
   Result := FItems[FCurrentItem].Title;
+end;
+
+function TCueSplitter.GetTime;
+var
+  EI : LongWord;
+begin
+  ParseCue;
+  if FItems[FCurrentItem].EndIndex = 0 then
+  begin
+    if Assigned(Finput) then
+    begin
+      EI := (Finput.TotalSamples div Finput.SampleRate)*1000;
+      Result := (EI - FItems[FCurrentItem].BeginIndex) div 1000;
+    end else
+      Result := 0;
+  end else
+    Result := (FItems[FCurrentItem].EndIndex - FItems[FCurrentItem].BeginIndex) div 1000;
 end;
 
 procedure TCueSplitter.SetCueFile(const fn: AnsiString);
