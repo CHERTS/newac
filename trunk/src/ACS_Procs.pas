@@ -811,19 +811,54 @@ begin
   end;
 end;
 
-procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
+{procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
 var
   i : Integer;
 begin
   for i := (InSize div 3) - 1 downto 0 do
   begin
-    InOutBuf[i*4] := 0;
+   (* InOutBuf[i*4] := 0;
     InOutBuf[i*4+1] := InOutBuf[i*3];
-    PSmallInt(@(InOutBuf[i*4+2]))^ := PSmallInt(@(InOutBuf[i*3 + 1]))^;
+    PSmallInt(@(InOutBuf[i*4+2]))^ := PSmallInt(@(InOutBuf[i*3 + 1]))^; *)
+    PLongWord(@InOutBuf[i*4])^ := PLongWord(@InOutBuf[i*3])^ shl 8;
+    asm
+      MOV EAX, DWORD PTR [InOutBuf[i*3]];
+      SHL EDX, 8;
+      MOV DWORD [InOutBuf[i*4]], EDX
+    end;
+
   end;
-end;
+end;}
 
-
+procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
+  asm
+    PUSH EDI;
+    PUSH ESI;
+    PUSH EBX;
+    MOV EBX, InOutBuf;
+    MOV EAX, InSize;
+    MOV EDI, EAX;
+    ADD EDI, EBX;
+    MOV EDX, 0;
+    MOV ECX, 3;
+    DIV ECX;
+    MOV EDX, 0;
+    MOV ECX, 4;
+    MUL ECX;
+    MOV ECX, EBX;
+    MOV ESI, ECX;
+    ADD ESI, EAX;
+    @loop: SUB EDI, 3
+    SUB ESI, 4
+    MOV EAX, [EDI];
+    SHL EAX, 8;
+    MOV [ESI], EAX;
+    CMP ECX, EDI;
+    JNE @loop;
+    POP EBX;
+    POP ESI;
+    POP EDI;
+  end;
 
 procedure ConvertIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
 var
