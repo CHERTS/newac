@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.1
+  This file is a part of New Audio Components package v. 2.2.1
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -252,6 +252,12 @@ type
        valid values range from 1 to 99. This property only has an effect if
        <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
+    (* Property: OnOutputError
+       This event is raised if an error occurs during output. If the event handler is not set, error is ignored.
+       The best way to handle the eent is to call
+       > Sender.Stop(True);
+       from the handler.
+       When this event is called ExcaptionMessage property returns 'Windows Media output error.' string. *)
     property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
@@ -309,6 +315,12 @@ type
        valid values range from 1 to 99. This property has any effect only if
        <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
+    (* Property: OnOutputError
+       This event is raised if an error occurs during output. If the event handler is not set, error is ignored.
+       The best way to handle the eent is to call
+       > Sender.Stop(True);
+       from the handler.
+       When this event is called ExcaptionMessage property returns 'Windows Media output error.' string. *)
     property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
@@ -576,6 +588,12 @@ type
        Use this property to switch between constant bitrate and variable
        bitrate encoding modes. *)
     property VBR : Boolean read FVBR write FVBR;
+    (* Property: OnOutputError
+       This event is raised if an error occurs during output. If the event handler is not set, error is ignored.
+       The best way to handle the eent is to call
+       > Sender.Stop(True);
+       from the handler.
+       When this event is called ExcaptionMessage property returns 'Windows Media output error.' string. *)
     property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
@@ -596,6 +614,7 @@ implementation
 
   procedure CallOnError(Dest : TComponent; Reason : LongWord);
   begin
+    (Dest as TWMAOut).FExceptionMessage := 'Windows Media output error.';
     if Assigned((Dest as TWMAOut).FOnOutputError) then
        (Dest as TWMAOut).FOnOutputError(Dest, Reason);
   end;
@@ -608,6 +627,7 @@ implementation
 
   procedure CallOnDPError(Dest : TComponent; Reason : LongWord);
   begin
+   (Dest as TWMADualPassOut).FExceptionMessage := 'Windows Media output error.';
     if Assigned((Dest as TWMADualPassOut).FOnOutputError) then
        (Dest as TWMADualPassOut).FOnOutputError(Dest, Reason);
   end;
@@ -1307,6 +1327,7 @@ implementation
 
   procedure TWMADualPassOut.Done;
   begin
+    FInput.Flush;
     lwma_writer_free(Writer);
     FreeMem(Buf);
   end;
