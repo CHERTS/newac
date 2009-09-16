@@ -396,6 +396,35 @@ var
   oBuf : array[0..oBufSize] of Byte;
   WriteIndex, ReadIndex, ReadOffset : LongWord;
 
+type
+  TBufferInfoArray = array[0..15] of TASIOBufferInfo;
+  PBufferInfoArray = ^TBufferInfoArray;
+
+procedure Deinterleave32(InputBuffer : PBuffer32; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : Integer; Channels : LongWord);
+var
+  i, j : Integer;
+  Dest : array[0..15] of PBuffer32;
+begin
+  for i := 0 to Channels - 1 do
+    Dest[i] := OutputBuffer[i].buffers[BufferIndex];
+  for i := 0 to Samples - 1 do
+    for j := 0 to Channels - 1 do
+      Dest[j][i] := InputBuffer[i*Channels + j];
+end;
+
+procedure Deinterleave16(InputBuffer : PBuffer16; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : Integer; Channels : LongWord);
+var
+  i, j : Integer;
+  Dest : array[0..15] of PBuffer16;
+begin
+  for i := 0 to Channels - 1 do
+    Dest[i] := OutputBuffer[i].buffers[BufferIndex];
+  for i := 0 to Samples - 1 do
+    for j := 0 to Channels - 1 do
+      Dest[j][i] := InputBuffer[i*Channels + j];
+end;
+
+
 procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
   s1, s2 : TASIOInt64;
@@ -412,29 +441,11 @@ begin
    FillBuffer(GStop);
    if Self.FOutputBPS = 16 then
    begin
-     if FOutputChannels = 6 then
-        DeinterleaveSurround16(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], BufferInfo[4].buffers[BufferIndex], BufferInfo[5].buffers[BufferIndex], OutputComponent.FBufferSize)
-     else
-     if FOutputChannels = 2 then
-       DeinterleaveStereo16(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
-     else
-     begin
-       FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*2);
-//       FastCopyMem(BufferInfo[1].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*2);
-     end;
+     Deinterleave16(@iBuf, @BufferInfo[0], OutputComponent.FBufferSize, BufferIndex, FOutputChannels);
    end;
    if Self.FOutputBPS = 32 then
    begin
-     if FOutputChannels = 6 then
-        DeinterleaveSurround32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], BufferInfo[2].buffers[BufferIndex], BufferInfo[3].buffers[BufferIndex], BufferInfo[4].buffers[BufferIndex], BufferInfo[5].buffers[BufferIndex], OutputComponent.FBufferSize)
-     else
-     if FOutputChannels = 2 then
-       DeinterleaveStereo32(@iBuf, BufferInfo[0].buffers[BufferIndex], BufferInfo[1].buffers[BufferIndex], OutputComponent.FBufferSize)
-     else
-     begin
-       FastCopyMem(BufferInfo[0].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
-//       FastCopyMem(BufferInfo[1].buffers[BufferIndex], @iBuf, OutputComponent.FBufferSize*4);
-     end;
+     Deinterleave32(@iBuf, @BufferInfo[0], OutputComponent.FBufferSize, BufferIndex, FOutputChannels);
    end;
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady <> ASE_NotPresent;
