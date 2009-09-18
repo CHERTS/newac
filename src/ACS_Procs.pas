@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 2.0
+  This file is a part of New Audio Components package v 2.2.1
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -140,6 +140,8 @@ var
   procedure Convert32To24(InOutBuf : PBuffer8; InSize : Integer);
 
   procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
+
+  procedure Convert16To32(InOutBuf : PBuffer8; InSize : Integer);
 
   procedure ConvertIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
 
@@ -859,6 +861,38 @@ procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
     POP ESI;
     POP EDI;
   end;
+
+procedure Convert16To32(InOutBuf : PBuffer8; InSize : Integer);
+  asm
+    PUSH EDI;
+    PUSH ESI;
+    PUSH EBX;
+    MOV EBX, InOutBuf;
+    MOV EAX, InSize;
+    MOV EDI, EAX;
+    ADD EDI, EBX;
+    MOV EDX, 0;
+    MOV ECX, 2;
+    MUL ECX;
+    MOV ECX, EBX;
+    MOV ESI, ECX;
+    ADD ESI, EAX;
+    EMMS;
+    @loop:
+    SUB EDI, 4;
+    SUB ESI, 8;
+    MOVD MM0, [EDI];
+    PXOR MM1, MM1;
+    PUNPCKLWD MM1, MM0;
+    MOVQ [ESI], MM1;
+    CMP ECX, EDI;
+    JNE @loop;
+    EMMS;
+    POP EBX;
+    POP ESI;
+    POP EDI;
+  end;
+
 
 procedure ConvertIEEEFloatTo32(InOutBuf : PBuffer32; InSize : Integer);
 var

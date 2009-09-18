@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.1
+  This file is a part of New Audio Components package 2.2.1
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -463,6 +463,7 @@ end;
 
 procedure AsioSampleRateDidChange(sRate: TASIOSampleRate); cdecl;
 begin
+  OutputComponent.Stop();
   OutputComponent.FNewSampleRate := Round(sRate);
   if Assigned(OutputComponent.FOnSampleRateChanged) then
     EventHandler.PostGenericEvent(OutputComponent, OutputComponent.FOnSampleRateChanged);
@@ -723,6 +724,9 @@ begin
   FInput.Init;
   FOutputChannels := Finput.Channels;
   ASIOInit;
+  Device.SetSampleRate(FInput.SampleRate);
+  ASIODone;
+  ASIOInit;
   Chan := FOutputChannels;
   SR := FInput.SampleRate;
   if Device.CanSampleRate(SR) <> ASE_OK then
@@ -912,11 +916,12 @@ begin
   begin
 //    FillChar(iBuf, (FBufferSize shl 2)*FOutputChannels, 0);
     Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
-    count := FBufferSize*FOutputChannels;
-    Buf16 := @iBuf;
-    Buf32 := @iBuf;
-    for i := Count - 1 downto 0 do
-      Buf32[i] := Buf16[i] shl 16;
+    Convert16To32(@iBuf[0], FBufferSize*2*FOutputChannels);
+//    count := FBufferSize*FOutputChannels;
+//    Buf16 := @iBuf;
+//    Buf32 := @iBuf;
+//    for i := Count - 1 downto 0 do
+//      Buf32[i] := Buf16[i] shl 16;
     Exit;
   end else
   if (BPS = 32) and (OutputBPS = 32) then
@@ -1119,6 +1124,7 @@ begin
   ASIOInit;
   Device.SetSampleRate(SR);
   FFreq := GetSR;
+  ASIODone;
 end;
 
 function TASIOAudioIn.GetTotalTime : LongWord;
@@ -1180,6 +1186,7 @@ begin
   GStop := False;
   Busy := True;
   ASIOInit;
+//  Device.SetSampleRate(FFreq); // If you forget to set the input sample rate, let it record at the default.
   FSampleSize := FChan*FBPS div 8;
   if FSamplesToRead > 0 then
     FSize := FSamplesToRead*FSampleSize
@@ -1476,10 +1483,15 @@ begin
   Busy := True;
   FInput.Init;
   ASIOInit;
+  if Device.SetSampleRate(FInput.SampleRate) <> ASE_OK then
+  begin
+    ASIODone;
+    raise EAuException.Create(Format('Sample rate of %d Hz is not supported', [FFreq]));
+  end;
+  ASIODone;
+  ASIOInit;
   if FInput.BitsPerSample <> FBPS then
     raise EAuException.Create(Format('Input sample is not %d bit', [FBPS]));
-  if FInput.SampleRate <> FFreq then
-    raise EAuException.Create(Format('Input sample rate is not %d Hz', [FFreq]));
   if FInput.Channels <> FChan then
     raise EAuException.Create(Format('Input is not %d channel', [FChan]));
   FPosition := 0;
