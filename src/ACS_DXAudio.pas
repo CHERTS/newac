@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.2
+  This file is a part of New Audio Components package v. 2.2.1
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -15,7 +15,7 @@ unit ACS_DXAudio;
 interface
 
 uses
-  SysUtils, Classes, Forms, ACS_Types, ACS_Classes, Windows, DSWrapper, _DirectSound;
+  SysUtils, Classes, Forms, ACS_Types, ACS_Classes, Windows, MMSystem, DSWrapper, _DirectSound;
 
 {$DEFINE USE_EXTENDED_SPEC_FOR_24_BPS }
 
@@ -60,6 +60,7 @@ type
     FUnderruns, _TmpUnderruns : LongWord;
     FOnUnderrun : TUnderrunEvent;
     FVolume : longint; //DW - for more reliable volume control
+    procedure Usleep(Interval : Word; Prefetch : Boolean);
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
@@ -368,7 +369,7 @@ begin
   end;
   counter := 0;
   repeat
-    Sleep(FPollingInterval);
+    Usleep(FPollingInterval, True);
     DSW_QueryOutputSpace(DSW, lb);
     lb := lb - (lb mod DSW.dsw_BytesPerFrame);
     Inc(counter);
@@ -429,6 +430,18 @@ end;
 procedure TDXAudioOut.SetDeviceNumber(i : Integer);
 begin
   FDeviceNumber := i
+end;
+
+procedure TDXAudioOut.Usleep(Interval : Word; Prefetch : Boolean);
+var
+  Start, Elapsed : LongWord;
+begin
+  Start := timeGetTime;
+  if Prefetch then
+    Finput._Prefetch(9216);
+  Elapsed := timeGetTime - Start;
+  if Elapsed >= Interval then Exit;
+  Sleep(Interval - Elapsed);
 end;
 
 function TDXAudioOut.GetDeviceName(Number : Integer) : String;
