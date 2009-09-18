@@ -58,6 +58,7 @@ type
     DevStopped : Boolean;
     FOnPositionChanged : TASIOPositionEvent;
     FASIOBufferSize : TASIOBufferSize;
+    FPrefetch : TGenericEvent;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -68,6 +69,7 @@ type
     function FillBuffer(var EOF : Boolean) : Integer;
     function GetSampleRate : Integer;
     procedure SetSampleRate(SR : Integer);
+    procedure Prefetch(Sender : TComponent);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -399,17 +401,82 @@ var
 type
   TBufferInfoArray = array[0..15] of TASIOBufferInfo;
   PBufferInfoArray = ^TBufferInfoArray;
+  TBuffer64 = array[0..0] of Int64;
+  PBuffer64 = ^TBuffer64;
 
 procedure Deinterleave32(InputBuffer : PBuffer32; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : Integer; Channels : LongWord);
 var
   i, j : Integer;
   Dest : array[0..15] of PBuffer32;
+  B : PBuffer64;
+  S : LongWord;
+  procedure Move64(P1, P2, P3 : Pointer);
+  asm
+    MOVQ MM0, [P1];
+    MOVD [P2], MM0;
+    PSRLD MM0, 31;
+    MOVD [P3], MM0;
+  end;
 begin
   for i := 0 to Channels - 1 do
     Dest[i] := OutputBuffer[i].buffers[BufferIndex];
-  for i := 0 to Samples - 1 do
-    for j := 0 to Channels - 1 do
-      Dest[j][i] := InputBuffer[i*Channels + j];
+  if Channels mod 2 = 0 then
+  begin
+    B := @InputBuffer[0];
+    i := 0;
+    j := 0;
+    S := Samples;
+    asm
+      EMMS;
+    end;
+    case Channels of
+      2: while j < S do
+         begin
+            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            Inc(i);
+            Inc(j);
+         end;
+      4: while j < S do
+         begin
+            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            Inc(i);
+            Move64(@B[i], @Dest[2][j], @Dest[3][j]);
+            Inc(i);
+            Inc(j);
+         end;
+      6: while j < S do
+         begin
+            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            Inc(i);
+            Move64(@B[i], @Dest[2][j], @Dest[3][j]);
+            Inc(i);
+            Move64(@B[i], @Dest[4][j], @Dest[5][j]);
+            Inc(i);
+            Inc(j);
+         end;
+      8: while j < S do
+         begin
+            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            Inc(i);
+            Move64(@B[i], @Dest[2][j], @Dest[3][j]);
+            Inc(i);
+            Move64(@B[i], @Dest[4][j], @Dest[5][j]);
+            Inc(i);
+            Move64(@B[i], @Dest[6][j], @Dest[7][j]);
+            Inc(i);
+            Inc(j);
+         end;
+    end;
+    asm
+      EMMS;
+    end;
+        //Dest[j][i] := InputBuffer[i*Channels + j];
+  end else
+  begin
+    for i := 0 to Samples - 1 do
+      for j := 0 to Channels - 1 do
+        Dest[j][i] := InputBuffer[i*Channels + j];
+  end;
 end;
 
 procedure Deinterleave16(InputBuffer : PBuffer16; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : Integer; Channels : LongWord);
@@ -439,6 +506,7 @@ begin
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
    end;
    FillBuffer(GStop);
+   EventHandler.PostNonGuiEvent(Self, FPrefetch);
    if Self.FOutputBPS = 16 then
    begin
      Deinterleave16(@iBuf, @BufferInfo[0], OutputComponent.FBufferSize, BufferIndex, FOutputChannels);
@@ -695,6 +763,7 @@ begin
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange;
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
+  FPrefetch := Prefetch;
 end;
 
 destructor TASIOAudioOut.Destroy;
@@ -974,6 +1043,11 @@ procedure TASIOAudioOut.SetSampleRate;
 begin
   if Device <> nil then
     Device.SetSampleRate(SR);
+end;
+
+procedure TASIOAudioOut.Prefetch(Sender: TComponent);
+begin
+  FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
 end;
 
 function TASIOAudioOut.GetSampleRate;

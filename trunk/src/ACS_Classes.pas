@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.1
+  This file is a part of New Audio Components package 2.2.1
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -110,6 +110,8 @@ type
     DataCS : TCriticalSection;
     _EndOfStream : Boolean;
     FFloatRequested : Boolean;
+    _PrefetchBuf : array of Byte;
+    _Prefetched, _PrefetchOffset : LongWord;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
     function GetBPS : LongWord; virtual; abstract;
@@ -144,11 +146,11 @@ type
       Usually you should not call this method directly.
     *)
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); virtual;
-    (* Function: CopyData 
-        Writes no more than BufferSize data into Buffer 
-        
+    (* Function: CopyData
+        Writes no more than BufferSize data into Buffer
+
       Parameters:
-      
+
         Buffer: Pointer - the buffer to write to
         BufferSize: Integer - the number of bytes to write
     *)
@@ -199,6 +201,7 @@ type
   > InputComponent.Flush;
     *)
     procedure Flush;
+    procedure _Prefetch(Bytes : LongWord); virtual;
     procedure _Lock;
     procedure _Unlock;
     procedure _Pause; virtual;
@@ -689,6 +692,7 @@ type
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
     procedure _Resume; override;
+    procedure _Prefetch(Bytes : LongWord); override;
   published
     (* Property: Input
        Like the output components, converters can be assigned an input. Unlike
@@ -1072,6 +1076,8 @@ end;
   procedure TAuInput.Flush;
   begin
     DataCS.Enter;
+    _Prefetched := 0;
+    _PrefetchOffset := 0;
     try
       FlushInternal;
     finally
@@ -1083,7 +1089,20 @@ end;
   begin
     DataCS.Enter;
     try
-      GetDataInternal(Buffer, Bytes);
+      if _Prefetched > 0 then
+      begin
+        if Bytes > _Prefetched - _PrefetchOffset then
+           Bytes := _Prefetched - _PrefetchOffset;
+        Buffer := @Self._PrefetchBuf[_PrefetchOffset];
+        Inc(_PrefetchOffset, Bytes);
+        FPosition := FPosition + Bytes;
+        if _PrefetchOffset >= _Prefetched then
+        begin
+          _PrefetchOffset := 0;
+          _Prefetched := 0;
+        end;
+      end else
+        GetDataInternal(Buffer, Bytes);
     finally
       DataCS.Leave;
     end;
@@ -1488,6 +1507,8 @@ constructor TAuOutput.Create;
     end else
     begin
       try
+        _Prefetched := 0;
+        _PrefetchOffset := 0;
         Inc(SampleNum, FStartSample);
         Result := SeekInternal(SampleNum);
         FPosition := (SampleNum - FStartSample)*FSampleSize;
@@ -1861,6 +1882,28 @@ begin
   inherited SetStream(aStream);
 end;
 
+procedure TAuInput._Prefetch(Bytes: Cardinal);
+var
+  P : Pointer;
+begin
+  if _Prefetched > 0 then
+    Exit;
+  try
+    DataCS.Enter;
+    GetData(P, Bytes);
+    if Bytes > Length(_PrefetchBuf) then
+      SetLength(_PrefetchBuf, Bytes);
+    if (Bytes <> 0) and (P <> nil) then
+    begin
+      FastCopyMem(@_PrefetchBuf[0], P, Bytes);
+      _Prefetched := Bytes;
+      FPosition := FPosition - Bytes;
+    end;
+  finally
+    DataCS.Leave;
+  end;
+end;
+
 procedure TAuInput._Lock;
 begin
   DataCS.Enter;
@@ -1972,6 +2015,11 @@ end;
 procedure TAuConverter._Resume;
 begin
   FInput._Resume;
+end;
+
+procedure TAuConverter._Prefetch(Bytes: Cardinal);
+begin
+  FInput._Prefetch(Bytes);
 end;
 
 function TAuInput.GetTotalSamples;
