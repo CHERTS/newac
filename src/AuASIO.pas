@@ -1047,7 +1047,8 @@ end;
 
 procedure TASIOAudioOut.Prefetch(Sender: TComponent);
 begin
-  FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
+  if not GStop then
+    FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
 end;
 
 function TASIOAudioOut.GetSampleRate;
