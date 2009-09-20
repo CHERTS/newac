@@ -59,6 +59,8 @@ type
     FOnPositionChanged : TASIOPositionEvent;
     FASIOBufferSize : TASIOBufferSize;
     FPrefetch : TGenericEvent;
+    FPrefetchData : Boolean;
+    DoPrefetch : Boolean;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -133,6 +135,7 @@ type
          The event handler is passed the current sample number and a timestamp from the beginning of playback.
          Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback. *)
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
+    property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
   end;
 
   (* Class: TASIOAudioIn
@@ -408,67 +411,54 @@ procedure Deinterleave32(InputBuffer : PBuffer32; OutputBuffer : PBufferInfoArra
 var
   i, j : Integer;
   Dest : array[0..15] of PBuffer32;
-  B : PBuffer64;
-  S : LongWord;
-  procedure Move64(P1, P2, P3 : Pointer);
-  asm
-    MOVQ MM0, [P1];
-    MOVD [P2], MM0;
-    PSRLD MM0, 31;
-    MOVD [P3], MM0;
-  end;
 begin
   for i := 0 to Channels - 1 do
     Dest[i] := OutputBuffer[i].buffers[BufferIndex];
   if Channels mod 2 = 0 then
   begin
-    B := @InputBuffer[0];
     i := 0;
     j := 0;
-    S := Samples;
-    asm
-      EMMS;
-    end;
     case Channels of
-      2: while j < S do
+      2: while i < Samples do
          begin
-            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            j := i shl 1;
+            Dest[0][i] := InputBuffer[j];
+            Dest[1][i] := InputBuffer[j+1];
             Inc(i);
-            Inc(j);
          end;
-      4: while j < S do
+      4: while i < Samples do
          begin
-            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            j := i shl 2;
+            Dest[0][i] := InputBuffer[j];
+            Dest[1][i] := InputBuffer[j+1];
+            Dest[2][i] := InputBuffer[j+2];
+            Dest[3][i] := InputBuffer[j+3];
             Inc(i);
-            Move64(@B[i], @Dest[2][j], @Dest[3][j]);
-            Inc(i);
-            Inc(j);
          end;
-      6: while j < S do
+      6: while i < Samples do
          begin
-            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            j := i*6;
+            Dest[0][i] := InputBuffer[j];
+            Dest[1][i] := InputBuffer[j+1];
+            Dest[2][i] := InputBuffer[j+2];
+            Dest[3][i] := InputBuffer[j+3];
+            Dest[4][i] := InputBuffer[j+4];
+            Dest[5][i] := InputBuffer[j+5];
             Inc(i);
-            Move64(@B[i], @Dest[2][j], @Dest[3][j]);
-            Inc(i);
-            Move64(@B[i], @Dest[4][j], @Dest[5][j]);
-            Inc(i);
-            Inc(j);
          end;
-      8: while j < S do
+      8: while i < Samples do
          begin
-            Move64(@B[i], @Dest[0][j], @Dest[1][j]);
+            j := i*8;
+            Dest[0][i] := InputBuffer[j];
+            Dest[1][i] := InputBuffer[j+1];
+            Dest[2][i] := InputBuffer[j+2];
+            Dest[3][i] := InputBuffer[j+3];
+            Dest[4][i] := InputBuffer[j+4];
+            Dest[5][i] := InputBuffer[j+5];
+            Dest[6][i] := InputBuffer[j+6];
+            Dest[7][i] := InputBuffer[j+7];
             Inc(i);
-            Move64(@B[i], @Dest[2][j], @Dest[3][j]);
-            Inc(i);
-            Move64(@B[i], @Dest[4][j], @Dest[5][j]);
-            Inc(i);
-            Move64(@B[i], @Dest[6][j], @Dest[7][j]);
-            Inc(i);
-            Inc(j);
          end;
-    end;
-    asm
-      EMMS;
     end;
         //Dest[j][i] := InputBuffer[i*Channels + j];
   end else
@@ -497,6 +487,7 @@ var
   s1, s2 : TASIOInt64;
   OldStopped : Bool;
 begin
+   DoPrefetch := False;
    if Device = nil then Exit;
    OldStopped := Thread.Stopped;
    Thread.Stopped := False;
@@ -506,7 +497,9 @@ begin
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
    end;
    FillBuffer(GStop);
-   EventHandler.PostNonGuiEvent(Self, FPrefetch);
+   DoPrefetch := True;
+   //   if FPrefetchData then
+//     EventHandler.PostNonGuiEvent(Self, FPrefetch);
    if Self.FOutputBPS = 16 then
    begin
      Deinterleave16(@iBuf, @BufferInfo[0], OutputComponent.FBufferSize, BufferIndex, FOutputChannels);
@@ -516,7 +509,7 @@ begin
      Deinterleave32(@iBuf, @BufferInfo[0], OutputComponent.FBufferSize, BufferIndex, FOutputChannels);
    end;
    if CallOutputReady then
-      CallOutputReady := TASIOAudioOut(sender).Device.OutputReady <> ASE_NotPresent;
+      CallOutputReady := TASIOAudioOut(sender).Device.OutputReady = ASE_OK;
    Thread.Stopped := OldStopped;
 end;
 
@@ -764,6 +757,8 @@ begin
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
   FPrefetch := Prefetch;
+  FPrefetchData := True;
+  Thread.Priority := tpTimeCritical;
 end;
 
 destructor TASIOAudioOut.Destroy;
@@ -837,7 +832,13 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-  sleep(100);
+  sleep(1);
+  if DoPrefetch then
+  begin
+    DoPrefetch := False;
+    if FPrefetchData then
+      Prefetch(Self);
+  end;
   Result := True;
 end;
 
