@@ -1719,7 +1719,7 @@ implementation
    begin
      res := writer.writer.BeginWriting;
      if res <> S_OK then
-       raise EAuException.Create('Filed to set data writer: ' + IntToHex(res, 8));
+       raise EAuException.Create('Filed to set data writer, possible reason: required WMA codec not installed.');
      writer.TotalTime := 0;
    end;
 

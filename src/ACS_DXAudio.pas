@@ -60,6 +60,7 @@ type
     FUnderruns, _TmpUnderruns : LongWord;
     FOnUnderrun : TUnderrunEvent;
     FVolume : longint; //DW - for more reliable volume control
+    FPrefetchData : Boolean;
     procedure Usleep(Interval : Word; Prefetch : Boolean);
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
@@ -109,6 +110,7 @@ type
          This property sets the audio output device polling interval in milliseconds. The less <FramesInBuffer> value is the less this polling interval should be.
          Otherwise many underruns will occur. *)
     property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
+    property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
          This can happen if the component receives data at slow rate from a
@@ -369,7 +371,7 @@ begin
   end;
   counter := 0;
   repeat
-    Usleep(FPollingInterval, True);
+    Usleep(FPollingInterval, FPrefetchData);
     DSW_QueryOutputSpace(DSW, lb);
     lb := lb - (lb mod DSW.dsw_BytesPerFrame);
     Inc(counter);
@@ -401,11 +403,12 @@ end;
 constructor TDXAudioOut.Create;
 begin
   inherited Create(AOwner);
-  FFramesInBuffer := $8000;
+  FFramesInBuffer := $6000;
   FPollingInterval := 100;
   FVolume := 0; //DW
   DSW_EnumerateOutputDevices(@Devices);
   FDeviceCount := Devices.devcount;
+  FPrefetchData := True;
 end;
 
 destructor TDXAudioOut.Destroy;
@@ -438,7 +441,7 @@ var
 begin
   Start := timeGetTime;
   if Prefetch then
-    Finput._Prefetch(9216);
+    Finput._Prefetch(18432);
   Elapsed := timeGetTime - Start;
   if Elapsed >= Interval then Exit;
   Sleep(Interval - Elapsed);
