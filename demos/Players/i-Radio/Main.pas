@@ -131,7 +131,6 @@ end;
 procedure TForm1.DXAudioOut1Underrun(Sender: TComponent);
 begin
   Label14.Caption := 'Underruns: ' + IntToStr(DXAudioOut1.Underruns);
-  Self.AudioSynchronizer1.Reset;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
