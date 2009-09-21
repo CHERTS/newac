@@ -33,6 +33,10 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
+Version: NewAC 2.2.1
+	- Many bug fixes and improvements.
+	- Input prefetch mechanism is implemented to allow lower latencies when playing back via DirectSound.
+
 Version: NewAC 2.2
 	- AC-3 decoder added.
 	- DTS decoder is greatly improved.
