@@ -24,20 +24,6 @@ object Form1: TForm1
     Width = 3
     Height = 13
   end
-  object Label15: TLabel
-    Left = 297
-    Top = 45
-    Width = 38
-    Height = 13
-    Caption = 'Label15'
-  end
-  object Label16: TLabel
-    Left = 232
-    Top = 45
-    Width = 38
-    Height = 13
-    Caption = 'Latency'
-  end
   object BitBtn1: TBitBtn
     Left = 8
     Top = 40
@@ -322,11 +308,11 @@ object Form1: TForm1
     Top = 152
   end
   object DXAudioOut1: TDXAudioOut
-    Input = AudioSynchronizer1
+    Input = WMStreamedIn1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
-    FramesInBuffer = 65536
+    FramesInBuffer = 32768
     PollingInterval = 200
     OnUnderrun = DXAudioOut1Underrun
     Left = 96
@@ -344,21 +330,6 @@ object Form1: TForm1
     OnStreamOpened = WMStreamedIn1StreamOpened
     OnStartedPlaying = WMStreamedIn1StartedPlaying
     Left = 8
-    Top = 152
-  end
-  object AudioSynchronizer1: TAudioSynchronizer
-    Input = WMStreamedIn1
-    Latency = 1500
-    Threshold = 2000
-    Left = 56
-    Top = 152
-  end
-  object AudioHiResTimer1: TAudioHiResTimer
-    Interval = 1000
-    Resolution = 5
-    FireOnce = False
-    OnTimer = AudioHiResTimer1Timer
-    Left = 192
     Top = 152
   end
 end
