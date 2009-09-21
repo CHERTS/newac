@@ -1,10 +1,10 @@
 object Form1: TForm1
   Left = 246
   Top = 304
-  Width = 379
-  Height = 246
   ActiveControl = AddtoPLButton
   Caption = 'Audio Player'
+  ClientHeight = 219
+  ClientWidth = 371
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -40,12 +40,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 70
+    Top = 77
     Width = 371
     Height = 17
     Align = alBottom
-    Min = 0
-    Max = 100
     Smooth = True
     Step = 2
     TabOrder = 1
@@ -69,14 +67,13 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 193
+    Top = 200
     Width = 371
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object AddtoPLButton: TButton
     Left = 8
@@ -90,7 +87,7 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 0
-    Top = 104
+    Top = 111
     Width = 371
     Height = 89
     Align = alBottom
@@ -109,7 +106,7 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 87
+    Top = 94
     Width = 371
     Height = 17
     Align = alBottom
@@ -173,6 +170,8 @@ object Form1: TForm1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
+    FramesInBuffer = 24576
+    PollingInterval = 100
     Left = 144
     Top = 160
   end
