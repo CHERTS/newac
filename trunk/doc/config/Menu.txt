@@ -65,6 +65,7 @@ Group: Main Units  {
    File: ACS_Filters  (src\ACS_Filters.pas)
    File: ACS_LAME  (src\ACS_LAME.pas)
    File: ACS_MAC  (src\ACS_MAC.pas)
+   File: ACS_Misc  (src\ACS_Misc.pas)	
    File: ACS_MPC  (src\ACS_MPC.pas)
    File: ACS_OptimFROG  (src\ACS_OptimFROG.pas)
    File: ACS_SMPEG  (src\ACS_smpeg.pas)
