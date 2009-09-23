@@ -206,8 +206,16 @@ type
 
     res := beInitStream(@Config, Samples, mp3buf_size, _Stream);
 
+    mp3buf := nil;
+    Buffer := nil;
+
     if res <> 0 then
-      raise EAuException.Create('InitStream Error : ' + IntToStr(res));
+    begin
+      FreeAndNil(FStream);
+      Busy := False;
+      FInput.Flush;
+      raise EAuException.Create('LAME Error: ' + IntToStr(res));
+    end;
 
 
 
@@ -270,8 +278,10 @@ type
     beCloseStream(_Stream);
     if Config.bEnableVBR and (FileName <> '') then
       beWriteVBRHeader(PChar(FileName));
-    FreeMem(mp3buf);
-    FreeMem(Buffer);
+    if mp3buf <> nil then
+      FreeMem(mp3buf);
+    if Buffer <> nil then
+        FreeMem(Buffer);
     FInput.Flush;
   end;
 
