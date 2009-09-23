@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 210
   Top = 206
-  Width = 483
-  Height = 329
   Caption = 'Wave File Converter'
+  ClientHeight = 302
+  ClientWidth = 475
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,7 +14,7 @@ object Form1: TForm1
   OnClose = FormClose
   DesignSize = (
     475
-    295)
+    302)
   PixelsPerInch = 96
   TextHeight = 13
   object GroupBox1: TGroupBox
@@ -229,26 +229,23 @@ object Form1: TForm1
     Width = 475
     Height = 7
     Anchors = [akLeft, akTop, akRight]
-    Min = 0
-    Max = 100
     Step = 1
     TabOrder = 6
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 276
+    Top = 283
     Width = 475
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 288
+    Left = 248
     Top = 224
   end
   object OpenDialog1: TOpenDialog
@@ -256,14 +253,14 @@ object Form1: TForm1
     Filter = 'Wave Files|*.wav'
     FilterIndex = 0
     Title = 'Open'
-    Left = 224
+    Left = 184
     Top = 224
   end
   object SaveDialog1: TSaveDialog
     Filter = 'Wave Files|*.wav|Windows Media Files|*.wma'
     FilterIndex = 0
     Title = 'Save As'
-    Left = 256
+    Left = 216
     Top = 224
   end
   object WaveOut1: TWaveOut
@@ -287,9 +284,18 @@ object Form1: TForm1
     Top = 224
   end
   object FastResampler1: TFastResampler
-    Input = WaveIn1
+    Input = DownMixer1
     OutSampleRate = 22050
     Left = 320
+    Top = 224
+  end
+  object DownMixer1: TDownMixer
+    Input = WaveIn1
+    CentralGain = 0.500000000000000000
+    RearGain = 0.699999988079071000
+    TotalGain = 1.000000000000000000
+    JoinRear = False
+    Left = 280
     Top = 224
   end
 end

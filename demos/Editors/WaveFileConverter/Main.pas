@@ -53,6 +53,7 @@ type
     AudioConverter1: TAudioConverter;
     StatusBar1: TStatusBar;
     FastResampler1: TFastResampler;
+    DownMixer1: TDownMixer;
     procedure Button3Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
     procedure Button1Click(Sender: TObject);
