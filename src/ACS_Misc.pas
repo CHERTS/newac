@@ -10,7 +10,7 @@
 unit ACS_Misc;
 
 (* Title: ACS_Misc
-    Some input components which descend directly from <TAuInput> or <TAuOutput>.  *)
+    Miscellaneous converter and utility components.  *)
 
 interface
 
@@ -111,6 +111,12 @@ type
     property OnBufferDone : TOnBufferDone read FOnBufferDone write FOnBufferDone;
   end;
 
+    (* Class: TAudioProcessor
+    This component allows you to perform your own audio processing without writing  your own converter component.
+    You put TAudioProcessor exemplar into audio-processing chain just like any other converter, and assign handlers to its events to perform processing.
+    You don't have to assign handler to all events, but only to those that are actually needed.
+     See AudioProcessorDemo for an example of its usage.
+    *)
   TAudioProcessor = class(TAuConverter)
   private
     FOnInit : TAudioProcessorInitEvent;
@@ -131,13 +137,65 @@ type
     procedure FlushInternal; override;
   public
   published
+  (* Property: OnFlush
+    This event is raised when the audio chain is about to close. In this event handler you can free any additional resources you have aloocated in the <OnInit> event handler.
+    The minimal example of this event handler may look like this:
+    > procedure TForm1.AudioProcessor1Flush(Sender: TComponent);
+    > begin
+    >   TAudioProcessor(Sender).Input.Flush;
+    > end;
+    Here we just call the TAudioProcessor's input component's Flush method.
+    *)
     property OnFlush : TAudioProcessorFlushEvent read FOnFlush write FOnFlush;
+    (* Property: OnGetBitsPerSample
+        This event is raised when the component for which TAudioProcessor is an input wants to know
+        the number of bits per sample provided by the TAudioProcessor. Possible values are 8, 16, 24, and 32.
+        You should set this event handler only if your TAudioProcessor changes the number of bits per sample regarding its input.
+        For example, if your TAudioProcessor converts all of its input to 32 bps then the handler may look like this:
+        > procedure TForm1.AudioProcessor1GetBitsPerSample(Sender: TComponent;
+        >   var Param: Cardinal);
+        > begin
+        >   Param := 32;
+        > end;
+    *)
     property OnGetBitsPerSample : TGetParameterEvent32 read FOnGetBitsPerSample write FOnGetBitsPerSample;
     property OnGetChannels : TGetParameterEvent32 read FOnGetChannels write FOnGetChannels;
+   (* Property: OnGetData
+      This event is raised when the component for which TAudioProcessor is an input wants to get some data from it.
+      The Buffer variable is the one where you should place the pointer to the data buffer, and the Bytes variable is the one where
+      you should return the number of bytes in the buffer. When event is called the Bytes variable contains the number of bytes the output component wants from TaudioProcessor.
+      The actual number of bytes returned by this handler (and stored in the Bytes variable) may be smaller (but not larger) than the number requested.
+      Set the Buffer to nil and the Bytes to 0 if you want to indicate that there is no more data.
+      Remember, that after you have set the Buffer to nil and the Bytes to 0 the event handler may be called again, and you should always reutn nil/0 until
+      <OnFlush> event is called.
+      The minimal OngetDataHandler could look like this:
+      > procedure TForm1.AudioProcessor1GetData(Sender: TComponent;
+      >    var Buffer: Pointer; var Bytes: Cardinal);
+      > begin
+      >   TAudioProcessor(Sender).Input.GetData(Buffer, Bytes);
+      > end;
+      In this example we just read the data from TAudioProcessor's input and pass it along the audio processing chain.
+      In real life you will want to perform some modifications of the obtained data.
+      Note that InputComponent.GetData may set Buffer to nil and Bytes to 0, indicating that the input component has no more data.
+    *)
     property OnGetData : TGetDataEvent read FOnGetData write FOnGetData;
     property OnGetSampleRate : TGetParameterEvent32 read FOnGetSampleRate write FOnGetSampleRate;
     property OnGetSize : TGetParameterEvent64 read FOnGetSize write FOnGetSize;
     property OnGetTotalTime : TGetParameterEvent32 read FOnGetTotalTime write FOnGetTotalTime;
+   (* Property: OnInit
+    This event is raised when audio-chain needs to initialize the TAudioProcessor. In the event's handler you can perform whatever is necessry to do before
+    the TAudioProcessor can process data.
+    The minimal example of this event handler may look like this:
+    > procedure TForm1.AudioProcessor1Init(Sender: TComponent; var TotalSize: Int64);
+    > begin
+    >   TAudioProcessor(Sender).Input.Init;
+    >    TotalSize := TAudioProcessor(Sender).Input.Size
+    > end;
+    Here we initialize the TAudioProcessor's input component and pass its total data size to the TotalSize parameter.
+    If the TAudioProcessor changes the data size regarding its input (as for example, a resampler or a stereo to mono converter would do)
+    Write the modified value to the TotalSize.
+    If you don't know the TAudioProcessor's total data output size, store -1 in the TotalSize parameter.
+    *)
     property OnInit : TAudioProcessorInitEvent read FOnInit write FOnInit;
   end;
 
@@ -718,8 +776,8 @@ end;
     if not Assigned(FInput) then
     raise EAuException.Create('Input is not assigned.');
     if Assigned(FOnGetData) then FOnGetData(Self, Buffer, Bytes)
-    else FInput.GetData(Buffer, Bytes);
-   Inc(FPosition, Bytes);
+    else
+    FInput.GetData(Buffer, Bytes);
   end;
 
   procedure TAudioProcessor.InitInternal;
