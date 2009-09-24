@@ -590,7 +590,7 @@ implementation
       Bytes := BufEnd - BufStart;
     Buffer := @_Buffer[BufStart];
     Inc(BufStart, Bytes);
-    FPosition := Round(FInput.Position*(FSize/FInput.Size));
+//    FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
   constructor TChebyshevFilter.Create;
@@ -901,7 +901,7 @@ implementation
       Bytes := BufEnd - BufStart;
     Buffer := @_Buffer[BufStart];
     Inc(BufStart, Bytes);
-    FPosition := Round(FInput.Position*(FSize/FInput.Size));
+//    FPosition := Round(FInput.Position*(FSize/FInput.Size));
   end;
 
   procedure TChebyshevFilter.SetNumPoles(NP : Word);
