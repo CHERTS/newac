@@ -253,14 +253,14 @@ object Form1: TForm1
     Filter = 'Wave Files|*.wav'
     FilterIndex = 0
     Title = 'Open'
-    Left = 184
+    Left = 168
     Top = 224
   end
   object SaveDialog1: TSaveDialog
     Filter = 'Wave Files|*.wav|Windows Media Files|*.wma'
     FilterIndex = 0
     Title = 'Save As'
-    Left = 216
+    Left = 208
     Top = 224
   end
   object WaveOut1: TWaveOut
@@ -272,7 +272,7 @@ object Form1: TForm1
     BlockSize = 512
     CreateNonMsHeaders = False
     FileMode = foRewrite
-    Left = 384
+    Left = 368
     Top = 224
   end
   object AudioConverter1: TAudioConverter
@@ -280,22 +280,13 @@ object Form1: TForm1
     Mode = msmMonoToBoth
     OutBitsPerSample = 0
     OutChannels = 0
-    Left = 352
+    Left = 328
     Top = 224
   end
   object FastResampler1: TFastResampler
-    Input = DownMixer1
-    OutSampleRate = 22050
-    Left = 320
-    Top = 224
-  end
-  object DownMixer1: TDownMixer
     Input = WaveIn1
-    CentralGain = 0.500000000000000000
-    RearGain = 0.699999988079071000
-    TotalGain = 1.000000000000000000
-    JoinRear = False
-    Left = 280
+    OutSampleRate = 22050
+    Left = 288
     Top = 224
   end
 end
