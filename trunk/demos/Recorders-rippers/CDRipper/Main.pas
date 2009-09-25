@@ -145,7 +145,7 @@ begin
   begin
     StatusBar1.Panels[0].Text := 'ERROR: ' + (Sender as TAuOutput).ExceptionMessage;
   end;
-  Label4.Caption := Format('Jitter errors corrected: %d', [CDIn1.LastJitterErrors]);
+  Label4.Caption := Format('Jitter errors detected: %d', [CDIn1.LastJitterErrors]);
 
 end;
 
