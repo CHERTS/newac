@@ -177,11 +177,6 @@ object Form1: TForm1
     Left = 136
     Top = 128
   end
-  object CDIn1: TCDIn
-    EnableJitterCorrection = False
-    Left = 8
-    Top = 128
-  end
   object FLACOut1: TFLACOut
     Input = CDIn1
     OnDone = OutputDone
@@ -208,6 +203,12 @@ object Form1: TForm1
     CompressionLevel = 2000
     MaxAudioBytes = -1
     Left = 72
+    Top = 128
+  end
+  object CDIn1: TCDIn
+    EnableJitterCorrection = False
+    MultiReadCount = 3
+    Left = 8
     Top = 128
   end
 end
