@@ -38,11 +38,11 @@ type
     Label3: TLabel;
     WaveOut1: TWaveOut;
     VorbisOut1: TVorbisOut;
-    CDIn1: TCDIn;
     FLACOut1: TFLACOut;
     MACOut1: TMACOut;
     CheckBox1: TCheckBox;
     Label4: TLabel;
+    CDIn1: TCDIn;
     procedure Button1Click(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
     procedure Progress(Sender: TComponent);
