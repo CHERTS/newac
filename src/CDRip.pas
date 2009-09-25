@@ -323,6 +323,11 @@ type
   CR_SetMultiReadCount_t = procedure(Param : PCDROMPARAMS; value : Integer); stdcall;
   CR_GetDriveID_t = function(Param : PCDROMPARAMS) : PAnsiChar; stdcall;
   CR_GetStructPointer_t = function() : PCDROMPARAMS; stdcall;
+  CR_IsParanoidMode_t = function(Param : PCDROMPARAMS) : BOOL; stdcall;
+  CR_SetParanoidMode_t = procedure(Param : PCDROMPARAMS; enabled : BOOL); stdcall;
+	CR_GetParanoiaMode_t = function(Param : PCDROMPARAMS) : Integer; stdcall;
+	CR_SetParanoiaMode_t = procedure(Param : PCDROMPARAMS; value : Integer); stdcall;
+  CR_LockCDTrayWhileRipping_t = procedure(Param : PCDROMPARAMS; enabled : Boolean); stdcall;
 
   {$ENDIF}
 
@@ -390,7 +395,12 @@ var
   CR_SetMultiReadCount : CR_SetMultiReadCount_t;
   CR_GetDriveID : CR_GetDriveID_t;
   CR_GetStructPointer : CR_GetStructPointer_t;
-   {$ENDIF}
+  CR_IsParanoidMode : CR_IsParanoidMode_t;
+  CR_SetParanoidMode : CR_SetParanoidMode_t;
+	CR_GetParanoiaMode : CR_GetParanoiaMode_t;
+	CR_SetParanoiaMode : CR_SetParanoiaMode_t;
+  CR_LockCDTrayWhileRipping : CR_LockCDTrayWhileRipping_t;
+  {$ENDIF}
 
   (* Note by A.B.: this function is a Delphi wrapper around a CDRip function
     CR_GetTocEntry *)
@@ -504,6 +514,11 @@ end;
       CR_SetMultiReadCount := GetProcAddress(Libhandle, 'CR_SetMultiReadCount');
       CR_GetDriveID := GetProcAddress(Libhandle, 'CR_GetDriveID');
       CR_GetStructPointer := GetProcAddress(Libhandle, 'CR_GetStructPointer');
+      CR_IsParanoidMode  := GetProcAddress(Libhandle, 'CR_IsParanoidMode');
+      CR_SetParanoidMode  := GetProcAddress(Libhandle, 'CR_SetParanoidMode');
+    	CR_GetParanoiaMode  := GetProcAddress(Libhandle, 'CR_GetParanoiaMode');
+    	CR_SetParanoiaMode  := GetProcAddress(Libhandle, 'CR_SetParanoiaMode');
+      CR_LockCDTrayWhileRipping  := GetProcAddress(Libhandle, 'CR_LockCDTrayWhileRipping');
      {$ENDIF}
 
 
