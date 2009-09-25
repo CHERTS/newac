@@ -41,6 +41,8 @@ type
     CDIn1: TCDIn;
     FLACOut1: TFLACOut;
     MACOut1: TMACOut;
+    CheckBox1: TCheckBox;
+    Label4: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
     procedure Progress(Sender: TComponent);
@@ -52,6 +54,7 @@ type
     procedure ComboBox2DropDown(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -142,6 +145,8 @@ begin
   begin
     StatusBar1.Panels[0].Text := 'ERROR: ' + (Sender as TAuOutput).ExceptionMessage;
   end;
+  Label4.Caption := Format('Jitter errors corrected: %d', [CDIn1.LastJitterErrors]);
+
 end;
 
 procedure TForm1.Progress(Sender: TComponent);
@@ -187,10 +192,16 @@ begin
   CurrentOutput.Stop;
 end;
 
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+  CDIn1.EnableJitterCorrection := CheckBox1.Checked;
+end;
+
 procedure TForm1.ComboBox1Select(Sender: TObject);
 begin
   CDIn1.CurrentDrive := ComboBox1.Items.IndexOf(ComboBox1.Text);
   GetTracks;
+  CheckBox1.Checked := CDIn1.EnableJitterCorrection;
 end;
 
 procedure TForm1.ComboBox2Select(Sender: TObject);

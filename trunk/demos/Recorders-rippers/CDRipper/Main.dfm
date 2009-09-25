@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 229
   Top = 225
-  Width = 366
-  Height = 214
   Caption = 'Ripper'
+  ClientHeight = 187
+  ClientWidth = 358
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -35,6 +35,13 @@ object Form1: TForm1
     Height = 13
     Caption = 'Rip to'
   end
+  object Label4: TLabel
+    Left = 209
+    Top = 129
+    Width = 32
+    Height = 13
+    Caption = 'Label4'
+  end
   object Button1: TButton
     Left = 8
     Top = 88
@@ -49,8 +56,6 @@ object Form1: TForm1
     Top = 56
     Width = 345
     Height = 17
-    Min = 0
-    Max = 100
     ParentShowHint = False
     Smooth = True
     Step = 5
@@ -108,14 +113,13 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 161
+    Top = 168
     Width = 358
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object ComboBox3: TComboBox
     Left = 288
@@ -133,6 +137,15 @@ object Form1: TForm1
       'Ape'
       'FLAC')
   end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Top = 128
+    Width = 145
+    Height = 17
+    Caption = 'Enable jitter correction'
+    TabOrder = 9
+    OnClick = CheckBox1Click
+  end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'ogg'
     Filter = 'Vorbis files|*.ogg'
@@ -145,6 +158,7 @@ object Form1: TForm1
     OnProgress = Progress
     WavType = wtPCM
     BlockSize = 512
+    CreateNonMsHeaders = False
     FileMode = foRewrite
     Left = 104
     Top = 128
@@ -153,7 +167,7 @@ object Form1: TForm1
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
-    Compression = 0.200000002980232
+    Compression = 0.200000002980232200
     Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
