@@ -16,6 +16,9 @@ unit ACS_CDROM;
 
 interface
 
+{$DEFINE USE_CDRIP_DLL_12200}
+//{$IFDEF USE_CDRIP_DLL_1001}
+
 uses
   Windows, MMSystem, Classes, SysUtils, ACS_Classes, CDRip;
 
@@ -174,6 +177,7 @@ type
     buf : array[1..BUF_SIZE] of Byte;
     BufSize : Integer;
     FLastJitterErrors : Integer;
+    FMultiReadCount : Integer;
     procedure OpenCD;
     procedure CloseCD;
     function GetStatus : TCDStatus;
@@ -265,7 +269,7 @@ type
     (* Property: OverlapSectors
        This property controls the number of CD-DA sectors read in overlap when jitter correction is enabled.
        It is a low level property that you can use to ajust the jitter correction efficiency.
-       This value should be greater than that of <CompareSectors> and less than that of <ReadSetctorsPerBurst>. *)
+       This value should be greater than that of <CompareSectors> and less than that of <ReadSectorsPerBurst>. *)
     property OverlapSectors : Integer read GetOverlapSectors write FOverlapSectors;
     (* Property: CompareSectors
        This property controls the number of CD-DA sectors to bbe compared when jitter correction is enabled.
@@ -276,10 +280,15 @@ type
        This property returns the number of ripping errors detected during the last ripping session.
        The value returned is meaningful only if jitter correction is enabled. *)
     property LastJitterErrors : Integer read FLastJitterErrors;
+
   published
     (* Property: EnableJitterCorrection
        Set this property to True to enable jitter correction.  *)
     property EnableJitterCorrection : Boolean read FEnableJitterCorrection write FEnableJitterCorrection;
+    (* Property: MultiReadCount
+       The audio-copying system may re-read CD-DA sectors several times and compare them in order to eliminate errors.
+       If this property's value is greater than 0, this mechanism will be enabled and each sector will be re-read the specified number of times. *)
+    property MultiReadCount : Integer read FMultiReadCount write FMultiReadCount;
   end;
 
   function MSFToStr(const MSF : TCDMSF) : AnsiString;
@@ -795,12 +804,12 @@ implementation
       OpenCD;
       ms := 0;
       CR_IsMediaLoaded(ms);
-      AP := CR_IsAudioPlaying;
+//      AP := CR_IsAudioPlaying;
       CloseCD;
       Result := cdsNotReady;
       if ms <> 0 then Exit;
-      if AP then Result := cdsPlaying
-      else Result := cdsReady;
+//      if AP then Result := cdsPlaying
+      Result := cdsReady;
     end else Result := cdsNotReady;
   end;
 
@@ -927,9 +936,16 @@ implementation
   var
     Sect1, Sect2 : Integer;
     TE : TTOCENTRY;
-    CDP : TCDROMPARAMS;
+    {$IFDEF USE_CDRIP_DLL_1001}
+     CDP : TCDROMPARAMS;
+    {$ENDIF}
+    {$IFDEF USE_CDRIP_DLL_12200}
+     CDP : PCDROMPARAMS;
+    {$ENDIF}
+
   begin
     if Busy then raise EAuException.Create('The component is busy');
+    {$IFDEF USE_CDRIP_DLL_1001}
     CR_GetCDROMParameters(@CDP);
     CDP.bJitterCorrection := FEnableJitterCorrection;
     if FReadSectors <> 0 then
@@ -939,6 +955,22 @@ implementation
     if FCompareSectors <> 0 then
       CDP.nNumCompareSectors := FCompareSectors;
     CR_SetCDROMParameters(@CDP);
+    CR_GetCDROMParameters(@CDP);
+    {$ENDIF}
+    {$IFDEF USE_CDRIP_DLL_12200}
+    CDP := CR_GetStructPointer;
+    CR_GetCDROMParameters(CDP);
+    CR_SetJitterCorrection(CDP, FEnableJitterCorrection);
+    if FReadSectors <> 0 then
+      CR_SetReadSectors(CDP, FReadSectors);
+    if FOverlapSectors <> 0 then
+       CR_SetOverlapSectors(CDP, FOverlapSectors);
+    if FCompareSectors <> 0 then
+       CR_SetCompareSectors(CDP, FCompareSectors);
+    CR_SetEnableMultiRead(CDP, FMultiReadCount > 0);
+    CR_SetMultiReadCount(CDP, FMultiReadCount);
+    CR_SetCDROMParameters(CDP);
+    {$ENDIF}
     if Status = cdsNotReady then raise EAuException.Create('The drive is not ready');
     if (FStartPos.Track in [1..GetNumTracks]) = False then
     raise EAuException.Create('The start track out of range');
@@ -1013,54 +1045,105 @@ implementation
 
   function TCDIn.GetDriveName;
   var
+    {$IFDEF USE_CDRIP_DLL_1001}
     CDP : TCDROMPARAMS;
+    {$ENDIF}
+    {$IFDEF USE_CDRIP_DLL_12200}
+    CDP : PCDROMPARAMS;
+    {$ENDIF}
   begin
     if not (csDesigning in ComponentState) then
     begin
       OpenCD;
+      {$IFDEF USE_CDRIP_DLL_1001}
+      FillChar(CDP, SizeOf(CDP), 0);
       CR_GetCDROMParameters(@CDP);
       Result := AnsiString(CDP.lpszCDROMID);
       if not FEnableJitterCorrection then
         FEnableJitterCorrection := CDP.bJitterCorrection;
+      {$ENDIF}
+      {$IFDEF USE_CDRIP_DLL_12200}
+      CDP := CR_GetStructPointer;
+      CR_GetCDROMParameters(CDP);
+      Result := AnsiString(CR_GetDriveID(CDP));
+      if not FEnableJitterCorrection then
+        FEnableJitterCorrection := CR_GetJitterCorrection(CDP);
+      {$ENDIF}
       CloseCD;
     end else Result := '';
   end;
 
   function TCDIn.GetReadSectors;
   var
+    {$IFDEF USE_CDRIP_DLL_1001}
     CDP : TCDROMPARAMS;
+    {$ENDIF}
+    {$IFDEF USE_CDRIP_DLL_12200}
+    CDP : PCDROMPARAMS;
+    {$ENDIF}
   begin
     if not (csDesigning in ComponentState) then
     begin
       OpenCD;
+      {$IFDEF USE_CDRIP_DLL_1001}
       CR_GetCDROMParameters(@CDP);
       Result := CDP.nNumReadSectors;
+      {$ENDIF}
+      {$IFDEF USE_CDRIP_DLL_12200}
+      CDP := CR_GetStructPointer;
+      CR_GetCDROMParameters(CDP);
+      Result := CR_GetReadSectors(CDP);
+      {$ENDIF}
       CloseCD;
     end else Result := 0;
   end;
 
   function TCDIn.GetCompareSectors;
   var
+    {$IFDEF USE_CDRIP_DLL_1001}
     CDP : TCDROMPARAMS;
+    {$ENDIF}
+    {$IFDEF USE_CDRIP_DLL_12200}
+    CDP : PCDROMPARAMS;
+    {$ENDIF}
   begin
     if not (csDesigning in ComponentState) then
     begin
       OpenCD;
+      {$IFDEF USE_CDRIP_DLL_1001}
       CR_GetCDROMParameters(@CDP);
       Result := CDP.nNumCompareSectors;
+      {$ENDIF}
+      {$IFDEF USE_CDRIP_DLL_12200}
+      CDP := CR_GetStructPointer;
+      CR_GetCDROMParameters(CDP);
+      Result := CR_GetCompareSectors(CDP);
+      {$ENDIF}
       CloseCD;
     end else Result := 0;
   end;
 
   function TCDIn.GetOverlapSectors;
   var
+    {$IFDEF USE_CDRIP_DLL_1001}
     CDP : TCDROMPARAMS;
+    {$ENDIF}
+    {$IFDEF USE_CDRIP_DLL_12200}
+    CDP : PCDROMPARAMS;
+    {$ENDIF}
   begin
     if not (csDesigning in ComponentState) then
     begin
       OpenCD;
+      {$IFDEF USE_CDRIP_DLL_1001}
       CR_GetCDROMParameters(@CDP);
       Result := CDP.nNumOverlapSectors;
+      {$ENDIF}
+      {$IFDEF USE_CDRIP_DLL_12200}
+      CDP := CR_GetStructPointer;
+      CR_GetCDROMParameters(CDP);
+      Result := CR_GetOverlapSectors(CDP);
+      {$ENDIF}
       CloseCD;
     end else Result := 0;
   end;
