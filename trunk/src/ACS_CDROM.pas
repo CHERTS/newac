@@ -178,6 +178,9 @@ type
     BufSize : Integer;
     FLastJitterErrors : Integer;
     FMultiReadCount : Integer;
+    FParanoid : Boolean;
+    FParanoiaMode : Integer;
+    FLockTray : Boolean;
     procedure OpenCD;
     procedure CloseCD;
     function GetStatus : TCDStatus;
@@ -285,10 +288,19 @@ type
     (* Property: EnableJitterCorrection
        Set this property to True to enable jitter correction.  *)
     property EnableJitterCorrection : Boolean read FEnableJitterCorrection write FEnableJitterCorrection;
+    (* Property: LockTray
+       If this property is set to True, CD-drive tray will be locked during the ripping session.   *)
+    property LockTray : Boolean read FLockTray write FLockTray;
     (* Property: MultiReadCount
        The audio-copying system may re-read CD-DA sectors several times and compare them in order to eliminate errors.
        If this property's value is greater than 0, this mechanism will be enabled and each sector will be re-read the specified number of times. *)
     property MultiReadCount : Integer read FMultiReadCount write FMultiReadCount;
+    (* Property: Paranoid
+       Set this property to True to enable paranoid - extra error checking ripping mode.   *)
+    property Paranoid : Boolean read FParanoid write FParanoid;
+    (* Property: ParanoiaMode
+       Use this property to set the level of paranoia.  *)
+    property ParanoiaMode : Integer read FParanoiaMode write FParanoiaMode;
   end;
 
   function MSFToStr(const MSF : TCDMSF) : AnsiString;
@@ -969,6 +981,9 @@ implementation
        CR_SetCompareSectors(CDP, FCompareSectors);
     CR_SetEnableMultiRead(CDP, FMultiReadCount > 0);
     CR_SetMultiReadCount(CDP, FMultiReadCount);
+    CR_SetParanoidMode(CDP, FParanoid);
+    CR_SetParanoiaMode(CDP, FParanoiaMode);
+    CR_LockCDTrayWhileRipping(CDP, FLockTray);
     CR_SetCDROMParameters(CDP);
     {$ENDIF}
     if Status = cdsNotReady then raise EAuException.Create('The drive is not ready');
