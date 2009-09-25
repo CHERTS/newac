@@ -10,13 +10,20 @@
 unit CDRip;
 
 (* Title: CDRip
-    Delphi header file for CDRip.dll. 
+    Delphi header file for CDRip.dll.
     Translated from CDRip.h header by Andrei Borovsky, acs@compiler4.net
     The original C/C++ header and library
     Copyright (C) 1999 - 2002 Albert Faber
 
     Note by A.B.:
     Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit. *)
+
+(* Currently there is two different CDRip.dll versions supported by this component
+   CDRip.dll v 1.0.0.1 abd CDRip.dll v 1.21.00
+*)
+
+//{$DEFINE USE_CDRIP_DLL_1001}
+{$DEFINE USE_CDRIP_DLL_12200}
 
 interface
 
@@ -77,6 +84,30 @@ type
   TRES_ERR = Integer;
 
   PCDSTATUSINFO = ^TCDSTATUSINFO;
+
+
+  TOUTPUTFORMAT = (STEREO44100,	MONO44100, STEREO22050, MONO22050, STEREO11025,
+	           MONO11025, NUMOUTPUTFORMATS);
+
+
+  {$IFDEF USE_CDRIP_DLL_12200}
+
+  TCDSTATUSINFO = packed record
+    sk : Byte;
+    asc : Byte;
+    ascq : Byte;
+    ha_stat : Byte;
+    target_stat : Byte;
+  end;
+
+  PCDROMPARAMS = Pointer;
+  {$ENDIF}
+
+  {$IFDEF USE_CDRIP_DLL_1001}
+
+  PDRIVETABLE = ^TDRIVETABLE;
+  PCDROMPARAMS = ^TCDROMPARAMS;
+
   TCDSTATUSINFO = record
     sk : Byte;
     asc : Byte;
@@ -85,7 +116,6 @@ type
     target_stat : Byte;
   end;
 
-  PDRIVETABLE = ^TDRIVETABLE;
   TDRIVETABLE = record
     DriveType : Integer; //TDRIVETYPE;
     ReadMethod : Integer; //TREADMETHOD;
@@ -96,10 +126,6 @@ type
     bAtapi : BOOL;
   end;
 
-  TOUTPUTFORMAT = (STEREO44100,	MONO44100, STEREO22050, MONO22050, STEREO11025,
-	           MONO11025, NUMOUTPUTFORMATS);
-
-  PCDROMPARAMS = ^TCDROMPARAMS;
   TCDROMPARAMS = record
     lpszCDROMID : array [1..255] of AnsiChar;	// CD-ROM ID, must be unique to index settings in INI file
     nNumReadSectors : Integer;           	// Number of sector to read per burst
@@ -112,11 +138,9 @@ type
     bJitterCorrection : BOOL;	        	// Boolean indicates whether to use Jitter Correction
     bSwapLefRightChannel : BOOL;     	        // Swap left and right channel ?
     DriveTable : TDRIVETABLE;			// Drive specific parameters
-
     btTargetID : Byte;				// SCSI target ID
     btAdapterID : Byte; 			// SCSI Adapter ID
     btLunID : Byte;				// SCSI LUN ID
-
     bAspiPosting : BOOL;			// When set ASPI posting is used, otherwhiese ASPI polling is used
     nAspiRetries : Integer;
     nAspiTimeOut : Integer;
@@ -133,6 +157,7 @@ type
     bUseCDText : BOOL;			// Read CD Text info?
   end;
 
+{$ENDIF}
 
 // Table of contents structure
 
@@ -146,7 +171,13 @@ type
 // Function pointers
 
   // Call init before anything else
+  {$IFDEF USE_CDRIP_DLL_12200}
+  CR_Init_t = function(nTransportLayer : Integer) : TRES_ERR; stdcall;
+  {$ENDIF}
+
+  {$IFDEF USE_CDRIP_DLL_1001}
   CR_Init_t = function(strIniFname : PAnsiChar) : TRES_ERR; stdcall;
+  {$ENDIF}
 
   // Call DeIni when ripping library is no longer needed
   CR_DeInit_t = function : TRES_ERR; stdcall;
@@ -273,7 +304,28 @@ type
   CR_GetTransportLayer_t = function : Integer; stdcall;
 
   CR_ScanForC2Errors_t = function(dwStartSector, dwNumSectors : LongInt;
+
                                   dwErrors, pdwErrorSectors : PLongInt) : TRES_ERR; stdcall;
+
+  {$IFDEF USE_CDRIP_DLL_12200}
+
+ 	CR_GetJitterCorrection_t = function(Param : PCDROMPARAMS) : BOOL; stdcall;
+	CR_SetJitterCorrection_t = procedure(Param : PCDROMPARAMS; enabled : BOOL); stdcall;
+  CR_GetReadSectors_t = function(Param : PCDROMPARAMS) : Integer; stdcall;
+  CR_SetReadSectors_t = procedure(Param : PCDROMPARAMS; value : Integer); stdcall;
+  CR_GetOverlapSectors_t = function(Param : PCDROMPARAMS): Integer; stdcall;
+	CR_SetOverlapSectors_t = procedure(Param : PCDROMPARAMS; value : Integer); stdcall;
+  CR_GetCompareSectors_t = function(Param : PCDROMPARAMS) : Integer; stdcall;
+	CR_SetCompareSectors_t = procedure(Param : PCDROMPARAMS; value : Integer); stdcall;
+  CR_GetEnableMultiRead_t = function(Param : PCDROMPARAMS) : BOOL; stdcall;
+  CR_SetEnableMultiRead_t = procedure(Param : PCDROMPARAMS; enabled : BOOL); stdcall;
+  CR_GetMultiReadCount_t = function(Param : PCDROMPARAMS) : Integer; stdcall;
+  CR_SetMultiReadCount_t = procedure(Param : PCDROMPARAMS; value : Integer); stdcall;
+  CR_GetDriveID_t = function(Param : PCDROMPARAMS) : PAnsiChar; stdcall;
+  CR_GetStructPointer_t = function() : PCDROMPARAMS; stdcall;
+
+  {$ENDIF}
+
 
 var
 
@@ -322,6 +374,23 @@ var
   CR_SetTransportLayer : CR_SetTransportLayer_t;
   CR_GetTransportLayer : CR_GetTransportLayer_t;
   CR_ScanForC2Errors : CR_ScanForC2Errors_t;
+
+  {$IFDEF USE_CDRIP_DLL_12200}
+ 	CR_GetJitterCorrection : CR_GetJitterCorrection_t;
+	CR_SetJitterCorrection : CR_SetJitterCorrection_t;
+  CR_GetReadSectors : CR_GetReadSectors_t;
+  CR_SetReadSectors : CR_SetReadSectors_t;
+  CR_GetOverlapSectors : CR_GetOverlapSectors_t;
+	CR_SetOverlapSectors : CR_SetOverlapSectors_t;
+  CR_GetCompareSectors : CR_GetCompareSectors_t;
+	CR_SetCompareSectors : CR_SetCompareSectors_t;
+  CR_GetEnableMultiRead : CR_GetEnableMultiRead_t;
+  CR_SetEnableMultiRead : CR_SetEnableMultiRead_t;
+  CR_GetMultiReadCount : CR_GetMultiReadCount_t;
+  CR_SetMultiReadCount : CR_SetMultiReadCount_t;
+  CR_GetDriveID : CR_GetDriveID_t;
+  CR_GetStructPointer : CR_GetStructPointer_t;
+   {$ENDIF}
 
   (* Note by A.B.: this function is a Delphi wrapper around a CDRip function
     CR_GetTocEntry *)
@@ -420,6 +489,25 @@ end;
       CR_GetTransportLayer := GetProcAddress(Libhandle, 'CR_GetTransportLayer');
       CR_ScanForC2Errors := GetProcAddress(Libhandle, 'CR_ScanForC2Errors');
 
+      {$IFDEF USE_CDRIP_DLL_12200}
+      CR_GetJitterCorrection := GetProcAddress(Libhandle, 'CR_GetJitterCorrection');
+	    CR_SetJitterCorrection := GetProcAddress(Libhandle, 'CR_SetJitterCorrection');
+      CR_GetReadSectors := GetProcAddress(Libhandle, 'CR_GetReadSectors');
+      CR_SetReadSectors := GetProcAddress(Libhandle, 'CR_SetReadSectors');
+      CR_GetOverlapSectors := GetProcAddress(Libhandle, 'CR_GetOverlapSectors');
+    	CR_SetOverlapSectors := GetProcAddress(Libhandle, 'CR_SetOverlapSectors');
+      CR_GetCompareSectors := GetProcAddress(Libhandle, 'CR_GetCompareSectors');
+	    CR_SetCompareSectors := GetProcAddress(Libhandle, 'CR_SetCompareSectors');
+      CR_GetEnableMultiRead := GetProcAddress(Libhandle, 'CR_GetEnableMultiRead');
+      CR_SetEnableMultiRead := GetProcAddress(Libhandle, 'CR_SetEnableMultiRead');
+      CR_GetMultiReadCount := GetProcAddress(Libhandle, 'CR_GetMultiReadCount');
+      CR_SetMultiReadCount := GetProcAddress(Libhandle, 'CR_SetMultiReadCount');
+      CR_GetDriveID := GetProcAddress(Libhandle, 'CR_GetDriveID');
+      CR_GetStructPointer := GetProcAddress(Libhandle, 'CR_GetStructPointer');
+     {$ENDIF}
+
+
+
       CDRIni := TINIFile.Create(FilePath+'cdr.ini');
       CDRIni.WriteString('CD-ROM','nActive','0');
       case GetWindowsVersion of
@@ -427,7 +515,12 @@ end;
         WINNT : CDRIni.WriteInteger('CD-ROM','nTransportLayer',1);
       end;
       CDRIni.Free;
-      CR_Init(PAnsiChar(FilePath+'cdr.ini'));
+      {$IFDEF USE_CDRIP_DLL_12200}
+      CR_Init(1);
+      {$ENDIF}
+      {$IFDEF USE_CDRIP_DLL_1001}
+       CR_Init(PAnsiChar(FilePath+'cdr.ini'));
+      {$ENDIF}
     end;
   end;
 
