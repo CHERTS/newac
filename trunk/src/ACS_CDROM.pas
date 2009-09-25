@@ -111,6 +111,9 @@ var
 
 type
 
+  (* Class: TCDPlayer
+     Autonomous CD-DA player component. Let's you play CD-DAs using your CD-drive as a player. *)
+
   TCDPlayer = class(TComponent)
   private
     FOpened : Integer;
@@ -139,20 +142,44 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Procedure: CloseTray
+      Closes CD-ROM drive's tray. *)
     procedure CloseTray;
+    (* Procedure: Eject
+      Ejects CD-ROM drive's tray. *)
     procedure Eject;
+    (* Procedure: Pause
+      Pause the playback. *)
     procedure Pause;
+    (* Procedure: Play(Track : Integer)
+      Play the CD track specified by its number. *)
     procedure Play(Track : Integer); overload;
     procedure Play(PlayFrom, PlayTo : TCDPosition); overload;
+    (* Procedure: Resume
+      Resume paused playback. *)
     procedure Resume;
+    (* Procedure: Stop
+      Stop the playback. *)
     procedure Stop;
+    (* Property: DiscInfo
+      Read this property to get a <TCDInfo> about a disc in the drive.
+    *)
     property DiscInfo : TCDInfo read GetDiscInfo;
+    (* Property: DriveLetter
+       Select a CD-drive to play using an assigned letter. *)
     property DriveLetter[anIndex : Integer] : AnsiChar read GetDriveLetter;
     property MCN : TMCN read GetMCN;
     property MediaChanged : Boolean read GetMediaChanged;
     property Position : TCDPosition read GetPosition;
     property Status : TCDStatus read GetStatus;
+    (* Property: TracksCount
+      The number of tracks on the disc. *)
     property TracksCount : Integer read GetNumTracks;
+    (* Property: Tracks
+      Returns information about a track specified by its number. The possible
+      values of indexes range from 1 to <TracksCount>. The information about a
+      track is returned as <TCDTrackInfo> record.
+    *)
     property Tracks[const vIndex : Integer] : TCDTrackInfo read GetTrackInfo;
   published
     property DrivesCount : Integer read CDDNum;
@@ -296,7 +323,7 @@ type
        If this property's value is greater than 0, this mechanism will be enabled and each sector will be re-read the specified number of times. *)
     property MultiReadCount : Integer read FMultiReadCount write FMultiReadCount;
     (* Property: Paranoid
-       Set this property to True to enable paranoid - extra error checking ripping mode.   *)
+       Set this property to True to enable paranoid, tha is extra error checking ripping mode.   *)
     property Paranoid : Boolean read FParanoid write FParanoid;
     (* Property: ParanoiaMode
        Use this property to set the level of paranoia.  *)
