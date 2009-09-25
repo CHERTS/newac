@@ -167,7 +167,7 @@ object Form1: TForm1
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
-    Compression = 0.200000002980232200
+    Compression = 0.300000011920929000
     Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
@@ -178,6 +178,7 @@ object Form1: TForm1
     Top = 128
   end
   object CDIn1: TCDIn
+    EnableJitterCorrection = False
     Left = 8
     Top = 128
   end
