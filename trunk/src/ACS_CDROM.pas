@@ -273,7 +273,7 @@ type
        This value should be less than that of <OverlapSectors>. *)
     property CompareSectors : Integer read GetCompareSectors write FCompareSectors;
     (* Property: LastJitterErrors
-       This property returns the number of ripping errors detected and corrected during the last ripping session.
+       This property returns the number of ripping errors detected during the last ripping session.
        The value returned is meaningful only if jitter correction is enabled. *)
     property LastJitterErrors : Integer read FLastJitterErrors;
   published
