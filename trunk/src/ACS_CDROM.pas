@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 1.2
+  This file is a part of New Audio Components package v. 2.2.2
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -169,8 +169,11 @@ type
     FStartTrack, FEndTrack : Integer;
     FStartPos, FEndPos: TCDPosition;
     FRipSize : Integer;
+    FEnableJitterCorrection : Boolean;
+    FReadSectors, FOverlapSectors, FCompareSectors : Integer;
     buf : array[1..BUF_SIZE] of Byte;
     BufSize : Integer;
+    FLastJitterErrors : Integer;
     procedure OpenCD;
     procedure CloseCD;
     function GetStatus : TCDStatus;
@@ -185,6 +188,9 @@ type
     function GetDrivesCount : Integer;
     procedure SetCurrentDrive(Value : Integer);
     function GetDriveName : AnsiString;
+    function GetReadSectors : Integer;
+    function GetOverlapSectors : Integer;
+    function GetCompareSectors : Integer;
   protected
     function GetTotalSamples : Int64; override;
     function GetTotalTime : LongWord; override;
@@ -245,12 +251,35 @@ type
       beginning of the track identified by number. The tracks are numbered
       starting from 1. *)
     property StartTrack: Integer read FStartTrack write SetSt;
-    (*Property: EndTrack
+    (* Property: EndTrack
       Set EndTrack to specify the ending position for data transfer at the end
       of the track identified by number. If you want to get data from a single
       track, the end track number should be the same as the start track
       number. *)
     property EndTrack: Integer read FEndTrack write SetET;
+    (* Property: ReadSectorsPerBurst:
+       This property controls the number of CD-DA sectors read in a single read operation.
+       It is a low level property that you can use to ajust CD-ripping performance.
+       If you use jitter correction this value should be greater than that of <OverlapSectors>. *)
+    property ReadSetctorsPerBurst : Integer read GetReadSectors write FReadSectors;
+    (* Property: OverlapSectors
+       This property controls the number of CD-DA sectors read in overlap when jitter correction is enabled.
+       It is a low level property that you can use to ajust the jitter correction efficiency.
+       This value should be greater than that of <CompareSectors> and less than that of <ReadSetctorsPerBurst>. *)
+    property OverlapSectors : Integer read GetOverlapSectors write FOverlapSectors;
+    (* Property: CompareSectors
+       This property controls the number of CD-DA sectors to bbe compared when jitter correction is enabled.
+       It is a low level property that you can use to ajust the jitter correction efficiency.
+       This value should be less than that of <OverlapSectors>. *)
+    property CompareSectors : Integer read GetCompareSectors write FCompareSectors;
+    (* Property: LastJitterErrors
+       This property returns the number of ripping errors detected and corrected during the last ripping session.
+       The value returned is meaningful only if jitter correction is enabled. *)
+    property LastJitterErrors : Integer read FLastJitterErrors;
+  published
+    (* Property: EnableJitterCorrection
+       Set this property to True to enable jitter correction.  *)
+    property EnableJitterCorrection : Boolean read FEnableJitterCorrection write FEnableJitterCorrection;
   end;
 
   function MSFToStr(const MSF : TCDMSF) : AnsiString;
@@ -794,7 +823,7 @@ implementation
     OpenCD;
     TE1 := GetTOCEntry(vIndex - 1);
     TE2 := GetTOCEntry(vIndex);
-    if TE1.btFlag = AUDIOTRKFLAG then
+    if TE1.btFlag <> CDROMDATAFLAG then
     Result.TrackType := ttAudio
     else Result.TrackType := ttData;
     Frames := TE2.dwStartSector - TE1.dwStartSector;
@@ -834,6 +863,9 @@ implementation
   constructor TCDIn.Create;
   begin
     inherited Create(AOwner);
+    FReadSectors := 0;
+    FCompareSectors := 0;
+    FOverlapSectors := 0;
     if not (csDesigning in ComponentState) then
     begin
       if SHGetFolderPathA(0, $1a, 0, 0, @adPath[0]) <> 0 then
@@ -895,8 +927,18 @@ implementation
   var
     Sect1, Sect2 : Integer;
     TE : TTOCENTRY;
+    CDP : TCDROMPARAMS;
   begin
     if Busy then raise EAuException.Create('The component is busy');
+    CR_GetCDROMParameters(@CDP);
+    CDP.bJitterCorrection := FEnableJitterCorrection;
+    if FReadSectors <> 0 then
+      CDP.nNumReadSectors := FReadSectors;
+    if FOverlapSectors <> 0 then
+      CDP.nNumOverlapSectors := FOverlapSectors;
+    if FCompareSectors <> 0 then
+      CDP.nNumCompareSectors := FCompareSectors;
+    CR_SetCDROMParameters(@CDP);
     if Status = cdsNotReady then raise EAuException.Create('The drive is not ready');
     if (FStartPos.Track in [1..GetNumTracks]) = False then
     raise EAuException.Create('The start track out of range');
@@ -923,6 +965,7 @@ implementation
 
   procedure TCDIn.FlushInternal;
   begin
+    FLastJitterErrors := CR_GetNumberOfJitterErrors;
     CR_CloseRipper;
     CloseCD;
     Busy := False;
@@ -977,8 +1020,49 @@ implementation
       OpenCD;
       CR_GetCDROMParameters(@CDP);
       Result := AnsiString(CDP.lpszCDROMID);
+      if not FEnableJitterCorrection then
+        FEnableJitterCorrection := CDP.bJitterCorrection;
       CloseCD;
     end else Result := '';
+  end;
+
+  function TCDIn.GetReadSectors;
+  var
+    CDP : TCDROMPARAMS;
+  begin
+    if not (csDesigning in ComponentState) then
+    begin
+      OpenCD;
+      CR_GetCDROMParameters(@CDP);
+      Result := CDP.nNumReadSectors;
+      CloseCD;
+    end else Result := 0;
+  end;
+
+  function TCDIn.GetCompareSectors;
+  var
+    CDP : TCDROMPARAMS;
+  begin
+    if not (csDesigning in ComponentState) then
+    begin
+      OpenCD;
+      CR_GetCDROMParameters(@CDP);
+      Result := CDP.nNumCompareSectors;
+      CloseCD;
+    end else Result := 0;
+  end;
+
+  function TCDIn.GetOverlapSectors;
+  var
+    CDP : TCDROMPARAMS;
+  begin
+    if not (csDesigning in ComponentState) then
+    begin
+      OpenCD;
+      CR_GetCDROMParameters(@CDP);
+      Result := CDP.nNumOverlapSectors;
+      CloseCD;
+    end else Result := 0;
   end;
 
   procedure TCDIn.Eject;

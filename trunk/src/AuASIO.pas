@@ -747,6 +747,8 @@ end;
 constructor TASIOAudioOut.Create;
 begin
   inherited Create(AOwner);
+  if not (csDesigning in ComponentState) then
+    Thread.Priority := tpTimeCritical;
   OutputComponent := Self;
   Self.Devices := nil;
   ListAsioDrivers(Self.Devices);
@@ -758,7 +760,7 @@ begin
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
   FPrefetch := Prefetch;
   FPrefetchData := True;
-  Thread.Priority := tpTimeCritical;
+//  Thread.Priority := tpTimeCritical;
 end;
 
 destructor TASIOAudioOut.Destroy;
