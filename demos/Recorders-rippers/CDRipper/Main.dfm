@@ -207,7 +207,10 @@ object Form1: TForm1
   end
   object CDIn1: TCDIn
     EnableJitterCorrection = False
-    MultiReadCount = 3
+    LockTray = False
+    MultiReadCount = 0
+    Paranoid = True
+    ParanoiaMode = 2
     Left = 8
     Top = 128
   end
