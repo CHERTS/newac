@@ -251,6 +251,7 @@ implementation
       FValid := ReadFunc;
       if FValid = False then
       begin
+        FStream.Free;
         Exit;
       end;
       FSize := -1;
@@ -296,8 +297,21 @@ implementation
         level := 1;
         bias := 0;
         res := dca_frame(state, @FrameBuf[0], FFlags, level, bias);
-        if res <> 0 then
-          raise EAuException.Create('Failed to decode DTS data.');
+        while res <> 0 do
+        begin
+          if not ReadFunc then
+          begin
+            if FStream.Position < StreamSize then
+            begin
+              raise EAuException.Create('Sync lost')
+            end else
+            begin
+              Bytes := 0;
+              Buffer := nil;
+            end;
+          end;
+          res := dca_frame(state, @FrameBuf[0], FFlags, level, bias);
+        end;
         BlockCount := dca_blocks_num(state);
       end;
       dca_block(state);
