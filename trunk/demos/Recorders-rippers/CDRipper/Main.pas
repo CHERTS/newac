@@ -74,6 +74,9 @@ implementation
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   StatusBar1.Panels[0].Text := '';
+//  CDIn1.Paranoid := True;
+//  CDIn1.ParanoiaMode := 0;
+  CDIn1.LockTray := True;
   if ComboBox3.Text = 'Ogg' then
   begin
     SaveDialog1.Filter := 'Vorbis files|*.ogg';
