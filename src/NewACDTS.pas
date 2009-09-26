@@ -140,6 +140,9 @@ implementation
     Result := False;
     while FStream.Position < StreamSize do
     begin
+      if not FValid then
+        if FStream.Position > StreamSize div 10 then
+          Exit;
       if FStream.Position mod 2048 = 0 then
       begin
         FStream.Read(a, 18);
@@ -251,7 +254,6 @@ implementation
       FValid := ReadFunc;
       if FValid = False then
       begin
-        FStream.Free;
         Exit;
       end;
       FSize := -1;

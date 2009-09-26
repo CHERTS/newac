@@ -179,11 +179,6 @@ implementation
       FValid := ReadFrame;
       if FValid = False then
       begin
-        if FExtract then
-           FDemuxer.Free
-        else
-        if not FStreamAssigned then
-          FStream.Free;
         Exit;
       end;
       FSize := -1;
