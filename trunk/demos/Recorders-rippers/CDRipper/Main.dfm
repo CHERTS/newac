@@ -209,8 +209,8 @@ object Form1: TForm1
     EnableJitterCorrection = False
     LockTray = False
     MultiReadCount = 0
-    Paranoid = True
-    ParanoiaMode = 2
+    Paranoid = False
+    ParanoiaMode = 0
     Left = 8
     Top = 128
   end
