@@ -1,8 +1,8 @@
 object Form6: TForm6
   Left = 0
   Top = 0
-  Caption = 'VOB(DTS) to WMA Converter'
-  ClientHeight = 348
+  Caption = 'VOB to WMA Converter'
+  ClientHeight = 238
   ClientWidth = 643
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,9 +12,6 @@ object Form6: TForm6
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
-  DesignSize = (
-    643
-    348)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -31,22 +28,13 @@ object Form6: TForm6
     Height = 13
     Caption = 'Album'
   end
-  object ListBox1: TListBox
-    Left = 8
-    Top = 136
-    Width = 627
-    Height = 193
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    ItemHeight = 13
-    TabOrder = 0
-  end
   object Button1: TButton
     Left = 24
     Top = 16
     Width = 75
     Height = 25
     Caption = 'Select...'
-    TabOrder = 1
+    TabOrder = 0
     OnClick = Button1Click
   end
   object Button2: TButton
@@ -55,7 +43,7 @@ object Form6: TForm6
     Width = 75
     Height = 25
     Caption = 'Convert...'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = Button2Click
   end
   object Edit1: TEdit
@@ -63,7 +51,7 @@ object Form6: TForm6
     Top = 63
     Width = 159
     Height = 21
-    TabOrder = 3
+    TabOrder = 2
     Text = 'Edit1'
   end
   object Edit2: TEdit
@@ -71,7 +59,7 @@ object Form6: TForm6
     Top = 90
     Width = 159
     Height = 21
-    TabOrder = 4
+    TabOrder = 3
     Text = 'Edit2'
   end
   object Button3: TButton
@@ -80,21 +68,18 @@ object Form6: TForm6
     Width = 75
     Height = 25
     Caption = 'Clear'
-    TabOrder = 5
-    OnClick = Button3Click
+    TabOrder = 4
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 329
+    Top = 219
     Width = 643
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    ExplicitLeft = 432
-    ExplicitTop = 328
-    ExplicitWidth = 0
+    ExplicitTop = 329
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'vob'
@@ -104,21 +89,7 @@ object Form6: TForm6
     Left = 240
     Top = 88
   end
-  object DTSIn1: TDTSIn
-    Loop = False
-    Extract = True
-    Left = 296
-    Top = 88
-  end
-  object AudioPlayList1: TAudioPlayList
-    Input = DTSIn1
-    CurrentItem = 0
-    OnPlayItemChanged = AudioPlayList1PlayItemChanged
-    Left = 352
-    Top = 88
-  end
   object WMAOut1: TWMAOut
-    Input = AudioPlayList1
     OnDone = WMAOut1Done
     OnThreadException = WMAOut1ThreadException
     DesiredBitrate = 0
@@ -135,5 +106,18 @@ object Form6: TForm6
     Title = 'Save as'
     Left = 488
     Top = 88
+  end
+  object DTSIn1: TDTSIn
+    Loop = False
+    OutputChannels = dts5dot1
+    Left = 296
+    Top = 88
+  end
+  object AC3In1: TAC3In
+    Loop = False
+    VobAudioSubstream = acvStreamFirst
+    OutputChannels = acc5dot1
+    Left = 296
+    Top = 48
   end
 end
