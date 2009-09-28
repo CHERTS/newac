@@ -558,12 +558,18 @@ const
   _ape_SubTitle       = 'Subtitle';
   _ape_Comment        = 'Comment';
 
-  _vorbis_Album   : AnsiString = 'album';
-  _vorbis_Artist  : AnsiString = 'artist';
-  _vorbis_Date    : AnsiString = 'date';
-  _vorbis_Genre   : AnsiString = 'genre';
-  _vorbis_Title   : AnsiString = 'title';
-  _vorbis_Track   : AnsiString = 'tracknumber';
+  _vorbis_Album     : AnsiString = 'album';
+  _vorbis_Artist    : AnsiString = 'artist';
+  _vorbis_Date      : AnsiString = 'date';
+  _vorbis_Genre     : AnsiString = 'genre';
+  _vorbis_Title     : AnsiString = 'title';
+  _vorbis_Track     : AnsiString = 'tracknumber';
+  _vorbis_Disc      : AnsiString = 'discnumber';
+  _vorbis_Reference : AnsiString = 'replaygain_reference_loudness';
+  _vorbis_TrackGain : AnsiString = 'replaygain_track_gain';
+  _vorbis_TrackPeak : AnsiString = 'replaygain_track_peak';
+  _vorbis_AlbumGain : AnsiString = 'replaygain_album_gain';
+  _vorbis_AlbumPeak : AnsiString = 'replaygain_album_peak';
 
 type
 
@@ -581,6 +587,18 @@ type
     procedure SetTitle(Value : WideString);
     function GetTrack : WideString;
     procedure SetTrack(Value : WideString);
+    function GetDisc : WideString;
+    procedure SetDisc(Value : WideString);
+    function GetReference : WideString;
+    procedure SetReference(Value : WideString);
+    function GetTrackGain : WideString;
+    procedure SetTrackGain(Value : WideString);
+    function GetTrackPeak : WideString;
+    procedure SetTrackPeak(Value : WideString);
+    function GetAlbumGain : WideString;
+    procedure SetAlbumGain(Value : WideString);
+    function GetAlbumPeak : WideString;
+    procedure SetAlbumPeak(Value : WideString);
   public
     constructor Create; override;
   published
@@ -590,6 +608,12 @@ type
     property Genre : WideString read GetGenre write SetGenre;
     property Title : WideString read GetTitle write SetTitle;
     property Track : WideString read GetTrack write SetTrack;
+    property Disc : WideString read GetDisc write SetDisc;
+    property Reference : WideString read GetReference write SetReference;
+    property TrackGain : WideString read GetTrackGain write SetTrackGain;
+    property TrackPeak : WideString read GetTrackPeak write SetTrackPeak;
+    property AlbumGain : WideString read GetAlbumGain write SetAlbumGain;
+    property AlbumPeak : WideString read GetAlbumPeak write SetAlbumPeak;
   end;
 
 
@@ -1931,6 +1955,12 @@ begin
   AddId(_vorbis_Genre, Null);
   AddId(_vorbis_Title, Null);
   AddId(_vorbis_Track, Null);
+  AddId(_vorbis_Disc, Null);
+  AddId(_vorbis_Reference, Null);
+  AddId(_vorbis_TrackGain, Null);
+  AddId(_vorbis_TrackPeak, Null);
+  AddId(_vorbis_AlbumGain, Null);
+  AddId(_vorbis_AlbumPeak, Null);
 end;
 
 function TVorbisTags.GetAlbum;
@@ -1991,6 +2021,66 @@ end;
 procedure TVorbisTags.SetTrack;
 begin
   Values[_vorbis_Track] := Value;
+end;
+
+function TVorbisTags.GetDisc : WideString;
+begin
+  Result := AsWideString[_vorbis_Disc];
+end;
+
+procedure TVorbisTags.SetDisc(Value : WideString);
+begin
+  Values[_vorbis_Disc] := Value;
+end;
+
+function TVorbisTags.GetReference : WideString;
+begin
+  Result := AsWideString[_vorbis_Reference];
+end;
+
+procedure TVorbisTags.SetReference(Value : WideString);
+begin
+  Values[_vorbis_Reference] := Value;
+end;
+
+function TVorbisTags.GetTrackGain : WideString;
+begin
+  Result := AsWideString[_vorbis_TrackGain];
+end;
+
+procedure TVorbisTags.SetTrackGain(Value : WideString);
+begin
+  Values[_vorbis_TrackGain] := Value;
+end;
+
+function TVorbisTags.GetTrackPeak : WideString;
+begin
+  Result := AsWideString[_vorbis_TrackPeak];
+end;
+
+procedure TVorbisTags.SetTrackPeak(Value : WideString);
+begin
+  Values[_vorbis_TrackPeak] := Value;
+end;
+
+function TVorbisTags.GetAlbumGain : WideString;
+begin
+  Result := AsWideString[_vorbis_AlbumGain];
+end;
+
+procedure TVorbisTags.SetAlbumGain(Value : WideString);
+begin
+  Values[_vorbis_AlbumGain] := Value;
+end;
+
+function TVorbisTags.GetAlbumPeak : WideString;
+begin
+  Result := AsWideString[_vorbis_AlbumPeak];
+end;
+
+procedure TVorbisTags.SetAlbumPeak(Value : WideString);
+begin
+  Values[_vorbis_AlbumPeak] := Value;
 end;
 
 (* APE v 2 tags reading routine by A. Borovsky. *)
