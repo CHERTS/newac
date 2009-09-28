@@ -164,6 +164,12 @@ type
     Date : Utf8String;
     Genre : Utf8String;
     Track : Utf8String;
+    Disc : Utf8String;
+    Reference : Utf8String;
+    TrackGain : Utf8String;
+    TrackPeak : Utf8String;
+    AlbumGain : Utf8String;
+    AlbumPeak : Utf8String;
   end;
 
   function BuildCommentsBlock(var Comments : TVComments; var Block : Pointer; HasNext : Boolean) : Integer;
@@ -218,6 +224,36 @@ type
       Inc(StrCount);
       Inc(BS, Length(Comments.Track) + 4);
     end;
+    if Comments.Disc <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Disc) + 4);
+    end;
+    if Comments.Reference <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.Reference) + 4);
+    end;
+    if Comments.TrackGain <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.TrackGain) + 4);
+    end;
+    if Comments.TrackPeak <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.TrackPeak) + 4);
+    end;
+    if Comments.AlbumGain <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.AlbumGain) + 4);
+    end;
+    if Comments.AlbumPeak <> '' then
+    begin
+      Inc(StrCount);
+      Inc(BS, Length(Comments.AlbumPeak) + 4);
+    end;
     Header[0] := FLAC__METADATA_TYPE_VORBIS_COMMENT;
     if not HasNext then
       Inc(Header[0], 128);
@@ -245,8 +281,19 @@ type
       AddString(Comments.Genre);
     if Comments.Track <> '' then
       AddString(Comments.Track);
+    if Comments.Disc <> '' then
+      AddString(Comments.Disc);
+    if Comments.Reference <> '' then
+      AddString(Comments.Reference);
+    if Comments.TrackGain <> '' then
+      AddString(Comments.TrackGain);
+    if Comments.TrackPeak <> '' then
+      AddString(Comments.TrackPeak);
+    if Comments.AlbumGain <> '' then
+      AddString(Comments.AlbumGain);
+    if Comments.AlbumPeak <> '' then
+      AddString(Comments.AlbumPeak);
   end;
-
 
   function EncWriteCBFunc(encoder : P_FLAC__StreamEncoder;
                                 buffer : PFLAC__byte;
@@ -283,6 +330,18 @@ type
             Comm.Genre := Utf8Encode(WideString(_vorbis_Genre + '=') + FlacOut.FTags.Genre);
           if FlacOut.FTags.Track <> '' then
             Comm.Track := Utf8Encode(WideString(_vorbis_Track + '=') + FlacOut.FTags.Track);
+          if FlacOut.FTags.Disc <> '' then
+            Comm.Disc := Utf8Encode(WideString(_vorbis_Disc + '=') + FlacOut.FTags.Disc);
+          if FlacOut.FTags.Reference <> '' then
+            Comm.Reference := Utf8Encode(WideString(_vorbis_Reference + '=') + FlacOut.FTags.Reference);
+          if FlacOut.FTags.TrackGain <> '' then
+            Comm.TrackGain := Utf8Encode(WideString(_vorbis_TrackGain + '=') + FlacOut.FTags.TrackGain);
+          if FlacOut.FTags.TrackPeak <> '' then
+            Comm.TrackPeak := Utf8Encode(WideString(_vorbis_TrackPeak + '=') + FlacOut.FTags.TrackPeak);
+          if FlacOut.FTags.AlbumGain <> '' then
+            Comm.AlbumGain := Utf8Encode(WideString(_vorbis_AlbumGain + '=') + FlacOut.FTags.AlbumGain);
+          if FlacOut.FTags.AlbumPeak <> '' then
+            Comm.AlbumPeak := Utf8Encode(WideString(_vorbis_AlbumPeak + '=') + FlacOut.FTags.AlbumPeak);
           BL := BuildCommentsBlock(Comm, Block, BI.HasNext);
           FLACOut.FStream.Write(Block^, BL);
           FreeMem(Block);
@@ -568,6 +627,18 @@ type
       FLACIn.FComments.Genre := Utf8Decode(S);
       S := SL.Values[AnsiUpperCase(_vorbis_Track)];
       FLACIn.FComments.Track := Utf8Decode(S);
+      S := SL.Values[AnsiUpperCase(_vorbis_Disc)];
+      FLACIn.FComments.Disc := Utf8Decode(S);
+      S := SL.Values[AnsiUpperCase(_vorbis_Reference)];
+      FLACIn.FComments.Reference := Utf8Decode(S);
+      S := SL.Values[AnsiUpperCase(_vorbis_TrackGain)];
+      FLACIn.FComments.TrackGain := Utf8Decode(S);
+      S := SL.Values[AnsiUpperCase(_vorbis_TrackPeak)];
+      FLACIn.FComments.TrackPeak := Utf8Decode(S);
+      S := SL.Values[AnsiUpperCase(_vorbis_AlbumGain)];
+      FLACIn.FComments.AlbumGain := Utf8Decode(S);
+      S := SL.Values[AnsiUpperCase(_vorbis_AlbumPeak)];
+      FLACIn.FComments.AlbumPeak := Utf8Decode(S);
       SL.Free;
     end;
     FLacIn.EndOfMetadata := metadata.is_last;
