@@ -124,6 +124,7 @@ contains
   libdca in 'libdca.pas',
   NewACDTS in 'NewACDTS.pas',
   NewACAC3 in 'NewACAC3.pas',
-  DMXStreams in 'DMXStreams.pas';
+  DMXStreams in 'DMXStreams.pas',
+  GainAnalysis in 'GainAnalysis.pas';
 
 end.
