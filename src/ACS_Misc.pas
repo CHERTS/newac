@@ -15,7 +15,7 @@ unit ACS_Misc;
 interface
 
 uses
-  Classes, SysUtils, ACS_Types, ACS_Classes, SyncObjs
+  Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Procs, SyncObjs, GainAnalysis
 
  {$IFDEF WIN32}
   , Windows
@@ -367,6 +367,31 @@ type
       The name of the cue-sheet file. *)
     property CueFile : AnsiString read FCueFile write SetCueFile;
   end;
+
+  TGainAnalysis = class(TAuConverter)
+  private
+    FTitleGain : Double;
+    FAlbumGain : Double;
+    FTitlePeak : Double;
+    FAlbumPeak : Double;
+    FNewAlbum : Boolean;
+    InBuffer : array of Single;
+    LBuffer, RBuffer : array of Double;
+    FBufferSize : LongWord;
+    FSampleSize : Word;
+    function GetAlbumGain : Double;
+  protected
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    procedure NewAlbum;
+    property TitleGain : Double read FTitleGain;
+    property AlbumGain : Double read GetAlbumGain;
+    property TitlePeak : Double read FTitlePeak;
+    property AlbumPeak : Double read FAlbumPeak;
+  end;
+
 
 implementation
 
@@ -1161,6 +1186,108 @@ begin
   FInput.Flush;
   Busy := False;
 end;
+
+procedure TGainAnalysis.NewAlbum;
+begin
+  LoadLibGain;
+  if not LibGainLoaded then
+    raise EAuException.Create(Format('Could not load the %s library.', [LibGainPath]));
+  InitGainAnalysis(44100);
+  FAlbumGain := 0;
+  FAlbumPeak := 0;
+  FNewAlbum := True;
+end;
+
+procedure TGainAnalysis.InitInternal;
+var
+  SR : LongWord;
+begin
+  Busy := True;
+  FPosition := 0;
+  FInput.Init;
+  if FInput.Channels > 2 then
+  begin
+    FInput.Flush;
+    Busy := False;
+    raise EAuException.Create('Only mono or stereo strea,s are supported.');
+  end;
+  SR := FInput.SampleRate;
+  if ResetSampleFrequency(SR) <> GAIN_ANALYSIS_OK then
+  begin
+    FInput.Flush;
+    Busy := False;
+    raise EAuException.Create(Format('Failed to set up gain analysis. Possible cause: sample rate %d is not supported.', [SR]));
+  end;
+  FTitleGain := 0;
+  FTitlePeak := 0;
+  FSampleSize := FInput.BitsPerSample div 8;
+end;
+
+procedure TGainAnalysis.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+var
+  i : Integer;
+  SamplesRead, FramesRead : LongWord;
+  AbsPeak : Single;
+begin
+  Finput.GetData(Buffer, Bytes);
+  if (Buffer = nil) or (Bytes = 0) then
+    Exit;
+  SamplesRead := Bytes div FSampleSize;
+  if SamplesRead > FBufferSize then
+  begin
+    FBufferSize := SamplesRead;
+    SetLength(InBuffer, FBufferSize);
+    SetLength(LBuffer, FBufferSize);
+    SetLength(RBuffer, FBufferSize);
+  end;
+  case FSampleSize of
+    1 : ByteToSingle(PBuffer8(Buffer), @InBuffer[0], SamplesRead);
+    2 : SmallIntToSingle(PBuffer16(Buffer), @InBuffer[0], SamplesRead);
+    3 : Int24ToSingle(PBuffer8(Buffer), @InBuffer[0], SamplesRead);
+    4 : Int32ToSingle(PBuffer32(Buffer), @InBuffer[0], SamplesRead);
+  end;
+  for i := 0 to SamplesRead - 1 do
+  begin
+    AbsPeak := Abs(LBuffer[i]);
+    if AbsPeak > FTitlePeak then
+      FTitlePeak := AbsPeak;
+  end;
+  FramesRead := SamplesRead div FInput.Channels;
+  if Finput.Channels = 2 then
+  begin
+    for i := 0 to FramesRead - 1 do
+    begin
+      RBuffer[i] := InBuffer[i*2]*$8000;
+      LBuffer[i] := InBuffer[i*2+1]*$8000;
+    end;
+  end else
+    for i := 0 to FramesRead - 1 do
+      RBuffer[i] := InBuffer[i]*$8000;
+
+  if AnalyzeSamples(@LBuffer[0], @RBuffer[0], FramesRead, FInput.Channels) = GAIN_ANALYSIS_ERROR then
+    raise EAuException.Create('Gain analysis failed');
+end;
+
+procedure TGainAnalysis.FlushInternal;
+begin
+  if FTitlePeak > FAlbumPeak then
+    FAlbumPeak := FTitlePeak;
+  FTitleGain := GetTitleGain;
+  Finput.Flush;
+  Busy := False;
+end;
+
+function TGainAnalysis.GetAlbumGain;
+begin
+  if FNewAlbum then
+  begin
+    FNewAlbum := False;
+    FAlbumGain := GetAlbumGain;
+  end;
+  Result := FAlbumGain;
+end;
+
+
 
 
 end.

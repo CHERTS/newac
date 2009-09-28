@@ -941,83 +941,178 @@ end;
   procedure SingleToSmallInt(_in : PBufferSingle; _out : PBuffer16; len : Integer);
   var
     i : Integer;
+    PMode : TFPUPrecisionMode;
+    iin : PBuffer32;
+  const
+    f : LongWord = 32767;
   begin
+    iin := PBuffer32(_in);
     for i := 0 to len - 1 do
     begin
-      if _in[i] >= 1 then
-        _out[i] := 32767
-      else
-      if _in[i] <= -1 then
-        _out[i] := -32768
-      else
-      _out[i] := Floor(_in[i] * $8000);
+      if ((LongWord(iin[i]) shr 23) and 255) > 126 then
+      begin
+        if _in[i] >= 1 then
+          _in[i] := 1
+        else
+        if _in[i] <= -1 then
+          _in[i] := -1
+      end;
     end;
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
+    asm
+      PUSH EDI;
+      PUSH ESI;
+      MOV ECX, len;
+      MOV EDI, _In;
+      MOV ESI, _out;
+      @loop1:
+      FLD DWORD PTR [EDI];
+      ADD EDI, 4;
+      FIMUL DWORD PTR [f];
+      DEC ECX;
+      FISTP WORD PTR [ESI];
+      ADD ESI, 2;
+      CMP ECX, 0;
+      JNE @loop1;
+      POP ESI;
+      POP EDI;
+    end;
+//    for i := 0 to len - 1 do
+//      _out[i] := Floor(_in[i] * $7FFF);
+    SetPrecisionMode(PMode);
   end;
 
   procedure SingleToInt32(_in : PBufferSingle; _out : PBuffer32; len : Integer);
   var
     i : Integer;
+    PMode : TFPUPrecisionMode;
+    iin : PBuffer32;
+  const
+    f : LongWord = $7FFFFFFF;
   begin
+    iin := PBuffer32(_in);
     for i := 0 to len - 1 do
     begin
-      if _in[i] >= 1 then
-        _out[i] := High(Integer)
-      else
-      if _in[i] <= -1 then
-        _out[i] := Low(Integer)
-      else
-      _out[i] := Floor(_in[i] * $80000000);
+      if ((LongWord(iin[i]) shr 23) and 255) > 126 then
+      begin
+        if _in[i] >= 1 then
+          _in[i] := 1
+        else
+        if _in[i] <= -1 then
+          _in[i] := -1
+      end;
     end;
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
+    asm
+      PUSH EDI;
+      PUSH ESI;
+      MOV ECX, len;
+      MOV EDI, _In;
+      MOV ESI, _out;
+      SUB ESI, EDI;
+      @loop1:
+      FLD DWORD PTR [EDI];
+      FIMUL DWORD PTR [f];
+      DEC ECX;
+      FISTP DWORD PTR [ESI+EDI];
+      ADD EDI, 4;
+      CMP ECX, 0;
+      JNE @loop1;
+      POP ESI;
+      POP EDI;
+    end;
+    SetPrecisionMode(PMode);
+
+//    for i := 0 to len - 1 do
+//      _out[i] := Floor(_in[i] * );
   end;
 
   procedure SingleToInt24(_in : PBufferSingle; _out : PBuffer8; len : Integer);
   var
     i, Sample : Integer;
+    PMode : TFPUPrecisionMode;
+    iin : PBuffer32;
   begin
+    iin := PBuffer32(_in);
     for i := 0 to len - 1 do
     begin
-      if _in[i] >= 1 then
-        Sample := $800000 - 1
-      else
-      if _in[i] <= -1 then
-        Sample := -$800000
-      else
-      Sample := Floor(_in[i] * $800000);
+      if ((LongWord(iin[i]) shr 23) and 255) > 126 then
+      begin
+        if _in[i] >= 1 then
+          _in[i] := 1
+        else
+        if _in[i] <= -1 then
+          _in[i] := -1
+      end;
+    end;
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
+    for i := 0 to len - 1 do
+    begin
+      Sample := Floor(_in[i] * $7FFFFF);
       _out[i*3] := Sample and $ff;
       PSmallInt(@(_out[i*3 + 1]))^ := SmallInt(Sample shr 8);
     end;
+    SetPrecisionMode(PMode);
   end;
 
   procedure ByteToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
   var
     i : Integer;
+    PMode : TFPUPrecisionMode;
+  const
+    f : Single = 1/128;
   begin
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
     for i := 0 to len - 1 do
-      _out[i] := _in[i]/128 - 1;
+      _out[i] := _in[i]*f - 1;
+    SetPrecisionMode(PMode);
   end;
-  
+
   procedure SmallIntToSingle(_in : PBuffer16; _out : PBufferSingle; len : Integer);
   var
     i : Integer;
+    PMode : TFPUPrecisionMode;
+  const
+    f : Single = 1/$8000;
   begin
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
     for i := 0 to len - 1 do
-      _out[i] := _in[i]/$8000;
+      _out[i] := _in[i]*f;
+    SetPrecisionMode(PMode);
   end;
 
   procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
   var
     i : Integer;
+    PMode : TFPUPrecisionMode;
+  const
+    f : Single = 1/$80000000;
   begin
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
     for i := 0 to len - 1 do
-      _out[i] := _in[i]/$80000000;
+      _out[i] := _in[i]*f;
+    SetPrecisionMode(PMode);
   end;
 
   procedure Int24ToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
   var
     i : Integer;
+    PMode : TFPUPrecisionMode;
+  const
+    f : Single = 1/$800000;
   begin
+    SetPrecisionMode(pmSingle);
+    PMode := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
     for i := 0 to len - 1 do
-      _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))/$800000;
+      _out[i] := ((PSmallInt(@(_in[i*3 + 1]))^ shl 8) + ShortInt(_in[i*3]))*f;
+    SetPrecisionMode(PMode);
   end;
 
   procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer);
