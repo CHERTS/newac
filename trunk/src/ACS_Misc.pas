@@ -368,6 +368,12 @@ type
     property CueFile : AnsiString read FCueFile write SetCueFile;
   end;
 
+  (* Class: TGainAnalysis
+    Descends from <TAuConverter>.
+    This component calculates its input's replay gain (like in mp3gain utility) and peak values. The component relies on libgain.dll which uses the same code as mp3gain does.
+    This is a converter componen that you can connect to some output component or to TNULLOutput. See the ReplayGain demo on how to use it.
+  *)
+
   TGainAnalysis = class(TAuConverter)
   private
     FTitleGain : Double;
@@ -385,10 +391,20 @@ type
     procedure InitInternal; override;
     procedure FlushInternal; override;
   public
+    (* Function: NewAlbum
+      Call this method before starting to process a new batch of audio files. You must call this method before performing any other operation on the component. *)
     procedure NewAlbum;
+    (* Property: TitleGain
+      Returns the replay gain (in dB) for the last processed file. The best place to analyze this value is the output component's OnDone event handler. *)
     property TitleGain : Double read FTitleGain;
+    (* Property: AlbumGain
+      Returns the replay gain (in dB) for the batch of files processed since the last call to <NewAlbum>.  *)
     property AlbumGain : Double read GetAlbumGain;
+    (* Property: TitlePeak
+      Returns the peak value for the last processed file in percents of the maximum possible value. The best place to analyze this value is the output component's OnDone event handler. *)
     property TitlePeak : Double read FTitlePeak;
+    (* Property: TitlePeak
+      Returns the peak value for the batch of files processed since the last call to <NewAlbum>. *)
     property AlbumPeak : Double read FAlbumPeak;
   end;
 
@@ -1270,6 +1286,7 @@ end;
 
 procedure TGainAnalysis.FlushInternal;
 begin
+  FTitlePeak := FTitlePeak/327.68;
   if FTitlePeak > FAlbumPeak then
     FAlbumPeak := FTitlePeak;
   FTitleGain := GetTitleGain;
