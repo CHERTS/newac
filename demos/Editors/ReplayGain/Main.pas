@@ -40,6 +40,7 @@ begin
     index := 0;
     GainAnalysis1.NewAlbum;
     MP3In1.FileName := ListBox1.Items[0];
+    Button1.Enabled := False;
     NULLOut1.Run;
   end;
 end;
@@ -49,7 +50,10 @@ begin
   ListBox1.Items[Index] := ListBox1.Items[Index] + Format(' [gain = %f dB, peak = %f %%]', [GainAnalysis1.TitleGain,GainAnalysis1.TitlePeak]);
   Inc(Index);
   if Index >= ListBox1.Items.Count then
-    ListBox1.Items.Add(Format('Album gain %f dB peak = %f %%', [GainAnalysis1.AlbumGain, GainAnalysis1.AlbumPeak]))
+  begin
+    ListBox1.Items.Add(Format('Album gain %f dB peak = %f %%', [GainAnalysis1.AlbumGain, GainAnalysis1.AlbumPeak]));
+    Button1.Enabled := True;
+  end
   else
   begin
     MP3In1.FileName := ListBox1.Items[Index];
