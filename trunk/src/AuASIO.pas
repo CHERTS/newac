@@ -71,7 +71,6 @@ type
     function FillBuffer(var EOF : Boolean) : Integer;
     function GetSampleRate : Integer;
     procedure SetSampleRate(SR : Integer);
-    procedure Prefetch(Sender : TComponent);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -758,7 +757,6 @@ begin
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange;
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
-  FPrefetch := Prefetch;
   FPrefetchData := True;
 //  Thread.Priority := tpTimeCritical;
 end;
@@ -834,12 +832,13 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-  sleep(1);
+  sleep(0);
   if DoPrefetch then
   begin
     DoPrefetch := False;
     if FPrefetchData then
-      Prefetch(Self);
+      if not GStop then
+        FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
   end;
   Result := True;
 end;
@@ -1048,11 +1047,6 @@ begin
     Device.SetSampleRate(SR);
 end;
 
-procedure TASIOAudioOut.Prefetch(Sender: TComponent);
-begin
-  if not GStop then
-    FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
-end;
 
 function TASIOAudioOut.GetSampleRate;
 var
