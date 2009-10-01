@@ -648,6 +648,10 @@ type
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName;
+    (* Property: ShareMode
+        This property stores the share mode flags (like fmShareExclusive, fmShareDenyRead) that are applied to the files being created.
+        Since Delphi 2010 has some problems with these flags, the default value is zero.
+    *)
     property ShareMode : Word read FShareMode write FShareMode;
   end;
 
