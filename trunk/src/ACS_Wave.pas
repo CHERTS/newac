@@ -321,10 +321,9 @@ type
     (* Property: CreateNonMsHeaders
       Use this property to specify the headers format for output files with more than 16 bits per sample and more than 2 channels.
       Microsoft uses its own headers format for these files and this format is the only one supported by Windows Media Player 9 (although later versions of the player support both types of headers).
-      WinAmp and many other programs can also play it.
-      On the other hand programs such as Sound Forge and Reaper only understand conventional headers.
-      The default value for this property is True which makes the component to produce files non-readable by WM Player 9, but readable by almost any other program out there.
-      Set it to True to force the component to write non-MS headers. *)
+      WinAmp and many other programs can also play both formats, but some programs such as Sound Forge and Reaper only understand conventional headers.
+      The default value for this property is True which makes the component to produce files non-readable by WM Player 9, but readable by most other programs (including later versions of Windows Media Player) out there .
+      Set it to False if you want to generate files with MS-specific headers. *)
     property CreateNonMsHeaders : Boolean read FNonMsHeaders write FNonMsHeaders;
     property FileMode;
   end;
