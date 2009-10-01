@@ -485,6 +485,7 @@ procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
   s1, s2 : TASIOInt64;
   OldStopped : Bool;
+  tmpStop : Boolean;
 begin
    DoPrefetch := False;
    if Device = nil then Exit;
@@ -495,7 +496,7 @@ begin
      Device.GetSamplePosition(s1, s2);
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
    end;
-   FillBuffer(GStop);
+   FillBuffer(tmpStop);
    DoPrefetch := True;
    //   if FPrefetchData then
 //     EventHandler.PostNonGuiEvent(Self, FPrefetch);
@@ -509,6 +510,7 @@ begin
    end;
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady = ASE_OK;
+   GStop := tmpStop;
    Thread.Stopped := OldStopped;
 end;
 
