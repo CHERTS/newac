@@ -625,6 +625,7 @@ type
     FWideFileName : WideString;
     FFileMode : TFileOutputMode;
     FAccessMask : Integer;
+    FShareMode :  Word;
     procedure SetFileMode(aMode : TFileOutputMode); virtual;
     (* Property: FileMode
        This property can take one of two values foRewrite (default) and
@@ -647,6 +648,7 @@ type
         File name in 8-bit encoding. Setting this property's value overrides
         the value set to <WideFileName>. *)
     property FileName : TFileName read FFileName write SetFileName;
+    property ShareMode : Word read FShareMode write FShareMode;
   end;
 
   (* Class: TAuTaggedFileOut

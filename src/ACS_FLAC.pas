@@ -681,8 +681,8 @@ type
     begin
       if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
       if (not FileExists(FWideFileName)) or (FFileMode = foRewrite) then
-      FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive, FAccessMask)
-      else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or fmShareExclusive, FAccessMask);
+      FStream := TAuFileStream.Create(FWideFileName, fmCreate or FShareMode, FAccessMask)
+      else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or FShareMode, FAccessMask);
     end;
     EndOfInput := False;
     BolckInserted := False;
