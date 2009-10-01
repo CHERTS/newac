@@ -439,7 +439,7 @@ begin
   if not FStreamAssigned then
   begin
     if FFileName = '' then raise EAuException.Create('File name is not assigned.');
-    FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive);
+    FStream := TAuFileStream.Create(FWideFileName, fmCreate or FShareMode);
   end;
   EndOfInput := False;
   FInput.Init;

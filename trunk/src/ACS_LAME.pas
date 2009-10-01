@@ -137,14 +137,11 @@ type
     FOriginal := true;
     FAverageBitrate := mbrAuto;
     FMaximumBitrate := mbrAuto;
-    if not (csDesigning in ComponentState) then
-    if not LameLoaded then
-    raise EAuException.Create(LAME_PATH + ' library could not be loaded.');
   end;
 
   destructor TMP3Out.Destroy;
   begin
-    UnloadLAME;
+//    UnloadLAME;
     inherited Destroy;
   end;
 
@@ -153,10 +150,13 @@ type
     samples, br, mbr, abr, ql : LongWord;
     res : Integer;
   begin
+    LoadLame;
+    if not LameLoaded then
+      raise EAuException.Create(LAME_PATH + ' library could not be loaded.');
     if not FStreamAssigned then
     begin
       if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
-      FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive, FAccessMask);
+      FStream := TAuFileStream.Create(FWideFileName, fmCreate or FShareMode, FAccessMask);
     end;
     FInput.Init;
 

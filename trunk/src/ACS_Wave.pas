@@ -340,6 +340,7 @@ type
   private
     FStream : TAuFileStream;
     BytesCounter : LongWord;
+    FShareMode : Word;
     procedure FillHeaderPCM(var Header : TWaveHeader);
   protected
     procedure StartRecordInternal; override;
@@ -1277,8 +1278,8 @@ end;
     begin
       if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
       if (not FileExists(FWideFileName)) or (FFileMode = foRewrite) then
-      FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive, FAccessMask)
-      else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or fmShareExclusive, FAccessMask);
+      FStream := TAuFileStream.Create(FWideFileName, fmCreate or FShareMode, FAccessMask)
+      else FStream := TAuFileStream.Create(FWideFileName, fmOpenReadWrite or FShareMode, FAccessMask);
     end;
     FInput.Init;
     if (FInput.Channels > 2) or (FInput.BitsPerSample > 16) then
@@ -1928,7 +1929,7 @@ end;
     Header : TWaveHeader;
   begin
     if FWideFileName = '' then raise EAuException.Create('File name is not assigned.');
-    FStream := TAuFileStream.Create(FWideFileName, fmCreate or fmShareExclusive);
+    FStream := TAuFileStream.Create(FWideFileName, fmCreate or FShareMode);
     BytesCounter := 0;
     FillHeaderPCM(Header);
     FStream.Write(Header, SizeOf(Header));
