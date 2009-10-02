@@ -186,7 +186,10 @@ type
     Config.dwStructSize := 331;
     Config.dwReSampleRate := 0;
     Config.dwSampleRate1 := FInput.SampleRate;
-    Config.nMode := Byte(FMode);
+    if FInput.Channels = 1 then
+      Config.nMode := BE_MP3_MODE_MONO
+    else
+      Config.nMode := Byte(FMode);
     Config.bCRC1 := FCRC;
     Config.bPrivate1 := False;
     Config.dwBitrate := br;
@@ -277,7 +280,10 @@ type
     if not FStreamAssigned then FStream.Free;
     beCloseStream(_Stream);
     if Config.bEnableVBR and (FileName <> '') then
-      beWriteVBRHeader(PChar(FileName));
+    begin
+      S := FileName;
+      beWriteVBRHeader(@S[1]);
+    end;
     if mp3buf <> nil then
       FreeMem(mp3buf);
     if Buffer <> nil then
