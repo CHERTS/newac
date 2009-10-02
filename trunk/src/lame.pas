@@ -73,7 +73,7 @@ type
   beEncodeChunk_t = function(hbeStream : HBE_STREAM; nSamples : LongWord; pSamples : PSMallInt; pOutput : PBYTE; var pdwOutput : LongWord) : Integer; cdecl;
   beDeinitStream_t = function(hbeStream : HBE_STREAM; pOutput : PBYTE; var pdwOutput : LongWord) : Integer; cdecl;
   beCloseStream_t = function(hbeStream : HBE_STREAM) : Integer; cdecl;
-  beWriteVBRHeader_t = function(const lpszFileName : PChar) : Integer; cdecl;
+  beWriteVBRHeader_t = function(const lpszFileName : PAnsiChar) : Integer; cdecl;
   beFlushNoGap_t = function(hbeStream : HBE_STREAM; pOutput : PBYTE; var pdwOutput : LongWord) : Integer; cdecl;
   beWriteInfoTag_t = function(hbeStream : HBE_STREAM; const lpszFileName : PChar) : Integer; cdecl;
 
