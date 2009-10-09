@@ -92,6 +92,9 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Function: GetKernel
+     Returns the pointer to the current filter kernel. May return nil. *)
+    procedure GetKernel(var K : PSingleArray);
   published
     (* Property: FilterType
      Use this property to set the desired filter type: low-pass, high-pass, band-pass, band-reject, or all-pass. *)
@@ -370,6 +373,14 @@ implementation
     Inherited Destroy;
   end;
 
+  procedure TSincFilter.GetKernel(var K: PSingleArray);
+  begin
+    if Busy then
+      K := @Kernel[0]
+    else
+      K := nil;
+  end;
+
   procedure TSincFilter.CalculateFilter;
   var
     Kernel1, Kernel2 : array of Single;
@@ -399,6 +410,7 @@ implementation
       end;
       ftBandPass:
       begin
+        FKernelWidth := FKernelWidth div 2;
         if not Odd(FKernelWidth) then Inc(FKernelWidth);
         SetLength(Kernel1, FKernelWidth);
         CutOff := FLowFreq/FInput.SampleRate;
@@ -409,7 +421,7 @@ implementation
         SetLength(Kernel2, FKernelWidth);
         CutOff := FHighFreq/FInput.SampleRate;
         CalculateSincKernelSingle(@Kernel2[0], CutOff, FKernelWidth, FWindowType);
-        SetLength(Kernel, 2*FKernelWidth - 1);
+        SetLength(Kernel, FKernelWidth*2 - 1);
         FillChar(Kernel[0], Length(Kernel)*SizeOf(Single), 0);
         for i := 0 to KernelWidth - 1 do
         for j := 0 to KernelWidth - 1 do
@@ -450,24 +462,31 @@ implementation
 
   procedure TSincFilter.SetFilterType;
   begin
+    DataCS.Enter;
     FFilterType := aFT;
     if Busy then CalculateFilter;
+    DataCS.Leave;
   end;
 
   procedure TSincFilter.SetKernelWidth;
   begin
+    DataCS.Enter;
     if aKW > 2 then
     if not Busy then FKernelWidth := aKW;
+    DataCS.Leave;
   end;
 
   procedure TSincFilter.SetWindowType;
   begin
+    DataCS.Enter;
     FWindowType := aWT;
     if Busy then CalculateFilter;
+    DataCS.Leave;
   end;
 
   procedure TSincFilter.SetHighFreq;
   begin
+    DataCS.Enter;
     if aFreq > 0 then
     FHighFreq := aFreq;
     if csDesigning in ComponentState then Exit;
@@ -477,10 +496,12 @@ implementation
     if FHighFreq < FLowFreq then
     FLowFreq := FHighFreq;
     if Busy then CalculateFilter;
+    DataCS.Leave;
   end;
 
   procedure TSincFilter.SetLowFreq;
   begin
+    DataCS.Enter;
     if aFreq > 0 then
     FLowFreq := aFreq;
     if csDesigning in ComponentState then Exit;
@@ -490,6 +511,7 @@ implementation
     if FHighFreq < FLowFreq then
     FHighFreq := FLowFreq;
     if Busy then CalculateFilter;
+    DataCS.Leave;
   end;
 
   function TSincFilter.GetBPS;

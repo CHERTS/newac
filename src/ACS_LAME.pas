@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package v 1.9
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 2.3
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 
@@ -190,6 +190,8 @@ type
       Config.nMode := BE_MP3_MODE_MONO
     else
       Config.nMode := Byte(FMode);
+    if Config.nMode =  mmDual then
+       Config.nMode := mmStereo;
     Config.bCRC1 := FCRC;
     Config.bPrivate1 := False;
     Config.dwBitrate := br;
