@@ -39,9 +39,7 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
-    ASIOAudioOut1: TASIOAudioOut;
-    Label14: TLabel;
-    AudioPlayList1: TAudioPlayList;
+    DXAudioOut1: TDXAudioOut;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
@@ -53,7 +51,6 @@ type
     procedure ForwardButtonClick(Sender: TObject);
     procedure BackwardButtonClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     FS : TFileStream;
@@ -95,44 +92,38 @@ begin
     if MP3In1.TotalTime mod 60 < 10 then Secs := '0'+Secs;
     Label7.Caption := Format('%d:%s', [MP3In1.TotalTime div 60, Secs]);
     MP3In1.Loop := CheckBox1.Checked;
-    ASIOAudioOut1.Run;
+    DXAudioOut1.Run;
   end;
 end;
 
 procedure TForm1.AudioOut1Progress(Sender: TComponent);
 begin
-  ProgressBar1.Position := ASIOAudioOut1.Progress;
+  ProgressBar1.Position := DXAudioOut1.Progress;
 end;
 
 procedure TForm1.AudioOut1Done(Sender: TComponent);
 begin
    BitBtn1.Enabled := True;
    ProgressBar1.Position := 0;
-   StatusBar1.Panels[0].Text := ASIOAudioOut1.ExceptionMessage;
+   StatusBar1.Panels[0].Text := DXAudioOut1.ExceptionMessage;
 end;
 
 procedure TForm1.BitBtn2Click(Sender: TObject);
 begin
-  if ASIOAudioOut1.Status = tosPlaying then
-  ASIOAudioOut1.Pause
+  if DXAudioOut1.Status = tosPlaying then
+  DXAudioOut1.Pause
   else
-  ASIOAudioOut1.Resume;
+  DXAudioOut1.Resume;
 end;
 
 procedure TForm1.BitBtn3Click(Sender: TObject);
 begin
-  ASIOAudioOut1.Stop;
+  DXAudioOut1.Stop;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  ASIOAudioOut1.Stop(False);
-end;
-
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-//  Self.ASIOAudioOut1.DeviceNumber := 1;
-  Label14.Caption := Self.ASIOAudioOut1.DeviceName[ASIOAudioOut1.DeviceNumber];
+  DXAudioOut1.Stop(False);
 end;
 
 procedure TForm1.AudioOut1ThreadException(Sender: TComponent;

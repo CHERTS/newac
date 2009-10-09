@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 246
   Top = 190
-  Width = 357
-  Height = 217
   Caption = 'MP3 Player'
+  ClientHeight = 190
+  ClientWidth = 349
   Color = clSilver
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,6 +20,8 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play...'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -29,9 +31,11 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
-    NumGlyphs = 2
   end
   object BitBtn3: TBitBtn
     Left = 160
@@ -39,24 +43,25 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
-    NumGlyphs = 2
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 164
+    Top = 171
     Width = 349
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 83
+    Top = 90
     Width = 349
     Height = 81
     Align = alBottom
@@ -270,12 +275,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 72
+    Top = 79
     Width = 349
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 5
   end
   object ForwardButton: TButton
@@ -323,6 +326,9 @@ object Form1: TForm1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
+    FramesInBuffer = 24576
+    PollingInterval = 100
+    PrefetchData = True
     Left = 48
     Top = 152
   end
