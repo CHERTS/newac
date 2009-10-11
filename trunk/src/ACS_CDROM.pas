@@ -192,7 +192,7 @@ type
 
   (* Class: TCDIn
      This component reads data from CD-DA directly. It is suitable for
-     creating CD-rippers. Descends from <TAuInput>. Requires CDRip.dll. *)
+     creating CD-rippers. Descends from <TAuInput>. Requires CDRip(122).dll. *)
 
   TCDIn = class(TAuInput)
   private
