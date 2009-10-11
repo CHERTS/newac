@@ -1292,18 +1292,23 @@ constructor TAuOutput.Create;
   procedure TAuOutput.Stop;
   begin
     FStopped := True;
+    if Thread = nil then
+      Exit;
     Thread.DoNotify := Async;
     Thread.Stopped := False;
     Thread.Stop := True;
     while Thread.Paused do
+    begin
       Thread.SoftWake;
+      sleep(0);
+    end;
     if not Async then
     begin
       EventHandler.BlockEvents(Self);
       EventHandler.ClearEvents(Self);
       while (not Thread.Sleeping) and (not Thread.Stopped) do
       begin
-        if Thread.Delay > 5 then sleep(Delay);
+        sleep(0);
         CheckSynchronize; // to release possible deadlocks
       end;
       EventHandler.UnblockEvents(Self);
