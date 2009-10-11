@@ -16,7 +16,7 @@ unit _CDRip;
     Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit. *)
 
 (* Currently there is two different CDRip.dll versions supported by this component
-   CDRip.dll v 1.0.0.1 abd CDRip.dll v 1.21.00
+   CDRip.dll v 1.0.0.1 abd CDRip.dll v 1.21.00. If you change this define, change it in ACS_CDROM.pas as well.
 *)
 
 //{$DEFINE USE_CDRIP_DLL_1001}
