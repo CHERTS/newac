@@ -190,8 +190,8 @@ type
       Config.nMode := BE_MP3_MODE_MONO
     else
       Config.nMode := Byte(FMode);
-    if Config.nMode =  mmDual then
-       Config.nMode := mmStereo;
+    if Config.nMode =  2 then
+       Config.nMode := Byte(mmStereo);
     Config.bCRC1 := FCRC;
     Config.bPrivate1 := False;
     Config.dwBitrate := br;

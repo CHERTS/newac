@@ -7,7 +7,7 @@
   Note by A.B.:
   Special thanks to Thomas Grelle <grelle@online.de> for improving this Pascal unit. *)
 
-unit CDRip;
+unit _CDRip;
 
 (* Title: CDRip
     Delphi header file for CDRip.dll.

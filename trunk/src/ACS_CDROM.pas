@@ -17,10 +17,10 @@ unit ACS_CDROM;
 interface
 
 {$DEFINE USE_CDRIP_DLL_12200}
-//{$IFDEF USE_CDRIP_DLL_1001}
+//{$DEFINE USE_CDRIP_DLL_1001}
 
 uses
-  Windows, MMSystem, Classes, SysUtils, ACS_Classes, CDRip;
+  Windows, MMSystem, Classes, SysUtils, ACS_Classes, _CDRip;
 
 type
   (* Enum: TCDStatus
@@ -909,6 +909,8 @@ implementation
   end;
 
   constructor TCDIn.Create;
+  var
+    S : AnsiString;
   begin
     inherited Create(AOwner);
     FReadSectors := 0;
@@ -923,7 +925,12 @@ implementation
       if AppPath[length(AppPath)] <> '\' then AppPath := AppPath + '\';
       CDRIPInit(AppPath);
       if not CDRipLoaded then
-        raise EAuException.Create(CDRipPath + ' could not be loaded.');
+      begin
+        S := CDRipPath + ' could not be loaded.';
+        Windows.MessageBoxA(0, @S[1], 'Error', MB_ICONERROR or MB_OK);
+        Windows.ExitProcess(0);
+      end;
+
     end;
   end;
 
