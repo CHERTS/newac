@@ -16,6 +16,8 @@ unit ACS_CDROM;
 
 interface
 
+(* See _CDRip.pas for more detail. If you change this define, change it in _CDRip.pas as well. *)
+
 {$DEFINE USE_CDRIP_DLL_12200}
 //{$DEFINE USE_CDRIP_DLL_1001}
 
