@@ -19,18 +19,6 @@ uses
 
 {$DEFINE USE_EXTENDED_SPEC_FOR_24_BPS }
 
-//const
-  (* Constants: DirectX Buffers
-      These constants determine the buffer size of DX and thus the delay heard
-      when beginning audio playback.
-
-    DS_BUFFER_SIZE - $10000; Size in frames, not bytes
-    DS_POLLING_INTERVAL - 200; in milliseconds
-  *)
-  
-//  DS_BUFFER_SIZE = $10000; // Size in frames, not in bytes;
-//  DS_POLLING_INTERVAL = 200; //milliseconds
-
 type
 
   TUnderrunEvent = procedure(Sender : TComponent) of object;
@@ -437,11 +425,15 @@ end;
 
 procedure TDXAudioOut.Usleep(Interval : Word; Prefetch : Boolean);
 var
-  Start, Elapsed : LongWord;
+  Start, Elapsed, DataSize : LongWord;
 begin
   Start := timeGetTime;
   if Prefetch then
-    Finput._Prefetch(18432);
+  begin
+    DataSize := ((Interval * Self.SR) div 1000)*Chan*(BPS shr 3);
+    DataSize := (DataSize div 4)*3;
+    Finput._Prefetch(DataSize);
+  end;
   Elapsed := timeGetTime - Start;
   if Elapsed >= Interval then Exit;
   Sleep(Interval - Elapsed);
