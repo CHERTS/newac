@@ -838,7 +838,7 @@ implementation
   function TCDIn.GetStatus;
   var
     ms : Integer;
-    AP : LongBool;
+//    AP : LongBool;
   begin
     if not (csDesigning in ComponentState) then
     begin
