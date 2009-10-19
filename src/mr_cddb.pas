@@ -100,7 +100,7 @@ unit mr_cddb;
 
 interface
 
-uses Windows, classes, SysUtils, WinInet, ACS_Classes, CDRip, ACS_CDROM;
+uses Windows, classes, SysUtils, WinInet, ACS_Classes, _CDRip, ACS_CDROM;
 
 type
   TCDDBInfo = class;
