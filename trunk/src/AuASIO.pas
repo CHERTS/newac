@@ -982,19 +982,11 @@ end;
 function  TASIOAudioOut.FillBuffer(var EOF: Boolean) : Integer;
 var
   i,  count : Integer;
-  Buf16 : PBuffer16;
-  Buf32 : PBuffer32;
 begin
   if (BPS = 16) and (OutputBPS = 32) then
   begin
-//    FillChar(iBuf, (FBufferSize shl 2)*FOutputChannels, 0);
     Result := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, EOF);
     Convert16To32(@iBuf[0], FBufferSize*2*FOutputChannels);
-//    count := FBufferSize*FOutputChannels;
-//    Buf16 := @iBuf;
-//    Buf32 := @iBuf;
-//    for i := Count - 1 downto 0 do
-//      Buf32[i] := Buf16[i] shl 16;
     Exit;
   end else
   if (BPS = 32) and (OutputBPS = 32) then
