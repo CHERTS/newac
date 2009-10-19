@@ -38,7 +38,7 @@ type
     FrameSize : Integer;
     _BufSize : Integer;
     _SampleSize : Word;
-    _StartSample, _StartFrom : LongWord;
+    //_StartSample, _StartFrom : LongWord;
     Offset, BufEnd : Integer;
     BlockCount, CurrentBlock : Integer;
     FBitRate : LongWord;
@@ -131,8 +131,6 @@ implementation
 
   function TDTSIn.ExtractFrame;
   var
-    CurPos : Int64;
-    i : Integer;
     sample_rate, bit_rate, frame_length : Integer;
     ChanInfo : Integer;
     a : array[0..17] of Byte;

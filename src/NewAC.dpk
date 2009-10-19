@@ -25,7 +25,6 @@ package NewAC;
 {$R 'AudioDMO.dcr'}
 {$R 'NewAC_AVI.dcr'}
 {$R 'NewAC_DSP.dcr'}
-{$R 'NewACPack.dcr'}
 {$R 'AuASIO.dcr'}
 {$R 'AuSynch.dcr'}
 {$R 'NewACDTS.dcr'}
@@ -71,6 +70,7 @@ contains
   VorbisEnc in 'VorbisEnc.pas',
   ogg in 'ogg.pas',
   Codec in 'Codec.pas',
+  _CDRip in '_CDRip.pas',
   ACS_CDROM in 'ACS_CDROM.pas',
   ACS_LAME in 'ACS_LAME.pas',
   lame in 'lame.pas',
@@ -113,7 +113,6 @@ contains
   NewAC_AVI in 'NewAC_AVI.pas',
   fftreal in 'fftreal.pas',
   NewAC_DSP in 'NewAC_DSP.pas',
-  NewACPack in 'NewACPack.pas',
   AuASIO in 'AuASIO.pas',
   OpenASIO in 'OpenASIO.pas',
   ASIO in 'ASIO.pas',
@@ -125,6 +124,6 @@ contains
   NewACAC3 in 'NewACAC3.pas',
   DMXStreams in 'DMXStreams.pas',
   GainAnalysis in 'GainAnalysis.pas',
-  _CDRip in '_CDRip.pas';
+  liba52 in 'liba52.pas';
 
 end.
