@@ -209,6 +209,7 @@ type
     property RecTime : Integer read FRecTime write SetRecTime;
     (* Property: EchoRecording
          When this property is set to True, the component plays back audio data what is being recorded.
+         Currently this option works only if you choose the primary recording driver as the input device.
          If you want to echo recording you should set this property to True before you start recording.
          Later you can set it to False to turn echoing off and then back to True to turn it on. *)
     property EchoRecording : Boolean read FEchoRecording write FEchoRecording;
@@ -454,7 +455,7 @@ begin
   FSize := -1;
   FRecTime := -1;
   FSamplesToRead := -1;
-  FFramesInBuffer := $8000;
+  FFramesInBuffer := $6000;
   FPollingInterval := 200;
 //  if not (csDesigning in ComponentState) then
 //  begin
@@ -549,9 +550,12 @@ begin
   DSW_StartInput(DSW);
   if FEchoRecording then
   begin
-    DSW_InitOutputDevice(DSW, @(Devices.dinfo[FDeviceNumber].guid));
-    DSW_InitOutputBuffer(DSW, 0, FBPS, FFreq, FChan, _BufSize);
-    DSW_StartOutput(DSW);
+    if DSW_InitOutputDevice(DSW, @(Devices.dinfo[FDeviceNumber].guid)) = DS_OK then
+    begin
+      DSW_InitOutputBuffer(DSW, 0, FBPS, FFreq, FChan, _BufSize);
+      DSW_StartOutput(DSW);
+    end else
+      FEchoRecording := False;
   end;
   RecordingEchoed := FEchoRecording;
 end;
