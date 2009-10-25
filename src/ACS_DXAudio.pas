@@ -426,13 +426,15 @@ end;
 
 procedure TDXAudioOut.Usleep(Interval : Word; Prefetch : Boolean);
 var
-  Start, Elapsed, DataSize : LongWord;
+  Start, Elapsed, DataSize, SampleSize : LongWord;
 begin
   Start := timeGetTime;
   if Prefetch then
   begin
-    DataSize := ((Interval * Self.SR) div 1000)*Chan*(BPS shr 3);
+    SampleSize := Chan*(BPS shr 3);
+    DataSize := ((Interval * Self.SR) div 1000)*SampleSize;
     DataSize := (DataSize div 4)*3;
+    DataSize := DataSize - (DataSize mod SampleSize);
     Finput._Prefetch(DataSize);
   end;
   Elapsed := timeGetTime - Start;
