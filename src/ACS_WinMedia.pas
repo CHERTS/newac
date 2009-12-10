@@ -253,11 +253,11 @@ type
        <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
     (* Property: OnOutputError
-       This event is raised if an error occurs during output. If the event handler is not set, error is ignored.
-       The best way to handle the eent is to call
+       This event is raised if an error occurs during the output. If the event handler is not set, the error is ignored.
+       The best way to handle this event is to call
        > Sender.Stop(True);
        from the handler.
-       When this event is called ExcaptionMessage property returns 'Windows Media output error.' string. *)
+       When this event is called the ExceptionMessage property returns 'Windows Media output error' string. *)
     property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 

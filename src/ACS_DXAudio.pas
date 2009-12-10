@@ -1,6 +1,6 @@
 (*
   This file is a part of New Audio Components package v. 2.2.1
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -92,12 +92,18 @@ type
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     (* Property: FramesInBuffer
          Use this property to set the length of the internal playback buffer.
-         Smaller values result in lower latency and (possibly) more underruns. *)
+         The duration of the buffer depends on this value and the sample rate. For example
+         if FramesInBuffer's value is 12000 and the sample rate is 44100, the buffer duration is
+         12000/44100=0.272 sec.
+         Smaller values result in lower latency and (possibly) more underruns. See also <PollingInterval>. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
     (* Property: PollingInterval
-         This property sets the audio output device polling interval in milliseconds. The less <FramesInBuffer> value is the less this polling interval should be.
+         This property sets the audio output device polling interval in milliseconds. The smaller <FramesInBuffer> value is the smaller this polling interval should be.
+         The condition for appropriate values for the polling interval is: PollingInterval < (FramesInBuffer/SampleRate)*1000
          Otherwise many underruns will occur. *)
     property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
+    (* Property: PrefetchData
+       This property tells the component whenever the audio data should be prefetched while playing. Prefetching data makes it run more smoothly and allows lower buffre sizes (see <FramesInBuffer>). *)
     property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
@@ -169,7 +175,10 @@ type
   published
     (* Property: FramesInBuffer
          Use this property to set the length of the internal recording buffer.
-         Smaller values result in lower latency and (possibly) more overruns. *)
+         The duration of the buffer depends on this value and the sample rate. For example
+         if FramesInBuffer's value is 12000 and the sample rate is 44100, the buffer duration is
+         12000/44100=0.272 sec.
+         Smaller values result in lower latency and (possibly) more overruns. See also <PollingInterval>. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
     (* Property: PollingInterval
          This property sets the audio input device polling interval in milliseconds. The less <FramesInBuffer> value is the less this polling interval should be.
