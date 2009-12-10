@@ -1894,19 +1894,16 @@ begin
 end;
 
 procedure TAuInput._Prefetch(Bytes: Cardinal);
-var
-  P : Pointer;
 begin
   if _Prefetched > 0 then
     Exit;
   try
     DataCS.Enter;
-    GetData(P, Bytes);
     if Bytes > Length(_PrefetchBuf) then
       SetLength(_PrefetchBuf, Bytes);
-    if (Bytes <> 0) and (P <> nil) then
+    Bytes := CopyData(_PrefetchBuf, Bytes);
+    if Bytes <> 0 then
     begin
-      FastCopyMem(@_PrefetchBuf[0], P, Bytes);
       _Prefetched := Bytes;
       FPosition := FPosition - Bytes;
     end;
