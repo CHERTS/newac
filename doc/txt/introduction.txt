@@ -33,13 +33,17 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 
+Version: NewAC 2.3
+	- TGainIndicator component is added.
+	- Some minor bug fixes and improvements.
+
 Version: NewAC 2.2.2
 	- TCDIn CD-ripping component is updated. Jitter correction and higher speed on new drives.
 	- Some minor bug fixes and improvements.
 
 Version: NewAC 2.2.1
 	- Many bug fixes and improvements.
-	- Input prefetch mechanism is implemented to allow lower latencies when playing back via DirectSound.
+	- Input prefetch mechanism is implemented to allow low latencies when playing back via DirectSound.
 
 Version: NewAC 2.2
 	- AC-3 decoder added.
