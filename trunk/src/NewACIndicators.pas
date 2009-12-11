@@ -25,6 +25,7 @@ type
       Calculates the perceived gain (loudness).
       Descends from <TAuConverter>.
       This component provides you the perceived gain for the audio data passing through.
+      One possible use of this component is in an audio-recording program to indicate the level of the incoming signal.
       See the DirectSoundRecorder demo for an example.
       The component requires libgain.dll.
    *)
