@@ -29,6 +29,7 @@ package NewAC;
 {$R 'AuSynch.dcr'}
 {$R 'NewACDTS.dcr'}
 {$R 'NewACAC3.dcr'}
+{$R 'NewACIndicators.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -50,7 +51,7 @@ package NewAC;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'New Audio Components v 2.2.4'}
+{$DESCRIPTION 'New Audio Components v 2.3'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -124,6 +125,7 @@ contains
   NewACAC3 in 'NewACAC3.pas',
   DMXStreams in 'DMXStreams.pas',
   GainAnalysis in 'GainAnalysis.pas',
-  liba52 in 'liba52.pas';
+  liba52 in 'liba52.pas',
+  NewACIndicators in 'NewACIndicators.pas';
 
 end.
