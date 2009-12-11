@@ -23,7 +23,7 @@ type
 
   (* Class: TGainIndicator
       Calculates the perceived gain (loudness).
-      Descends from <TAuConveter>.
+      Descends from <TAuConverter>.
       This component provides you the perceived gain for the audio data passing through.
       See the DirectSoundRecorder demo for an example.
       The component requires libgain.dll.
