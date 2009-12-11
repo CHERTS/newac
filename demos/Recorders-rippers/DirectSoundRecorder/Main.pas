@@ -126,6 +126,7 @@ begin
     Output.Stop(False);
   end;
   CheckBox1.Enabled := True;
+  ProgressBar1.Position := 0;
 end;
 
 procedure TForm1.StopButtonClick(Sender: TObject);
