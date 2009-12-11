@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 150
   Top = 88
   Caption = 'Sound Recorder'
-  ClientHeight = 245
-  ClientWidth = 331
+  ClientHeight = 258
+  ClientWidth = 366
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -60,7 +60,7 @@ object Form1: TForm1
   object Label7: TLabel
     Left = 191
     Top = 148
-    Width = 10
+    Width = 6
     Height = 13
     Caption = '0'
   end
@@ -84,14 +84,15 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 226
-    Width = 331
+    Top = 239
+    Width = 366
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    ExplicitTop = 198
+    ExplicitTop = 226
+    ExplicitWidth = 331
   end
   object StopButton: TButton
     Left = 248
@@ -173,9 +174,9 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 8
-    Top = 187
-    Width = 289
-    Height = 16
+    Top = 190
+    Width = 350
+    Height = 13
     BarColor = clLime
     BackgroundColor = clBlack
     TabOrder = 11
@@ -184,12 +185,12 @@ object Form1: TForm1
     DefaultExt = '.wav'
     Filter = 'Wave|*.wav|Ogg Vorbis|*.ogg|FLAC|*.flac'
     OnTypeChange = SaveDialog1TypeChange
-    Left = 168
-    Top = 208
+    Left = 304
+    Top = 128
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 208
+    Left = 320
     Top = 208
   end
   object VorbisOut1: TVorbisOut
@@ -203,7 +204,7 @@ object Form1: TForm1
     FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
-    Left = 104
+    Left = 136
     Top = 208
   end
   object WaveOut1: TWaveOut
@@ -214,7 +215,7 @@ object Form1: TForm1
     BlockSize = 512
     CreateNonMsHeaders = False
     FileMode = foRewrite
-    Left = 64
+    Left = 80
     Top = 208
   end
   object DXAudioIn1: TDXAudioIn
@@ -227,7 +228,7 @@ object Form1: TForm1
     InSampleRate = 44100
     RecTime = -1
     EchoRecording = False
-    Left = 32
+    Left = 16
     Top = 208
   end
   object FLACOut1: TFLACOut
@@ -246,7 +247,7 @@ object Form1: TForm1
     QLPCoeffPrecisionSearch = False
     Tags.Track = '0'
     Verify = False
-    Left = 136
+    Left = 192
     Top = 208
   end
   object GainIndicator1: TGainIndicator
