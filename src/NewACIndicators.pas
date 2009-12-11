@@ -33,6 +33,7 @@ type
   private
     FISR : LongWord;
     FGainValue : Double;
+    //FScaleFactor : Double;
     FInterval : LongWord;
     FElapsed : LongWord;
     FOnGainData : TIndicatorEvent;
@@ -47,15 +48,19 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     (* Property: GainValue
-      Returns the curreent gain value. This value is calculated in abstract units in logarithmic scale and varies from ~ -1 (silence) to ~ 60 (the maximum loudness). *)
+      Returns the curreent gain value. This value is calculated in abstract units in logarithmic scale and varies from 0 (silence) to 60 (the maximum loudness). *)
     property GainValue : Double read FGainValue;
   published
     (* Property: Interval
-      Use this property to set the interval (in milliseconds) between two <OnGainData> events. *)
+      Use this property to set the interval (in milliseconds) between two gain value updates and <OnGainData> events.
+      This value sets the minimal interval between updates. The actual interval could be slightly longer depending on the system load. *)
     property Interval : LongWord read FInterval write FInterval;
     (* Property: OnGainData
       OnGainData event is called periodically with the period of approximately the <Interval> milliseconds.
-      You can use this event to update your GUI gain indicators with the current <GainValue>. *)
+      You can use this event to update your GUI gain indicators with the current <GainValue>.
+      The general responsiveness of the GUI gain indicator depends on the <Interval> and on the system I/O latency.
+      For the smooth operation the latency should be set to about of 0.05 second and the <Interval> should be set to about 40.
+      See the TDxAudioIn/TDxAudioOut FramesInBuffer and PollingInterval properties for setting the latency under DirectSound. *)
     property OnGainData : TIndicatorEvent read FOnGainData write FOnGainData;
   end;
 
@@ -89,6 +94,7 @@ begin
     raise EAuException.Create(Format('Failed to set up gain analysis. Possible cause: sample rate %d is not supported.', [FISR]));
   end;
   FSampleSize := FInput.BitsPerSample div 8;
+  //FScaleFactor := 1;
 end;
 
 procedure TGainIndicator.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
@@ -127,14 +133,20 @@ begin
     end;
   end else
     for i := 0 to FramesRead - 1 do
-      RBuffer[i] := InBuffer[i]*$8000;
-  if AnalyzeSamples(@LBuffer[0], @RBuffer[0], FramesRead, FInput.Channels) = GAIN_ANALYSIS_ERROR then
+  begin
+    RBuffer[i] := InBuffer[i]*$8000;
+    LBuffer[i] := RBuffer[i];
+  end;
+  if AnalyzeSamples(@LBuffer[0], @RBuffer[0], FramesRead, 2) = GAIN_ANALYSIS_ERROR then
     raise EAuException.Create('Gain analysis failed');
-  FGainValue := 32 - GetTitleGain;
   FElapsed := FElapsed + Round(FramesRead/FISR*100000);
   if FElapsed >= FInterval*100 then
   begin
     FElapsed := 0;
+    FGainValue := GetTitleGain;
+    if FGainValue > 32 then FGainValue := 32;
+    FGainValue := 32 - FGainValue;
+    if FGainValue > 100 then FGainValue := 0; //FScaleFactor := FScaleFactor/2;
     if Assigned(FOnGainData) then
        EventHandler.PostGenericEvent(Self, FOnGainData);
   end;
