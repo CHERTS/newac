@@ -1225,7 +1225,7 @@ begin
   begin
     FInput.Flush;
     Busy := False;
-    raise EAuException.Create('Only mono or stereo strea,s are supported.');
+    raise EAuException.Create('Only mono or stereo soures are supported.');
   end;
   SR := FInput.SampleRate;
   if ResetSampleFrequency(SR) <> GAIN_ANALYSIS_OK then

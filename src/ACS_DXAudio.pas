@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.2.1
+  This file is a part of New Audio Components package v. 2.3
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -467,7 +467,7 @@ begin
   FRecTime := -1;
   FSamplesToRead := -1;
   FFramesInBuffer := $6000;
-  FPollingInterval := 200;
+  FPollingInterval := 100;
 //  if not (csDesigning in ComponentState) then
 //  begin
 //    if not LibdswLoaded then
@@ -583,7 +583,7 @@ end;
 procedure TDXAudioIn.GetDataInternal;
 var
   l : Integer;
-  l1 : LongWord;
+  l1, res : LongWord;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
   if  (FSamplesToRead >=0) and (FPosition >= FSize) then
@@ -595,8 +595,12 @@ begin
   if BufStart >= BufEnd then
   begin
     BufStart := 0;
-    Sleep(FPollingInterval);
-    DSW_QueryInputFilled(DSW, l);
+    repeat
+      Sleep(FPollingInterval);
+      res :=  DSW_QueryInputFilled(DSW, l);
+      if res <> DS_OK then
+         raise EAuException.Create(Format('Input failed: DirectSound error 0x%x', [res]));
+    until l <> 0;
     if l > _BufSize then
     begin
       l := _BufSize; (* We have lost some data.
@@ -606,12 +610,15 @@ begin
         EventHandler.PostGenericEvent(Self, FOnOverrun);
     end;
 //    l := l - (l mod 1024);
-    DSW_ReadBlock(DSW, @Buf[0], l);
+    res := DSW_ReadBlock(DSW, @Buf[0], l);
+    if res <> DS_OK then
+       raise EAuException.Create(Format('Input failed: DirectSound error 0x%x', [res]));
     if RecordingEchoed then
     begin
         DSW_QueryOutputSpace(DSW, l1);
+        if l < l1 then l1 := l;
         if FEchoRecording then
-          DSW_WriteBlock(DSW, @Buf[0], l)
+          DSW_WriteBlock(DSW, @Buf[0], l1)
         else
           DSW_FillEmptySpace(DSW, 0);
     end;
