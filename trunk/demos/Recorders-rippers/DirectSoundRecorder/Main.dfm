@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 150
   Top = 88
   Caption = 'Sound Recorder'
-  ClientHeight = 217
+  ClientHeight = 245
   ClientWidth = 331
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,15 +16,15 @@ object Form1: TForm1
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 128
-    Top = 112
+    Left = 207
+    Top = 80
     Width = 53
     Height = 13
     Caption = 'Ogg quality'
   end
   object Label2: TLabel
-    Left = 128
-    Top = 144
+    Left = 131
+    Top = 116
     Width = 32
     Height = 13
     Caption = 'Label2'
@@ -51,16 +51,16 @@ object Form1: TForm1
     Caption = 'Samplerate'
   end
   object Label6: TLabel
-    Left = 8
-    Top = 168
+    Left = 131
+    Top = 148
     Width = 49
     Height = 13
     Caption = 'Overruns: '
   end
   object Label7: TLabel
-    Left = 56
-    Top = 168
-    Width = 6
+    Left = 191
+    Top = 148
+    Width = 10
     Height = 13
     Caption = '0'
   end
@@ -84,13 +84,14 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 198
+    Top = 226
     Width = 331
     Height = 19
     Panels = <
       item
         Width = 50
       end>
+    ExplicitTop = 198
   end
   object StopButton: TButton
     Left = 248
@@ -102,8 +103,8 @@ object Form1: TForm1
     OnClick = StopButtonClick
   end
   object SpinEdit1: TSpinEdit
-    Left = 200
-    Top = 112
+    Left = 279
+    Top = 80
     Width = 41
     Height = 22
     MaxValue = 10
@@ -161,21 +162,40 @@ object Form1: TForm1
     TabOrder = 9
     OnClick = PauseButtonClick
   end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Top = 167
+    Width = 97
+    Height = 17
+    Caption = 'Show Gain'
+    TabOrder = 10
+    OnClick = CheckBox1Click
+  end
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Top = 187
+    Width = 289
+    Height = 16
+    BarColor = clLime
+    BackgroundColor = clBlack
+    TabOrder = 11
+  end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.wav'
     Filter = 'Wave|*.wav|Ogg Vorbis|*.ogg|FLAC|*.flac'
     OnTypeChange = SaveDialog1TypeChange
-    Left = 160
-    Top = 176
+    Left = 168
+    Top = 208
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 192
-    Top = 176
+    Left = 208
+    Top = 208
   end
   object VorbisOut1: TVorbisOut
     Input = DXAudioIn1
     OnDone = OutputDone
+    ShareMode = 0
     Compression = 0.200000002980232200
     Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
@@ -183,34 +203,37 @@ object Form1: TForm1
     FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
-    Left = 96
-    Top = 176
+    Left = 104
+    Top = 208
   end
   object WaveOut1: TWaveOut
     Input = DXAudioIn1
     OnDone = OutputDone
+    ShareMode = 0
     WavType = wtPCM
     BlockSize = 512
     CreateNonMsHeaders = False
     FileMode = foRewrite
     Left = 64
-    Top = 176
+    Top = 208
   end
   object DXAudioIn1: TDXAudioIn
-    FramesInBuffer = 65536
-    PollingInterval = 200
+    FramesInBuffer = 12000
+    PollingInterval = 80
     SamplesToRead = -1
     DeviceNumber = 0
     InBitsPerSample = 8
     InChannels = 1
-    InSampleRate = 8000
+    InSampleRate = 44100
     RecTime = -1
+    EchoRecording = False
     Left = 32
-    Top = 176
+    Top = 208
   end
   object FLACOut1: TFLACOut
     Input = DXAudioIn1
     OnDone = OutputDone
+    ShareMode = 0
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
@@ -223,7 +246,14 @@ object Form1: TForm1
     QLPCoeffPrecisionSearch = False
     Tags.Track = '0'
     Verify = False
-    Left = 128
-    Top = 176
+    Left = 136
+    Top = 208
+  end
+  object GainIndicator1: TGainIndicator
+    Input = DXAudioIn1
+    Interval = 60
+    OnGainData = GainIndicator1GainData
+    Left = 256
+    Top = 208
   end
 end

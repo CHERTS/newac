@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_Classes, ACS_Vorbis, StdCtrls, ComCtrls,
-  ACS_DXAudio, Spin, ExtCtrls, ACS_Wave, ACS_FLAC;
+  ACS_DXAudio, Spin, ExtCtrls, ACS_Wave, ACS_FLAC, NewACIndicators;
 
 type
   TForm1 = class(TForm)
@@ -38,6 +38,9 @@ type
     WaveOut1: TWaveOut;
     DXAudioIn1: TDXAudioIn;
     FLACOut1: TFLACOut;
+    GainIndicator1: TGainIndicator;
+    CheckBox1: TCheckBox;
+    ProgressBar1: TProgressBar;
     procedure RecordButtonClick(Sender: TObject);
     procedure SaveDialog1TypeChange(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
@@ -48,6 +51,8 @@ type
     procedure SelectFileButtonClick(Sender: TObject);
     procedure PauseButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure GainIndicator1GainData(Sender: TComponent);
+    procedure CheckBox1Click(Sender: TObject);
   private
     { Private declarations }
     Output : TAuFileOut;
@@ -84,6 +89,7 @@ begin
     Output := WaveOut1;
   Output.FileName := SaveDialog1.FileName;
   DXAudioIn1.InSampleRate := StrToInt(SREdit.Text);
+  DXAudioIn1.FramesInBuffer := DXAudioIn1.InSampleRate div 10;
   if StereoCheckBox.Checked then
     DXAudioIn1.InChannels := 2
   else
@@ -98,6 +104,7 @@ begin
   Output.Run;
   StatusBar1.Panels.Items[0].Text := Format('Recording to "%s"', [SaveDialog1.FileName]);
   Timer1.Interval := 1000;
+  CheckBox1.Enabled := False;
 end;
 
 
@@ -117,7 +124,8 @@ begin
   if Output <> nil then
   begin
     Output.Stop(False);
-  end;  
+  end;
+  CheckBox1.Enabled := True;
 end;
 
 procedure TForm1.StopButtonClick(Sender: TObject);
@@ -143,6 +151,11 @@ begin
   Label4.Caption := DXAudioIn1.DeviceName[SpinEdit2.Value];
 end;
 
+procedure TForm1.GainIndicator1GainData(Sender: TComponent);
+begin
+  Self.ProgressBar1.Position := (Self.ProgressBar1.Position + Round(GainIndicator1.GainValue/60*100)) div 2;
+end;
+
 procedure TForm1.SpinEdit2Change(Sender: TObject);
 begin
   Label4.Caption := DXAudioIn1.DeviceName[SpinEdit2.Value];
@@ -161,6 +174,22 @@ begin
     if Output.Status = tosPlaying then Output.Pause
     else
     if Output.Status = tosPaused then Output.Resume;
+  end;
+end;
+
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+  if CheckBox1.Checked then
+  begin
+    GainIndicator1.Input := DXAudioIn1;
+    WaveOut1.Input := GainIndicator1;
+    VorbisOut1.Input := GainIndicator1;
+    FLACOut1.Input := GainIndicator1;
+  end else
+  begin
+    WaveOut1.Input := DXAudioIn1;
+    VorbisOut1.Input := DXAudioIn1;
+    FLACOut1.Input := DXAudioIn1;
   end;
 end;
 
