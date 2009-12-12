@@ -60,7 +60,7 @@ type
       OnGainData event is called periodically with the period of approximately the <Interval> milliseconds.
       You can use this event to update your GUI gain indicators with the current <GainValue>.
       The general responsiveness of the GUI gain indicator depends on the <Interval> and on the system I/O latency.
-      For the smooth operation the latency should be set to about of 0.05 second and the <Interval> should be set to about 40.
+      For the smooth operation the latency should be set to about of 0.05 second and the <Interval> should be set to about 50.
       See the TDxAudioIn/TDxAudioOut FramesInBuffer and PollingInterval properties for setting the latency under DirectSound. *)
     property OnGainData : TIndicatorEvent read FOnGainData write FOnGainData;
   end;
@@ -143,7 +143,7 @@ begin
   FElapsed := FElapsed + Round(FramesRead/FISR*100000);
   if FElapsed >= FInterval*100 then
   begin
-    FElapsed := 0;
+    FElapsed := 0; //FElapsed - FInterval*100;
     FGainValue := GetTitleGain;
     if FGainValue > 32 then FGainValue := 32;
     FGainValue := 32 - FGainValue;

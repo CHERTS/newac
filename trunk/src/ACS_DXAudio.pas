@@ -34,6 +34,7 @@ type
   TDXAudioOut = class(TAuOutput)
   private
     Freed : Boolean;
+    FLatency : LongWord;
     FFramesInBuffer : LongWord;
     FPollingInterval : LongWord;
     DSW : DSoundWrapper;
@@ -97,6 +98,12 @@ type
          12000/44100=0.272 sec.
          Smaller values result in lower latency and (possibly) more underruns. See also <PollingInterval>. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
+    (* Property: Latency
+         This property sets the audio latency (the delay between the moment the audio data is passed to the component and the moment it is played.
+         The latency is set in milliseconds.
+         This is a convenience property that overrides the <FramesInBuffer> and the <PollingInterval>. If the Latency is greater than zero these properties are ignored.
+         The reasonable values for this property lie in the range between 50 (0.05 second) and 250 (0.25 second). *)
+    property Latency : LongWord read FLatency write FLatency;
     (* Property: PollingInterval
          This property sets the audio output device polling interval in milliseconds. The smaller <FramesInBuffer> value is the smaller this polling interval should be.
          The condition for appropriate values for the polling interval is: PollingInterval < (FramesInBuffer/SampleRate)*1000
@@ -125,6 +132,7 @@ type
   TDXAudioIn = class(TAuInput)
   private
     DSW : DSoundWrapper;
+    FLatency : LongWord;
     Devices : DSW_Devices;
     FFramesInBuffer : LongWord;
     FPollingInterval : LongWord;
@@ -180,6 +188,12 @@ type
          12000/44100=0.272 sec.
          Smaller values result in lower latency and (possibly) more overruns. See also <PollingInterval>. *)
     property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
+    (* Property: Latency
+         This property sets the audio latency (the delay between the moment the audio data comes into the system and the moment it exits the component.
+         The latency is set in milliseconds.
+         This is a convenience property that overrides the <FramesInBuffer> and the <PollingInterval>. If the Latency is greater than zero these properties are ignored.
+         The reasonable values for this property lie in the range between 50 (0.05 second) and 250 (0.25 second). *)
+    property Latency : LongWord read FLatency write FLatency;
     (* Property: PollingInterval
          This property sets the audio input device polling interval in milliseconds. The less <FramesInBuffer> value is the less this polling interval should be.
          Otherwise many overruns will occur. *)
@@ -254,6 +268,12 @@ begin
   Chan := FInput.Channels;
   SR := FInput.SampleRate;
   BPS := FInput.BitsPerSample;
+  if FLatency > 0 then
+  begin
+    if FLatency < 10 then Flatency := 10;
+    FFramesInBuffer := FLatency*SR div 1000;
+    FPollingInterval := (FLatency div 4)*3;
+  end;
   DSW_Init(DSW);
   Res := DSW_InitOutputDevice(DSW, @(Devices.dinfo[FDeviceNumber].guid));
   if Res <> 0 then raise EAuException.Create('Failed to create DirectSound device');
@@ -401,6 +421,7 @@ end;
 constructor TDXAudioOut.Create;
 begin
   inherited Create(AOwner);
+  FLatency := 60;
   FFramesInBuffer := $6000;
   FPollingInterval := 100;
   FVolume := 0; //DW
@@ -460,6 +481,7 @@ end;
 constructor TDXAudioIn.Create;
 begin
   inherited Create(AOwner);
+  FLatency := 80;
   FBPS := 8;
   FChan := 1;
   FFreq := 8000;
@@ -490,6 +512,12 @@ var
 begin
   if FOpened = 0 then
   begin
+    if FLatency > 0 then
+    begin
+      if FLatency < 10 then Flatency := 10;
+      FFramesInBuffer := FLatency*FFreq div 1000;
+      FPollingInterval := (FLatency div 4)*3;
+    end;
     DSW_Init(DSW);
     //if not Assigned(DSW_InitInputDevice) then raise EACSException.Create('Failed');
     Res := DSW_InitInputDevice(DSW, @(Devices.dinfo[FDeviceNumber].guid));
