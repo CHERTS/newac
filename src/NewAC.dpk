@@ -127,7 +127,6 @@ contains
   GainAnalysis in 'GainAnalysis.pas',
   liba52 in 'liba52.pas',
   NewACIndicators in 'NewACIndicators.pas',
-  libfaad2 in 'libfaad2.pas',
-  NewACAAC in 'NewACAAC.pas';
+  mpg123_ in 'mpg123_.pas';
 
 end.
