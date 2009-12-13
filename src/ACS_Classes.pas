@@ -1717,14 +1717,18 @@ constructor TAuOutput.Create;
   function TAuInput.FillBuffer;
   var
     P : PByteArray;
+    P1 : Pointer;
     r : LongWord;
   begin
     P := Buffer;
     r := BufferSize;
     Result := 0;
-    while (BufferSize - Result > 0) and (r <> 0) do
+    while (BufferSize - Result > 0) and (r > 0) do
     begin
-      r := CopyData(@P[Result], BufferSize - Result);
+      r := BufferSize - Result;
+      GetData(P1, r);
+      if P1 <> nil then
+        FastCopyMem(@P[Result], P1, r);
       Result := Result + r;
     end;
     EOF := r = 0;
@@ -1894,6 +1898,8 @@ begin
 end;
 
 procedure TAuInput._Prefetch(Bytes: Cardinal);
+var
+  EOF : Boolean;
 begin
   if _Prefetched > 0 then
     Exit;
@@ -1901,7 +1907,7 @@ begin
     DataCS.Enter;
     if Bytes > Length(_PrefetchBuf) then
       SetLength(_PrefetchBuf, Bytes);
-    Bytes := CopyData(_PrefetchBuf, Bytes);
+    Bytes := FillBuffer(_PrefetchBuf, Bytes, EOF);
     if Bytes <> 0 then
     begin
       _Prefetched := Bytes;

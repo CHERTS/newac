@@ -272,7 +272,7 @@ begin
   begin
     if FLatency < 10 then Flatency := 10;
     FFramesInBuffer := FLatency*SR div 1000;
-    FPollingInterval := (FLatency div 4)*3;
+    FPollingInterval := FLatency div 3;
   end;
   DSW_Init(DSW);
   Res := DSW_InitOutputDevice(DSW, @(Devices.dinfo[FDeviceNumber].guid));
@@ -414,6 +414,7 @@ begin
     DSW_FillEmptySpace(DSW, FillByte);
     if Assigned(FOnUnderrun) then
       EventHandler.PostGenericEvent(Self, FOnUnderrun);
+    //Usleep(FPollingInterval, FPrefetchData);
     DSW_RestartOutput(DSW); //StartInput := True;
   end;
 end;
@@ -421,7 +422,7 @@ end;
 constructor TDXAudioOut.Create;
 begin
   inherited Create(AOwner);
-  FLatency := 60;
+  FLatency := 80;
   FFramesInBuffer := $6000;
   FPollingInterval := 100;
   FVolume := 0; //DW

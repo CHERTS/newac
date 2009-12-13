@@ -126,6 +126,8 @@ contains
   DMXStreams in 'DMXStreams.pas',
   GainAnalysis in 'GainAnalysis.pas',
   liba52 in 'liba52.pas',
-  NewACIndicators in 'NewACIndicators.pas';
+  NewACIndicators in 'NewACIndicators.pas',
+  libfaad2 in 'libfaad2.pas',
+  NewACAAC in 'NewACAAC.pas';
 
 end.
