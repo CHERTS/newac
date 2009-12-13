@@ -155,6 +155,9 @@ end;
 
 procedure TGainIndicator.FlushInternal;
 begin
+  FGainValue := 0;
+  if Assigned(FOnGainData) then
+     EventHandler.PostGenericEvent(Self, FOnGainData);
   Finput.Flush;
   Busy := False;
   FGainValue := 0;
