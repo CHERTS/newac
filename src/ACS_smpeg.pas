@@ -45,6 +45,7 @@ type
       FHandle : Pmpg123_handle;
       FBytesRead, FBOffset : LongWord;
       _Buf : array[0.._BufSize - 1] of Byte;
+      FBitrate : LongWord;
       procedure FindTags;
   protected
     procedure OpenFile; override;
@@ -54,6 +55,7 @@ type
     function GetId3v1Tags : TId3v1Tags;
   public
     property Id3v1Tags : TId3v1Tags read GetId3v1Tags;
+    property Bitrate : LongWord read FBitrate;
   end;
 
 
@@ -76,6 +78,7 @@ implementation
   var
     err : LongInt;
     iBuf : array[0..Inbufsize - 1] of Byte;
+    fi : Tmpg123_frameinfo;
   begin
     Loadmpg123;
     if not Libmpg123Loaded then
@@ -105,6 +108,11 @@ implementation
       err := 0;
       FStream.Read(iBuf, Inbufsize);
       err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, @FBytesRead);
+      while err = MPG123_NEED_MORE do
+      begin
+        FStream.Read(iBuf, Inbufsize);
+        err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, @FBytesRead);
+      end;
       if err = MPG123_NEW_FORMAT then
       begin
          mpg123_getformat(FHandle, @FSR, @FChan, @err);
@@ -119,6 +127,9 @@ implementation
       FSize := FTotalSamples*FChan*2;
       if Fsize > 0 then
         FSeekable := True;
+
+      mpg123_info(FHandle, @fi);
+      FBitrate := fi.bitrate;
 
       if FBytesRead = 0 then
       begin
@@ -164,6 +175,11 @@ implementation
       begin
         FStream.Read(iBuf, Inbufsize);
         err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, nil);
+        while (err = MPG123_NEED_MORE) and (FStream.Position < FStream.Size) do
+        begin
+          FStream.Read(iBuf, Inbufsize);
+          err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, nil);
+        end;
       end;
       FBytesRead := FBOffset;
       FBOffset := 0;
@@ -171,8 +187,9 @@ implementation
     if FBytesRead = 0 then
     begin
       err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
-      FBOffset := FBOffset + FBytesRead;
     end;
+//    if err = MPG123_ERR then
+//       raise EAuException.Create('MP3 data error');
     if Bytes >= FBytesRead - FBOffset then
     begin
       Bytes := FBytesRead - FBOffset;
