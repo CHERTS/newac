@@ -312,19 +312,19 @@ implementation
         begin
           SetLength(S, fv2.title.Size);
           Move(fv2.title.p[0], S[1], fv2.title.Size);
-          _Id3v2Tags.Title := S;
+          _Id3v2Tags.Title := UTF8Decode(S);
         end;
         if fv2.artist <> nil then
         begin
           SetLength(S, fv2.artist.Size);
           Move(fv2.artist.p[0], S[1], fv2.artist.Size);
-          _Id3v2Tags.Artist := S;
+          _Id3v2Tags.Artist := UTF8Decode(S);
         end;
         if fv2.album <> nil then
         begin
           SetLength(S, fv2.album.Size);
           Move(fv2.album.p[0], S[1], fv2.album.Size);
-          _Id3v2Tags.Album := S;
+          _Id3v2Tags.Album := UTF8Decode(S);
         end;
         if fv2.year <> nil then
         begin
@@ -336,13 +336,13 @@ implementation
         begin
           SetLength(S, fv2.genre.Size);
           Move(fv2.genre.p[0], S[1], fv2.genre.Size);
-          _Id3v2Tags.Genre := S;
+          _Id3v2Tags.Genre := UTF8Decode(S);
         end;
         if fv2.comment <> nil then
         begin
           SetLength(S, fv2.comment.Size);
           Move(fv2.comment.p[0], S[1], fv2.comment.Size);
-          _Id3v2Tags.Comment := S;
+          _Id3v2Tags.Comment := UTF8Decode(S);
         end;
      end else
      begin
