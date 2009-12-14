@@ -178,7 +178,7 @@ implementation
         err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
         FBOffset := FBOffset + FBytesRead;
       end;
-      if err = MPG123_ERR then
+      if (err = MPG123_ERR) and (FStream.Position < FStream.Size - 4*Inbufsize) then
          raise EAuException.Create('MP3 data error');
       if (FStream.Position < FStream.Size) and (FBytesRead = 0) then
       begin
@@ -251,15 +251,6 @@ implementation
       mpg123_feedseek(FHandle, SampleNum, 0, @Pos);
       FStream.Seek(Pos, soFromBeginning);
       SampleNum := Round(FStream.Position/FStream.Size*FTotalSamples);
-      FStream.Read(iBuf, iBufSize);
-      err := mpg123_decode(FHandle, @iBuf, iBufSize, nil, 0, nil);
-      while (err = MPG123_NEED_MORE) and (FStream.Position < FStream.size) do
-      begin
-        FStream.Read(iBuf, iBufSize);
-        err := mpg123_decode(FHandle, @iBuf, iBufSize, nil, 0, nil);
-      end;
-      if err = -1 then
-        Exit;
      //mpg123_tell(FHandle);
      Result := True;
     end;
