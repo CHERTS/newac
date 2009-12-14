@@ -72,6 +72,7 @@ procedure TForm1.RecordButtonClick(Sender: TObject);
 var
   Ext : String;
 begin
+  if SaveDialog1.FileName = '' then SelectFileButtonClick(Sender);
   Ext := ExtractFileExt(SaveDialog1.FileName);
   Ext := AnsiLowerCase(Ext);
   if Ext = '' then
@@ -89,7 +90,6 @@ begin
     Output := WaveOut1;
   Output.FileName := SaveDialog1.FileName;
   DXAudioIn1.InSampleRate := StrToInt(SREdit.Text);
-  DXAudioIn1.FramesInBuffer := DXAudioIn1.InSampleRate div 10;
   if StereoCheckBox.Checked then
     DXAudioIn1.InChannels := 2
   else
