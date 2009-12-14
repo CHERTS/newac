@@ -322,7 +322,7 @@ type
   PPmpg123_id3v2 = ^Pmpg123_id3v2;
   Pmpg123_id3v2 = ^Tmpg123_id3v2;
   Tmpg123_id3v2 = packed record
-    version: Byte;
+    version : LongWord;
     title: Pmpg123_string;
     artist: Pmpg123_string;
     album: Pmpg123_string;

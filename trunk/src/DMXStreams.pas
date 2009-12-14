@@ -34,7 +34,7 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
 
-  TAuAOBDemuxer = class(TAuFileStream)
+(*  TAuAOBDemuxer = class(TAuFileStream)
   private
     F : TFileStream;
     Block : PBuffer8;
@@ -59,7 +59,7 @@ type
     property Channels : Word read FChannels;
     property SampleRate : LongWord read FSampleRate;
     property BitsPerSample : Word read FBitsPerSample;
-  end;
+  end; *)
 
 
 
@@ -171,7 +171,7 @@ const
        end;
    end;*)
 
-     function TAuAOBDemuxer.IsAudioPacket : Boolean;
+(*     function TAuAOBDemuxer.IsAudioPacket : Boolean;
   begin
     Result := (PLongWord(@InBuff[0])^ = $BA010000) and  (PLongWord(@InBuff[AC3_PACK_HEADER_LENGTH])^ = $BB010000);
   end;
@@ -313,7 +313,7 @@ const
        end;
        Break;
      end;
-   end;
+   end; *)
 
 
 end.
