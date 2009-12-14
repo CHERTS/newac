@@ -55,8 +55,15 @@ type
     function GetId3v1Tags : TId3v1Tags;
     function GetId3v2Tags : TId3v2Tags;
   public
+    (* Property: Id3v1Tags
+    Reurns the file's Id3v1Tags if available.  *)
     property Id3v1Tags : TId3v1Tags read GetId3v1Tags;
+    (* Property: Id3v2Tags
+    Reurns the file's Id3v2Tags if available.
+    If Id3v2Tags are not present in the file, the Id3v1Tags values are returned by this proeprty. *)
     property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
+    (* Property: Bitrate
+    Reurns the file's bitrate in kbps. *)
     property Bitrate : LongWord read FBitrate;
   end;
 
@@ -295,7 +302,7 @@ implementation
        _Id3v1Tags.Title := fv1.title;
        _Id3v1Tags.Artist := fv1.artist;
        _Id3v1Tags.Album := fv1.album;
-       if fv1.year <> '' then
+       if fv1.year[0] > ' ' then
         _Id3v1Tags.Year := StrToInt(fv1.year);
      end;
    try

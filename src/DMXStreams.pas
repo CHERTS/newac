@@ -41,6 +41,14 @@ type
     InBuff : array [0..2047] of Byte;
     DataSize : LongWord;
     FStream : Byte;
+    FAudioDataSize : Word;
+    FSampleRate : LongWord;
+    FBitsPerSample : Word;
+    FChannels : Word;
+    FFrameSize : Word;
+    FOffset : Word;
+    FSamplesCount : Word;
+    OutBuf : array[0..4095] of Byte;
     function IsAudioPacket : Boolean;
     function IsAudioPES(Ptr : PLongWord) : Boolean;
     procedure ParseLPCMHeader(Offset : Integer);
@@ -48,6 +56,9 @@ type
   public
     procedure Init(Stream : TAC3VOBStream = acvStreamFirst);
     function Read(var Buffer; Count: Longint): Longint; override;
+    property Channels : Word read FChannels;
+    property SampleRate : LongWord read FSampleRate;
+    property BitsPerSample : Word read FBitsPerSample;
   end;
 
 
@@ -202,18 +213,23 @@ const
     	 DataStart := AC3_PACK_HEADER_LENGTH + InBuff[AC3_PACK_HEADER_LENGTH + 5]+6;
        if not IsAudioPES(@InBuff[DataStart]) then
          continue;
-    	 AudioDataStart  := DataStart + AC3_PRIVATE_DATA_LENGTH;
+    	 AudioDataStart  := DataStart + 4;
+       FAudioDataSize := PWord(@InBuff[AudioDataStart])^;
+       AudioDataStart  := DataStart + 2; // + AC3_PRIVATE_DATA_LENGTH;
        for i := 0 to 255 do
           if InBuff[AudioDataStart+i] = 10 then
           begin
             AudioDataStart := AudioDataStart+i;
             Break;
           end;
-       Block := @InBuff[AudioDataStart];    //FastCopyMem(@Block[0], @InBuff[AudioDataStart], SECTOR_SIZE-AudioDataStart);
        if InBuff[AudioDataStart] <> 10 then
          Continue;
        ParseLPCMHeader(AudioDataStart);
+       AudioDataStart := AudioDataStart + FOffset;
        DataSize := SECTOR_SIZE-AudioDataStart;
+       DataSize := DataSize - (DataSize mod FFrameSize);
+       Move(InBuff[AudioDataStart], OutBuf[0], DataSize);
+       Block := @OutBuf[0];
        Break;
      end;
    end;
@@ -227,11 +243,39 @@ const
      IntOffset := Offset + 2;
      hl := InBuff[IntOffset+1]*256 + InBuff[IntOffset];
      IntOffset := Offset + 4;
-     fs := InBuff[IntOffset+1]*256 + InBuff[IntOffset];
-     chmask := InBuff[Offset + 10];
-     ss := InBuff[Offset + 7] shr 4;
-     sr := InBuff[Offset + 8] shr 4;
-     DataSize := ss + sr + hl+ fs + chmask;
+     FOffset := InBuff[IntOffset+1]*256 + InBuff[IntOffset];
+     chmask := InBuff[Offset + 6];
+     ss := InBuff[Offset + 7] shr 5;
+     sr := InBuff[Offset + 8] shr 5;
+     case ss of
+       0 : FBitsPerSample := 16;
+       1 : FBitsPerSample := 20;
+       2 : FBitsPerSample := 24;
+       else
+         FBitsPerSample := 0;
+     end;
+     case sr of
+       0 : FSampleRate := 48000;
+       1 : FSampleRate := 96000;
+       2 : FSampleRate := 192000;
+       8 : FSampleRate := 44100;
+       9 : FSampleRate := 88200;
+       10 : FSampleRate := 176400;
+         else
+         FSampleRate := 0;
+     end;
+     if FSampleRate < 88200 then
+       FSamplesCount := 40
+     else
+     if FSampleRate < 176400 then
+       FSamplesCount := 80
+     else
+       FSamplesCount := 160;
+     if chmask = 0 then
+        FChannels := 6
+     else
+       FChannels := 2;
+     FFrameSize := (FBitsPerSample div 8)*FChannels*FSamplesCount;
    end;
 
    function TAuAOBDemuxer.Read(var Buffer; Count: Longint): Longint;
