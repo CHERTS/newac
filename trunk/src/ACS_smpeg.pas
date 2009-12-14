@@ -53,8 +53,10 @@ type
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
     function GetId3v1Tags : TId3v1Tags;
+    function GetId3v2Tags : TId3v2Tags;
   public
     property Id3v1Tags : TId3v1Tags read GetId3v1Tags;
+    property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
     property Bitrate : LongWord read FBitrate;
   end;
 
@@ -264,6 +266,19 @@ implementation
     S : AnsiString;
     meta : Integer;
   begin
+    _Id3v2Tags.Artist := '';
+    _Id3v2Tags.Album := '';
+    _Id3v2Tags.Title := '';
+    _Id3v2Tags.Year := '';
+    _Id3v2Tags.Track := '';
+    _Id3v2Tags.Genre := '';
+    _Id3v2Tags.Comment := '';
+    _Id3v1Tags.Artist := '';
+    _Id3v1Tags.Album := '';
+    _Id3v1Tags.Title := '';
+    _Id3v1Tags.Year := 0;
+    _Id3v1Tags.Track := 0;
+    _Id3v1Tags.Genre := '';
     mpg123_init();
     handle := mpg123_new(nil, nil);
     //AbsiString
@@ -283,6 +298,56 @@ implementation
        if fv1.year <> '' then
         _Id3v1Tags.Year := StrToInt(fv1.year);
      end;
+   try
+     if fv2 <>  nil then
+     begin
+        if fv2.title <> nil then
+        begin
+          SetLength(S, fv2.title.Size);
+          Move(fv2.title.p[0], S[1], fv2.title.Size);
+          _Id3v2Tags.Title := S;
+        end;
+        if fv2.artist <> nil then
+        begin
+          SetLength(S, fv2.artist.Size);
+          Move(fv2.artist.p[0], S[1], fv2.artist.Size);
+          _Id3v2Tags.Artist := S;
+        end;
+        if fv2.album <> nil then
+        begin
+          SetLength(S, fv2.album.Size);
+          Move(fv2.album.p[0], S[1], fv2.album.Size);
+          _Id3v2Tags.Album := S;
+        end;
+        if fv2.year <> nil then
+        begin
+          SetLength(S, fv2.year.Size);
+          Move(fv2.year.p[0], S[1], fv2.year.Size);
+          _Id3v2Tags.Year := S;
+        end;
+        if fv2.genre <> nil then
+        begin
+          SetLength(S, fv2.genre.Size);
+          Move(fv2.genre.p[0], S[1], fv2.genre.Size);
+          _Id3v2Tags.Genre := S;
+        end;
+        if fv2.comment <> nil then
+        begin
+          SetLength(S, fv2.comment.Size);
+          Move(fv2.comment.p[0], S[1], fv2.comment.Size);
+          _Id3v2Tags.Comment := S;
+        end;
+     end else
+     begin
+       _Id3v2Tags.Artist := _Id3v1Tags.Artist;
+       _Id3v2Tags.Album := _Id3v1Tags.Album;
+       _Id3v2Tags.Title := _Id3v1Tags.Title;
+       _Id3v2Tags.Year := IntToStr(_Id3v1Tags.Year);
+       _Id3v2Tags.Track := IntToStr(_Id3v1Tags.Track);
+       _Id3v2Tags.Genre := _Id3v1Tags.Genre;
+     end;
+   except
+   end;
    end;
     mpg123_close(handle);
   end;
@@ -292,6 +357,13 @@ implementation
     OpenFile;
     Result := _Id3v1Tags;
   end;
+
+  function TMpgIn.GetId3v2Tags;
+  begin
+    OpenFile;
+    Result := _Id3v2Tags;
+  end;
+
 
 end.
 
