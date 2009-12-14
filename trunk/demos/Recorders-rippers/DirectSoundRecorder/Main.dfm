@@ -91,8 +91,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    ExplicitTop = 226
-    ExplicitWidth = 331
   end
   object StopButton: TButton
     Left = 248
@@ -220,6 +218,7 @@ object Form1: TForm1
   end
   object DXAudioIn1: TDXAudioIn
     FramesInBuffer = 12000
+    Latency = 70
     PollingInterval = 80
     SamplesToRead = -1
     DeviceNumber = 0
