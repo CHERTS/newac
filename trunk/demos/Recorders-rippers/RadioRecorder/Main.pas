@@ -10,7 +10,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, ACS_Classes,
-  Buttons, ACS_WinMedia, ACS_DXAudio, ACS_Wave;
+  Buttons, ACS_WinMedia, ACS_DXAudio, ACS_Wave, NewACIndicators;
 
 type
   TForm1 = class(TForm)
@@ -45,6 +45,8 @@ type
     Label15: TLabel;
     Label16: TLabel;
     Edit1: TEdit;
+    GainIndicator1: TGainIndicator;
+    ProgressBar2: TProgressBar;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
@@ -61,6 +63,7 @@ type
     procedure PauseRecordButtonClick(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     procedure DXAudioOut1ThreadException(Sender: TComponent);
+    procedure GainIndicator1GainData(Sender: TComponent);
   private
     { Private declarations }
     SL : TStringList;
@@ -110,6 +113,7 @@ procedure TForm1.AudioOut1Done(Sender: TComponent);
 begin
    BitBtn1.Enabled := True;
    ProgressBar1.Position := 0;
+   ProgressBar2.Position := 0;
    if DXAudioOut1.ExceptionMessage = '' then
      Label14.Caption := 'Ready';
 end;
@@ -162,6 +166,11 @@ begin
   for i := 0 to SL.Count - 1 do
     ComboBox1.Items.Add(SL.Names[i]);
   ComboBox1.ItemIndex := 0;
+end;
+
+procedure TForm1.GainIndicator1GainData(Sender: TComponent);
+begin
+  Self.ProgressBar2.Position := Round(ProgressBar2.Position*0.67 + GainIndicator1.GainValue/60*33);
 end;
 
 procedure TForm1.WMStreamedIn1StreamOpened(Sender: TComponent);

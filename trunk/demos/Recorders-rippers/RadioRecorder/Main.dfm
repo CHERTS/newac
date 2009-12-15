@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 540
   Top = 394
-  Width = 461
-  Height = 243
   Caption = 'RadioRecorder'
+  ClientHeight = 273
+  ClientWidth = 466
   Color = 3763336
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,8 +14,8 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    453
-    209)
+    466
+    273)
   PixelsPerInch = 96
   TextHeight = 13
   object Label14: TLabel
@@ -44,6 +44,8 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -53,9 +55,11 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
-    NumGlyphs = 2
   end
   object BitBtn3: TBitBtn
     Left = 152
@@ -63,33 +67,36 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
-    NumGlyphs = 2
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 190
-    Width = 453
+    Top = 254
+    Width = 466
     Height = 19
     Panels = <
       item
         Width = 50
       end>
     ParentColor = True
-    SimplePanel = False
+    ExplicitTop = 285
   end
   object Panel1: TPanel
     Left = 0
-    Top = 109
-    Width = 453
+    Top = 173
+    Width = 466
     Height = 81
     Align = alBottom
     BevelOuter = bvNone
     Color = 2240534
     TabOrder = 4
+    ExplicitTop = 204
     DesignSize = (
-      453
+      466
       81)
     object Label2: TLabel
       Left = 8
@@ -213,7 +220,7 @@ object Form1: TForm1
       ParentFont = False
     end
     object Label4: TLabel
-      Left = 318
+      Left = 331
       Top = 8
       Width = 62
       Height = 13
@@ -227,9 +234,10 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
+      ExplicitLeft = 318
     end
     object Label1: TLabel
-      Left = 320
+      Left = 333
       Top = 24
       Width = 73
       Height = 17
@@ -244,9 +252,10 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
+      ExplicitLeft = 320
     end
     object Label6: TLabel
-      Left = 320
+      Left = 333
       Top = 56
       Width = 57
       Height = 13
@@ -260,9 +269,10 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
+      ExplicitLeft = 320
     end
     object Label7: TLabel
-      Left = 384
+      Left = 397
       Top = 56
       Width = 39
       Height = 13
@@ -276,9 +286,10 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
+      ExplicitLeft = 384
     end
     object Label8: TLabel
-      Left = 320
+      Left = 333
       Top = 40
       Width = 31
       Height = 13
@@ -292,22 +303,22 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
+      ExplicitLeft = 320
     end
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 98
-    Width = 453
+    Top = 162
+    Width = 466
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 5
+    ExplicitTop = 193
   end
   object ComboBox1: TComboBox
     Left = 0
     Top = 8
-    Width = 445
+    Width = 458
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
@@ -339,14 +350,9 @@ object Form1: TForm1
     Height = 24
     Max = 0
     Min = -4000
-    Orientation = trHorizontal
     Frequency = 4
-    Position = 0
-    SelEnd = 0
-    SelStart = 0
     TabOrder = 9
     ThumbLength = 12
-    TickMarks = tmBottomRight
     TickStyle = tsNone
     OnChange = TrackBar1Change
   end
@@ -358,34 +364,49 @@ object Form1: TForm1
     TabOrder = 10
     Text = '256'
   end
+  object ProgressBar2: TProgressBar
+    Left = 8
+    Top = 120
+    Width = 450
+    Height = 16
+    Anchors = [akLeft, akTop, akRight]
+    MarqueeInterval = 5
+    BarColor = clLime
+    BackgroundColor = clBlack
+    TabOrder = 11
+  end
   object OpenDialog1: TOpenDialog
     Filter = 'WMA files|*.wma'
-    Left = 112
-    Top = 152
+    Left = 288
+    Top = 208
   end
   object DXAudioOut1: TDXAudioOut
-    Input = WMATap1
+    Input = GainIndicator1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
+    FramesInBuffer = 6000
+    Latency = 100
+    PollingInterval = 80
+    PrefetchData = True
     OnUnderrun = DXAudioOut1Underrun
-    Left = 72
-    Top = 152
+    Left = 208
+    Top = 208
   end
   object WMStreamedIn1: TWMStreamedIn
     Loop = False
-    BufferingTime = 4
+    BufferingTime = 2
     EnableHTTP = False
     EnableTCP = False
     EnableUDP = False
     MaxWaitMilliseconds = 10000
     ProxyPort = 0
-    StretchFactor = 1
+    StretchFactor = 1.000000000000000000
     OnStreamOpened = WMStreamedIn1StreamOpened
     OnStartedPlaying = WMStreamedIn1StartedPlaying
-    Left = 8
-    Top = 152
+    Left = 56
+    Top = 160
   end
   object WMATap1: TWMATap
     Input = WMStreamedIn1
@@ -393,7 +414,14 @@ object Form1: TForm1
     Lossless = False
     VBR = False
     VBRQuality = 0
-    Left = 40
-    Top = 152
+    Left = 56
+    Top = 208
+  end
+  object GainIndicator1: TGainIndicator
+    Input = WMATap1
+    Interval = 50
+    OnGainData = GainIndicator1GainData
+    Left = 128
+    Top = 208
   end
 end
