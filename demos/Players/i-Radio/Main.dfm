@@ -313,7 +313,9 @@ object Form1: TForm1
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
     FramesInBuffer = 32768
+    Latency = 100
     PollingInterval = 200
+    PrefetchData = True
     OnUnderrun = DXAudioOut1Underrun
     Left = 96
     Top = 152
