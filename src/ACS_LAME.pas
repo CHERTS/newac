@@ -19,8 +19,7 @@ interface
 
 uses
   Classes, SysUtils, ACS_Classes, ACS_Types, lame,
-
-  ACS_Tags, Windows;
+  taglib, ACS_Tags, Windows;
 
 type
 
@@ -76,6 +75,11 @@ type
     Sets Id3V1 tags. *)
     property Id3v1Tags;
 
+     (* Property: Id3v1Tags
+    Sets Id3v2 tags. Saving Id3v2 tags requires libtag.dll and libtag_c.dll.
+    If these libraries are not present, this feature is disabled. *)
+    property Id3v2Tags;
+
     (* Property: Mode
     Sets the Mono/Stereo encoding options for the output file.
     if the input data is mono, don't set this property to mmSTEREO. *)
@@ -89,13 +93,14 @@ type
     property Original       : BOOL read FOriginal write FOriginal default true;
 
     property EnableBitReservoir : Boolean read FEnableBitReservoir write FEnableBitReservoir;
-    property StrinctISO : Boolean read FStrictISO write FStrictISO;
+    property StrictISO : Boolean read FStrictISO write FStrictISO;
 
     //VBR encoding
 
     (* Property: VBRQuality
     Use this property to set the VBR quality in VBR mode.
-    It is preferable to set VBR quality instead of setting average birate directly. *)
+    It is preferable to set VBR quality instead of setting average birate directly.
+    This property is of type TMP3Quality (mp3ql0 . . mp3ql9) where mp3ql0 corresponds to the highest quality and mp3ql9 to the lowest. *)
     property VBRQuality : TMP3Quality read FVBRQuality write FVBRQuality;
     (* Property: EnableVBR
     Use this property to switch between the VBR and CBR modes. *)
@@ -137,6 +142,7 @@ type
     FOriginal := true;
     FAverageBitrate := mbrAuto;
     FMaximumBitrate := mbrAuto;
+    LoadLibtag;
   end;
 
   destructor TMP3Out.Destroy;
@@ -235,6 +241,8 @@ type
     res, l : LongWord;
     Tag : TID3Tag;
     S : AnsiString;
+    _File : PTagLib_File;
+    _Tag : PTagLib_Tag;
   begin
 (*    id3tag_init(_plgf);
 
@@ -290,6 +298,23 @@ type
       FreeMem(mp3buf);
     if Buffer <> nil then
         FreeMem(Buffer);
+    if (FFileName <> '') and LibtagLoaded then
+    begin
+      taglib_id3v2_set_default_text_encoding(Ord(TagLib_ID3v2_UTF16));
+      _File := taglib_file_new(PAnsiChar(Utf8Encode(FWideFileName)));
+      _Tag := taglib_file_tag(_File);
+      if not taglib_file_is_valid(_File) then
+        raise EAuException.Create('Failed to write tags');
+      taglib_tag_set_title(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Title)));
+      taglib_tag_set_artist(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Artist)));
+      taglib_tag_set_album(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Album)));
+      taglib_tag_set_genre(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Genre)));
+      taglib_tag_set_year(_Tag, StrToInt(Id3v2Tags.Year));
+      taglib_tag_set_track(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Track)));
+      if not taglib_file_save(_File) then
+        raise EAuException.Create('Failed to save tags');
+      taglib_file_free(_File);
+    end;
     FInput.Flush;
   end;
 
