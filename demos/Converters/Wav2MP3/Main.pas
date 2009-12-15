@@ -34,6 +34,11 @@ type
     Label9: TLabel;
     Edit5: TEdit;
     MP3Out1: TMP3Out;
+    Label1: TLabel;
+    ComboBox2: TComboBox;
+    CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure MP3Out1Done(Sender: TComponent);
     procedure MP3Out1Progress(Sender: TComponent);
@@ -110,21 +115,29 @@ end;
 procedure TForm1.Button2Click(Sender: TObject);
 begin
   MP3Out1.BitRate := StrToBitRate(ComboBOx1.Text);
+  MP3Out1.EnableVBR := CheckBox1.Checked;
+  if CheckBox1.Checked then
+  begin
+    MP3Out1.BitRate := mbrAuto;
+    MP3Out1.VBRQuality := TMP3Quality(ComboBox2.ItemIndex);
+  end;
+  MP3Out1.EnableBitReservoir := CheckBox2.Checked;
+  MP3Out1.StrictISO := CheckBox3.Checked;
   if WaveIn1.FileName <> '' then
   begin
     SaveDialog1.FileName := ChangeFileExt(WaveIn1.FileName, '.mp3');
     if SaveDialog1.Execute then
     begin
       Self.StatusBar1.Panels[0].Text := 'Converting...';
-      MP3Out1.Id3v1Tags.Clear;
+      MP3Out1.Id3v2Tags.Clear;
       if Edit1.Text <> '' then
-         MP3Out1.Id3v1Tags.Title := Edit1.Text;
+         MP3Out1.Id3v2Tags.Title := Edit1.Text;
       if Edit2.Text <> '' then
-         MP3Out1.Id3v1Tags.Artist := Edit2.Text;
+         MP3Out1.Id3v2Tags.Artist := Edit2.Text;
       if Edit3.Text <> '' then
-         MP3Out1.Id3v1Tags.Album := Edit3.Text;
+         MP3Out1.Id3v2Tags.Album := Edit3.Text;
       if Edit5.Text <> '' then
-         MP3Out1.Id3v1Tags.Year := StrToInt(Edit5.Text);
+         MP3Out1.Id3v2Tags.Year := Edit5.Text;
       MP3Out1.FileName := SaveDialog1.FileName;
       Button1.Enabled := False;
       MP3Out1.Run;
