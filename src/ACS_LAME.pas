@@ -301,7 +301,7 @@ type
     if (FFileName <> '') and LibtagLoaded then
     begin
       taglib_id3v2_set_default_text_encoding(Ord(TagLib_ID3v2_UTF16));
-      _File := taglib_file_new(PAnsiChar(Utf8Encode(FWideFileName)));
+      _File := taglib_file_new(PAnsiChar(AnsiString(FWideFileName)));
       _Tag := taglib_file_tag(_File);
       if not taglib_file_is_valid(_File) then
         raise EAuException.Create('Failed to write tags');
@@ -309,8 +309,20 @@ type
       taglib_tag_set_artist(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Artist)));
       taglib_tag_set_album(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Album)));
       taglib_tag_set_genre(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Genre)));
-      taglib_tag_set_year(_Tag, StrToInt(Id3v2Tags.Year));
-      taglib_tag_set_track(_Tag, PAnsiChar(Utf8Encode(Id3v2Tags.Track)));
+      if Id3v2Tags.Year <> '' then
+      begin
+        try
+          taglib_tag_set_year(_Tag, StrToInt(Id3v2Tags.Year));
+        except
+        end;
+      end;
+      if Id3v2Tags.Track <> '' then
+      begin
+        try
+          taglib_tag_set_track(_Tag, StrToInt(Id3v2Tags.Track));
+        except
+        end;
+      end;
       if not taglib_file_save(_File) then
         raise EAuException.Create('Failed to save tags');
       taglib_file_free(_File);
