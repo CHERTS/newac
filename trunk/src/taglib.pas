@@ -59,9 +59,9 @@ type
   taglib_tag_set_album_t = procedure(tag : PTagLib_Tag; title : PAnsiChar); cdecl;
   taglib_tag_set_artist_t = procedure(tag : PTagLib_Tag; title : PAnsiChar); cdecl;
   taglib_tag_set_comment_t = procedure(tag : PTagLib_Tag; title : PAnsiChar); cdecl;
-  taglib_tag_set_genre_t = procedure(tag : PTagLib_Tag; title : PAnsiChar); cdecl;
+  taglib_tag_set_genre_t = procedure(tag : PTagLib_Tag; genre : PAnsiChar); cdecl;
   taglib_tag_set_title_t = procedure(tag : PTagLib_Tag; title : PAnsiChar); cdecl;
-  taglib_tag_set_track_t = procedure(tag : PTagLib_Tag; title : PAnsiChar); cdecl;
+  taglib_tag_set_track_t = procedure(tag : PTagLib_Tag; track : LongWord); cdecl;
   taglib_tag_set_year_t = procedure(tag : PTagLib_Tag; year : LongWord); cdecl;
   taglib_tag_title_t = function(pt : PTagLib_Tag) : PAnsiChar; cdecl;
   taglib_tag_track_t = function(pt : PTagLib_Tag) : PAnsiChar; cdecl;
