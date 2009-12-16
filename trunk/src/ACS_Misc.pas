@@ -410,8 +410,8 @@ type
 
   (* Class: TTagEditor
     Descends from <TComponent>.
-    This component allows you to create, read, and edit tags for a wide variety of audio files. Supported file formts include mp3, ogg, FLAC, a4m, wavpack. The file type is guessed by its extension.
-    The component requires libtag.dll and libtag_c.dll..
+    This component allows you to create, read, and edit tags for a wide variety of audio files. Supported file formts include mp3, ogg, FLAC, a4m, wavpack, wma (reading only). The file type is guessed by its extension.
+    The component requires libtag.dll and libtag_c.dll.
   *)
 
   TTagEditor = class(TComponent)
@@ -427,6 +427,7 @@ type
     FBitrate : LongWord;
     FValid : Boolean;
     procedure SetFileName(const aFileName : AnsiString);
+    function GetFileExt : ANSIString;
   published
     (* Property: FileName
       Sets the name of the file for editing. The file must exist and have a valid format.  *)
@@ -1360,14 +1361,26 @@ begin
   Result := FAlbumGain;
 end;
 
+function TTagEditor.GetFileExt;
+begin
+  Result := AnsiStrLower(PAnsiChar(AnsiString(ExtractFileExt(FFileName))));
+end;
+
 procedure TTagEditor.SetFileName(const aFileName: AnsiString);
+const
+  MaxAllowedExtIndex = 5;
+  AllowedExtensions : array[0..5] of AnsiString = ('.mp3', '.wma', '.m4a', '.flac', '.wv', '.ogg');
 var
   _File : PTagLib_File;
   _Tag : PTagLib_Tag;
   _AudioProperties : PTagLib_AudioProperties;
   S : Utf8String;
+  Ext : ANSIString;
   sb : LongWord;
   Dest : WideString;
+  Stream : TFileStream;
+//  sr : wma_sync_reader;
+  i : Integer;
 begin
   FFileName := aFileName;
   if not (csDesigning in ComponentState) then
@@ -1385,11 +1398,40 @@ begin
     FBitrate := 0;
     if aFileName = '' then
       Exit;
+    Ext := GetFileExt;
+    FValid := False;
+    for i := 0 to MaxAllowedExtIndex do
+      if AllowedExtensions[i] = Ext then
+      begin
+        FValid := True;
+        Break;
+      end;
+    if not FValid then Exit;
     taglib_id3v2_set_default_text_encoding(Ord(TagLib_ID3v2_UTF16));
     _File := taglib_file_new(PAnsiChar(FFileName));
     FValid := taglib_file_is_valid(_File);
     if FValid  then
     begin
+ (*     if AnsiStrLower(PAnsiChar(AnsiString(ExtractFileExt(FFileName)))) = '.wma' then
+      begin
+        taglib_file_free(_File);
+        Stream := TFileStream.Create(FFileName, fmOpenRead);
+        lwma_reader_init1(sr, Stream);
+        if sr.has_audio then
+        begin
+          FTitle := lwma_reader_get_title(sr);
+          FAlbum := lwma_reader_get_album(sr);
+          FArtist := lwma_reader_get_author(sr);
+          FGenre := lwma_reader_get_genre(sr);
+          FTrack :=  lwma_reader_get_track(sr);
+          FYear := lwma_reader_get_year(sr);
+          FDuration := lwma_reader_get_duration(sr) div 100;
+          FBitrate := lwma_reader_get_bitrate(sr) div 1000;
+        end;
+        lwma_reader_free(sr);
+        Stream.Free;
+        Exit;
+      end; *)
       _Tag := taglib_file_tag(_File);
       _AudioProperties := taglib_file_audioproperties(_File);
       _Tag := taglib_file_tag(_File);
@@ -1435,14 +1477,32 @@ procedure TTagEditor.Save;
 var
   _File : PTagLib_File;
   _Tag : PTagLib_Tag;
+//  sr : wma_writer;
 begin
   if FFileName <> '' then
   begin
+    if GetFileExt = '.wma' then Exit;
     taglib_id3v2_set_default_text_encoding(Ord(TagLib_ID3v2_UTF16));
     _File := taglib_file_new(PAnsiChar(FFileName));
     _Tag := taglib_file_tag(_File);
     if taglib_file_is_valid(_File) then
     begin
+(*      if AnsiStrLower(PAnsiChar(AnsiString(ExtractFileExt(FFileName)))) = '.wma' then
+      begin
+        taglib_file_free(_File);
+        lwma_writer_init(sr, PWideChar(WideString(FFileName)), Self, nil);
+        begin
+          lwma_writer_set_title(sr, FTitle);
+          lwma_writer_set_album(sr, FAlbum);
+          lwma_writer_set_author(sr, FArtist);
+          lwma_writer_set_genre(sr, FGenre);
+          lwma_writer_set_track(sr, FTrack);
+          lwma_writer_set_year(sr, FYear);
+        end;
+        sr.writer.Flush;
+        lwma_writer_free(sr);
+        Exit;
+      end;*)
       taglib_tag_set_title(_Tag, PAnsiChar(Utf8Encode(FTitle)));
       taglib_tag_set_artist(_Tag, PAnsiChar(Utf8Encode(FArtist)));
       taglib_tag_set_album(_Tag, PAnsiChar(Utf8Encode(FAlbum)));
