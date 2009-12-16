@@ -403,15 +403,15 @@ type
     (* Property: TitlePeak
       Returns the peak value for the last processed file in percents of the maximum possible value. The best place to analyze this value is the output component's OnDone event handler. *)
     property TitlePeak : Double read FTitlePeak;
-    (* Property: TitlePeak
+    (* Property: AlbumPeak
       Returns the peak value for the batch of files processed since the last call to <NewAlbum>. *)
     property AlbumPeak : Double read FAlbumPeak;
   end;
 
   (* Class: TTagEditor
     Descends from <TComponent>.
-    This component allows you to create, read, and edit tags for a wide variety of audio files. Supported file formts include mp3, ogg, FLAC, a4m, wavpack.
-    The copponent requires libtag.dll and libtag_c.dll..
+    This component allows you to create, read, and edit tags for a wide variety of audio files. Supported file formts include mp3, ogg, FLAC, a4m, wavpack. The file type is guessed by its extension.
+    The component requires libtag.dll and libtag_c.dll..
   *)
 
   TTagEditor = class(TComponent)
