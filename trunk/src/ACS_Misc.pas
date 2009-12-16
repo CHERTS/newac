@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 2.1
+  This file is a part of New Audio Components package v 2.4
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -15,7 +15,7 @@ unit ACS_Misc;
 interface
 
 uses
-  Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Procs, SyncObjs, GainAnalysis
+  Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Procs, SyncObjs, GainAnalysis, taglib
 
  {$IFDEF WIN32}
   , Windows
@@ -406,6 +406,62 @@ type
     (* Property: TitlePeak
       Returns the peak value for the batch of files processed since the last call to <NewAlbum>. *)
     property AlbumPeak : Double read FAlbumPeak;
+  end;
+
+  (* Class: TTagEditor
+    Descends from <TComponent>.
+    This component allows you to create, read, and edit tags for a wide variety of audio files. Supported file formts include mp3, ogg, FLAC, a4m, wavpack.
+    The copponent requires libtag.dll and libtag_c.dll..
+  *)
+
+  TTagEditor = class(TComponent)
+  private
+    FFileName : AnsiString;
+    FTitle : WideString;
+    FAlbum : WideString;
+    FArtist : WideString;
+    FGenre : WideString;
+    FYear : WideString;
+    FTrack : WideString;
+    FDuration : LongWord;
+    FBitrate : LongWord;
+    FValid : Boolean;
+    procedure SetFileName(const aFileName : AnsiString);
+  published
+    (* Property: FileName
+      Sets the name of the file for editing. The file must exist and have a valid format.  *)
+    property FileName : AnsiString read FFileName write SetFileName;
+  public
+    (* Property: FileName
+      Read or sets the Title tag.  *)
+    property Title : WideString read FTitle write FTitle;
+    (* Property: FileName
+      Read or sets the Album tag.  *)
+    property Album : WideString read FAlbum write FAlbum;
+    (* Property: FileName
+      Read or sets the Artist tag.  *)
+    property Artist : WideString read FArtist write FArtist;
+    (* Property: FileName
+      Read or sets the Genre tag.  *)
+    property Genre : WideString read FGenre write FGenre;
+    (* Property: FileName
+      Read or sets the Year tag.  *)
+    property Year : WideString read FYear write FYear;
+    (* Property: FileName
+      Read or sets the Track tag.  *)
+    property Track : WideString read FTrack write FTrack;
+    (* Property: FileName
+      Returns the file duration in seconds.  *)
+    property Duration : LongWord read FDuration;
+    (* Property: FileName
+      Returns the file bitrate.  *)
+    property Bitrate : LongWord read FBitrate;
+    (* Property: FileName
+      Returns True if the file is valid.  *)
+    property Valid : Boolean read FValid;
+    (* Function: Save
+      Saves the edited tags to the file. *)
+    procedure Save;
   end;
 
 
@@ -1304,7 +1360,112 @@ begin
   Result := FAlbumGain;
 end;
 
+procedure TTagEditor.SetFileName(const aFileName: AnsiString);
+var
+  _File : PTagLib_File;
+  _Tag : PTagLib_Tag;
+  _AudioProperties : PTagLib_AudioProperties;
+  S : Utf8String;
+  sb : LongWord;
+  Dest : WideString;
+begin
+  FFileName := aFileName;
+  if not (csDesigning in ComponentState) then
+  begin
+    LoadLibtag;
+    if not LibtagLoaded then
+      raise EAuException.Create(LibtagPath + ' could not be loaded');
+    FTitle := '';
+    FAlbum := '';
+    FArtist := '';
+    FGenre := '';
+    FYear := '';
+    FTrack := '';
+    FDuration := 0;
+    FBitrate := 0;
+    if aFileName = '' then
+      Exit;
+    taglib_id3v2_set_default_text_encoding(Ord(TagLib_ID3v2_UTF16));
+    _File := taglib_file_new(PAnsiChar(FFileName));
+    FValid := taglib_file_is_valid(_File);
+    if FValid  then
+    begin
+      _Tag := taglib_file_tag(_File);
+      _AudioProperties := taglib_file_audioproperties(_File);
+      _Tag := taglib_file_tag(_File);
+      S := taglib_tag_title(_Tag);
+      sb := Length(S);
+      SetLength(Dest, sb + 2);
+      Utf8ToUnicode(@Dest[1], sb + 2, @S[1], sb);
+      FTitle := Dest;
+      S := taglib_tag_album(_Tag);
+      sb := Length(S);
+      SetLength(Dest, sb + 2);
+      Utf8ToUnicode(@Dest[1], sb + 2, @S[1], sb);
+      FAlbum := Dest;
+      S := taglib_tag_artist(_Tag);
+      sb := Length(S);
+      SetLength(Dest, sb + 2);
+      Utf8ToUnicode(@Dest[1], sb + 2, @S[1], sb);
+      FArtist := Dest;
+      S := taglib_tag_genre(_Tag);
+      sb := Length(S);
+      SetLength(Dest, sb + 2);
+      Utf8ToUnicode(@Dest[1], sb + 2, @S[1], sb);
+      FGenre := Dest;
+      S := IntToStr(taglib_tag_year(_Tag));
+      sb := Length(S);
+      SetLength(Dest, sb + 2);
+      Utf8ToUnicode(@Dest[1], sb + 2, @S[1], sb);
+      FYear := Dest;
+      S := IntToStr(taglib_tag_track(_Tag));
+      sb := Length(S);
+      SetLength(Dest, sb + 2);
+      Utf8ToUnicode(@Dest[1], sb + 2, @S[1], sb);
+      FTrack := Dest;
+      FDuration := taglib_audioproperties_length(_AudioProperties);
+      FBitrate := taglib_audioproperties_bitrate(_AudioProperties);
+      taglib_tag_free_strings;
+    end;
+    taglib_file_free(_File);
+  end;
+end;
 
-
+procedure TTagEditor.Save;
+var
+  _File : PTagLib_File;
+  _Tag : PTagLib_Tag;
+begin
+  if FFileName <> '' then
+  begin
+    taglib_id3v2_set_default_text_encoding(Ord(TagLib_ID3v2_UTF16));
+    _File := taglib_file_new(PAnsiChar(FFileName));
+    _Tag := taglib_file_tag(_File);
+    if taglib_file_is_valid(_File) then
+    begin
+      taglib_tag_set_title(_Tag, PAnsiChar(Utf8Encode(FTitle)));
+      taglib_tag_set_artist(_Tag, PAnsiChar(Utf8Encode(FArtist)));
+      taglib_tag_set_album(_Tag, PAnsiChar(Utf8Encode(FAlbum)));
+      taglib_tag_set_genre(_Tag, PAnsiChar(Utf8Encode(FGenre)));
+      if FYear <> '' then
+      begin
+        try
+          taglib_tag_set_year(_Tag, StrToInt(FYear));
+        except
+        end;
+      end;
+      if FTrack <> '' then
+      begin
+        try
+          taglib_tag_set_track(_Tag, StrToInt(FTrack));
+        except
+        end;
+      end;
+      if not taglib_file_save(_File) then
+        raise EAuException.Create('Failed to save tags');
+      taglib_file_free(_File);
+    end;
+  end;
+end;
 
 end.
