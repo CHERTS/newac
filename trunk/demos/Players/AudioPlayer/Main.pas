@@ -10,7 +10,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_Classes, ACS_Wave, StdCtrls, ComCtrls, ACS_Vorbis,
-  ACS_FLAC, ACS_smpeg, ExtCtrls, ACS_DXAudio, ACS_WinMedia;
+  ACS_FLAC, ACS_smpeg, ExtCtrls, ACS_DXAudio, ACS_WinMedia, ACS_WavPack, ACS_MAC;
 
 type
   TForm1 = class(TForm)
@@ -33,6 +33,8 @@ type
     ForwardButton: TButton;
     BackwardButton: TButton;
     DXAudioOut1: TDXAudioOut;
+    MACIn1: TMACIn;
+    WVIn1: TWVIn;
     procedure PlayButtonClick(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -144,6 +146,8 @@ begin
   if Ext = '.ogg' then FI := VorbisIn1;
   if Ext = '.wav' then FI := WaveIn1;
   if Ext = '.flac' then FI := FLACIn1;
+  if Ext = '.ape' then FI := MACIn1;
+  if Ext = '.wv' then FI := WVIn1;
   if FI = nil then
   begin
     StatusBar1.Panels[0].Text := 'Unknown file extension';

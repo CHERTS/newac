@@ -4,7 +4,7 @@ object Form1: TForm1
   ActiveControl = AddtoPLButton
   Caption = 'Audio Player'
   ClientHeight = 219
-  ClientWidth = 371
+  ClientWidth = 464
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -41,12 +41,13 @@ object Form1: TForm1
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 77
-    Width = 371
+    Width = 464
     Height = 17
     Align = alBottom
     Smooth = True
     Step = 2
     TabOrder = 1
+    ExplicitWidth = 371
   end
   object StopButton: TButton
     Left = 216
@@ -68,12 +69,13 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Top = 200
-    Width = 371
+    Width = 464
     Height = 19
     Panels = <
       item
         Width = 50
       end>
+    ExplicitWidth = 371
   end
   object AddtoPLButton: TButton
     Left = 8
@@ -88,12 +90,13 @@ object Form1: TForm1
   object ListBox1: TListBox
     Left = 0
     Top = 111
-    Width = 371
+    Width = 464
     Height = 89
     Align = alBottom
     ItemHeight = 13
     TabOrder = 6
     OnClick = ListBox1Click
+    ExplicitWidth = 371
   end
   object SkipButton: TButton
     Left = 168
@@ -107,10 +110,11 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 0
     Top = 94
-    Width = 371
+    Width = 464
     Height = 17
     Align = alBottom
     TabOrder = 8
+    ExplicitWidth = 371
   end
   object ForwardButton: TButton
     Left = 272
@@ -139,22 +143,22 @@ object Form1: TForm1
   end
   object OpenDialog1: TOpenDialog
     Filter = 
-      'Wave files|*.wav|Ogg Vorbis files|*.ogg|MP3 files|*.mp3|FLAC fil' +
-      'es|*.flac'
-    Left = 176
+      'All files|*.*|Ogg Vorbis files|*.ogg|MP3 files|*.mp3|FLAC files|' +
+      '*.flac|Monkey Audio|*.ape|Wavpack|*.wv|Wave files|*.wav'
+    Left = 368
     Top = 160
   end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 40
+    Left = 56
     Top = 160
   end
   object FLACIn1: TFLACIn
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
-    Left = 72
+    Left = 168
     Top = 160
   end
   object MP3In1: TMP3In
@@ -162,7 +166,7 @@ object Form1: TForm1
     EndSample = -1
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
-    Left = 104
+    Left = 232
     Top = 160
   end
   object DXAudioOut1: TDXAudioOut
@@ -171,8 +175,22 @@ object Form1: TForm1
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
     FramesInBuffer = 24576
+    Latency = 80
     PollingInterval = 100
-    Left = 144
+    PrefetchData = True
+    Left = 280
     Top = 160
+  end
+  object MACIn1: TMACIn
+    Loop = False
+    EndSample = -1
+    Left = 104
+    Top = 160
+  end
+  object WVIn1: TWVIn
+    Loop = False
+    EndSample = -1
+    Left = 8
+    Top = 120
   end
 end
