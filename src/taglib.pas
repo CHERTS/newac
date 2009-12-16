@@ -64,8 +64,8 @@ type
   taglib_tag_set_track_t = procedure(tag : PTagLib_Tag; track : LongWord); cdecl;
   taglib_tag_set_year_t = procedure(tag : PTagLib_Tag; year : LongWord); cdecl;
   taglib_tag_title_t = function(pt : PTagLib_Tag) : PAnsiChar; cdecl;
-  taglib_tag_track_t = function(pt : PTagLib_Tag) : PAnsiChar; cdecl;
-  taglib_tag_year_t = function(pt : PTagLib_Tag) : PAnsiChar; cdecl;
+  taglib_tag_track_t = function(pt : PTagLib_Tag) : LongInt; cdecl;
+  taglib_tag_year_t = function(pt : PTagLib_Tag) : LongInt; cdecl;
 
 var
 
