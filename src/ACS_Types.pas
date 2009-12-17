@@ -58,6 +58,17 @@ type
   TComplexArray = array[0..0] of TComplex;
   PComplexArray = ^TComplexArray;
 
+  TComplexSingle = packed record
+    Re, Im : Single;
+  end;
+
+  PComplexSingle = ^TComplexSingle;
+
+  TComplexArraySingle = array[0..0] of TComplexSingle;
+  PComplexArraySingle = ^TComplexArraySingle;
+
+
+
   TDoubleArray = array[0..0] of Double;
   PDoubleArray = ^TDoubleArray;
 

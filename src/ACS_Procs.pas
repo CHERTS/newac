@@ -38,6 +38,8 @@ var
   // Direction = 1 - forward FFT, Direction = -1 - inverse FFT.
   procedure ComplexFFT(Data : PComplexArray; DataSize, Direction : Integer);
 
+  procedure ComplexFFTSingle(Data : PComplexArraySingle; DataSize, Direction : Integer);
+
   procedure HannWindow(OutData : PDoubleArray; Width : Integer; Symmetric : Boolean);
 
   procedure HammingWindow(OutData : PDoubleArray; Width : Integer; Symmetric : Boolean);
@@ -402,6 +404,83 @@ implementation
       Data[i].Im := Data[i].Im/DataSize;
     end;
   end;
+
+  (* This routine is converted from the original C code by P. Burke
+   Direction = 1 - forward FFT, Direction = -1 - inverse FFT. *)
+  procedure ComplexFFTSingle(Data : PComplexArraySingle; DataSize, Direction : Integer);
+  var
+    i, i1, j, k, i2, l, l1, l2, Log2n : Integer;
+    c1, c2, tx, ty, t1, t2, u1, u2, z  : Single;
+    OldPrec : TFPUPrecisionMode;
+  begin
+    OldPrec := GetPrecisionMode;
+    SetPrecisionMode(pmSingle);
+    Log2n := Trunc(Log2(DataSize));
+    // Do the bit reversal
+    i2 := DataSize shr 1;
+    j := 0;
+    for i := 0 to DataSize-2 do
+    begin
+      if i < j then
+      begin
+        tx := Data[i].Re;
+        ty := Data[i].Im;
+        Data[i].Re := Data[j].Re;
+        Data[i].Im := Data[j].Im;
+        Data[j].Re := tx;
+        Data[j].Im := ty;
+      end;
+      k := i2;
+      while k <= j do
+      begin
+        Dec(j, k);
+        k := k shr 1;
+      end;
+      Inc(j, k);
+    end;
+    // Compute the FFT
+    c1 := -1.0;
+    c2 := 0.0;
+    l2 := 1;
+    for l := 0 to Log2n-1 do
+    begin
+      l1 := l2;
+      l2 := l2 shl 1;
+      u1 := 1.0;
+      u2 := 0.0;
+      for j := 0 to l1-1 do
+      begin
+        i := j;
+        while i < DataSize do
+        begin
+          i1 := i + l1;
+          t1 := u1 * Data[i1].Re - u2 * Data[i1].Im;
+          t2 := u1 * Data[i1].Im + u2 * Data[i1].Re;
+          Data[i1].Re := Data[i].Re - t1;
+          Data[i1].Im := Data[i].Im - t2;
+          Data[i].Re := Data[i].Re + t1;
+          Data[i].Im := Data[i].Im + t2;
+          Inc(i, l2);
+        end;
+        z :=  u1*c1 - u2*c2;
+        u2 := u1*c2 + u2*c1;
+        u1 := z;
+      end;
+      c2 := Sqrt((1.0 - c1)/2.0);
+      if Direction = 1 then c2 := -c2;
+      c1 := Sqrt((1.0 + c1)/2.0);
+    end;
+
+    // Scaling for forward transform
+    if Direction = 1 then
+    for i := 0 to DataSize-1 do
+    begin
+      Data[i].Re := Data[i].Re/DataSize;
+      Data[i].Im := Data[i].Im/DataSize;
+    end;
+    SetPrecisionMode(OldPrec);
+  end;
+
 
   procedure HannWindow(OutData : PDoubleArray; Width : Integer; Symmetric : Boolean);
   var
