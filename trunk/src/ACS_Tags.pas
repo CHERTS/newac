@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 1.9
+  This file is a part of New Audio Components package 2.4
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -109,6 +109,31 @@ const
   Id3v1TagsGenreIdDefault = 12; // 'Other'
 
 type
+
+  TCommonTags = class(TAuTags)
+  private
+    function GetArtist: WideString;
+    procedure SetArtist(const Value: WideString);
+    function GetAlbum: WideString;
+    procedure SetAlbum(const Value: WideString);
+    function GetGenre: WideString;
+    procedure SetGenre(const Value: WideString);
+    function GetYear: AnsiString;
+    procedure SetYear(const Value: AnsiString);
+    function GetTrack: AnsiString;
+    procedure SetTrack(const Value: AnsiString);
+    function GetTitle: WideString;
+    procedure SetTitle(const Value: WideString);
+  published
+    property Artist: WideString read GetArtist write SetArtist;
+    property Album: WideString read GetAlbum write SetAlbum;
+    property Genre: WideString read GetGenre write SetGenre;
+    property Year: AnsiString read GetYear write SetYear;
+    property Track: AnsiString read GetTrack write SetTrack;
+    property Title: WideString read GetTitle write SetTitle;
+  end;
+
+
 
   (* Class: TId3v1Tags
      This class is for handling Id3V1 tags.
@@ -1129,6 +1154,66 @@ begin
     (TagsInfo.Size[1] and $80 = 0) and
     (TagsInfo.Size[2] and $80 = 0) and
     (TagsInfo.Size[3] and $80 = 0);
+end;
+
+function TCommonTags.GetArtist;
+begin
+  Result := AsWideString['Artist'];
+end;
+
+procedure TCommonTags.SetArtist;
+begin
+  Values['Artist'] := Value;
+end;
+
+function TCommonTags.GetTitle;
+begin
+  Result := AsWideString['Title'];
+end;
+
+procedure TCommonTags.SetTitle;
+begin
+  Values['Title'] := Value;
+end;
+
+function TCommonTags.GetAlbum;
+begin
+  Result := AsWideString['Album'];
+end;
+
+procedure TCommonTags.SetAlbum;
+begin
+  Values['Album'] := Value;
+end;
+
+function TCommonTags.GetGenre;
+begin
+  Result := AsWideString['Genre'];
+end;
+
+procedure TCommonTags.SetGenre;
+begin
+  Values['Genre'] := Value;
+end;
+
+function TCommonTags.GetYear;
+begin
+  Result := AsString['Year'];
+end;
+
+procedure TCommonTags.SetYear;
+begin
+  Values['Year'] := Value;
+end;
+
+function TCommonTags.GetTrack;
+begin
+  Result := AsString['Track'];
+end;
+
+procedure TCommonTags.SetTrack;
+begin
+  Values['Track'] := Value;
 end;
 
 function TId3v2Tags.GetArtist: WideString;

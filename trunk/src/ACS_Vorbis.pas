@@ -136,10 +136,10 @@ type
   end;
 
   (* Class: TVorbisIn
-    The Ogg  Vorbis decoder component. Descends from <TAuFileIn>. More
+    The Ogg  Vorbis decoder component. Descends from <TAuTaggedFileIn>. More
       information on the Ogg Vorbis format may be found at
-      http://xiph.org/vorbis/. 
-      
+      http://xiph.org/vorbis/.
+
     Requires:
       - ogg.dll
       - vorbis.dll
@@ -147,7 +147,7 @@ type
       - vorbisfile.dll
   *)
 
-  TVorbisIn = class(TAuFileIn)
+  TVorbisIn = class(TAuTaggedFileIn)
   private
     FComments : TVorbisTags;
 //    FVendor : String;
