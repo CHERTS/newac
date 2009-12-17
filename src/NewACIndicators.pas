@@ -89,7 +89,9 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     (* Property: Levels
-      Returns 8 level values for the spectrum. The index value should be in the range of 0-7. *)
+      Returns 8 level values for the spectrum. The index value should be in the range of 0-7.
+      The levels are logarithmic scale values ranging from -40 (minimum) to 100 (maximum).
+      In practice you can consider anything below zero as silence. *)
     property Levels[Index : LongWord] : Single read GetLevels;
   published
     (* Property: Interval
@@ -136,7 +138,8 @@ begin
     raise EAuException.Create(Format('Failed to set up gain analysis. Possible cause: sample rate %d is not supported.', [FISR]));
   end;
   FSampleSize := FInput.BitsPerSample div 8;
-  //FScaleFactor := 1;
+  FSize := FInput.Size;
+  FPosition := 0;
 end;
 
 procedure TGainIndicator.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
@@ -217,8 +220,20 @@ begin
   FSampleSize := FInput.BitsPerSample div 8;
   FCount := 0;
   for i := 0 to 7 do Flevels[i] := 0;
-
+  FSize := FInput.Size;
+  FPosition := 0;
 end;
+
+{$DEFINE PTS16 }
+
+
+const
+{$IFDEF PTS16}
+   Points = 16;
+{$ENDIF}
+{$IFDEF PTS32}
+   Points = 32;
+{$ENDIF}
 
 procedure TSpectrumIndicator.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
 const
@@ -228,7 +243,7 @@ var
   SamplesRead, FramesRead : LongWord;
   InFloatBuf : array[0..SamplesInBuf-1] of Single;
   OutFloatBuf : array[0..SamplesInBuf-1] of Single;
-  InCmplx : array[0..15] of TComplexSingle;
+  InCmplx : array[0..Points-1] of TComplexSingle;
 begin
   if Bytes > FSampleSize*SamplesInBuf then Bytes := FSampleSize*SamplesInBuf;
   Finput.GetData(Buffer, Bytes);
@@ -250,29 +265,38 @@ begin
       OutFloatBuf[i] := OutFloatBuf[i] + InFloatBuf[Ch*i +j];
     OutFloatBuf[i] := OutFloatBuf[i]/Ch;
   end;
-  for i := 0 to (FramesRead div 16) - 1 do
+  for i := 0 to (FramesRead div Points) - 1 do
   begin
-    for j := 0 to 15 do
+    for j := 0 to Points-1 do
     begin
-      InCmplx[j].Re := OutFloatBuf[i*16 + j];
+      InCmplx[j].Re := OutFloatBuf[i*Points + j];
       InCmplx[j].Im := 0;
     end;
 //    try
-    ComplexFFTSingle(@InCmplx, 16, 1);
+    ComplexFFTSingle(@InCmplx, Points, 1);
     Inc(FCount);
 //    except
 //      Exit;
 //    end;
+    if Points = 16 then
+{$IFDEF PTS16}
     for j := 0 to 7 do
-       FShadowLevels[j] := FShadowLevels[j] + Sqrt(InCmplx[j].Re*InCmplx[j].Re + InCmplx[j].Im*InCmplx[j].Im);
+       FShadowLevels[j] := FShadowLevels[j] + Sqrt(Sqr(InCmplx[j].Re) + Sqr(InCmplx[j].Im))
+ {$ENDIF}
+ {$IFDEF PTS32}
+    for j := 0 to 7 do
+       FShadowLevels[j] := FShadowLevels[j] + (Sqrt(Sqr(InCmplx[j*2].Re) + Sqr(InCmplx[j*2].Im)) + Sqrt(Sqr(InCmplx[j*2+1].Re) + Sqr(InCmplx[j*2+1].Im)));
+ {$ENDIF}
   end;
   FElapsed := FElapsed + Round(FramesRead/FInput.SampleRate*100000);
   if FElapsed >= FInterval*100 then
   begin
     FElapsed := 0; //FElapsed - FInterval*100;
+    if FCount <> 0 then
+
     for j := 0 to 7 do
     begin
-       FLevels[j] := FShadowLevels[j]/FCount*Sin((j+0.5)*Pi/16);
+       FLevels[j] := (Log10(FShadowLevels[j]/FCount*Sin((j+0.5)*Pi/16) + 1e-4)+3)*40;
        FShadowLevels[j] := 0;
     end;
     FCount := 0;
