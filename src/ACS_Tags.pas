@@ -124,6 +124,8 @@ type
     procedure SetTrack(const Value: AnsiString);
     function GetTitle: WideString;
     procedure SetTitle(const Value: WideString);
+  public
+    constructor Create; override;
   published
     property Artist: WideString read GetArtist write SetArtist;
     property Album: WideString read GetAlbum write SetAlbum;
@@ -1154,6 +1156,17 @@ begin
     (TagsInfo.Size[1] and $80 = 0) and
     (TagsInfo.Size[2] and $80 = 0) and
     (TagsInfo.Size[3] and $80 = 0);
+end;
+
+constructor TCommonTags.Create;
+begin
+  inherited Create();
+  AddId('Title', '');
+  AddId('Album', '');
+  AddId('Artist', '');
+  AddId('Genre', '');
+  AddId('Year', '');
+  AddId('Track', '');
 end;
 
 function TCommonTags.GetArtist;

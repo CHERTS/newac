@@ -369,7 +369,12 @@ begin
         _Id3v1Tags.Clear();
         _APEv2Tags.Clear();
       end;
-
+      _CommonTags.Artist := _APEv2Tags.Artist;
+      _CommonTags.Title := _APEv2Tags.Title;
+      _CommonTags.Album := _APEv2Tags.Album;
+      _CommonTags.Genre := _APEv2Tags.Genre;
+      _CommonTags.Year := _APEv2Tags.Year;
+      _CommonTags.Track := _APEv2Tags.Track;
       Inc(FOpened);
     end;
   finally

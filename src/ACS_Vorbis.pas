@@ -533,6 +533,13 @@ implementation
         Inc(LongWord(PComment), 4);
         Comment := PComment^;
       end;
+      _CommonTags.Clear;
+      _CommonTags.Artist := FComments.Artist;
+      _CommonTags.Album := FComments.Album;
+      _CommonTags.Title := FComments.Title;
+      _CommonTags.Year := FComments.Date;
+      _CommonTags.Track := FComments.Track;
+      _CommonTags.Genre := FComments.Genre;
 //      FVendor := PVComm.vendor;
       PVInfo := ov_info(VFile, -1);
       FChan := PVInfo.channels;

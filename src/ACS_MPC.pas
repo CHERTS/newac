@@ -183,6 +183,13 @@ begin
           FStream := TAuFileStream.Create(
             FWideFileName, fmOpenRead or fmShareDenyWrite);
       ReadApe2Tags(FStream, _APEv2Tags);
+      _CommonTags.Clear;
+      _CommonTags.Artist := _Apev2Tags.Artist;
+      _CommonTags.Album := _Apev2Tags.Album;
+      _CommonTags.Title := _Apev2Tags.Title;
+      _CommonTags.Year := _Apev2Tags.Year;
+      _CommonTags.Track := _Apev2Tags.Track;
+      _CommonTags.Genre := _Apev2Tags.Genre;
       Stream.Seek(0, soFromBeginning);
       FDecoder := TMPCDecoder.Create(FStream);
 

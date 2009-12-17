@@ -344,6 +344,13 @@ implementation
        _Id3v2Tags.Track := IntToStr(_Id3v1Tags.Track);
        _Id3v2Tags.Genre := _Id3v1Tags.Genre;
      end;
+     _CommonTags.Clear;
+     _CommonTags.Artist := _Id3v2Tags.Artist;
+     _CommonTags.Album := _Id3v2Tags.Album;
+     _CommonTags.Title := _Id3v2Tags.Title;
+     _CommonTags.Year := _Id3v2Tags.Year;
+     _CommonTags.Track := _Id3v2Tags.Track;
+     _CommonTags.Genre := _Id3v2Tags.Genre;
    except
    end;
    end;
