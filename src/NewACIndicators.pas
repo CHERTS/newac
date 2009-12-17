@@ -147,6 +147,7 @@ var
   i : Integer;
   SamplesRead, FramesRead : LongWord;
 begin
+  FPosition := FInput.Position;
   Finput.GetData(Buffer, Bytes);
   if (Buffer = nil) or (Bytes = 0) then
     Exit;
@@ -245,6 +246,7 @@ var
   OutFloatBuf : array[0..SamplesInBuf-1] of Single;
   InCmplx : array[0..Points-1] of TComplexSingle;
 begin
+  FPosition := FInput.Position;
   if Bytes > FSampleSize*SamplesInBuf then Bytes := FSampleSize*SamplesInBuf;
   Finput.GetData(Buffer, Bytes);
   if (Buffer = nil) or (Bytes = 0) then
