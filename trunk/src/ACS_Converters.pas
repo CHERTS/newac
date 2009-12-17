@@ -1562,6 +1562,7 @@ implementation
     EEOF : Boolean;
     Len : Integer;
   begin
+    FPosition := FInput.Position div 3;
     FramesReq := Bytes div FOutputFrameSize;
     BytesReq := FramesReq*FInputFrameSize;
   (*  if Length(FIntBuffer) < BytesReq then
