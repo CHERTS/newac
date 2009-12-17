@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 304
   ActiveControl = AddtoPLButton
   Caption = 'Audio Player'
-  ClientHeight = 219
+  ClientHeight = 302
   ClientWidth = 464
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,6 +14,9 @@ object Form1: TForm1
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    464
+    302)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -40,14 +43,14 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 77
+    Top = 160
     Width = 464
     Height = 17
     Align = alBottom
     Smooth = True
     Step = 2
     TabOrder = 1
-    ExplicitWidth = 371
+    ExplicitTop = 77
   end
   object StopButton: TButton
     Left = 216
@@ -68,14 +71,14 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 200
+    Top = 283
     Width = 464
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    ExplicitWidth = 371
+    ExplicitTop = 200
   end
   object AddtoPLButton: TButton
     Left = 8
@@ -89,14 +92,14 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 0
-    Top = 111
+    Top = 194
     Width = 464
     Height = 89
     Align = alBottom
     ItemHeight = 13
     TabOrder = 6
     OnClick = ListBox1Click
-    ExplicitWidth = 371
+    ExplicitTop = 111
   end
   object SkipButton: TButton
     Left = 168
@@ -109,12 +112,12 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 94
+    Top = 177
     Width = 464
     Height = 17
     Align = alBottom
     TabOrder = 8
-    ExplicitWidth = 371
+    ExplicitTop = 94
   end
   object ForwardButton: TButton
     Left = 272
@@ -133,6 +136,18 @@ object Form1: TForm1
     Caption = '<<'
     TabOrder = 10
     OnClick = BackwardButtonClick
+  end
+  object Memo1: TMemo
+    Left = 0
+    Top = 61
+    Width = 464
+    Height = 94
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Lines.Strings = (
+      'Memo1')
+    ReadOnly = True
+    TabOrder = 11
+    ExplicitHeight = 89
   end
   object VorbisIn1: TVorbisIn
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'

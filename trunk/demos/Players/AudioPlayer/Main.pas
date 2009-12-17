@@ -35,6 +35,7 @@ type
     DXAudioOut1: TDXAudioOut;
     MACIn1: TMACIn;
     WVIn1: TWVIn;
+    Memo1: TMemo;
     procedure PlayButtonClick(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -170,6 +171,16 @@ begin
   if Sec < 10 then Fmt := '%d:0%d'
   else Fmt := '%d:%d';
   Label2.Caption := Format(Fmt, [Min, Sec]);
+  Memo1.Clear;
+  if FI is TAuTaggedFileIn then
+  begin
+    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Title));
+    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Album));
+    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Artist));
+    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Genre));
+    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Track));
+    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Year));
+  end;
 end;
 
 
