@@ -97,7 +97,7 @@ type
     Requires libFLAC.dll
     More information about FLAC can be found at http://flac.sourceforge.com. *)
 
-  TFLACIn = class(TAuFileIn)
+  TFLACIn = class(TAuTaggedFileIn)
   private
     EndOfMetadata : Boolean;
     FComments : TVorbisTags;
@@ -865,6 +865,13 @@ type
       BuffSize := 0;
       Buff := nil;
     end;
+    _CommonTags.Clear;
+    _CommonTags.Artist := FComments.Artist;
+    _CommonTags.Album := FComments.Album;
+    _CommonTags.Title := FComments.Title;
+    _CommonTags.Year := FComments.Date;
+    _CommonTags.Track := FComments.Track;
+    _CommonTags.Genre := FComments.Genre;
     finally
       OpenCS.Leave;
     end;

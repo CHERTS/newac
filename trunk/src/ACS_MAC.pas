@@ -278,11 +278,17 @@ begin
     _APEv2Tags.Clear;
     if macGetID3Tag(PAnsiChar(AnsiString(FWideFileName)), @Tag) = 0 then
     begin
+      _CommonTags.Clear;
       _APEv2Tags.Album := Tag.Album;
+      _CommonTags.Album := Tag.Album;
       _APEv2Tags.Artist := Tag.Artist;
+      _CommonTags.Artist := Tag.Artist;
       _APEv2Tags.Title := Tag.Title;
+      _CommonTags.Title := Tag.Title;
 //      _APEv2Tags.Genre := Tag.Genre;
+      _CommonTags.Genre := '';
       _APEv2Tags.Year := Tag.Year;
+      _CommonTags.Year := Tag.Year;
       _APEv2Tags.Comment := Tag.Comment;
     end;
 

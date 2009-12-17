@@ -591,26 +591,32 @@ type
 
   (* Class: TAuTaggedFileIn
       Descends from <TAuFileIn>, this class is an ancestor of the file input
-      components that use ID3V* tags. *)
+      components that use tags. *)
 
   TAuTaggedFileIn = class(TAuFileIn)
   private
     FId3v1Tags: TId3v1Tags;
     FId3v2Tags: TId3v2Tags;
     FAPEv2Tags: TAPEv2Tags;
+    FCommonTags : TCommonTags;
 
     procedure SetId3v1Tags(Value: TId3v1Tags);
     procedure SetId3v2Tags(Value: TId3v2Tags);
     procedure SetAPEv2Tags(Value: TAPEv2Tags);
+    procedure SetCommonTags(Value: TCommonTags);
   protected
 (* Ross--- *)
     property _Id3v1Tags: TId3v1Tags read FId3v1Tags write SetId3v1Tags;
     property _Id3v2Tags: TId3v2Tags read FId3v2Tags write SetId3v2Tags;
     property _APEv2Tags: TAPEv2Tags read FAPEv2Tags write SetAPEv2Tags;
 (* ---Ross *)
+    property _CommonTags : TCommonTags read FCommonTags write SetCommonTags;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    (* Property: CommonTags
+       Contains the tag values common to the different tag formats *)
+    property CommonTags : TCommonTags read FCommonTags;
   end;
 
   (* Class: TAuFileOut
@@ -1796,6 +1802,11 @@ constructor TAuOutput.Create;
     FAPEv2Tags.Assign(Value);
   end;
 
+  procedure TAuTaggedFileIn.SetCommonTags(Value: TCommonTags);
+  begin
+    FCommonTags.Assign(Value);
+  end;
+
 (* ---Ross *)
   procedure TAuFileIn.SetWideFileName;
   begin
@@ -1852,6 +1863,7 @@ constructor TAuOutput.Create;
     FId3v2Tags := TId3v2Tags.Create();
     FAPEv2Tags := TAPEv2Tags.Create();
 (* ---Ross *)
+    FCommonTags := TCommonTags.Create();
   end;
 
   destructor TAuTaggedFileIn.Destroy;
@@ -1861,6 +1873,7 @@ constructor TAuOutput.Create;
     FId3v2Tags.Free();
     FAPEv2Tags.Free();
 (* ---Ross *)
+    FCommonTags.Free();
     inherited Destroy;
   end;
 
