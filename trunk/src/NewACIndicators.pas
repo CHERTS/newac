@@ -201,7 +201,6 @@ begin
      EventHandler.PostGenericEvent(Self, FOnGainData);
   Finput.Flush;
   Busy := False;
-  FGainValue := 0;
 end;
 
 

@@ -18,7 +18,7 @@ unit NewAC_DSP;
 interface
 
 uses
-  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, FFTReal, Math;
+  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, FFTReal, Math, GainAnalysis;
 
 const
   BufSize : Integer = $6000;
@@ -154,10 +154,57 @@ type
     (* Function: SetCoefficients
        Sets coefficients for the equation.
        A is a vector of a0...an, B is a vector of b0...bn.
-       The same set of coefficients is applied to all input channels. 
+       The same set of coefficients is applied to all input channels.
     *)
     procedure SetCoefficients(const A, B : array of Single);
   end;
+
+
+    TGCState = (gcPassing, gcSkipping);
+
+  (* Class: TGainProcessor
+     This component processes audio data passing throug depending on tge gain level.
+     Carrently it can detect the periods of silence and skip them (like TVoiceFilter does on Windows Vista and above).
+     The component requires libgain.dll.
+     Descends from <TAuConverter>.
+  *)
+
+    TGainProcessor = class(TAuConverter)
+    private
+      TmpBuffer1, TmpBuffer2 : array of Byte;
+      InBuffer : array of Single;
+      LBuffer, RBuffer : array of Double;
+      FBufferSize, FramesInBuffer : Word;
+      FOffset : Word;
+      FIsEndOdSource : Boolean;
+      SampleSize, FrameSize : Word;
+      FCount : LongWord;
+      FMinSilenceInterval, FMinSoundLevel : Word;
+      FState : TGCState;
+      FInternalState : Byte;
+      FOnStateChanged : TGenericEvent;
+      FLevel : Single;
+      procedure GetNewData;
+    protected
+      procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+      procedure InitInternal; override;
+      procedure FlushInternal; override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      (* Property: State
+         Returns the current silence skipping state which is one of the two: gcPassing - a sound is detected the data is passing throug, gcSkipping - the silence is detected and the data doesn't pass through. *)
+      property State : TGCState read FState;
+    published
+      (* Property: MinSilenceInterval
+         Sets the interval for the silence detection in seconds. It the input is silent for more than this value, the component starts skipping further silence. *)
+      property MinSilenceInterval : Word read FMinSilenceInterval write FMinSilenceInterval;
+      (* Property: MinSoundLevel
+         Sets the gain threshold to distinguish a sound from the silence. Values range from 0 to 100. *)
+      property MinSoundLevel : Word read FMinSoundLevel write FMinSoundLevel;
+      (* Property: OnStateChanged
+         This event indicates thet the component's <State> has changed. Unlike most other NewAC events it is delivered synchronously, so you should avoid updating GUI directly from its handler. *)
+      property OnStateChanged : TGenericEvent read FOnStateChanged write FOnStateChanged;
+    end;
 
 
 implementation
@@ -600,6 +647,158 @@ implementation
     SetLength(_B, Length(B));
     for i := 0 to  Length(B) - 1 do
       _B[i] := B[Length(B) - 1 - i];
+  end;
+
+
+  constructor TGainProcessor.Create(AOwner: TComponent);
+  begin
+    inherited Create(AOwner);
+    FMinSilenceInterval := 1;
+    FMinSoundLevel := 5;
+  end;
+
+  procedure TGainProcessor.GetNewData;
+  var
+    i : Integer;
+  begin
+    FastCopyMem(@TmpBuffer1[0], @TmpBuffer2[0], FBufferSize);
+    FillChar(TmpBuffer2[0], FBufferSize, 0);
+    FOffset := 0;
+    FInput.FillBuffer(@TmpBuffer2[0], FBufferSize, FIsEndOdSource);
+    case FSampleSize of
+      1 : ByteToSingle(PBuffer8(@TmpBuffer2[0]), @InBuffer[0], FBufferSize div FSampleSize);
+      2 : SmallIntToSingle(PBuffer16(@TmpBuffer2[0]), @InBuffer[0], FBufferSize div FSampleSize);
+      3 : Int24ToSingle(PBuffer8(@TmpBuffer2[0]), @InBuffer[0], FBufferSize div FSampleSize);
+      4 : Int32ToSingle(PBuffer32(@TmpBuffer2[0]), @InBuffer[0], FBufferSize div FSampleSize);
+    end;
+    if Finput.Channels = 2 then
+    begin
+      for i := 0 to FramesInBuffer - 1 do
+      begin
+        RBuffer[i] := InBuffer[i*2]*$8000;
+        LBuffer[i] := InBuffer[i*2+1]*$8000;
+      end;
+    end else
+      for i := 0 to FramesInBuffer - 1 do
+    begin
+      RBuffer[i] := InBuffer[i]*$8000;
+      LBuffer[i] := RBuffer[i];
+    end;
+    AnalyzeSamples(@LBuffer[0], @RBuffer[0], FramesInBuffer, 2);
+    Flevel := 32 - GetTitleGain;
+  end;
+
+  procedure TGainProcessor.InitInternal;
+  begin
+    LoadLibGain;
+    if not LibGainLoaded then
+      raise EAuException.Create(Format('Could not load the %s library.', [LibGainPath]));
+    Busy := True;
+    FInput.Init;
+    if FInput.Channels > 2 then
+    begin
+      FInput.Flush;
+      Busy := False;
+      raise EAuException.Create('Only mono or stereo soures are supported.');
+    end;
+    if InitGainAnalysis(FInput.SampleRate) <> GAIN_ANALYSIS_OK then
+    begin
+      FInput.Flush;
+      Busy := False;
+      raise EAuException.Create(Format('Failed to set up gain analysis. Possible cause: sample rate %d is not supported.', [FInput.SampleRate]));
+    end;
+    FSampleSize := FInput.BitsPerSample div 8;
+    FrameSize := FSampleSize * FInput.Channels;
+    FSize := -1;
+    FPosition := 0;
+    FBufferSize := FSampleSize*FInput.SampleRate*FInput.Channels div 5;
+    FramesInBuffer := FInput.SampleRate div 5;
+    SetLength(TmpBuffer1, FBufferSize);
+    SetLength(TmpBuffer2, FBufferSize);
+    FillChar(TmpBuffer2[0], FBufferSize, 0);
+    SetLength(InBuffer, FBufferSize div FSampleSize);
+    SetLength(RBuffer, FBufferSize div FSampleSize);
+    SetLength(LBuffer, FBufferSize div FSampleSize);
+    FOffset := FBufferSize;
+    FState := gcPassing;
+    FInternalState := 1;
+     FCount := 0;
+  end;
+
+  procedure TGainProcessor.FlushInternal;
+  begin
+    FLevel := 0;
+    Finput.Flush;
+    SetLength(TmpBuffer1, 0);
+    SetLength(TmpBuffer2, 0);
+    SetLength(InBuffer, 0);
+    SetLength(RBuffer, 0);
+    SetLength(LBuffer, 0);
+    FState := gcPassing;
+    Busy := False;
+  end;
+
+  procedure TGainProcessor.GetDataInternal;
+  begin
+    case FInternalState of
+      0:
+      begin
+        if Flevel < FMinSoundLevel then
+        begin
+          FInternalState := 1;
+          FCount :=0;
+        end;
+      end;
+      1:
+      begin
+        if Flevel >= FMinSoundLevel then
+        begin
+          FInternalState := 0;
+        end else
+        begin
+          FCount := FCount + (Bytes*10000) div (FrameSize*FInput.SampleRate);
+          if FCount >= FMinSilenceInterval*10000 then
+          FInternalState := 2;
+          FState := gcSkipping;
+          if Assigned(FOnStateChanged) then
+            FOnStateChanged(Self);
+        end;
+      end;
+      2:
+      begin
+        if Flevel >= FMinSoundLevel then
+        begin
+          FInternalState := 0;
+          FState := gcPassing;
+          if Assigned(FOnStateChanged) then
+            FOnStateChanged(Self);
+        end;
+      end;
+      else;
+    end;
+    if FOffset >= FBufferSize then
+    begin
+      if FIsEndOdSource then
+      begin
+        Bytes := 0;
+        Buffer := nil;
+        Exit;
+      end;
+      GetNewData;
+    end;
+    if FInternalState < 2 then
+    begin
+      if Bytes > FBufferSize - FOffset then
+        Bytes := FBufferSize - FOffset;
+      Buffer := @TmpBuffer1[FOffset];
+      Inc(FOffset, Bytes);
+    end else
+    begin
+      FillChar(TmpBuffer1[0], FBufferSize, 0);
+      Bytes := FrameSize;
+      Buffer := @TmpBuffer1[0];
+      FOffset := FBufferSize;
+    end;
   end;
 
 
