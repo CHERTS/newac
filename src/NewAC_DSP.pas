@@ -171,6 +171,9 @@ type
 
     TGainProcessor = class(TAuConverter)
     private
+      const
+         FilterLength = 8;
+      var
       TmpBuffer1, TmpBuffer2 : array of Byte;
       InBuffer : array of Single;
       LBuffer, RBuffer : array of Double;
@@ -184,11 +187,15 @@ type
       FInternalState : Byte;
       FOnStateChanged : TGenericEvent;
       FLevel : Single;
+      FFilterOffset : LongWord;
+      FFilterBuffer : array[0..1, 0..FilterLength-1] of Integer;
+      FLastY : array[0..1] of Integer;
       procedure GetNewData;
+      procedure CalculateInternal(var Buffer : Pointer; var Bytes : LongWord);
     protected
-      procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
       procedure InitInternal; override;
       procedure FlushInternal; override;
+      procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     public
       constructor Create(AOwner: TComponent); override;
       (* Property: State
@@ -722,7 +729,11 @@ implementation
     FOffset := FBufferSize;
     FState := gcPassing;
     FInternalState := 1;
-     FCount := 0;
+    FCount := 0;
+    FFilterOffset := 0;
+    FLastY[0] := 0;
+    FLastY[1] := 0;
+    FillChar(FFilterBuffer[0], 8*FilterLength, 0);
   end;
 
   procedure TGainProcessor.FlushInternal;
@@ -738,8 +749,19 @@ implementation
     Busy := False;
   end;
 
-  procedure TGainProcessor.GetDataInternal;
+  procedure TGainProcessor.CalculateInternal;
   begin
+    if FOffset >= FBufferSize then
+    begin
+      if FIsEndOdSource then
+      begin
+        Bytes := 0;
+        Buffer := nil;
+        FState := gcPassing;
+        Exit;
+      end;
+      GetNewData;
+    end;
     case FInternalState of
       0:
       begin
@@ -776,16 +798,6 @@ implementation
       end;
       else;
     end;
-    if FOffset >= FBufferSize then
-    begin
-      if FIsEndOdSource then
-      begin
-        Bytes := 0;
-        Buffer := nil;
-        Exit;
-      end;
-      GetNewData;
-    end;
     if FInternalState < 2 then
     begin
       if Bytes > FBufferSize - FOffset then
@@ -794,12 +806,140 @@ implementation
       Inc(FOffset, Bytes);
     end else
     begin
-      FillChar(TmpBuffer1[0], FBufferSize, 0);
+ //     PInt64(@TmpBuffer1[0])^ := 0;
       Bytes := FrameSize;
       Buffer := @TmpBuffer1[0];
       FOffset := FBufferSize;
     end;
   end;
 
+  procedure TGainProcessor.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+  var
+    i, j : Integer;
+    t : Int64;
+    B16 : PBuffer16;
+    B32 : PBuffer32;
+    B8 : PBuffer8;
+    tB : LongWord;
+  begin
+    tB := Bytes;
+    CalculateInternal(Buffer, Bytes);
+    while Bytes = FrameSize do
+    begin
+      Bytes := Tb;
+      CalculateInternal(Buffer, Bytes);
+    end;
+    if Bytes = 0 then Exit;
+    B16 := Buffer;
+    for i := 0 to (Bytes div FrameSize) - 1 do
+    begin
+      if FInput.BitsPerSample = 16 then
+      begin
+        if Finput.Channels = 1 then
+        begin
+          t := FLastY[0] + (B16[i] - FFilterBuffer[0,FFilterOffset]) div FilterLength;
+          FFilterBuffer[0,FFilterOffset] := B16[i];
+          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 32767 then
+               t := 32767;
+          if t < -32767 then
+               t := -32767;
+          B16[i] := t;
+          FLastY[0] := t;
+        end else
+        begin
+          t := FLastY[0] + (B16[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength;
+          FFilterBuffer[0,FFilterOffset] := B16[i*2];
+//        FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 32767 then
+               t := 32767;
+          if t < -32767 then
+               t := -32767;
+          B16[i*2] := t;
+          FLastY[0] := t;
+
+          t := FLastY[1] + (B16[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength;
+          FFilterBuffer[1,FFilterOffset] := B16[i*2+1];
+          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 32767 then
+               t := 32767;
+          if t < -32767 then
+               t := -32767;
+          B16[i*2+1] := t;
+          FLastY[1] := t;
+        end;
+      end else
+      if FInput.BitsPerSample = 32 then
+      begin
+        if Finput.Channels = 1 then
+        begin
+          t := FLastY[0] + (B32[i] - FFilterBuffer[0,FFilterOffset]) div FilterLength;
+          FFilterBuffer[0,FFilterOffset] := B32[i];
+          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 32767 then
+               t := 32767;
+          if t < -32767 then
+               t := -32767;
+          B32[i] := t;
+          FLastY[0] := t;
+        end else
+        begin
+          t := FLastY[0] + (B32[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength;
+          FFilterBuffer[0,FFilterOffset] := B32[i*2];
+//        FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 32767 then
+               t := 32767;
+          if t < -32767 then
+               t := -32767;
+          B32[i*2] := t;
+          FLastY[0] := t;
+
+          t := FLastY[1] + (B32[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength;
+          FFilterBuffer[1,FFilterOffset] := B32[i*2+1];
+          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > $FFFFFFFF then
+               t := $FFFFFFFF;
+          if t < -$FFFFFFFE then
+               t := -$FFFFFFFE;
+          B32[i*2+1] := t;
+          FLastY[1] := t;
+        end;
+      end else
+      if FInput.BitsPerSample = 8 then
+      begin
+        if Finput.Channels = 1 then
+        begin
+          t := FLastY[0] + (B8[i] - FFilterBuffer[0,FFilterOffset]) div FilterLength;
+          FFilterBuffer[0,FFilterOffset] := B8[i];
+          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 255 then
+               t := 255;
+          B8[i] := t;
+          FLastY[0] := t;
+        end else
+        begin
+          t := FLastY[0] + (B8[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength;
+          FFilterBuffer[0,FFilterOffset] := B8[i*2];
+//        FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 8767 then
+               t := 8767;
+          if t < -8767 then
+               t := -8767;
+          B8[i*2] := t;
+          FLastY[0] := t;
+
+          t := FLastY[1] + (B8[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength;
+          FFilterBuffer[1,FFilterOffset] := B8[i*2+1];
+          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          if t > 8767 then
+               t := 8767;
+          if t < -8767 then
+               t := -8767;
+          B8[i*2+1] := t;
+          FLastY[1] := t;
+        end;
+      end;
+    end;
+  end;
 
 end.
