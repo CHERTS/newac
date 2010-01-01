@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package v 2.1
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v 2.4
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -1605,11 +1605,13 @@ end;
   end;
 
   procedure TWaveIn.ReadRIFFHeader;
+  const
+    __BufSize = $FFFF;
   var
     i : Integer;
     WordVal : Word;
     IntVal : Integer;
-    Buff : array[0..$fff] of AnsiChar;
+    Buff : array[0..__BufSize] of AnsiChar;
     State : Integer;
     ChunkSize : Integer;
     SubType : TGuid;
@@ -1622,7 +1624,7 @@ end;
     State := LookingForRIFF;
     i := 4;
     FStream.Read(Buff[0], 4);
-    while i < $2000 do
+    while i < __BufSize do
     begin
       case State of
         LookingForRIFF :
@@ -1770,7 +1772,7 @@ end;
       if Seekable then
       if FStream.Position >= FStream.Size then Break;
     end;
-    _WavType := wtUnsupported
+    _WavType := wtUnsupported;
   end;
 
   procedure TWaveOut.ReadRIFFHeader;

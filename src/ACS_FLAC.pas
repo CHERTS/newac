@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package 1.4
-  Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 2.4
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -827,6 +827,10 @@ type
   end;
 
   procedure TFLACIn.OpenFile;
+  const
+    MaxBlocks = 256;
+  var
+    i : Integer;
   begin
     LoadFLACLib;
     if not LibFLACLoaded then
@@ -854,14 +858,18 @@ type
       raise EAuException.Create('Failed to set up the FLAC decoder.');
       FComments.Clear;
       EndOfMetadata := False;
-      while not EndOfMetadata do
+      i := 0;
+      while (not EndOfMetadata) and (i < MaxBlocks) do
       begin
         if not FLAC__stream_decoder_process_single(_decoder) then
         begin
           FValid := False;
           Break;
         end;
+        Inc(i);
       end;
+      if i = MaxBlocks then
+        FValid := False;
       BuffSize := 0;
       Buff := nil;
     end;
