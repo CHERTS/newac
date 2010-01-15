@@ -2,9 +2,9 @@ Format: 1.4
 
 
 Title: NewAC
-SubTitle: v2.3
+SubTitle: v2.4
 
-Footer: Content (c) 2008-2009 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
+Footer: Content (c) 2008-2010 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
 # You can add a timestamp to your documentation like one of these:
 # Timestamp: Generated on month day, year
