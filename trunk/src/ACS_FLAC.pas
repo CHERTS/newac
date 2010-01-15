@@ -827,10 +827,6 @@ type
   end;
 
   procedure TFLACIn.OpenFile;
-  const
-    MaxBlocks = 256;
-  var
-    i : Integer;
   begin
     LoadFLACLib;
     if not LibFLACLoaded then
@@ -858,20 +854,18 @@ type
       raise EAuException.Create('Failed to set up the FLAC decoder.');
       FComments.Clear;
       EndOfMetadata := False;
-      i := 0;
-      while (not EndOfMetadata) and (i < MaxBlocks) do
+      while (not EndOfMetadata) and (FValid) do
       begin
         if not FLAC__stream_decoder_process_single(_decoder) then
         begin
           FValid := False;
           Break;
         end;
-        Inc(i);
       end;
-      if i = MaxBlocks then
-        FValid := False;
       BuffSize := 0;
       Buff := nil;
+      if not FValid then
+        Exit;
     end;
     _CommonTags.Clear;
     _CommonTags.Artist := FComments.Artist;
@@ -920,7 +914,7 @@ type
       if not FLAC__stream_decoder_process_single(_decoder) then
       begin
         dec_state := FLAC__stream_decoder_get_state(_decoder);
-        if dec_state = FLAC__STREAM_DECODER_END_OF_STREAM then
+        if (dec_state = FLAC__STREAM_DECODER_END_OF_STREAM) or (not FValid) then
         begin
           Buffer :=  nil;
           Bytes := 0;
