@@ -34,7 +34,8 @@ Section: Version History
 	Short list of new features for each NewAC version.
 
 Version: NewAC 2.4
-	- The Audio Output Latency property is added
+	- The Audio Output Latency property is added.
+	- Common audio tags properties are added.
 	- TSpectrumIndicator component is added.
 	- TTagsEditor component is added.
 	- TGainControl component is added.
