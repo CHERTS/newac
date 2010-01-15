@@ -10,7 +10,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_Classes, ACS_Wave, StdCtrls, ComCtrls, ACS_Vorbis,
-  ACS_FLAC, ACS_smpeg, ExtCtrls, ACS_DXAudio, ACS_WinMedia, ACS_WavPack, ACS_MAC;
+  ACS_FLAC, ACS_smpeg, ExtCtrls, ACS_DXAudio, ACS_WinMedia, ACS_WavPack, ACS_MAC,
+  NewACIndicators;
 
 type
   TForm1 = class(TForm)
@@ -36,6 +37,16 @@ type
     MACIn1: TMACIn;
     WVIn1: TWVIn;
     Memo1: TMemo;
+    Panel2: TPanel;
+    ProgressBar2: TProgressBar;
+    ProgressBar3: TProgressBar;
+    ProgressBar4: TProgressBar;
+    ProgressBar5: TProgressBar;
+    ProgressBar6: TProgressBar;
+    ProgressBar7: TProgressBar;
+    ProgressBar8: TProgressBar;
+    ProgressBar9: TProgressBar;
+    SpectrumIndicator1: TSpectrumIndicator;
     procedure PlayButtonClick(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -49,6 +60,7 @@ type
     procedure SkipButtonClick(Sender: TObject);
     procedure ForwardButtonClick(Sender: TObject);
     procedure BackwardButtonClick(Sender: TObject);
+    procedure SpectrumIndicator1GainData(Sender: TComponent);
   private
     { Private declarations }
     PlayingIndex : Integer;
@@ -162,7 +174,7 @@ begin
   end;
   StatusBar1.Panels[0].Text := 'Playing: ' + ExtractFileName(FileName);
   FI.Loop := CheckBox1.Checked;
-  DXAudioOut1.Input := FI;
+  SpectrumIndicator1.Input := FI;
   PlayButton.Enabled := False;
   DXAudioOut1.Run;
   Sec := FI.TotalTime;
@@ -213,14 +225,26 @@ begin
   DXAudioOut1.Stop;
 end;
 
+procedure TForm1.SpectrumIndicator1GainData(Sender: TComponent);
+begin
+  ProgressBar2.Position := Round(SpectrumIndicator1.Levels[0]);
+  ProgressBar3.Position := Round(SpectrumIndicator1.Levels[1]);
+  ProgressBar4.Position := Round(SpectrumIndicator1.Levels[2]);
+  ProgressBar5.Position := Round(SpectrumIndicator1.Levels[3]);
+  ProgressBar6.Position := Round(SpectrumIndicator1.Levels[4]);
+  ProgressBar7.Position := Round(SpectrumIndicator1.Levels[5]);
+  ProgressBar8.Position := Round(SpectrumIndicator1.Levels[6]);
+  ProgressBar9.Position := Round(SpectrumIndicator1.Levels[7]);
+end;
+
 procedure TForm1.ForwardButtonClick(Sender: TObject);
 begin
-  TAuFileIn(DXAudioOut1.Input).Jump(10);
+  TAuFileIn(SpectrumIndicator1.Input).Jump(10);
 end;
 
 procedure TForm1.BackwardButtonClick(Sender: TObject);
 begin
-  TAuFileIn(DXAudioOut1.Input).Jump(-10);
+  TAuFileIn(SpectrumIndicator1.Input).Jump(-10);
 end;
 
 end.

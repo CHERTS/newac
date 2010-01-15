@@ -3,8 +3,8 @@ object Form1: TForm1
   Top = 304
   ActiveControl = AddtoPLButton
   Caption = 'Audio Player'
-  ClientHeight = 302
-  ClientWidth = 464
+  ClientHeight = 427
+  ClientWidth = 590
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,8 +15,8 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    464
-    302)
+    590
+    427)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -43,14 +43,13 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 160
-    Width = 464
+    Top = 285
+    Width = 590
     Height = 17
     Align = alBottom
     Smooth = True
     Step = 2
     TabOrder = 1
-    ExplicitTop = 77
   end
   object StopButton: TButton
     Left = 216
@@ -71,14 +70,13 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 283
-    Width = 464
+    Top = 408
+    Width = 590
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    ExplicitTop = 200
   end
   object AddtoPLButton: TButton
     Left = 8
@@ -92,14 +90,13 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 0
-    Top = 194
-    Width = 464
+    Top = 319
+    Width = 590
     Height = 89
     Align = alBottom
     ItemHeight = 13
     TabOrder = 6
     OnClick = ListBox1Click
-    ExplicitTop = 111
   end
   object SkipButton: TButton
     Left = 168
@@ -112,12 +109,11 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 0
-    Top = 177
-    Width = 464
+    Top = 302
+    Width = 590
     Height = 17
     Align = alBottom
     TabOrder = 8
-    ExplicitTop = 94
   end
   object ForwardButton: TButton
     Left = 272
@@ -140,14 +136,115 @@ object Form1: TForm1
   object Memo1: TMemo
     Left = 0
     Top = 61
-    Width = 464
-    Height = 94
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Width = 363
+    Height = 219
+    Anchors = [akLeft, akTop, akBottom]
     Lines.Strings = (
       'Memo1')
     ReadOnly = True
     TabOrder = 11
-    ExplicitHeight = 89
+  end
+  object Panel2: TPanel
+    Left = 369
+    Top = 64
+    Width = 215
+    Height = 215
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Caption = 'Panel2'
+    Color = clMaroon
+    ParentBackground = False
+    TabOrder = 12
+    DesignSize = (
+      215
+      215)
+    object ProgressBar2: TProgressBar
+      Left = 16
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clAqua
+      BackgroundColor = clMaroon
+      TabOrder = 0
+    end
+    object ProgressBar3: TProgressBar
+      Left = 39
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clAqua
+      BackgroundColor = clMaroon
+      TabOrder = 1
+    end
+    object ProgressBar4: TProgressBar
+      Left = 62
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clLime
+      BackgroundColor = clMaroon
+      TabOrder = 2
+    end
+    object ProgressBar5: TProgressBar
+      Left = 85
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clLime
+      BackgroundColor = clMaroon
+      TabOrder = 3
+    end
+    object ProgressBar6: TProgressBar
+      Left = 108
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clLime
+      BackgroundColor = clMaroon
+      TabOrder = 4
+    end
+    object ProgressBar7: TProgressBar
+      Left = 131
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clLime
+      BackgroundColor = clMaroon
+      TabOrder = 5
+    end
+    object ProgressBar8: TProgressBar
+      Left = 154
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clAqua
+      BackgroundColor = clMaroon
+      TabOrder = 6
+    end
+    object ProgressBar9: TProgressBar
+      Left = 177
+      Top = 16
+      Width = 17
+      Height = 193
+      Anchors = [akLeft, akTop, akBottom]
+      Orientation = pbVertical
+      BarColor = clAqua
+      BackgroundColor = clMaroon
+      TabOrder = 7
+    end
   end
   object VorbisIn1: TVorbisIn
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'
@@ -160,7 +257,7 @@ object Form1: TForm1
     Filter = 
       'All files|*.*|Ogg Vorbis files|*.ogg|MP3 files|*.mp3|FLAC files|' +
       '*.flac|Monkey Audio|*.ape|Wavpack|*.wv|Wave files|*.wav'
-    Left = 368
+    Left = 392
     Top = 160
   end
   object WaveIn1: TWaveIn
@@ -185,15 +282,15 @@ object Form1: TForm1
     Top = 160
   end
   object DXAudioOut1: TDXAudioOut
-    Input = VorbisIn1
+    Input = SpectrumIndicator1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
     FramesInBuffer = 24576
-    Latency = 80
+    Latency = 60
     PollingInterval = 100
     PrefetchData = True
-    Left = 280
+    Left = 328
     Top = 160
   end
   object MACIn1: TMACIn
@@ -207,5 +304,11 @@ object Form1: TForm1
     EndSample = -1
     Left = 8
     Top = 120
+  end
+  object SpectrumIndicator1: TSpectrumIndicator
+    Interval = 80
+    OnGainData = SpectrumIndicator1GainData
+    Left = 280
+    Top = 160
   end
 end
