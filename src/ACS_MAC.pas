@@ -272,10 +272,10 @@ begin
      raise EAuException.Create(MACPath + ' library could not be loaded.');
   OpenCS.Enter;
   try
-  FValid := True;
   if FOpened = 0 then
   begin
-    _APEv2Tags.Clear;
+     FValid := True;
+     _APEv2Tags.Clear;
     if macGetID3Tag(PAnsiChar(AnsiString(FWideFileName)), @Tag) = 0 then
     begin
       _CommonTags.Clear;

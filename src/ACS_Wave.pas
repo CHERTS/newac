@@ -743,9 +743,9 @@ const
   begin
     OpenCS.Enter;
     try
-    FValid := True;
     if FOpened = 0 then
     begin
+      FValid := True;
       ShortIEEEFloat := False;
       _WavType := wtUnsupported;
       if not FStreamAssigned then
