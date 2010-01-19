@@ -7,6 +7,7 @@
 
 (* $Id$ *)
 
+
 unit NewAC_DSP;
 
 (* Title: NewAC_DSP
@@ -162,6 +163,14 @@ type
 
     TGCState = (gcPassing, gcSkipping);
 
+   {$IFDEF DELPHI_6P}
+    const
+       lFilterLength = 8;
+
+     type
+    {$ENDIF}
+
+
   (* Class: TGainProcessor
      This component processes audio data passing throug depending on tge gain level.
      Carrently it can detect the periods of silence and skip them (like TVoiceFilter does on Windows Vista and above).
@@ -171,16 +180,19 @@ type
 
     TGainProcessor = class(TAuConverter)
     private
+     {$IFDEF DELPHI_2009P}
       const
-         FilterLength = 8;
+         lFilterLength = 8;
       var
+      {$ENDIF}
+      FSkipSilenceEnabled : Boolean;
       TmpBuffer1, TmpBuffer2 : array of Byte;
       InBuffer : array of Single;
       LBuffer, RBuffer : array of Double;
       FBufferSize, FramesInBuffer : Word;
       FOffset : Word;
       FIsEndOdSource : Boolean;
-      SampleSize, FrameSize : Word;
+      FrameSize : Word;
       FCount : LongWord;
       FMinSilenceInterval, FMinSoundLevel : Word;
       FState : TGCState;
@@ -188,7 +200,7 @@ type
       FOnStateChanged : TGenericEvent;
       FLevel : Single;
       FFilterOffset : LongWord;
-      FFilterBuffer : array[0..1, 0..FilterLength-1] of Integer;
+      FFilterBuffer : array[0..1, 0..lFilterLength-1] of Integer;
       FLastY : array[0..1] of Integer;
       procedure GetNewData;
 //      procedure CalculateInternal(var Buffer : Pointer; var Bytes : LongWord);
@@ -202,12 +214,15 @@ type
          Returns the current silence skipping state which is one of the two: gcPassing - a sound is detected the data is passing throug, gcSkipping - the silence is detected and the data doesn't pass through. *)
       property State : TGCState read FState;
     published
+      (* Property: SkipSilenceEnabled
+         Sets the selince-skipping mode on and off. *)
+      property SkipSilenceEnabled : Boolean read FSkipSilenceEnabled write FSkipSilenceEnabled;
       (* Property: MinSilenceInterval
          Sets the interval for the silence detection in seconds. It the input is silent for more than this value, the component starts skipping further silence. *)
       property MinSilenceInterval : Word read FMinSilenceInterval write FMinSilenceInterval;
-      (* Property: MinSoundLevel
+      (* Property: SilenceThreshold
          Sets the gain threshold to distinguish a sound from the silence. Values range from 0 to 100. *)
-      property MinSoundLevel : Word read FMinSoundLevel write FMinSoundLevel;
+      property SilenceThreshold : Word read FMinSoundLevel write FMinSoundLevel;
       (* Property: OnStateChanged
          This event indicates thet the component's <State> has changed. Unlike most other NewAC events it is delivered synchronously, so you should avoid updating GUI directly from its handler. *)
       property OnStateChanged : TGenericEvent read FOnStateChanged write FOnStateChanged;
@@ -733,7 +748,7 @@ implementation
     FFilterOffset := 0;
     FLastY[0] := 0;
     FLastY[1] := 0;
-    FillChar(FFilterBuffer[0], 8*FilterLength, 0);
+    FillChar(FFilterBuffer[0], 8*lFilterLength, 0);
   end;
 
   procedure TGainProcessor.FlushInternal;
@@ -805,6 +820,8 @@ implementation
       end;
       else;
     end;
+    if not FSkipSilenceEnabled then
+       FInternalState := 0;
     if FInternalState < 2 then
     begin
       if Bytes > FBufferSize - FOffset then
@@ -825,9 +842,9 @@ implementation
         B16 := Buffer;
         if Finput.Channels = 1 then
         begin
-          t := (2*FLastY[0] + (B16[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[0] + (B16[i*2] - FFilterBuffer[0,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[0,FFilterOffset] := B16[i];
-          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          FFilterOffset := (FFilterOffset + 1) mod lFilterLength;
           if t > 32767 then
                t := 32767;
           if t < -32767 then
@@ -836,7 +853,7 @@ implementation
           FLastY[0] := t;
         end else
         begin
-          t := (2*FLastY[0] + (B16[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[0] + (B16[i*2] - FFilterBuffer[0,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[0,FFilterOffset] := B16[i*2];
 //        FFilterOffset := (FFilterOffset + 1) mod FilterLength;
           if t > 32767 then
@@ -845,11 +862,11 @@ implementation
                t := -32767;
           B16[i*2] := 2*t;
           FLastY[0] := t;
-          t := B16[i*2+1];
+//          t := B16[i*2+1];
 //          t := FLastY[1] + (B16[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength;
-          t := (2*FLastY[1] + (B16[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[1] + (B16[i*2+1] - FFilterBuffer[1,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[1,FFilterOffset] := B16[i*2+1];
-          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          FFilterOffset := (FFilterOffset + 1) mod lFilterLength;
           if t > 32767 then
                t := 32767;
           if t < -32767 then
@@ -863,9 +880,9 @@ implementation
         B32 := Buffer;
         if Finput.Channels = 1 then
         begin
-          t := (2*FLastY[0] + (B32[i] - FFilterBuffer[0,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[0] + (B32[i] - FFilterBuffer[0,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[0,FFilterOffset] := B32[i];
-          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          FFilterOffset := (FFilterOffset + 1) mod lFilterLength;
           if t > 32767 then
                t := 32767;
           if t < -32767 then
@@ -874,7 +891,7 @@ implementation
           FLastY[0] := t;
         end else
         begin
-          t := (2*FLastY[0] + (B32[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[0] + (B32[i*2] - FFilterBuffer[0,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[0,FFilterOffset] := B32[i*2];
 //        FFilterOffset := (FFilterOffset + 1) mod FilterLength;
           if t > 32767 then
@@ -884,13 +901,13 @@ implementation
           B32[i*2] := t;
           FLastY[0] := t;
 
-          t := FLastY[1] + (B32[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength;
+          t := FLastY[1] + (B32[i*2+1] - FFilterBuffer[1,FFilterOffset]) div lFilterLength;
           FFilterBuffer[1,FFilterOffset] := B32[i*2+1];
-          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
-          if t > $FFFFFFFF then
-               t := $FFFFFFFF;
-          if t < -$FFFFFFFE then
-               t := -$FFFFFFFE;
+          FFilterOffset := (FFilterOffset + 1) mod lFilterLength;
+          if t > Int64($80000000) then
+               t := Int64($80000000);
+          if t < -Int64($7FFFFFFF) then
+               t := -Int64($7FFFFFFF);
           B32[i*2+1] := t;
           FLastY[1] := t;
         end;
@@ -900,16 +917,16 @@ implementation
         B8 := Buffer;
         if Finput.Channels = 1 then
         begin
-          t := (2*FLastY[0] + (B8[i] - FFilterBuffer[0,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[0] + (B8[i] - FFilterBuffer[0,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[0,FFilterOffset] := B8[i];
-          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          FFilterOffset := (FFilterOffset + 1) mod lFilterLength;
           if t > 255 then
                t := 255;
           B8[i] := t;
           FLastY[0] := t;
         end else
         begin
-          t := (2*FLastY[0] + (B8[i*2] - FFilterBuffer[0,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[0] + (B8[i*2] - FFilterBuffer[0,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[0,FFilterOffset] := B8[i*2];
 //        FFilterOffset := (FFilterOffset + 1) mod FilterLength;
           if t > 8767 then
@@ -917,9 +934,9 @@ implementation
           B8[i*2] := t;
           FLastY[0] := t;
 
-          t := (2*FLastY[1] + (B8[i*2+1] - FFilterBuffer[1,FFilterOffset]) div FilterLength) div 2;
+          t := (2*FLastY[1] + (B8[i*2+1] - FFilterBuffer[1,FFilterOffset]) div lFilterLength) div 2;
           FFilterBuffer[1,FFilterOffset] := B8[i*2+1];
-          FFilterOffset := (FFilterOffset + 1) mod FilterLength;
+          FFilterOffset := (FFilterOffset + 1) mod lFilterLength;
           if t > 255 then
                t := 255;
           B8[i*2+1] := t;

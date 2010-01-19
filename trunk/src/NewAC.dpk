@@ -53,6 +53,7 @@ package NewAC;
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'New Audio Components v 2.4'}
 {$IMPLICITBUILD OFF}
+{$DEFINE DELPHI_6P}
 
 requires
   rtl,
