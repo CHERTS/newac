@@ -31,6 +31,13 @@ type
     procedure OpenFile; override;
   end;
 
+  {$IFDEF DELPHI_6P}
+  const
+    _lBufSize = 32768;
+  type
+ {$ENDIF}
+
+
 (* Class: TMpgIn
    Yet another mp3 file/stream decoder that uses libmpg123.dll.
    Descends from <TAuTaggedFileIn>.
@@ -39,12 +46,14 @@ type
 
   TMpgIn = class(TAuTaggedFileIn)
   private
+  {$IFDEF DELPHI_2009P}
     const
-      _BufSize = 32768;
+      _lBufSize = 32768;
     var
+   {$ENDIF}
       FHandle : Pmpg123_handle;
       FBytesRead, FBOffset : LongWord;
-      _Buf : array[0.._BufSize - 1] of Byte;
+      _Buf : array[0.._lBufSize - 1] of Byte;
       FBitrate : LongWord;
       procedure FindTags;
   protected
@@ -83,7 +92,7 @@ implementation
 
   procedure TMpgIn.OpenFile;
   const
-    Inbufsize = _BufSize div 10;
+    Inbufsize = _lBufSize div 10;
   var
     err : LongInt;
     iBuf : array[0..Inbufsize - 1] of Byte;
@@ -143,7 +152,7 @@ implementation
       if FBytesRead = 0 then
       begin
         FStream.Read(iBuf, Inbufsize);
-        err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, @_Buf[0], _BufSize, @FBytesRead);
+        err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, @_Buf[0], _lBufSize, @FBytesRead);
       end;
       FValid := True;
       FBOffset := 0;
@@ -157,7 +166,7 @@ implementation
 
   procedure TMpgIn.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
   const
-    Inbufsize = _BufSize div 10;
+    Inbufsize = _lBufSize div 10;
   var
     err : LongInt;
     iBuf : array[0..Inbufsize - 1] of Byte;
@@ -171,11 +180,11 @@ implementation
     Buffer := @_Buf[FBOffset];
     if FBytesRead = 0 then
     begin
-      err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
+      err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
       FBOffset := FBOffset + FBytesRead;
-      while (FBOffset < _BufSize) and (FBytesRead <> 0) do
+      while (FBOffset < _lBufSize) and (FBytesRead <> 0) do
       begin
-        err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
+        err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
         FBOffset := FBOffset + FBytesRead;
       end;
       if (err = MPG123_ERR) and (FStream.Position < FStream.Size - 4*Inbufsize) then
@@ -195,7 +204,7 @@ implementation
     end;
     if FBytesRead = 0 then
     begin
-      err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
+      err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
     end;
 //    if err = MPG123_ERR then
 //       raise EAuException.Create('MP3 data error');
@@ -229,7 +238,7 @@ implementation
 
   function TMpgIn.SeekInternal(var SampleNum: Int64) : Boolean;
   const
-    iBufSize = _BufSize div 4;
+    iBufSize = _lBufSize div 4;
   var
     Pos, err : Longint;
     iBuf : array[0..iBufSize - 1] of Byte;
@@ -238,11 +247,11 @@ implementation
     if FSeekable then
     begin
       if SampleNum > FTotalSamples then SampleNum := FTotalSamples;
-      mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
+      mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
       FBOffset := FBytesRead;
-      while (FBOffset < _BufSize) and (FBytesRead <> 0) do
+      while (FBOffset < _lBufSize) and (FBytesRead <> 0) do
       begin
-        mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _BufSize - FBOffset, @FBytesRead);
+        mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
         FBOffset := FBOffset + FBytesRead;
       end;
       FBOffset := 0;

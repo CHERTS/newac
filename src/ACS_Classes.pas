@@ -422,7 +422,7 @@ type
       Use this property to set the input data stream for the input component.
       Any TStream descendant may be used as a data source. Note that if you
       set Stream, you own it, that is you have to create, destroy and position
-      the stream explicitly. In TAuFileIn descendants the value assigned to
+      the stream explicitly (the data playback will be started from the current position within the stream). In TAuFileIn descendants the value assigned to
       this property takes over the FileName property, i. e. if both Stream and
       FileName properties are assigned, the stream and not the file will be
       used for the actual input. To unassign this property set it to nil. If
