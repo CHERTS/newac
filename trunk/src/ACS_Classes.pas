@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package 2.2.1
-  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 2.4.x
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -1469,7 +1469,20 @@ constructor TAuOutput.Create;
 
     FPosition := 0;
 
+
     OpenFile; // After calling this method we should know FChan, FBPS, FSR, and FSize
+
+    if not FValid then
+    begin
+      FSampleSize := 8;
+      FSR := 8000;
+      FBPS := 8;
+      FChan := 1;
+      FTotalSamples := 0;
+      FSize := 0;
+      FTime := 0;
+      Exit;
+    end;
 
     FSampleSize := FChan*FBPS div 8;
     FTotalSamples := FSize div FSampleSize;
