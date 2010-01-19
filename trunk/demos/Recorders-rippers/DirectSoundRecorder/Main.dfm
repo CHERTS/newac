@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 150
   Top = 88
   Caption = 'Sound Recorder'
-  ClientHeight = 258
-  ClientWidth = 366
+  ClientHeight = 269
+  ClientWidth = 369
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,56 +13,38 @@ object Form1: TForm1
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    369
+    269)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 207
-    Top = 80
+    Left = 136
+    Top = 156
     Width = 53
     Height = 13
     Caption = 'Ogg quality'
   end
-  object Label2: TLabel
-    Left = 131
-    Top = 116
-    Width = 32
-    Height = 13
-    Caption = 'Label2'
-  end
   object Label3: TLabel
     Left = 8
-    Top = 48
+    Top = 56
     Width = 34
     Height = 13
     Caption = 'Device'
   end
   object Label4: TLabel
-    Left = 96
-    Top = 48
+    Left = 107
+    Top = 56
     Width = 48
     Height = 13
     Caption = 'DevName'
   end
   object Label5: TLabel
-    Left = 0
-    Top = 80
+    Left = 8
+    Top = 85
     Width = 53
     Height = 13
     Caption = 'Samplerate'
-  end
-  object Label6: TLabel
-    Left = 131
-    Top = 148
-    Width = 49
-    Height = 13
-    Caption = 'Overruns: '
-  end
-  object Label7: TLabel
-    Left = 191
-    Top = 148
-    Width = 6
-    Height = 13
-    Caption = '0'
   end
   object SelectFileButton: TButton
     Left = 8
@@ -84,13 +66,20 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 239
-    Width = 366
+    Top = 250
+    Width = 369
     Height = 19
     Panels = <
       item
+        Width = 280
+      end
+      item
+        Width = 120
+      end
+      item
         Width = 50
       end>
+    ExplicitWidth = 423
   end
   object StopButton: TButton
     Left = 248
@@ -102,8 +91,8 @@ object Form1: TForm1
     OnClick = StopButtonClick
   end
   object SpinEdit1: TSpinEdit
-    Left = 279
-    Top = 80
+    Left = 223
+    Top = 153
     Width = 41
     Height = 22
     MaxValue = 10
@@ -113,7 +102,7 @@ object Form1: TForm1
   end
   object SpinEdit2: TSpinEdit
     Left = 48
-    Top = 40
+    Top = 53
     Width = 41
     Height = 22
     MaxValue = 10
@@ -123,16 +112,16 @@ object Form1: TForm1
     OnChange = SpinEdit2Change
   end
   object SREdit: TEdit
-    Left = 72
-    Top = 72
+    Left = 84
+    Top = 81
     Width = 57
     Height = 21
     TabOrder = 6
     Text = '44100'
   end
   object StereoCheckBox: TCheckBox
-    Left = 144
-    Top = 80
+    Left = 157
+    Top = 83
     Width = 57
     Height = 17
     Caption = 'Stereo'
@@ -142,7 +131,7 @@ object Form1: TForm1
   end
   object RadioGroup1: TRadioGroup
     Left = 8
-    Top = 104
+    Top = 108
     Width = 105
     Height = 57
     Caption = 'Bits per sample'
@@ -162,37 +151,48 @@ object Form1: TForm1
     OnClick = PauseButtonClick
   end
   object CheckBox1: TCheckBox
-    Left = 8
-    Top = 167
+    Left = 136
+    Top = 134
     Width = 97
-    Height = 17
+    Height = 16
     Caption = 'Show Gain'
     TabOrder = 10
     OnClick = CheckBox1Click
   end
   object ProgressBar1: TProgressBar
     Left = 8
-    Top = 190
-    Width = 350
+    Top = 189
+    Width = 352
     Height = 13
+    Anchors = [akLeft, akTop, akRight]
     BarColor = clLime
     BackgroundColor = clBlack
     TabOrder = 11
+    ExplicitWidth = 350
+  end
+  object CheckBox2: TCheckBox
+    Left = 136
+    Top = 111
+    Width = 97
+    Height = 17
+    Caption = 'Skip Silence'
+    TabOrder = 12
+    OnClick = CheckBox2Click
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.wav'
     Filter = 'Wave|*.wav|Ogg Vorbis|*.ogg|FLAC|*.flac'
     OnTypeChange = SaveDialog1TypeChange
-    Left = 304
-    Top = 128
+    Left = 296
+    Top = 176
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 320
-    Top = 208
+    Left = 336
+    Top = 168
   end
   object VorbisOut1: TVorbisOut
-    Input = DXAudioIn1
+    Input = GainProcessor1
     OnDone = OutputDone
     ShareMode = 0
     Compression = 0.200000002980232200
@@ -206,7 +206,7 @@ object Form1: TForm1
     Top = 208
   end
   object WaveOut1: TWaveOut
-    Input = DXAudioIn1
+    Input = GainProcessor1
     OnDone = OutputDone
     ShareMode = 0
     WavType = wtPCM
@@ -231,7 +231,7 @@ object Form1: TForm1
     Top = 208
   end
   object FLACOut1: TFLACOut
-    Input = DXAudioIn1
+    Input = GainProcessor1
     OnDone = OutputDone
     ShareMode = 0
     BestModelSearch = False
@@ -251,9 +251,17 @@ object Form1: TForm1
   end
   object GainIndicator1: TGainIndicator
     Input = DXAudioIn1
-    Interval = 60
+    Interval = 50
     OnGainData = GainIndicator1GainData
-    Left = 256
+    Left = 248
+    Top = 208
+  end
+  object GainProcessor1: TGainProcessor
+    Input = DXAudioIn1
+    SkipSilenceEnabled = False
+    MinSilenceInterval = 1
+    SilenceThreshold = 5
+    Left = 296
     Top = 208
   end
 end

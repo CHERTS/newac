@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_Classes, ACS_Vorbis, StdCtrls, ComCtrls,
-  ACS_DXAudio, Spin, ExtCtrls, ACS_Wave, ACS_FLAC, NewACIndicators;
+  ACS_DXAudio, Spin, ExtCtrls, ACS_Wave, ACS_FLAC, NewACIndicators, NewAC_DSP;
 
 type
   TForm1 = class(TForm)
@@ -23,15 +23,12 @@ type
     StopButton: TButton;
     Timer1: TTimer;
     SpinEdit1: TSpinEdit;
-    Label2: TLabel;
     SpinEdit2: TSpinEdit;
     Label3: TLabel;
     Label4: TLabel;
     SREdit: TEdit;
     StereoCheckBox: TCheckBox;
     Label5: TLabel;
-    Label6: TLabel;
-    Label7: TLabel;
     RadioGroup1: TRadioGroup;
     PauseButton: TButton;
     VorbisOut1: TVorbisOut;
@@ -41,6 +38,8 @@ type
     GainIndicator1: TGainIndicator;
     CheckBox1: TCheckBox;
     ProgressBar1: TProgressBar;
+    GainProcessor1: TGainProcessor;
+    CheckBox2: TCheckBox;
     procedure RecordButtonClick(Sender: TObject);
     procedure SaveDialog1TypeChange(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
@@ -53,6 +52,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure GainIndicator1GainData(Sender: TComponent);
     procedure CheckBox1Click(Sender: TObject);
+    procedure CheckBox2Click(Sender: TObject);
   private
     { Private declarations }
     Output : TAuFileOut;
@@ -139,8 +139,8 @@ procedure TForm1.Timer1Timer(Sender: TObject);
 begin
   if Output <> nil then
   begin
-    Label2.Caption := Format('%d seconds elapsed', [Output.TimeElapsed]);
-    Label7.Caption := IntToStr(DXAudioIn1.Overruns);
+    Self.StatusBar1.Panels.Items[1].Text := Format('%d seconds elapsed', [Output.TimeElapsed]);
+    Self.StatusBar1.Panels.Items[2].Text := IntToStr(DXAudioIn1.Overruns);
   end;
 end;
 
@@ -182,15 +182,10 @@ procedure TForm1.CheckBox1Click(Sender: TObject);
 begin
   if CheckBox1.Checked then
   begin
-    GainIndicator1.Input := DXAudioIn1;
-    WaveOut1.Input := GainIndicator1;
-    VorbisOut1.Input := GainIndicator1;
-    FLACOut1.Input := GainIndicator1;
+    GainProcessor1.Input := GainIndicator1;
   end else
   begin
-    WaveOut1.Input := DXAudioIn1;
-    VorbisOut1.Input := DXAudioIn1;
-    FLACOut1.Input := DXAudioIn1;
+    GainProcessor1.Input := DXAudioIn1;
   end;
 end;
 
@@ -200,6 +195,11 @@ begin
   begin
     Output.Stop(False);
   end;  
+end;
+
+procedure TForm1.CheckBox2Click(Sender: TObject);
+begin
+  GainProcessor1.SkipSilenceEnabled := CheckBox2.Checked;
 end;
 
 end.
