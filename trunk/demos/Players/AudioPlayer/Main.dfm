@@ -257,6 +257,7 @@ object Form1: TForm1
     Filter = 
       'All files|*.*|Ogg Vorbis files|*.ogg|MP3 files|*.mp3|FLAC files|' +
       '*.flac|Monkey Audio|*.ape|Wavpack|*.wv|Wave files|*.wav'
+    Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
     Left = 392
     Top = 160
   end
