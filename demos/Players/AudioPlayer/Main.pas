@@ -122,9 +122,12 @@ begin
 end;
 
 procedure TForm1.AddtoPLButtonClick(Sender: TObject);
+var
+ i : Integer;
 begin
   if OpenDialog1.Execute then
-    ListBox1.Items.Add(OpenDialog1.FileName);
+    for i := 0 to OpenDialog1.Files.Count - 1 do
+     ListBox1.Items.Add(OpenDialog1.Files[i]);
 end;
 
 function TForm1.GetSelectedItem;
