@@ -9,8 +9,7 @@
 
 unit libwma1;
 
-(* Title: libwma1.pas
-    This Delphi unit provides a simple C-style interface for reading and writing WMA files.
+(*  This Delphi unit provides a simple C-style interface for reading and writing WMA files.
     (c) 2007-2008 Andrei Borovsky *)
 
 interface

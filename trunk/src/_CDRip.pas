@@ -1,13 +1,12 @@
 (*
   Delphi header for CDRip.dll.
-  Translated from CDRip.h header by Andrei Borovsky, acs@compiler4.net
+  Translated from CDRip.h header by Andrei Borovsky, anb@symmetrica.net
   The original C/C++ header and library
   Copyright (C) 1999 - 2002 Albert Faber *)
 
 unit _CDRip;
 
-(* Title: CDRip
-    Delphi header file for CDRip.dll.
+(*  Delphi header file for CDRip.dll.
     Translated from CDRip.h header by Andrei Borovsky, acs@compiler4.net
     The original C/C++ header and library
     Copyright (C) 1999 - 2002 Albert Faber
