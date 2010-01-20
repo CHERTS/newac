@@ -95,8 +95,10 @@ object Form1: TForm1
     Height = 89
     Align = alBottom
     ItemHeight = 13
+    MultiSelect = True
     TabOrder = 6
     OnClick = ListBox1Click
+    OnKeyDown = ListBox1KeyDown
   end
   object SkipButton: TButton
     Left = 168
@@ -116,7 +118,7 @@ object Form1: TForm1
     TabOrder = 8
   end
   object ForwardButton: TButton
-    Left = 272
+    Left = 319
     Top = 8
     Width = 33
     Height = 25
@@ -125,7 +127,7 @@ object Form1: TForm1
     OnClick = ForwardButtonClick
   end
   object BackwardButton: TButton
-    Left = 312
+    Left = 358
     Top = 8
     Width = 33
     Height = 25
@@ -245,6 +247,24 @@ object Form1: TForm1
       BackgroundColor = clMaroon
       TabOrder = 7
     end
+  end
+  object Button1: TButton
+    Left = 263
+    Top = 8
+    Width = 50
+    Height = 25
+    Caption = 'Pause'
+    TabOrder = 13
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 408
+    Top = 8
+    Width = 174
+    Height = 25
+    Caption = 'Remove Selected from Playlist'
+    TabOrder = 14
+    OnClick = Button2Click
   end
   object VorbisIn1: TVorbisIn
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'
