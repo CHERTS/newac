@@ -47,6 +47,8 @@ type
     ProgressBar8: TProgressBar;
     ProgressBar9: TProgressBar;
     SpectrumIndicator1: TSpectrumIndicator;
+    Button1: TButton;
+    Button2: TButton;
     procedure PlayButtonClick(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -61,6 +63,10 @@ type
     procedure ForwardButtonClick(Sender: TObject);
     procedure BackwardButtonClick(Sender: TObject);
     procedure SpectrumIndicator1GainData(Sender: TComponent);
+    procedure ListBox1KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
     PlayingIndex : Integer;
@@ -218,6 +224,13 @@ begin
   end;
 end;
 
+procedure TForm1.ListBox1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+ if key =  vk_Delete then
+   ListBox1.DeleteSelected;
+end;
+
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   DXAudioOut1.Stop(False);
@@ -248,6 +261,19 @@ end;
 procedure TForm1.BackwardButtonClick(Sender: TObject);
 begin
   TAuFileIn(SpectrumIndicator1.Input).Jump(-10);
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  if DXAudioOut1.Status = tosPlaying then
+    DXAudioOut1.Pause
+  else
+    DXAudioOut1.Resume;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  ListBox1.DeleteSelected;
 end;
 
 end.
