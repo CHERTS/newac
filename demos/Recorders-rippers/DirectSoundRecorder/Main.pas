@@ -102,7 +102,7 @@ begin
   SelectFileButton.Enabled := False;
   SpinEdit2.Enabled := False;
   Output.Run;
-  StatusBar1.Panels.Items[0].Text := Format('Recording to "%s"', [SaveDialog1.FileName]);
+  StatusBar1.Panels.Items[0].Text := Format('Recording to "%s"', [ExtractFileName(SaveDialog1.FileName)]);
   Timer1.Interval := 1000;
   CheckBox1.Enabled := False;
 end;
@@ -140,7 +140,7 @@ begin
   if Output <> nil then
   begin
     Self.StatusBar1.Panels.Items[1].Text := Format('%d seconds elapsed', [Output.TimeElapsed]);
-    Self.StatusBar1.Panels.Items[2].Text := IntToStr(DXAudioIn1.Overruns);
+    Self.StatusBar1.Panels.Items[2].Text := IntToStr(DXAudioIn1.Overruns) + ' overruns';
   end;
 end;
 

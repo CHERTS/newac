@@ -71,7 +71,7 @@ object Form1: TForm1
     Height = 19
     Panels = <
       item
-        Width = 280
+        Width = 240
       end
       item
         Width = 120
@@ -79,7 +79,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    ExplicitWidth = 423
   end
   object StopButton: TButton
     Left = 248
@@ -168,7 +167,6 @@ object Form1: TForm1
     BarColor = clLime
     BackgroundColor = clBlack
     TabOrder = 11
-    ExplicitWidth = 350
   end
   object CheckBox2: TCheckBox
     Left = 136
