@@ -183,6 +183,16 @@ Note that an audio processing chain may have more than one input (by using TAudi
 
 The driving force of this sound processing chain is an output component. Output components use internal thread objects that call data retrieving functions of the input/converter components attached to the output component. Note that NewAC provides you with two ways to set the amount of CPU time consumed by these threads: <ThreadPriority> and <Delay>. You can use these properties to set the desired performance/CPU usage ratio for your application.
 
+Topic: Important notes for the last version
+
+As Delphi Language evolves with the time we desided to provide several compilation options for different versions of Delphi. Under one option the components will be compilable under all versions of Delphi starting with Delphi 6. Another option activates new Delphi Language features, but requires Delphi 2009 or higher version. In the file NewAC.dpk you will see a string
+
+..{$DEFINE DELPHI_6P}
+
+This makes the code Delphi 6 compatible. If you want to use new language fetures turn this string into
+
+..{$DEFINE DELPHI_2009P}
+
 Topic: Ripping a CD to OGG
 
 Suppose you want your application to convert data from audio CD tracks to Ogg Vorbis audio compression format. First, you put into your form a TCDIn input component that reads data from CD tracks (don't confuse this component with TCDPlayer component which is designed to play CD tracks). Now you need an output component, and in our case it is VorbisOut. In order to chain two components together you have to assign an instance of the TCDIn component to the VorbisOut's Input property.
