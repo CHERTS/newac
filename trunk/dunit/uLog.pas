@@ -1,6 +1,6 @@
 unit uLog;
 
-{ Title: uLog
+{ uLog
     v1.0 By Wayne Thursby
     
     This logging unit implements a class to log lines of text to a file

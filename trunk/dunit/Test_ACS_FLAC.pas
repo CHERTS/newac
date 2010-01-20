@@ -9,7 +9,7 @@
 
 (* $Id: Test_ACS_FLAC.pas 890 2008-06-22 20:10:50Z bob $ *)
 
-(* Title: ACS_FLAC TestCases
+(* ACS_FLAC TestCases
     This unit contains TestCases for <ACS_FLAC>. More information about DUnit
     can be found at http://dunit.sourceforge.net. *)
 
