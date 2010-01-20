@@ -164,7 +164,7 @@ uses
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       comlite.h
+ *  File translated:       comlite.h
  *
  ***************************************************************************)
 
@@ -196,7 +196,7 @@ function  QzStringFromGUID2(const guid: TGUID; psz: POleStr; cbMax: Integer): In
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       errors.h
+ *  File translated:       errors.h
  *
  ***************************************************************************)
 
@@ -220,7 +220,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       dv.h
+ *  File translated:       dv.h
  *
  ***************************************************************************)
 
@@ -295,7 +295,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       strmif.h
+ *  File translated:       strmif.h
  *
  ***************************************************************************)
 const
@@ -2833,7 +2833,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: EncAPI.idl
+// File translated: EncAPI.idl
 //
 // Desc: Encoder (and future decoder) interface definitions.
 //
@@ -4919,7 +4919,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       mmstream.h
+ *  File translated:       mmstream.h
  *
  ***************************************************************************)
 
@@ -5065,7 +5065,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       amstream.h
+ *  File translated:       amstream.h
  *
  ***************************************************************************)
 
@@ -5245,7 +5245,7 @@ EXTERN_C const CLSID CLSID_AMMultiMediaStream;
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       ddstream.h
+ *  File translated:       ddstream.h
  *
  ***************************************************************************)
 
@@ -5263,7 +5263,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       austream.h
+ *  File translated:       austream.h
  *
  ***************************************************************************)
 
@@ -5325,7 +5325,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       mpconfig.h
+ *  File translated:       mpconfig.h
  *
  ***************************************************************************)
 
@@ -5371,7 +5371,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       control.h
+ *  File translated:       control.h
  *
  ***************************************************************************)
 
@@ -5698,7 +5698,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       qnetwork.h
+ *  File translated:       qnetwork.h
  *
  ***************************************************************************)
 
@@ -5901,7 +5901,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       playlist.h
+ *  File translated:       playlist.h
  *
  ***************************************************************************)
 
@@ -5999,7 +5999,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       amvideo.h
+ *  File translated:       amvideo.h
  *
  ***************************************************************************)
 
@@ -6373,7 +6373,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       amaudio.h
+ *  File translated:       amaudio.h
  *
  ***************************************************************************)
 
@@ -6412,7 +6412,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       vptype.h
+ *  File translated:       vptype.h
  *
  ***************************************************************************)
 
@@ -6500,7 +6500,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       vpconfig.h
+ *  File translated:       vpconfig.h
  *
  ***************************************************************************)
 
@@ -6514,7 +6514,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       vpnotify.h
+ *  File translated:       vpnotify.h
  *
  ***************************************************************************)
 
@@ -6569,7 +6569,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       mpegtype.h
+ *  File translated:       mpegtype.h
  *
  ***************************************************************************)
 
@@ -6704,7 +6704,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       il21dec.h
+ *  File translated:       il21dec.h
  *
  ***************************************************************************)
 // Line 21 Decoder related definitions and interfaces for ActiveMovie
@@ -6846,7 +6846,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       dvdevcod.h
+ *  File translated:       dvdevcod.h
  *
  ***************************************************************************)
 // list of standard DVD-Video event codes and the expected params
@@ -7239,7 +7239,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       dvdmedia.h
+ *  File translated:       dvdmedia.h
  *
  ***************************************************************************)
 
@@ -7846,7 +7846,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       activecf.h
+ *  File translated:       activecf.h
  *
  ***************************************************************************)
 
@@ -7868,7 +7868,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       vfwmsgs.h
+ *  File translated:       vfwmsgs.h
  *
  ***************************************************************************)
 
@@ -9271,7 +9271,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       aviriff.h
+ *  File translated:       aviriff.h
  *
  ***************************************************************************)
 
@@ -9796,7 +9796,7 @@ type
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       evcode.h
+ *  File translated:       evcode.h
  *
  ***************************************************************************)
 
@@ -10287,7 +10287,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       uuids.h
+ *  File translated:       uuids.h
  *
  ***************************************************************************)
 
@@ -11078,7 +11078,7 @@ const
  *
  *  Copyright (C) 1996-1997 Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       ksuuids.h
+ *  File translated:       ksuuids.h
  *
  ***************************************************************************)
 // contains the GUIDs for the MediaType type, subtype fields and format types
@@ -11227,7 +11227,7 @@ const
   {$EXTERNALSYM AM_INTERFACESETID_Standard}
 
 //------------------------------------------------------------------------------
-// File: DXVA.h
+// File translated: DXVA.h
 // Desc: DirectX Video Acceleration header file.
 // Copyright (c) 1999 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -13059,7 +13059,7 @@ type
   TDXVACOPPStatusSignalingCmdData = DXVA_COPPStatusSignalingCmdData;
 
 //------------------------------------------------------------------------------
-// File: AMVA.h
+// File translated: AMVA.h
 // Desc: DirectShowMotionComp include file.
 // Copyright (c) 1997 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -13075,7 +13075,7 @@ const
                                          // if query for update
 
 //------------------------------------------------------------------------------
-// File: BDATypes.h
+// File translated: BDATypes.h
 //
 // Desc: Typedefs and enums needed by both the WDM drivers and the user mode
 //       COM interfaces.
@@ -13815,7 +13815,7 @@ type
   {$EXTERNALSYM BDA_FREQUENCY_MULTIPLIER_NOT_DEFINED}
 
 //------------------------------------------------------------------------------
-// File: Regbag.h
+// File translated: Regbag.h
 // Desc: part of Tuner library
 // Copyright (c) 1999 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -13835,7 +13835,7 @@ type
     end;
 
 //------------------------------------------------------------------------------
-// File: Tuner.h
+// File translated: Tuner.h
 // Desc: Tuner library
 // Copyright (c) 1999 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -14706,7 +14706,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: DXTrans.h
+// File translated: DXTrans.h
 // Desc: DirectX Transform library
 // Copyright (c) 1999 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -15442,7 +15442,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: QEdit.h
+// File translated: QEdit.h
 // Desc: Dexter library (DES)
 // Copyright (c) 1999 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -16843,7 +16843,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: DShowASF.h
+// File translated: DShowASF.h
 //
 // Copyright (c) 1992-2000, Microsoft Corporation. All rights reserved.
 //------------------------------------------------------------------------------
@@ -16882,7 +16882,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: AMParse.h
+// File translated: AMParse.h
 //
 // Desc: Interface to the parser to get current time.  This is useful for
 //       multifile playback.
@@ -16907,7 +16907,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: AudEvCod.h
+// File translated: AudEvCod.h
 //
 // Desc: List of Audio device error event codes and the expected params.
 //
@@ -16958,7 +16958,7 @@ const
 // lParam2 is the error returned from the sound device call.
 
 //------------------------------------------------------------------------------
-// File: ATSMedia.h
+// File translated: ATSMedia.h
 //
 // Desc: Broadcast Driver Architecture Media Definitions for ATSC
 //
@@ -16976,7 +16976,7 @@ const
   {$EXTERNALSYM BDANETWORKTYPE_ATSC}
 
 //------------------------------------------------------------------------------
-// File: MediaErr.h
+// File translated: MediaErr.h
 //
 // Desc: Shell error codes
 //
@@ -16997,7 +16997,7 @@ const
   {$EXTERNALSYM DMO_E_NO_MORE_ITEMS}
 
 //------------------------------------------------------------------------------
-// File: MedParam.h
+// File translated: MedParam.h
 // Desc: Definition of the IMediaParams and associated interfaces. These
 //       interfaces are designed to allow communication of curve-following
 //       behaviors for parameters of objects which require dynamic changes
@@ -17162,7 +17162,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: mediaobj.h
+// File translated: mediaobj.h
 // Desc: Define the interfaces for DirectX Media Objects.
 // Copyright (c) 1999 - 2000, Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
@@ -17407,7 +17407,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: DMOReg.h
+// File translated: DMOReg.h
 //
 // Desc:
 //
@@ -17514,7 +17514,7 @@ type
   {$EXTERNALSYM DMOGetName}
 
 //------------------------------------------------------------------------------
-// File: DMORt.h
+// File translated: DMORt.h
 //
 // Desc: Miscellaneous runtime support for DirectShow Media Objects
 //
@@ -25098,7 +25098,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: BDAMedia.h
+// File translated: BDAMedia.h
 //
 // Desc: Broadcast Driver Architecture Multimedia Definitions.
 //
@@ -25746,7 +25746,7 @@ const
   {$EXTERNALSYM KSDATAFORMAT_TYPE_MPE}
 
 //------------------------------------------------------------------------------
-// File: BDAIface.idl
+// File translated: BDAIface.idl
 //
 // Desc: This file defines the Ring 3 BDA interfaces that are common to
 //       all BDA network and device types.
@@ -29501,7 +29501,7 @@ type
 
 
 //------------------------------------------------------------------------------
-// File: DMOImpl.h
+// File translated: DMOImpl.h
 //
 // Desc: Classes to implement a DMO.
 //
@@ -29668,7 +29668,7 @@ type
   end;
 
 //------------------------------------------------------------------------------
-// File: iwstdec.h
+// File translated: iwstdec.h
 //
 // Desc: WST Decoder related definitions and interfaces for ActiveMovie
 //
