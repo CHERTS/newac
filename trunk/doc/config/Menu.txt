@@ -108,7 +108,6 @@ Group: Index  {
    Index: Everything
    Class Index: Classes
    Constant Index: Constants
-   File Index: Files
    Function Index: Functions
    Property Index: Properties
    Type Index: Types
