@@ -9,6 +9,11 @@ Title: Tips & Tricks
 Section: Snippets
 	Bits of code to do things related to NewAC.
 
+
+Topic: How to make an indicator component more responsive
+	When constructing an audio-processing chain always try to place an indicator component as close to the audio input/output component as possible. It should be the first component after AudioIn or the last componentbefore AudioOut.
+
+
 Topic: What to do if an input component reports premature end of data
 	One possible reason for this may be an exception raised during components' operation. Don't forget to set the OnThreadException event handler and inspect an output component's ExceptionMessage property.
 
