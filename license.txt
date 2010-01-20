@@ -1,4 +1,4 @@
-New Audio Components package Copyright (c) 2002-2009 Andrei Borovsky.
+New Audio Components package Copyright (c) 2002-2010 Andrei Borovsky.
 All rights reserved.
 Portions Copyright (c) 2007-2008 Sergei Borisov.
 
