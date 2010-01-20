@@ -165,6 +165,17 @@ Note from Andrei Borovsky:
 
 Section: Introduction to NewAC Programming
 
+Topic: Important notes for the last version
+
+As Delphi Language evolves with the time we desided to provide several compilation options for different versions of Delphi. Under one option the components will be compilable under all versions of Delphi starting with Delphi 6. Another option activates new Delphi Language features, but requires Delphi 2009 or higher version. In the file NewAC.dpk you will see a string
+
+	> {$DEFINE DELPHI_6P}
+
+This makes the code Delphi 6 compatible. If you want to use new language fetures turn this string into
+
+	> {$DEFINE DELPHI_2009P}
+
+
 Topic: Basic Operation
 
 The New Audio Components package is a set of components designed to handle different sound processing tasks, such as reading and storing data in different audio formats, working with sound hardware, audio streams mixing and so on.
@@ -182,16 +193,6 @@ The converter component is not a necessary element in this chain. In many cases 
 Note that an audio processing chain may have more than one input (by using TAudioMixer) and more than one output (by using TAudioPass or TAudioTap descendents).
 
 The driving force of this sound processing chain is an output component. Output components use internal thread objects that call data retrieving functions of the input/converter components attached to the output component. Note that NewAC provides you with two ways to set the amount of CPU time consumed by these threads: <ThreadPriority> and <Delay>. You can use these properties to set the desired performance/CPU usage ratio for your application.
-
-Topic: Important notes for the last version
-
-As Delphi Language evolves with the time we desided to provide several compilation options for different versions of Delphi. Under one option the components will be compilable under all versions of Delphi starting with Delphi 6. Another option activates new Delphi Language features, but requires Delphi 2009 or higher version. In the file NewAC.dpk you will see a string
-
-..{$DEFINE DELPHI_6P}
-
-This makes the code Delphi 6 compatible. If you want to use new language fetures turn this string into
-
-..{$DEFINE DELPHI_2009P}
 
 Topic: Ripping a CD to OGG
 
