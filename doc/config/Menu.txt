@@ -86,21 +86,7 @@ Group: Main Units  {
    File: NewAC_DSP  (src\NewAC_DSP.pas)
    File: NewACAC3  (src\NewACAC3.pas)
    File: NewACIndicators  (src\NewACIndicators.pas)
-   File: CDRip  (src\_CDRip.pas)
-   File: d3d9types...h d3d9.h  (src\_Direct3D9.pas)
-   File: EncAPI.idl  (src\_DirectShow9.pas)
-   File: ExtThreads.pas  (src\ExtThreads.pas)
    }  # Group: Main Units
-
-Group: Converted C/C++ Headers  {
-
-   File: Codec  (src\Codec.pas)
-   File: DSWrapper  (src\DSWrapper.pas)
-   File: FLAC  (src\FLAC.pas)
-   File: libwma1.pas  (src\libwma1.pas)
-   File: _DirectSound  (src\_DirectSound.pas)
-   File: _DXTypes  (src\_DXTypes.pas)
-   }  # Group: Converted C/C++ Headers
 
 Group: Utility Units  {
 
@@ -116,13 +102,6 @@ Group: Tutorials  {
    File: Components Demo  (demos\Tutorial\ComponentsDemo\ComponentsDemo.pas)
    File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
-
-File: ACS_FLAC TestCases  (dunit\Test_ACS_FLAC.pas)
-File: ACS_MAC TestCases  (dunit\Test_ACS_MAC.pas)
-File: ACS_WavPack TestCases  (dunit\Test_ACS_WavPack.pas)
-File: uLog  (dunit\uLog.pas)
-File: uTestBase  (dunit\uTestBase.pas)
-File: uUtility  (dunit\uUtility.pas)
 
 Group: Index  {
 
