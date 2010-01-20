@@ -45,7 +45,7 @@
 
 unit DSWrapper;
 
-(* Title: DSWrapper
+(*  DSWrapper
     Simpilified DirectSound interface for Delphi. The original code for this
     unit comes from PortAudio Portable Real-Time Audio Library, written in C++
     (see the copyright note in source). Delphi Translation and some 

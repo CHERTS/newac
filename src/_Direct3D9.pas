@@ -2,7 +2,7 @@
 {*                                                                            *}
 {*  Copyright (C) Microsoft Corporation.  All Rights Reserved.                *}
 {*                                                                            *}
-{*  Files:      d3d9types.h d3d9caps.h d3d9.h                                 *}
+{*  Files translated:   d3d9types.h d3d9caps.h d3d9.h                                 *}
 {*  Content:    Direct3D9 include files                                       *}
 {*                                                                            *}
 {*  DirectX 9.0 Delphi / FreePascal adaptation by Alexey Barkovoy             *}
@@ -72,7 +72,7 @@ const
  *
  *  Copyright (C) Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       d3d9types.h
+ *  File translated:       d3d9types.h
  *  Content:    Direct3D capabilities include file
  *
  ***************************************************************************)
@@ -2706,7 +2706,7 @@ type
  *
  *  Copyright (C) Microsoft Corporation.  All Rights Reserved.
  *
- *  File:       d3d9caps.h
+ *  File translated:       d3d9caps.h
  *  Content:    Direct3D capabilities include file
  *
  ***************************************************************************)
@@ -3406,7 +3406,7 @@ const
  *
  *  Copyright (C) Microsoft Corporation.  All Rights Reserved.
  *
- *  File:   d3d9.h
+ *  File translated:   d3d9.h
  *  Content:    Direct3D include file
  *
  ****************************************************************************)
@@ -4333,7 +4333,7 @@ type
 implementation
 
 (*==========================================================================;
- *  File:       d3d9types.h
+ *  File translated:       d3d9types.h
  *  Content:    Direct3D capabilities include file
  ***************************************************************************)
 
@@ -4448,7 +4448,7 @@ begin
 end;
 
 (*==========================================================================;
- *  File:   d3d9.h
+ *  File translated:   d3d9.h
  *  Content:    Direct3D include file
  ****************************************************************************)
 

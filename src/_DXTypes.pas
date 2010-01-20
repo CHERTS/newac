@@ -52,7 +52,7 @@ uses Windows;
 
 (*==========================================================================;
  *
- *  File:   dxsdkver.h
+ *  File translated:   dxsdkver.h
  *  Content:    DirectX SDK Version Include File
  *
  ****************************************************************************)
