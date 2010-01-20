@@ -2,7 +2,7 @@ Format: 1.4
 
 
 Title: NewAC
-SubTitle: v2.4
+SubTitle: v2.4.1
 
 Footer: Content (c) 2008-2010 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
@@ -86,10 +86,6 @@ Group: Main Units  {
    File: NewAC_DSP  (src\NewAC_DSP.pas)
    File: NewACAC3  (src\NewACAC3.pas)
    File: NewACIndicators  (src\NewACIndicators.pas)
-   File: d3d9types...h d3d9.h  (src\_Direct3D9.pas)
-   File: EncAPI.idl  (src\_DirectShow9.pas)
-   File: ExtThreads.pas  (src\ExtThreads.pas)
-   File: ACS_Procs  (src\Копия ACS_Procs.pas)
    File: CDRip  (src\_CDRip.pas)
    }  # Group: Main Units
 
