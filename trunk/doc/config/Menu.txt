@@ -87,6 +87,9 @@ Group: Main Units  {
    File: NewACAC3  (src\NewACAC3.pas)
    File: NewACIndicators  (src\NewACIndicators.pas)
    File: CDRip  (src\_CDRip.pas)
+   File: d3d9types...h d3d9.h  (src\_Direct3D9.pas)
+   File: EncAPI.idl  (src\_DirectShow9.pas)
+   File: ExtThreads.pas  (src\ExtThreads.pas)
    }  # Group: Main Units
 
 Group: Converted C/C++ Headers  {
