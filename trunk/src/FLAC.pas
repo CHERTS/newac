@@ -8,9 +8,6 @@
 
 unit FLAC;
 
-(* Title: FLAC
-    Headers for libFLAC v1.1.4 by Andrei Borovsky (anb@symmetrica.net). *)
-
 interface
 
 uses
