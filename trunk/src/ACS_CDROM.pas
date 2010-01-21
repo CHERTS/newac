@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.2.2
+  This file is a part of New Audio Components package v. 2.4.x
   Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -382,7 +382,7 @@ implementation
   constructor TCDPlayer.Create(AOwner: TComponent);
   var
     numaux, i : Integer;
-    AuxCaps : TAuxCaps;
+    AuxCaps : TAuxCapsA;
     Ch : AnsiChar;
     DriveName : AnsiString;
   begin
@@ -392,7 +392,7 @@ implementation
     numaux := auxGetNumDevs;
     for i := 0 to numaux - 1 do
     begin
-      auxGetDevCaps(i, @AuxCaps, SizeOf(AuxCaps));
+      auxGetDevCapsA(i, @AuxCaps, SizeOf(AuxCaps));
       if AuxCaps.wTechnology = AUXCAPS_CDAUDIO then
       begin
         aux_ind := i;
@@ -403,7 +403,7 @@ implementation
     for Ch := 'A' to 'Z' do
     begin
       DriveName := Ch + ':\';
-      if GetDriveType(@DriveName[1]) = DRIVE_CDROM then
+      if GetDriveTypeA(@DriveName[1]) = DRIVE_CDROM then
       begin
         CDDrives[CDDNum] := Ch;
         Inc(CDDNum);
@@ -428,11 +428,11 @@ implementation
     begin
       DevName := CDDrives[FCurrentDrive] + '\:';
       Cmd := 'open ' + DevName + ' type cdaudio alias cd2 shareable';
-      if mciSendString(@Cmd[1], nil, 0, 0) <> 0 then
+      if mciSendStringA(@Cmd[1], nil, 0, 0) <> 0 then
             raise EAuException.Create('Cannot open MCI audiocd device');
-      _cd_fd := mciGetDeviceID('cd2');
+      _cd_fd := mciGetDeviceIDA('cd2');
       mciSetParms.dwTimeFormat := MCI_FORMAT_MSF;
-      mciSendCommand(_cd_fd, MCI_SET, MCI_SET_TIME_FORMAT, Integer(@mciSetParms));
+      mciSendCommandA(_cd_fd, MCI_SET, MCI_SET_TIME_FORMAT, Integer(@mciSetParms));
     end;
     Inc(FOpened);
   end;
@@ -440,13 +440,13 @@ implementation
   procedure TCDPlayer.CloseCD;
   begin
     if FOpened <= 1 then
-    mciSendCommand(_cd_fd, MCI_CLOSE, 0, 0);
+    mciSendCommandA(_cd_fd, MCI_CLOSE, 0, 0);
     Dec(FOpened);
   end;
 
   procedure TCDPlayer.ForceClose;
   begin
-    mciSendCommand(_cd_fd, MCI_CLOSE, 0, 0);
+    mciSendCommandA(_cd_fd, MCI_CLOSE, 0, 0);
     FOpened:=0;
   end;
 
@@ -519,7 +519,7 @@ implementation
     begin
       mciStatusParms.dwItem := MCI_STATUS_POSITION;
       mciStatusParms.dwTrack := Track;
-      mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM or MCI_TRACK,
+      mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM or MCI_TRACK,
          Integer(@mciStatusParms));
       MSF.Minute := MCI_MSF_MINUTE(mciStatusParms.dwReturn);
       MSF.Second := MCI_MSF_SECOND(mciStatusParms.dwReturn);
@@ -527,7 +527,7 @@ implementation
     end else
     begin
       mciStatusParms.dwItem := MCI_STATUS_LENGTH;
-      mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+      mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
       MSF.Minute := MMSystem.mci_MSF_Minute(mciStatusParms.dwReturn);
       MSF.Second := MMSystem.mci_MSF_Second(mciStatusParms.dwReturn);
       MSF.Frame := MMSystem.mci_MSF_Frame(mciStatusParms.dwReturn);
@@ -547,7 +547,7 @@ implementation
       Exit;
     end;
     mciStatusParms.dwItem := MCI_STATUS_NUMBER_OF_TRACKS;
-    mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+    mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
     Result := mciStatusParms.dwReturn;
     CloseCD;
   end;
@@ -555,7 +555,7 @@ implementation
   procedure TCDPlayer.CloseTray;
   begin
     OpenCD;
-    mciSendCommand(_cd_fd, MCI_SET, MCI_SET_DOOR_CLOSED, 0);
+    mciSendCommandA(_cd_fd, MCI_SET, MCI_SET_DOOR_CLOSED, 0);
     CloseCD;
   end;
 
@@ -567,7 +567,7 @@ implementation
       ForceClose;
       raise EAuException.Create('Drive is not ready.');
     end;
-    mciSendCommand(_cd_fd, MCI_SET, MCI_SET_DOOR_OPEN, 0);
+    mciSendCommandA(_cd_fd, MCI_SET, MCI_SET_DOOR_OPEN, 0);
     CloseCD;
   end;
 
@@ -575,7 +575,7 @@ implementation
   begin
     OpenCD;
     if GetStatus = cdsPlaying then
-    mciSendCommand(_cd_fd, MCI_PAUSE, 0, 0);
+    mciSendCommandA(_cd_fd, MCI_PAUSE, 0, 0);
     CloseCD;
   end;
 
@@ -601,11 +601,11 @@ implementation
     GetTrackStart(Track+1, MSF2);
     mciPlayParms.dwFrom := mci_Make_MSF(MSF1.Minute, MSF1.Second, MSF1.Frame);
     mciPlayParms.dwTo := mci_Make_MSF(MSF2.Minute, MSF2.Second, MSF2.Frame);
-    res := mciSendCommand(_cd_fd, MCI_PLAY, MCI_FROM or MCI_TO, Integer(@mciPlayParms));
+    res := mciSendCommandA(_cd_fd, MCI_PLAY, MCI_FROM or MCI_TO, Integer(@mciPlayParms));
     if res <> 0 then
     begin
       SetLength(Error, 255);
-      mciGetErrorString(res, @Error[1], 255);
+      mciGetErrorStringA(res, @Error[1], 255);
       raise EAuException.Create(Error);
     end;
     CloseCD;
@@ -638,7 +638,7 @@ implementation
     if PlayTo.Track = EndOfDisc.Track then
     begin
       mciStatusParms.dwItem := MCI_STATUS_LENGTH;
-      mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+      mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
       MSF.Minute := MMSystem.mci_MSF_Minute(mciStatusParms.dwReturn);
       MSF.Second := MMSystem.mci_MSF_Second(mciStatusParms.dwReturn);
       MSF.Frame := MMSystem.mci_MSF_Frame(mciStatusParms.dwReturn);
@@ -647,7 +647,7 @@ implementation
     Frames2MSF(MSF2Frames(MSF)+MSF2Frames(PlayTo.MSF), MSF2);
     mciPlayParms.dwFrom := mci_Make_MSF(MSF1.Minute, MSF1.Second, MSF1.Frame);
     mciPlayParms.dwTo := mci_Make_MSF(MSF2.Minute, MSF2.Second, MSF2.Frame);
-    mciSendCommand(_cd_fd, MCI_PLAY, MCI_FROM or MCI_TO, Integer(@mciPlayParms));
+    mciSendCommandA(_cd_fd, MCI_PLAY, MCI_FROM or MCI_TO, Integer(@mciPlayParms));
     CloseCD;
   end;
 
@@ -655,14 +655,14 @@ implementation
   begin
     OpenCD;
     if GetStatus <> cdsPlaying then
-    mciSendCommand(_cd_fd, MCI_RESUME, 0, 0);
+    mciSendCommandA(_cd_fd, MCI_RESUME, 0, 0);
     CloseCD;
   end;
 
   procedure TCDPlayer.Stop;
   begin
     OpenCD;
-    mciSendCommand(_cd_fd, MCI_STOP, 0, 0);
+    mciSendCommandA(_cd_fd, MCI_STOP, 0, 0);
     CloseCD;
   end;
 
@@ -673,15 +673,15 @@ implementation
   begin
     OpenCD;
     mciSetParms.dwTimeFormat := MCI_FORMAT_TMSF;
-    mciSendCommand(_cd_fd, MCI_SET, MCI_SET_TIME_FORMAT, Integer(@mciSetParms));
+    mciSendCommandA(_cd_fd, MCI_SET, MCI_SET_TIME_FORMAT, Integer(@mciSetParms));
     mciStatusParms.dwItem := MCI_STATUS_POSITION;
-    mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+    mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
     Result.Track := mci_TMSF_Track(mciStatusParms.dwReturn);
     Result.MSF.Minute := mci_TMSF_Minute(mciStatusParms.dwReturn);
     Result.MSF.Second := mci_TMSF_Second(mciStatusParms.dwReturn);
     Result.MSF.Frame := mci_TMSF_Frame(mciStatusParms.dwReturn);
     mciSetParms.dwTimeFormat := MCI_FORMAT_MSF;
-    mciSendCommand(_cd_fd, MCI_SET, MCI_SET_TIME_FORMAT, Integer(@mciSetParms));
+    mciSendCommandA(_cd_fd, MCI_SET, MCI_SET_TIME_FORMAT, Integer(@mciSetParms));
     CloseCD;
   end;
 
@@ -706,7 +706,7 @@ implementation
     Frames2MSF(MSF2Frames(MSF2)-MSF2Frames(MSF1), Result.TrackLength);
     mciStatusParms.dwTrack := vIndex;
     mciStatusParms.dwItem := MCI_CDA_STATUS_TYPE_TRACK;
-    mciSendCommand(_cd_fd, MCI_STATUS, MCI_TRACK or MCI_STATUS_ITEM, Integer(@mciStatusParms));
+    mciSendCommandA(_cd_fd, MCI_STATUS, MCI_TRACK or MCI_STATUS_ITEM, Integer(@mciStatusParms));
     if mciStatusParms.dwReturn = MCI_CDA_TRACK_AUDIO then Result.TrackType := ttAudio
     else Result.TrackType := ttData;
     CloseCD;
@@ -720,7 +720,7 @@ implementation
     Result := cdsReady;
     OpenCD;
     mciStatusParms.dwItem := MCI_STATUS_MEDIA_PRESENT;
-    res := mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+    res := mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
     if res <> 0 then Exit;
     if mciStatusParms.dwReturn = 0 then
     begin
@@ -728,7 +728,7 @@ implementation
       Exit;
     end;
     mciStatusParms.dwItem := MCI_STATUS_MODE;
-    res := mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+    res := mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
     if res <> 0 then Exit;
     if mciStatusParms.dwReturn = MCI_MODE_NOT_READY then
     Result := cdsNotReady else
@@ -747,7 +747,7 @@ implementation
   begin
     OpenCD;
     mciStatusParms.dwItem := MCI_STATUS_MEDIA_PRESENT;
-    mciSendCommand(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
+    mciSendCommandA(_cd_fd, MCI_STATUS, MCI_STATUS_ITEM, Integer(@mciStatusParms));
     if mciStatusParms.dwReturn = 0 then
     begin
       Result := cdiNoDisc;
@@ -780,7 +780,7 @@ implementation
     Result := True;
   end;
 
-    procedure TCDIn.OpenCD;
+  procedure TCDIn.OpenCD;
   begin
     if FOpened = 0 then
     begin
