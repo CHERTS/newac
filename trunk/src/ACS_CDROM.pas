@@ -437,11 +437,13 @@ implementation
     Inc(FOpened);
   end;
 
-  procedure TCDPlayer.CloseCD;
+procedure TCDPlayer.CloseCD;
   begin
-    if FOpened <= 1 then
-    mciSendCommandA(_cd_fd, MCI_CLOSE, 0, 0);
-    Dec(FOpened);
+    if FOpened > 0 then begin
+      if FOpened = 1 then
+        mciSendCommandA(_cd_fd, MCI_CLOSE, 0, 0);
+      Dec(FOpened);
+    end;
   end;
 
   procedure TCDPlayer.ForceClose;
