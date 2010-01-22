@@ -136,7 +136,7 @@ type
     Devices : DSW_Devices;
     FFramesInBuffer : LongWord;
     FPollingInterval : LongWord;
-    _BufSize : LongWord;
+    _BufSize : Integer;
     Buf : PBuffer8;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
@@ -611,7 +611,8 @@ end;
 
 procedure TDXAudioIn.GetDataInternal;
 var
-  l, l1, res : LongWord;
+  l : Integer;
+  l1, res : LongWord;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
   if  (FSamplesToRead >=0) and (FPosition >= FSize) then
@@ -644,7 +645,7 @@ begin
     if RecordingEchoed then
     begin
         DSW_QueryOutputSpace(DSW, l1);
-        if l < l1 then l1 := l;
+        if Integer(l) < Integer(l1) then l1 := LongWord(l);
         if FEchoRecording then
           DSW_WriteBlock(DSW, @Buf[0], l1)
         else
