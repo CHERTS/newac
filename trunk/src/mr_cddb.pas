@@ -343,7 +343,7 @@ begin
 
   TrackIdx := 0;
   ExtIdx   := 0;
-
+{$WARNINGS OFF}
   for i := 0 to LogStr.Count-1 do
   begin
     s := LogStr.Strings[i];
@@ -388,6 +388,7 @@ begin
       inc(ExtIdx);
     end;
   end;
+{$WARNINGS ON}
 end;
 
 procedure TCDDBQuery.SplitAlbumStr(aAlbumStr: string;

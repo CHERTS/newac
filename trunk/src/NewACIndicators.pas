@@ -79,7 +79,6 @@ type
     FInterval : LongWord;
     FElapsed : LongWord;
     FOnGainData : TIndicatorEvent;
-    FBufferSize : LongWord;
     FSampleSize : Word;
     function GetLevels(Index : LongWord) : Single;
   protected

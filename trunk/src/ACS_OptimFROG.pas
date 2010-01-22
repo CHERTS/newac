@@ -116,13 +116,17 @@ begin
         FSize := - 1;
 
       for i := 0 to _Id3v1Tags.IdCount - 1 do begin
+       {$WARNINGS OFF}
         tag_id := _Id3v1Tags.Ids[i];
         _Id3v1Tags[tag_id] := FDecoder.Tags[tag_id];
+       {$WARNINGS ON}
       end;
 
       for i := 0 to _APEv2Tags.IdCount - 1 do begin
+       {$WARNINGS OFF}
         tag_id := _APEv2Tags.Ids[i];
         _APEv2Tags[tag_id] := FDecoder.Tags[tag_id];
+       {$WARNINGS ON}
       end;
 
       Inc(FOpened);

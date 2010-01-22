@@ -281,7 +281,6 @@ procedure TWVIn.OpenFile;
 var
   i{, n}: Integer;
   tag_id: AnsiString;
-  S : WideString;
 begin
   LoadWavpackDLL;
   if not WavpackDLL_Loaded then
@@ -655,10 +654,12 @@ begin
     if (not APEv2Tags.Empty) or (FCuesheet <> '') then begin
       if not APEv2Tags.Empty then
       for i := 0 to APEv2Tags.IdCount - 1 do begin
+       {$WARNINGS OFF}
         tag_id := APEv2Tags.Ids[i];
         tag_value := APEv2Tags[tag_id];
         if VarIsType(tag_value, [varString, varOleStr]) then
           FEncoder.Tags[tag_id] := tag_value;
+       {$WARNINGS ON}
       end;
       if FCuesheet <> '' then
         FEncoder.Tags['Cuesheet'] := FCuesheet;

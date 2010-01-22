@@ -36,8 +36,8 @@ type
     FrameSize : Integer;
     _BufSize : Integer;
     _SampleSize : Word;
-    _StartSample, _StartFrom : LongWord;
-    Offset, BufEnd : Integer;
+//    _StartSample, _StartFrom : LongWord;
+    Offset, BufEnd : LongWord;
     BlockCount, CurrentBlock : Integer;
     FBitRate : LongWord;
     FFlags : Integer;
@@ -79,9 +79,8 @@ implementation
 
   function TAC3In.ReadFrame;
   var
-    CurPos : Int64;
     i : Integer;
-    sample_rate, bit_rate, frame_length : Integer;
+    sample_rate, bit_rate : Integer;
     ChanInfo : Integer;
   begin
     Result := False;
@@ -200,8 +199,9 @@ implementation
   var
     level, bias : Single;
     samples : psingle;
-    i, j, Res : Integer;
-    SamplesReq : Integer;
+    i, j : LongWord;
+    Res : Integer;
+    SamplesReq : LongWord;
   begin
     if Offset >= BufEnd then
     begin

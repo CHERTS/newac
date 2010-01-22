@@ -468,6 +468,7 @@ begin
                 cb_output_open, cb_output_seek, cb_output_read, cb_output_write, cb_output_close, Self);
   if not APEv2Tags.Empty then
   begin
+    {$WARNINGS OFF}
     if APEv2Tags.Artist <> '' then
        AddTag(_ape_Artist, APEv2Tags.Artist);
     if APEv2Tags.Album <> '' then
@@ -484,6 +485,7 @@ begin
        AddTag(_ape_Composer, APEv2Tags.Composer);
     if APEv2Tags.Track <> '' then
        AddTag(_ape_Track, APEv2Tags.Track);
+    {$WARNINGS ON}
   end;
   start_encoder(encoder);
 end;

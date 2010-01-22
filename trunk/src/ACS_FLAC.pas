@@ -612,33 +612,95 @@ type
       begin
         SetLength(S, Entry.length);
         Move(Entry.entry^, S[1], Length(S));
-        SL.Add(S);
+        SL.Add(String(S));
         Inc(LongWord(Entry), SizeOf(FLAC__StreamMetadata_VorbisComment_Entry));
       end;
+      {$WARNINGS OFF}
       S := SL.Values[AnsiUpperCase(_vorbis_Title)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Title := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Title := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Artist)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Artist := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Artist := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Album)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Album := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+       FLACIn.FComments.Album := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Date)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Date := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Date := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Genre)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Genre := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Genre := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Track)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Track := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Track := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Disc)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Disc := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Disc := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_Reference)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.Reference := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.Reference := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_TrackGain)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.TrackGain := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.TrackGain := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_TrackPeak)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.TrackPeak := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.TrackPeak := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_AlbumGain)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.AlbumGain := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.AlbumGain := Utf8ToString(S);
+      {$IFEND}
       S := SL.Values[AnsiUpperCase(_vorbis_AlbumPeak)];
+      {$IF CompilerVersion < 20}
       FLACIn.FComments.AlbumPeak := Utf8Decode(S);
+      {$IFEND}
+      {$IF CompilerVersion >= 20}
+      FLACIn.FComments.AlbumPeak := Utf8ToString(S);
+      {$IFEND}
+      {$WARNINGS ON}
       SL.Free;
     end;
     FLacIn.EndOfMetadata := metadata.is_last;
@@ -871,8 +933,10 @@ type
     _CommonTags.Artist := FComments.Artist;
     _CommonTags.Album := FComments.Album;
     _CommonTags.Title := FComments.Title;
+    {$WARNINGS OFF}
     _CommonTags.Year := FComments.Date;
     _CommonTags.Track := FComments.Track;
+    {$WARNINGS ON}
     _CommonTags.Genre := FComments.Genre;
     finally
       OpenCS.Leave;

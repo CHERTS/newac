@@ -115,8 +115,10 @@ begin
         begin
           SetLength(List, count+1);
           List[count].id := StringToGUID(id);
+          {$WARNINGS OFF}
           StrPLCopy(List[count].name, keys[i], 512);
           StrPLCopy(List[count].path, dllpath, 512);
+          {$WARNINGS ON}
           inc(count);
         end;
         r.CloseKey;

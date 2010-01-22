@@ -525,7 +525,7 @@ end;
 
 
 
-      CDRIni := TINIFile.Create(FilePath+'cdr.ini');
+      CDRIni := TINIFile.Create(String(FilePath+'cdr.ini'));
       CDRIni.WriteString('CD-ROM','nActive','0');
       case GetWindowsVersion of
         WIN9x : CDRIni.WriteInteger('CD-ROM','nTransportLayer',0);

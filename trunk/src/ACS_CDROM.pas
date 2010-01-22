@@ -361,7 +361,7 @@ implementation
     else sec := MSF.Second;
     if sec<10 then sep := ':0'
     else sep := ':';
-    Result := IntToStr(min) + sep + IntToStr(sec);
+    Result := AnsiString(IntToStr(min)) + sep + AnsiString(IntToStr(sec));
   end;
 
   procedure Frames2MSF(Frames : Integer; var MSF : TCDMSF);
@@ -402,7 +402,7 @@ implementation
     CDDNum := 0;
     for Ch := 'A' to 'Z' do
     begin
-      DriveName := Ch + ':\';
+      DriveName := Ch + AnsiString(':\');
       if GetDriveTypeA(@DriveName[1]) = DRIVE_CDROM then
       begin
         CDDrives[CDDNum] := Ch;
@@ -426,7 +426,7 @@ implementation
   begin
     if FOpened = 0 then
     begin
-      DevName := CDDrives[FCurrentDrive] + '\:';
+      DevName := CDDrives[FCurrentDrive] + AnsiString('\:');
       Cmd := 'open ' + DevName + ' type cdaudio alias cd2 shareable';
       if mciSendStringA(@Cmd[1], nil, 0, 0) <> 0 then
             raise EAuException.Create('Cannot open MCI audiocd device');
@@ -606,7 +606,7 @@ implementation
     begin
       SetLength(Error, 255);
       mciGetErrorStringA(res, @Error[1], 255);
-      raise EAuException.Create(Error);
+      raise EAuException.Create(String(Error));
     end;
     CloseCD;
   end;
@@ -921,7 +921,7 @@ implementation
     if not (csDesigning in ComponentState) then
     begin
       if SHGetFolderPathA(0, $1a, 0, 0, @adPath[0]) <> 0 then
-        AppPath := ExtractFilePath(ParamStr(0))
+        AppPath := AnsiString(ExtractFilePath(ParamStr(0)))
       else
         AppPath := PAnsiChar(@adPath[0]);
       if AppPath[length(AppPath)] <> '\' then AppPath := AppPath + '\';

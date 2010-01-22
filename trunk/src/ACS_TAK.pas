@@ -103,10 +103,13 @@ begin
 
       _APEv2Tags.Clear();
       for i := 0 to _APEv2Tags.IdCount - 1 do begin
+        {$WARNINGS OFF}
         tag_id := _APEv2Tags.Ids[i];
-
+        {$WARNINGS ON}
         if FDecoder.TagPresents[tag_id] then
+        {$WARNINGS OFF}
           _APEv2Tags[tag_id] := FDecoder.TagValue[tag_id];
+        {$WARNINGS ON}
       end;
 
       Inc(FOpened);

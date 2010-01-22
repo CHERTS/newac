@@ -39,7 +39,7 @@ type
     FPollingInterval : LongWord;
     DSW : DSoundWrapper;
     Devices : DSW_Devices;
-    Chan, SR, BPS : Integer;
+    Chan, SR, BPS : LongWord;
     EndOfInput, StartInput : Boolean;
     Buf : PBuffer8;
     FDeviceNumber : Integer;
@@ -136,7 +136,7 @@ type
     Devices : DSW_Devices;
     FFramesInBuffer : LongWord;
     FPollingInterval : LongWord;
-    _BufSize : Integer;
+    _BufSize : LongWord;
     Buf : PBuffer8;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
@@ -611,8 +611,7 @@ end;
 
 procedure TDXAudioIn.GetDataInternal;
 var
-  l : Integer;
-  l1, res : LongWord;
+  l, l1, res : LongWord;
 begin
   if not Busy then  raise EAuException.Create('The Stream is not opened');
   if  (FSamplesToRead >=0) and (FPosition >= FSize) then

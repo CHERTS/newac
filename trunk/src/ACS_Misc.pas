@@ -1058,7 +1058,13 @@ begin
   ind := False;
   for i:= pos to Length(S) do
   begin
-    if S[i] in ['0'..'9'] then
+    if
+    {$IFDEF UNICODE}
+     CharInSet(S[i], ['0'..'9'])
+    {$ELSE}
+     S[i] in ['0'..'9']
+    {$ENDIF}
+    then
     begin
       ind := True;
       Result := Result + S[i];
@@ -1083,7 +1089,7 @@ begin
   SL := TStringList.Create;
   if FCueFile = '' then
      raise EAuException.Create('Cue-file not set');
-  SL.LoadFromFile(FCueFile);
+  SL.LoadFromFile(String(FCueFile));
   State := beforeTracks;
   for i := 0 to SL.Count - 1 do
   begin
@@ -1093,12 +1099,12 @@ begin
         p := AnsiPos('PERFORMER', SL.Strings[i]);
         if p > 0 then
         begin
-          FPerformer := ExtractString(SL.Strings[i], p + 9);
+          FPerformer := AnsiString(ExtractString(SL.Strings[i], p + 9));
         end;
         p := AnsiPos('TITLE', SL.Strings[i]);
         if p > 0 then
         begin
-          FAlbum := ExtractString(SL.Strings[i], p + 5);
+          FAlbum := AnsiString(ExtractString(SL.Strings[i], p + 5));
         end;
         p := AnsiPos('TRACK', SL.Strings[i]);
         if p > 0 then
@@ -1147,12 +1153,12 @@ begin
         p := AnsiPos('PERFORMER', SL.Strings[i]);
         if p > 0 then
         begin
-          FItems[FItemsCount-1].Performer := ExtractString(SL.Strings[i], p + 9);
+          FItems[FItemsCount-1].Performer := AnsiString(ExtractString(SL.Strings[i], p + 9));
         end;
         p := AnsiPos('TITLE', SL.Strings[i]);
         if p > 0 then
         begin
-          FItems[FItemsCount-1].Title := ExtractString(SL.Strings[i], p + 5);
+          FItems[FItemsCount-1].Title := AnsiString(ExtractString(SL.Strings[i], p + 5));
         end;
         p := AnsiPos('TRACK', SL.Strings[i]);
         if p > 0 then
@@ -1363,7 +1369,7 @@ end;
 
 function TTagEditor.GetFileExt;
 begin
-  Result := AnsiStrLower(PAnsiChar(AnsiString(ExtractFileExt(FFileName))));
+  Result := AnsiStrLower(PAnsiChar(AnsiString(ExtractFileExt(String(FFileName)))));
 end;
 
 procedure TTagEditor.SetFileName(const aFileName: AnsiString);
@@ -1378,7 +1384,6 @@ var
   Ext : ANSIString;
   sb, db : LongWord;
   Dest : WideString;
-  Stream : TFileStream;
 //  sr : wma_sync_reader;
   i : Integer;
 begin
@@ -1432,7 +1437,6 @@ begin
         Stream.Free;
         Exit;
       end; *)
-      _Tag := taglib_file_tag(_File);
       _AudioProperties := taglib_file_audioproperties(_File);
       _Tag := taglib_file_tag(_File);
       S := taglib_tag_title(_Tag);
@@ -1467,7 +1471,9 @@ begin
       SetLength(Dest, db);
       Utf8ToUnicode(@Dest[1], db, @S[1], sb);
       FGenre := Dest;
+      {$WARNINGS OFF}
       S := IntToStr(taglib_tag_year(_Tag));
+      {$WARNINGS ON}
       sb := Length(S);
       Dest := '';
       db := 0;
@@ -1475,7 +1481,9 @@ begin
       SetLength(Dest, db);
       Utf8ToUnicode(@Dest[1], db, @S[1], sb);
       FYear := Dest;
+      {$WARNINGS OFF}
       S := IntToStr(taglib_tag_track(_Tag));
+      {$WARNINGS ON}
       sb := Length(S);
       Dest := '';
       db := 0;

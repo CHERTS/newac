@@ -676,6 +676,7 @@ implementation
   //    lwma_reader_get_author(reader, Str);
       _Id3v2Tags.Clear;
       _CommonTags.Clear;
+      {$WARNINGS OFF}
       _Id3v2Tags.Artist := lwma_reader_get_author(reader);
       _CommonTags.Artist := lwma_reader_get_author(reader);
       _Id3v2Tags.Title := lwma_reader_get_title(reader);
@@ -689,6 +690,7 @@ implementation
       _Id3v2Tags.Year := lwma_reader_get_year(reader);
       _CommonTags.Year := lwma_reader_get_year(reader);
       _Id3v2Tags.Comment := lwma_reader_get_copyright(reader);
+     {$WARNINGS ON}
       Inc(FOpened);
     end;
     finally
@@ -833,6 +835,7 @@ implementation
       lwma_writer_set_audio_properties2(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FVBR or FLossless, FCodecIndex, FFormatIndex);
     BufSize := FInput.Channels*FInput.BitsPerSample*FInput.SampleRate div 100;
     GetMem(Buf, BufSize);
+    {$WARNINGS OFF}
     if Id3v2Tags.Artist <> '' then
       lwma_writer_set_author(Writer, Id3v2Tags.Artist);
     if Id3v2Tags.Album <> '' then
@@ -847,6 +850,7 @@ implementation
       lwma_writer_set_title(Writer, Id3v2Tags.Title);
     if Id3v2Tags.Comment <> '' then
       lwma_writer_set_copyright(Writer, Id3v2Tags.Comment);
+    {$WARNINGS ON}
     lwma_writer_begin(Writer);
     EndOfStream := false;
   end;
@@ -928,7 +932,8 @@ implementation
       end else
         FSize := FTotalSamples*FChan*(FBPS shr 3);
       FSeekable := False;
-//      SetLength(Str, 256);
+      {$WARNINGS OFF}
+      //      SetLength(Str, 256);
       //lwma_async_reader_get_author(reader, Str);
       _Id3v2Tags.Artist := lwma_async_reader_get_author(reader);
 //      lwma_async_reader_get_title(reader, Str);
@@ -943,6 +948,7 @@ implementation
       _Id3v2Tags.Year := lwma_async_reader_get_year(reader);
 //      lwma_async_reader_get_copyright(reader, Str);
       _Id3v2Tags.Comment := lwma_async_reader_get_copyright(reader);
+      {$WARNINGS ON}
       FFirstTime := True;
       Inc(FOpened);
     end;
@@ -1101,6 +1107,7 @@ implementation
         lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FBitrate)
       else
         lwma_writer_set_audio_properties(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FLossless, FVBR, FVBRQuality);
+    {$WARNINGS OFF}
     if FTags.Artist <> '' then
       lwma_writer_set_author(Writer, FTags.Artist);
     if FTags.Album <> '' then
@@ -1115,6 +1122,7 @@ implementation
       lwma_writer_set_title(Writer, Id3v2Tags.Title);
     if FTags.Comment <> '' then
       lwma_writer_set_copyright(Writer, FTags.Comment);
+    {$WARNINGS ON}
     lwma_writer_begin(Writer);
   end;
 
@@ -1284,6 +1292,7 @@ implementation
     lwma_writer_set_audio_properties3(Writer, FInput.Channels, FInput.BitsPerSample, FInput.SampleRate, FVBR, FCodecIndex, FFormatIndex);
     BufSize := FInput.Channels*FInput.BitsPerSample*FInput.SampleRate div 100;
     GetMem(Buf, BufSize);
+   {$WARNINGS OFF}
     if Id3v2Tags.Artist <> '' then
       lwma_writer_set_author(Writer, Id3v2Tags.Artist);
     if Id3v2Tags.Album <> '' then
@@ -1298,6 +1307,7 @@ implementation
       lwma_writer_set_title(Writer, Id3v2Tags.Title);
     if Id3v2Tags.Comment <> '' then
       lwma_writer_set_copyright(Writer, Id3v2Tags.Comment);
+   {$WARNINGS ON}
     EndOfStream := false;
     lwma_create_preprocessor(Writer, Preprocessor);
     lwma_writer_begin_preprocess(Writer, Preprocessor);

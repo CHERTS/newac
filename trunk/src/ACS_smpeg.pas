@@ -31,11 +31,11 @@ type
     procedure OpenFile; override;
   end;
 
-  {$IFDEF DELPHI_6P}
+  {$IF CompilerVersion < 20}
   const
     _lBufSize = 32768;
   type
- {$ENDIF}
+ {$IFEND}
 
 
 (* Class: TMpgIn
@@ -46,11 +46,11 @@ type
 
   TMpgIn = class(TAuTaggedFileIn)
   private
-  {$IFDEF DELPHI_2009P}
+   {$IF CompilerVersion >= 20}
     const
       _lBufSize = 32768;
     var
-   {$ENDIF}
+   {$IFEND}
       FHandle : Pmpg123_handle;
       FBytesRead, FBOffset : LongWord;
       _Buf : array[0.._lBufSize - 1] of Byte;
@@ -204,10 +204,8 @@ implementation
     end;
     if FBytesRead = 0 then
     begin
-      err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
+      mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
     end;
-//    if err = MPG123_ERR then
-//       raise EAuException.Create('MP3 data error');
     if Bytes >= FBytesRead - FBOffset then
     begin
       Bytes := FBytesRead - FBOffset;
@@ -240,8 +238,7 @@ implementation
   const
     iBufSize = _lBufSize div 4;
   var
-    Pos, err : Longint;
-    iBuf : array[0..iBufSize - 1] of Byte;
+    Pos : Longint;
   begin
     Result := False;
     if FSeekable then
@@ -289,7 +286,7 @@ implementation
     mpg123_init();
     handle := mpg123_new(nil, nil);
     //AbsiString
-    S := FFileName;
+    S := AnsiString(FFileName);
     mpg123_open(handle, @S[1]);
     mpg123_scan(handle);
     meta := mpg123_meta_check(handle);
@@ -303,7 +300,7 @@ implementation
        _Id3v1Tags.Artist := fv1.artist;
        _Id3v1Tags.Album := fv1.album;
        if fv1.year[0] > ' ' then
-        _Id3v1Tags.Year := StrToInt(fv1.year);
+        _Id3v1Tags.Year := StrToInt(String(fv1.year));
      end;
    try
      if fv2 <>  nil then
@@ -312,19 +309,34 @@ implementation
         begin
           SetLength(S, fv2.title.Size);
           Move(fv2.title.p[0], S[1], fv2.title.Size);
+          {$IF CompilerVersion < 20}
           _Id3v2Tags.Title := UTF8Decode(S);
+          {$IFEND}
+          {$IF CompilerVersion >= 20}
+          _Id3v2Tags.Title := UTF8ToString(S);
+          {$IFEND}
         end;
         if fv2.artist <> nil then
         begin
           SetLength(S, fv2.artist.Size);
           Move(fv2.artist.p[0], S[1], fv2.artist.Size);
+          {$IF CompilerVersion < 20}
           _Id3v2Tags.Artist := UTF8Decode(S);
+         {$IFEND}
+          {$IF CompilerVersion >= 20}
+          _Id3v2Tags.Artist := UTF8ToString(S);
+          {$IFEND}
         end;
         if fv2.album <> nil then
         begin
           SetLength(S, fv2.album.Size);
           Move(fv2.album.p[0], S[1], fv2.album.Size);
+          {$IF CompilerVersion < 20}
           _Id3v2Tags.Album := UTF8Decode(S);
+         {$IFEND}
+          {$IF CompilerVersion >= 20}
+          _Id3v2Tags.Album := UTF8ToString(S);
+          {$IFEND}
         end;
         if fv2.year <> nil then
         begin
@@ -336,23 +348,36 @@ implementation
         begin
           SetLength(S, fv2.genre.Size);
           Move(fv2.genre.p[0], S[1], fv2.genre.Size);
+          {$IF CompilerVersion < 20}
           _Id3v2Tags.Genre := UTF8Decode(S);
+         {$IFEND}
+         {$IF CompilerVersion >= 20}
+          _Id3v2Tags.Genre := UTF8ToString(S);
+         {$IFEND}
         end;
         if fv2.comment <> nil then
         begin
           SetLength(S, fv2.comment.Size);
           Move(fv2.comment.p[0], S[1], fv2.comment.Size);
+          {$IF CompilerVersion < 20}
           _Id3v2Tags.Comment := UTF8Decode(S);
+         {$IFEND}
+         {$IF CompilerVersion >= 20}
+          _Id3v2Tags.Comment := UTF8ToString(S);
+         {$IFEND}
         end;
      end else
      begin
+      {$WARNINGS OFF}
        _Id3v2Tags.Artist := _Id3v1Tags.Artist;
        _Id3v2Tags.Album := _Id3v1Tags.Album;
        _Id3v2Tags.Title := _Id3v1Tags.Title;
        _Id3v2Tags.Year := IntToStr(_Id3v1Tags.Year);
        _Id3v2Tags.Track := IntToStr(_Id3v1Tags.Track);
        _Id3v2Tags.Genre := _Id3v1Tags.Genre;
+      {$WARNINGS ON}
      end;
+     {$WARNINGS OFF}
      _CommonTags.Clear;
      _CommonTags.Artist := _Id3v2Tags.Artist;
      _CommonTags.Album := _Id3v2Tags.Album;
@@ -360,6 +385,7 @@ implementation
      _CommonTags.Year := _Id3v2Tags.Year;
      _CommonTags.Track := _Id3v2Tags.Track;
      _CommonTags.Genre := _Id3v2Tags.Genre;
+     {$WARNINGS ON}
    except
    end;
    end;

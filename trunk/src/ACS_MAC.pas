@@ -279,6 +279,7 @@ begin
     if macGetID3Tag(PAnsiChar(AnsiString(FWideFileName)), @Tag) = 0 then
     begin
       _CommonTags.Clear;
+      {$WARNINGS OFF}
       _APEv2Tags.Album := Tag.Album;
       _CommonTags.Album := Tag.Album;
       _APEv2Tags.Artist := Tag.Artist;
@@ -290,6 +291,7 @@ begin
       _APEv2Tags.Year := Tag.Year;
       _CommonTags.Year := Tag.Year;
       _APEv2Tags.Comment := Tag.Comment;
+      {$WARNINGS ON}
     end;
 
 {Ross---

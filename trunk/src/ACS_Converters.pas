@@ -1559,8 +1559,6 @@ implementation
     FramesReq, BytesReq, SamplesReq, i : LongWord;
     PS : PSingleArray;
     Left, Right : Single;
-    EEOF : Boolean;
-    Len : Integer;
   begin
     FPosition := FInput.Position div 3;
     FramesReq := Bytes div FOutputFrameSize;
