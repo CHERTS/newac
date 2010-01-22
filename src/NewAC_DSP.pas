@@ -163,12 +163,11 @@ type
 
     TGCState = (gcPassing, gcSkipping);
 
-   {$IFDEF DELPHI_6P}
+   {$IF CompilerVersion < 20}
     const
        lFilterLength = 8;
-
      type
-    {$ENDIF}
+    {$IFEND}
 
 
   (* Class: TGainProcessor
@@ -180,11 +179,11 @@ type
 
     TGainProcessor = class(TAuConverter)
     private
-     {$IFDEF DELPHI_2009P}
+     {$IF CompilerVersion >= 20}
       const
          lFilterLength = 8;
       var
-      {$ENDIF}
+      {$IFEND}
       FSkipSilenceEnabled : Boolean;
       TmpBuffer1, TmpBuffer2 : array of Byte;
       InBuffer : array of Single;
@@ -824,8 +823,10 @@ implementation
        FInternalState := 0;
     if FInternalState < 2 then
     begin
+      {$WARNINGS OFF}
       if Bytes > FBufferSize - FOffset then
         Bytes := FBufferSize - FOffset;
+      {$WARNINGS ON}
       Buffer := @TmpBuffer1[FOffset];
       Inc(FOffset, Bytes);
     end else

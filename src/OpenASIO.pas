@@ -36,9 +36,9 @@ type
     procedure GetErrorMessage(errorString: PChar); stdcall;	
     function Start: TASIOError; stdcall;
     function Stop: TASIOError; stdcall;
-    function GetChannels(out numInputChannels, numOutputChannels: longint): TASIOError; stdcall;
-    function GetLatencies(out inputLatency, outputLatency: longint): TASIOError; stdcall;
-    function GetBufferSize(out minSize, maxSize, preferredSize, granularity: longint): TASIOError; stdcall;
+    function GetChannels(out numInputChannels, numOutputChannels: LongWord): TASIOError; stdcall;
+    function GetLatencies(out inputLatency, outputLatency: LongWord): TASIOError; stdcall;
+    function GetBufferSize(out minSize, maxSize, preferredSize, granularity: LongWord): TASIOError; stdcall;
     function CanSampleRate(sampleRate: TASIOSampleRate): TASIOError; stdcall;
     function GetSampleRate(out sampleRate: TASIOSampleRate): TASIOError; stdcall;
     function SetSampleRate(sampleRate: TASIOSampleRate): TASIOError; stdcall;

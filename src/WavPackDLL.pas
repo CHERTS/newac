@@ -456,14 +456,16 @@ constructor TWavpackDecoder.Create(const AFilename: String;
 var
   error: packed array [Byte] of Char;
 begin
-  FFileName := Trim(AFileName);
+  FFileName := AnsiString(Trim(AFileName));
   if FFileName = '' then
     raise EWavpackException.Create('AFilename is empty!');
 
   CheckFunc(@WavpackOpenFileInput, WavpackOpenFileInput_name);
 
   FContext := WavpackOpenFileInput(
+    {$WARNINGS OFF}
     PChar(FFileName),
+    {$WARNINGS ON}
     @(error[0]), Integer(Flags), NormOffset);
   if FContext = nil then
     raise EWavpackException.CreateFmt(
@@ -647,7 +649,12 @@ begin
   if len > 0 then begin
     SetLength(buf, len);
     WavpackGetTagItem(FContext, @(Id[1]), @(buf[1]), len + 1{for terminal #0});
+    {$IF CompilerVersion < 20}
     Result := UTF8Decode(buf);
+    {$IFEND}
+    {$IF CompilerVersion >= 20}
+    Result := UTF8ToString(buf);
+    {$IFEND}
   end
   else
     Result := '';
@@ -656,8 +663,9 @@ end;
 function TWavpackDecoder.GetLastError: AnsiString;
 begin
   CheckFunc(@WavpackGetErrorMessage, WavpackGetErrorMessage_name);
-
+  {$WARNINGS OFF}
   Result := WavpackGetErrorMessage(FContext);
+  {$WARNINGS ON}
 end;
 
 function TWavpackDecoder.UnpackSamples(Buffer: Pointer; SampleCount: Cardinal): Cardinal;
@@ -776,8 +784,9 @@ end;
 function TWavpackEncoder.GetLastError: AnsiString;
 begin
   CheckFunc(@WavpackGetErrorMessage, WavpackGetErrorMessage_name);
-
+  {$WARNINGS OFF}
   Result := WavpackGetErrorMessage(FContext);
+  {$WARNINGS ON}
 end;
 
 function TWavpackEncoder.Init(TotalSamples: Cardinal): Boolean;

@@ -18,8 +18,8 @@ type
 
   TOptimFROGTags = packed record
     key_count: Cardinal;
-    keys: array [0 .. 63] of PChar;
-    values: array [0 .. 63] of PChar;
+    keys: array [0 .. 63] of PAnsiChar;
+    values: array [0 .. 63] of PAnsiChar;
   end;
   POptimFROGTags = ^TOptimFROGTags;
 
@@ -497,10 +497,14 @@ begin
 
     for i := Low(FTags.keys) to Low(FTags.keys) + FTags.key_count - 1 do
       if (FTags.keys[i] <> nil) and (FTags.values[i] <> nil) and
-         AnsiSameText(_key, Trim(FTags.keys[i]))
+         AnsiSameText(_key, Trim(String(FTags.keys[i])))
       then begin
+        {$IF CompilerVersion < 20}
         Result := UTF8Decode(FTags.values[i]);
-
+        {$IFEND}
+        {$IF CompilerVersion >= 20}
+        Result := UTF8ToString(FTags.values[i]);
+        {$IFEND}
         Exit;
       end;
   end;

@@ -86,9 +86,9 @@ type
     procedure _Pause; override;
     procedure _Resume; override;
     constructor Create(AOwner: TComponent); override;
-    (* Function: Reset
+    (* Function: ResetSync
        Resets the synchronizer. *)
-    procedure Reset;
+    procedure ResetSync;
     (* Property: DeltaTime
       The current difference between the physical time and the "playback time" - the number of samples passed in milliseconds. *)
     property DeltaTime : Integer read FDeltaTime;
@@ -279,7 +279,7 @@ function timeKillEvent(uTimerID : UINT) : MMResult; stdcall; external 'winmm.dll
    Finput._Resume;
  end;
 
- procedure TAudioSynchronizer.Reset;
+ procedure TAudioSynchronizer.ResetSync;
  begin
    FirstCall := True;
  end;

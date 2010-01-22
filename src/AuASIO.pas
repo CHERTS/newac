@@ -38,14 +38,14 @@ type
   private
     device : IOpenASIO;
     Devices : TAsioDriverList;
-    Chan, SR, BPS : Integer;
+    Chan, SR, BPS : LongWord;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
 //    FOnUnderrun : TUnderrunEvent;
-    FLatency, FBufferSize : Integer;
-    FSupportedChannels : Integer;
-    FOutputChannels : Integer;
-    FOutputBPS : Integer;
+    FLatency, FBufferSize : LongWord;
+    FSupportedChannels : LongWord;
+    FOutputChannels : LongWord;
+    FOutputBPS : LongWord;
     FFloat,  FPacked32 : Boolean;
     ASIOStarted : Boolean;
     BufferInfo : array [0..16] of TAsioBufferInfo;
@@ -58,7 +58,6 @@ type
     DevStopped : Boolean;
     FOnPositionChanged : TASIOPositionEvent;
     FASIOBufferSize : TASIOBufferSize;
-    FPrefetch : TGenericEvent;
     FPrefetchData : Boolean;
     DoPrefetch : Boolean;
     procedure SetDeviceNumber(i : Integer);
@@ -153,17 +152,17 @@ type
   private
     device : IOpenASIO;
     Devices : TAsioDriverList;
-    _BufSize : Integer;
+    _BufSize : LongWord;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
     FBPS, FChan, FFreq : LongWord;
-    FMaxChan : Integer;
+    FMaxChan : LongWord;
     FSamplesToRead : Int64;
     FRecTime : Integer;
     BufferInfo : array [0..16] of TAsioBufferInfo;
     Callbacks         : TASIOCallbacks;
-    FLatency : Integer;
-    BytesInBuf : Integer;
+    FLatency : LongWord;
+    BytesInBuf : LongWord;
     FOnLatencyChanged : TGenericEvent;
     ASIOStarted : Boolean;
     FASIOBufferSize : TASIOBufferSize;
@@ -285,14 +284,14 @@ type
   private
     device : IOpenASIO;
     Devices : TAsioDriverList;
-    _BufSize : Integer;
+    _BufSize : LongWord;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
     FBPS, FChan, FFreq : LongWord;
     BufferInfo : array [0..16] of TAsioBufferInfo;
     Callbacks         : TASIOCallbacks;
-    FLatency : Integer;
-    BytesInBuf : Integer;
+    FLatency : LongWord;
+    BytesInBuf : LongWord;
     FOnLatencyChanged : TGenericEvent;
     ASIOStarted : Boolean;
     FASIOBufferSize : TASIOBufferSize;
@@ -406,9 +405,9 @@ type
   TBuffer64 = array[0..0] of Int64;
   PBuffer64 = ^TBuffer64;
 
-procedure Deinterleave32(InputBuffer : PBuffer32; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : Integer; Channels : LongWord);
+procedure Deinterleave32(InputBuffer : PBuffer32; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : LongWord; Channels : LongWord);
 var
-  i, j : Integer;
+  i, j : LongWord;
   Dest : array[0..15] of PBuffer32;
 begin
   for i := 0 to Channels - 1 do
@@ -416,7 +415,6 @@ begin
   if Channels mod 2 = 0 then
   begin
     i := 0;
-    j := 0;
     case Channels of
       2: while i < Samples do
          begin
@@ -468,9 +466,9 @@ begin
   end;
 end;
 
-procedure Deinterleave16(InputBuffer : PBuffer16; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : Integer; Channels : LongWord);
+procedure Deinterleave16(InputBuffer : PBuffer16; OutputBuffer : PBufferInfoArray; Samples, BufferIndex : LongWord; Channels : LongWord);
 var
-  i, j : Integer;
+  i, j : LongWord;
   Dest : array[0..15] of PBuffer16;
 begin
   for i := 0 to Channels - 1 do
@@ -861,7 +859,8 @@ end;
 
 procedure TASIOAudioOut.ASIOInit;
 var
-  i, Dummie, min, max, pref : Integer;
+  min, max, pref : LongWord;
+  i, Dummie : LongWord;
   chi : TAsioChannelInfo;
 begin
   FFloat := False;
@@ -980,8 +979,6 @@ begin
 end;
 
 function  TASIOAudioOut.FillBuffer(var EOF: Boolean) : Integer;
-var
-  i,  count : Integer;
 begin
   if (BPS = 16) and (OutputBPS = 32) then
   begin
@@ -1001,7 +998,6 @@ begin
     Convert24To32(@iBuf[0], FBufferSize*3*FOutputChannels);
   end else
   begin
-    Result := 0;
     raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
   end;
 end;
@@ -1081,7 +1077,7 @@ end;
 
 procedure TASIOAudioIn.ASIOInit;
 var
-  i, Dummie, min, max, pref : Integer;
+  i, Dummie, min, max, pref : LongWOrd;
   chi : TAsioChannelInfo;
 begin
   if ASIOStarted then Exit;
@@ -1355,7 +1351,7 @@ end;
 
 procedure TASIOAudioDuplex.ASIOInit;
 var
-  i, Dummie, min, max, pref : Integer;
+  i, Dummie, min, max, pref : LongWord;
   chi : TAsioChannelInfo;
 begin
   if ASIOStarted then Exit;
@@ -1373,7 +1369,7 @@ begin
         raise EAuException.Create('Failed to open ASIO device');
   end else
     raise EAuException.Create('Failed to open ASIO device');
-  Device.GetChannels(Dummie, Integer(FChan));
+  Device.GetChannels(Dummie, FChan);
   if FChan > 2 then FChan := 2;
 
   Device.GetBufferSize(min, max, pref, Dummie);

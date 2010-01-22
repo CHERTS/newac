@@ -1931,7 +1931,7 @@ begin
     Exit;
   try
     DataCS.Enter;
-    if Bytes > Length(_PrefetchBuf) then
+    if Bytes > LongWord(Length(_PrefetchBuf)) then
       SetLength(_PrefetchBuf, Bytes);
     Bytes := FillBuffer(_PrefetchBuf, Bytes, EOF);
     if Bytes <> 0 then

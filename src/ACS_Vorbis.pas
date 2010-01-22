@@ -508,6 +508,7 @@ implementation
       PVComm := ov_comment(VFile, -1);
       PComment := PVComm.user_comments;
       Comment := PComment^;
+      {$WARNINGS OFF}
       while Comment <> nil do
       begin
         CN := GetLeftOf('=', AnsiString(Comment));
@@ -540,7 +541,8 @@ implementation
       _CommonTags.Year := FComments.Date;
       _CommonTags.Track := FComments.Track;
       _CommonTags.Genre := FComments.Genre;
-//      FVendor := PVComm.vendor;
+     {$WARNINGS ON}
+      //      FVendor := PVComm.vendor;
       PVInfo := ov_info(VFile, -1);
       FChan := PVInfo.channels;
       FSR := PVInfo.rate;

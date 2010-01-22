@@ -759,7 +759,12 @@ begin
       if tak_APE_GetItemValue(FTag, n, nil, 0, size) = tak_res_Ok then begin
         SetLength(value, size);
         if tak_APE_GetItemValue(FTag, n, @(value[1]), Length(value), size) = tak_res_Ok then
+          {$IF CompilerVersion < 20}
           Result := UTF8Decode(value);
+          {$IFEND}
+          {$IF CompilerVersion >= 20}
+          Result := UTF8ToString(value);
+          {$IFEND}
       end;
     end;
   end;

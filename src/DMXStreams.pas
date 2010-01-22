@@ -20,7 +20,6 @@ type
 
   TAuVOBAC3Demuxer = class(TAuFileStream)
   private
-    F : TFileStream;
     Block : PBuffer8;
     InBuff : array [0..2047] of Byte;
     DataSize : LongWord;
@@ -94,7 +93,7 @@ const
    procedure TAuVOBAC3Demuxer.ReadBlock;
    var
      DataStart, AudioDataStart : Integer;
-     Modulo, i : Integer;
+     Modulo : Integer;
    begin
      while Position < Size do
      begin
@@ -125,7 +124,6 @@ const
    var
      C : LongInt;
      b : array of Byte;
-     i : Integer;
    begin
      Result := 0;
      C := Count;
@@ -134,10 +132,14 @@ const
      begin
        while C > 0 do
        begin
+         {$WARNINGS OFF}
          if DataSize >= C then
+         {$WARNINGS ON}
          begin
            FastCopyMem(@b[Count - C], @Block[0], C);
+           {$WARNINGS OFF}
            DataSize := DataSize - C;
+           {$WARNINGS ON}
            FastCopyMem(@Block[0], @Block[C], DataSize);
            Move(b[0], Buffer, Count);
            Result := Count;
@@ -145,7 +147,10 @@ const
          end else
          begin
            FastCopyMem(@b[Count - C], @Block[0], DataSize);
+
+           {$WARNINGS OFF}
            C := C - DataSize;
+           {$WARNINGS ON}
            ReadBlock;
            if DataSize = 0 then
            begin

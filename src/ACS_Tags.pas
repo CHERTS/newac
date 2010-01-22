@@ -660,6 +660,7 @@ begin
     Result := n2;
 end;
 
+{$WARNINGS OFF}
 
 { class TAuTags }
 
@@ -2231,6 +2232,8 @@ begin
       Tags.SetTitle(Utf8Decode(Utf8String(S)));
   end;
 end;
+
+{$WARNINGS ON}
 
 end.
 

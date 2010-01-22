@@ -39,7 +39,7 @@ type
     _BufSize : Integer;
     _SampleSize : Word;
     //_StartSample, _StartFrom : LongWord;
-    Offset, BufEnd : Integer;
+    Offset, BufEnd : LongWord;
     BlockCount, CurrentBlock : Integer;
     FBitRate : LongWord;
     FFlags : Integer;
@@ -273,8 +273,9 @@ implementation
   var
     level, bias : Single;
     samples : psingle;
-    i, j, Res : Integer;
-    SamplesReq : Integer;
+    i, j : LongWord;
+    Res : Integer;
+    SamplesReq : LongWord;
   begin
     if Offset >= BufEnd then
     begin
