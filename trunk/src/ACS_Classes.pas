@@ -1779,12 +1779,12 @@ constructor TAuOutput.Create;
       inherited Create(CreateFileW(PWideChar(FileName), AccessMode[Mode and 3],
         ShareMode[(Mode and $F0) shr 4], nil, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, 0));
-    {$IFDEF UNICODE}
+    {$IF CompilerVersion >= 20 }
     if FHandle = INVALID_HANDLE_VALUE then
-    {$ENDIF}
-    {$IFNDEF UNICODE}
+    {$IFEND}
+    {$IF CompilerVersion < 20 }
     if FHandle < 0 then
-    {$ENDIF}
+    {$IFEND}
       raise EAuException.Create(SysErrorMessage(GetLastError));
   end;
 
