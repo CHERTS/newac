@@ -41,7 +41,7 @@ type
     Chan, SR, BPS : LongWord;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
-    ACS : TCriticalSection;
+ //   ACS : TCriticalSection;
 //    FOnUnderrun : TUnderrunEvent;
     FLatency, FBufferSize : LongWord;
     FSupportedChannels : LongWord;
@@ -485,19 +485,14 @@ var
   OldStopped : Bool;
   tmpStop : Boolean;
 begin
-   ACS.Enter;
-   try
    if Device = nil then Exit;
+   FillBuffer(tmpStop);
    OldStopped := Thread.Stopped;
    Thread.Stopped := False;
    if Assigned(FOnPositionChanged) then
    begin
      Device.GetSamplePosition(s1, s2);
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
-   end;
-   FillBuffer(tmpStop);
-   finally
-     ACS.Leave;
    end;
    //   if FPrefetchData then
 //     EventHandler.PostNonGuiEvent(Self, FPrefetch);
@@ -760,7 +755,6 @@ begin
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange;
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
-   ACS := TCriticalSection.Create;
   FPrefetchData := True;
 //  Thread.Priority := tpTimeCritical;
 end;
@@ -836,14 +830,9 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-  ACS.Enter;
-  try
     if FPrefetchData then
       if not GStop then
         FInput._Prefetch(2*FBufferSize*(BPS shr 3)*FOutputChannels);
-  finally
-    ACS.Leave;
-  end;
   Result := True;
 end;
 
