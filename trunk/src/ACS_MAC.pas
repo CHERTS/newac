@@ -291,6 +291,8 @@ begin
       _APEv2Tags.Year := Tag.Year;
       _CommonTags.Year := Tag.Year;
       _APEv2Tags.Comment := Tag.Comment;
+      _APEv2Tags.Track := IntToStr(Tag.Track);
+      _CommonTags.Track := _APEv2Tags.Track;
       {$WARNINGS ON}
     end;
 

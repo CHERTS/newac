@@ -322,6 +322,7 @@ type
     FCurrentItem : Byte;
     FAlbum : AnsiString;
     FPerformer : AnsiString;
+    FYear : AnsiString;
     FItemsCount : Byte;
     procedure ParseCue;
     procedure SetCurrentItem(ci : Byte);
@@ -330,6 +331,7 @@ type
     function GetTitle : AnsiString;
     function GetItemsCount : Byte;
     function GetTime : LongWord;
+    function GetYear : AnsiString;
     procedure SetCueFile(const fn : AnsiString);
   protected
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
@@ -362,6 +364,10 @@ type
       Returns the current composition duration in seconds.
    *)
     property Time : LongWord read GetTime;
+    (* Property: Time
+      Returns the current composition duration in seconds.
+   *)
+    property Year : AnsiString read GetYear;
   published
     (* Property: CueFile
       The name of the cue-sheet file. *)
@@ -1084,6 +1090,7 @@ begin
     Exit;
   FPerformer := '';
   FAlbum := '';
+  FYear := '';
   SetLength(FItems, 255);
   FItemsCount := 0;
   SL := TStringList.Create;
@@ -1105,6 +1112,18 @@ begin
         if p > 0 then
         begin
           FAlbum := AnsiString(ExtractString(SL.Strings[i], p + 5));
+        end;
+        p := AnsiPos('DATE', SL.Strings[i]);
+        if p > 0 then
+        begin
+          pos := p + 4;
+          FYear := AnsiString(ExtractDigits(SL.Strings[i], pos));
+        end;
+        p := AnsiPos('YEAR', SL.Strings[i]);
+        if p > 0 then
+        begin
+          pos := p + 4;
+          FYear := AnsiString(ExtractDigits(SL.Strings[i], pos));
         end;
         p := AnsiPos('TRACK', SL.Strings[i]);
         if p > 0 then
@@ -1194,6 +1213,13 @@ begin
   ParseCue;
   Result := FAlbum;
 end;
+
+function TCueSplitter.GetYear;
+begin
+  ParseCue;
+  Result := FYear;
+end;
+
 
 function TCueSplitter.GetPerformer;
 begin
