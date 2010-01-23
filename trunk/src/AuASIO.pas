@@ -838,7 +838,7 @@ begin
     DoPrefetch := False;
     if FPrefetchData then
       if not GStop then
-        FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
+        FInput._Prefetch(2*FBufferSize*(BPS shr 3)*FOutputChannels);
   end;
   Result := True;
 end;
