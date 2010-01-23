@@ -101,6 +101,7 @@ begin
         WVOut1.APEv2Tags.Album := CueSplitter1.Album;
         WVOut1.APEv2Tags.Artist := CueSplitter1.Performer;
         WVOut1.APEv2Tags.Title := CueSplitter1.Title;
+        WVOut1.APEv2Tags.Year := CueSplitter1.Year;
         WVOut1.APEv2Tags.Track := '0';
         Button1.Enabled := False;
         WVOut1.Run;
@@ -122,6 +123,7 @@ begin
         MacOut1.APEv2Tags.Album := CueSplitter1.Album;
         MacOut1.APEv2Tags.Artist := CueSplitter1.Performer;
         MacOut1.APEv2Tags.Title := CueSplitter1.Title;
+        MacOut1.APEv2Tags.Year := CueSplitter1.Year;
         MacOut1.APEv2Tags.Track := '0';
         Button1.Enabled := False;
         MacOut1.Run;
@@ -143,6 +145,7 @@ begin
         FLACOut1.Tags.Album := CueSplitter1.Album;
         FLACOut1.Tags.Artist := CueSplitter1.Performer;
         FLACOut1.Tags.Title := CueSplitter1.Title;
+        FLACOut1.Tags.Date := CueSplitter1.Year;
         FLACOut1.Tags.Track := '0';
         Button1.Enabled := False;
         FLACOut1.Run;
@@ -162,6 +165,7 @@ begin
     FLACOut1.Tags.Album := CueSplitter1.Album;
     FLACOut1.Tags.Artist := CueSplitter1.Performer;
     FLACOut1.Tags.Title := CueSplitter1.Title;
+    FLACOut1.Tags.Date := CueSplitter1.Year;
     FLACOut1.Tags.Track := IntToStr(CueSplitter1.CurrentItem + 1);
     FLACOut1.Run;
   end else
@@ -177,6 +181,7 @@ begin
     MacOut1.APEv2Tags.Album := CueSplitter1.Album;
     MacOut1.APEv2Tags.Artist := CueSplitter1.Performer;
     MacOut1.APEv2Tags.Title := CueSplitter1.Title;
+    MacOut1.APEv2Tags.Year := CueSplitter1.Year;
     MacOut1.APEv2Tags.Track := IntToStr(CueSplitter1.CurrentItem + 1);
     MacOut1.Run;
   end else
@@ -192,6 +197,7 @@ begin
     WVOut1.APEv2Tags.Album := CueSplitter1.Album;
     WVOut1.APEv2Tags.Artist := CueSplitter1.Performer;
     WVOut1.APEv2Tags.Title := CueSplitter1.Title;
+    WVOut1.APEv2Tags.Year := CueSplitter1.Year;
     WVOut1.APEv2Tags.Track := IntToStr(CueSplitter1.CurrentItem + 1);
     WVOut1.Run;
   end else

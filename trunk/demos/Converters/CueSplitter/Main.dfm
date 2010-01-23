@@ -35,7 +35,6 @@ object Form10: TForm10
       'Memo1')
     ReadOnly = True
     TabOrder = 1
-    ExplicitWidth = 278
   end
   object MACIn1: TMACIn
     Loop = False
@@ -63,6 +62,7 @@ object Form10: TForm10
   object MACOut1: TMACOut
     Input = CueSplitter1
     OnDone = MACOut1Done
+    ShareMode = 0
     CompressionLevel = 2000
     MaxAudioBytes = -1
     Left = 32
@@ -71,6 +71,7 @@ object Form10: TForm10
   object FLACOut1: TFLACOut
     Input = CueSplitter1
     OnDone = FLACOut1Done
+    ShareMode = 0
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
@@ -88,6 +89,7 @@ object Form10: TForm10
   object WVOut1: TWVOut
     Input = CueSplitter1
     OnDone = WVOut1Done
+    ShareMode = 0
     Left = 144
     Top = 112
   end
