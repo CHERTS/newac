@@ -11,28 +11,21 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_Classes, ACS_Wave, StdCtrls, ComCtrls, ACS_Vorbis,
   ACS_FLAC, ACS_smpeg, ExtCtrls, ACS_DXAudio, ACS_WinMedia, ACS_WavPack, ACS_MAC,
-  NewACIndicators;
+  NewACIndicators, Buttons;
 
 type
   TForm1 = class(TForm)
-    PlayButton: TButton;
     ProgressBar1: TProgressBar;
     VorbisIn1: TVorbisIn;
-    StopButton: TButton;
     OpenDialog1: TOpenDialog;
-    Label1: TLabel;
     Label2: TLabel;
     CheckBox1: TCheckBox;
     WaveIn1: TWaveIn;
     StatusBar1: TStatusBar;
     FLACIn1: TFLACIn;
-    AddtoPLButton: TButton;
     ListBox1: TListBox;
     MP3In1: TMP3In;
-    SkipButton: TButton;
     Panel1: TPanel;
-    ForwardButton: TButton;
-    BackwardButton: TButton;
     DXAudioOut1: TDXAudioOut;
     MACIn1: TMACIn;
     WVIn1: TWVIn;
@@ -47,8 +40,14 @@ type
     ProgressBar8: TProgressBar;
     ProgressBar9: TProgressBar;
     SpectrumIndicator1: TSpectrumIndicator;
-    Button1: TButton;
-    Button2: TButton;
+    SpeedButton1: TSpeedButton;
+    PlayButton: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    SpeedButton4: TSpeedButton;
+    SpeedButton5: TSpeedButton;
+    SpeedButton6: TSpeedButton;
+    SpeedButton7: TSpeedButton;
+    SpeedButton8: TSpeedButton;
     procedure PlayButtonClick(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -191,16 +190,17 @@ begin
   Sec := Sec - Min*60;
   if Sec < 10 then Fmt := '%d:0%d'
   else Fmt := '%d:%d';
-  Label2.Caption := Format(Fmt, [Min, Sec]);
+  //Label2.Caption :=
   Memo1.Clear;
   if FI is TAuTaggedFileIn then
   begin
-    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Title));
-    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Album));
-    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Artist));
-    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Genre));
-    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Track));
-    Memo1.Lines.Add(String(TAuTaggedFileIn(FI).CommonTags.Year));
+    Memo1.Lines.Add('Title: ' + String(TAuTaggedFileIn(FI).CommonTags.Title));
+    Memo1.Lines.Add('Album: ' + String(TAuTaggedFileIn(FI).CommonTags.Album));
+    Memo1.Lines.Add('Artist: ' + String(TAuTaggedFileIn(FI).CommonTags.Artist));
+    Memo1.Lines.Add('Genre: ' + String(TAuTaggedFileIn(FI).CommonTags.Genre));
+    Memo1.Lines.Add('Track: ' + String(TAuTaggedFileIn(FI).CommonTags.Track));
+    Memo1.Lines.Add('Year: ' + String(TAuTaggedFileIn(FI).CommonTags.Year));
+    Memo1.Lines.Add('Total Time: ' + Format(Fmt, [Min, Sec]));
   end;
 end;
 
