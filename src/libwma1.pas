@@ -1727,7 +1727,7 @@ implementation
      buf : PByte;
      res : HResult;
     begin
-     writer.writer.AllocateSample(len, writer.buffer);
+     writer.writer.AllocateSample(2*len, writer.buffer);
      writer.buffer.GetBuffer(buf);
      FastCopyMem(Buf, Buffer, len);
      writer.buffer.SetLength(len);
