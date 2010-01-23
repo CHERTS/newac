@@ -41,6 +41,7 @@ type
     Chan, SR, BPS : LongWord;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
+    ACS : TCriticalSection;
 //    FOnUnderrun : TUnderrunEvent;
     FLatency, FBufferSize : LongWord;
     FSupportedChannels : LongWord;
@@ -59,7 +60,6 @@ type
     FOnPositionChanged : TASIOPositionEvent;
     FASIOBufferSize : TASIOBufferSize;
     FPrefetchData : Boolean;
-    DoPrefetch : Boolean;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -485,7 +485,8 @@ var
   OldStopped : Bool;
   tmpStop : Boolean;
 begin
-   DoPrefetch := False;
+   ACS.Enter;
+   try
    if Device = nil then Exit;
    OldStopped := Thread.Stopped;
    Thread.Stopped := False;
@@ -495,7 +496,9 @@ begin
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
    end;
    FillBuffer(tmpStop);
-   DoPrefetch := True;
+   finally
+     ACS.Leave;
+   end;
    //   if FPrefetchData then
 //     EventHandler.PostNonGuiEvent(Self, FPrefetch);
    if Self.FOutputBPS = 16 then
@@ -757,6 +760,7 @@ begin
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange;
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
+   ACS := TCriticalSection.Create;
   FPrefetchData := True;
 //  Thread.Priority := tpTimeCritical;
 end;
@@ -832,13 +836,13 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-  sleep(0);
-  if DoPrefetch then
-  begin
-    DoPrefetch := False;
+  ACS.Enter;
+  try
     if FPrefetchData then
       if not GStop then
         FInput._Prefetch(2*FBufferSize*(BPS shr 3)*FOutputChannels);
+  finally
+    ACS.Leave;
   end;
   Result := True;
 end;
