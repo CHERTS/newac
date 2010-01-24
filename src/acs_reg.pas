@@ -24,7 +24,7 @@ begin
   RegisterComponents('Audio Processing', [TAudioMixer, TFastResampler, TRealTimeMixer, TAudioConverter, TACMConverter,
   TAudioProcessor, TMSResampler, TBWFilter, TSincFilter, TChebyshevFilter,
   TStereoBalance, TResampler, TDitherer, TAudioPass, TNormalizer, TVoiceFilter, TFrequencyAnalysis, TConvolver, TDifferenceEquation, TDownMixer, TGainAnalysis, TGainProcessor]);
-  RegisterComponents('Audio Utilities',  [TCDPlayer, TNULLOut, TAudioHiResTimer, TAudioSynchronizer, TCDDBInfo, TCueSplitter, TGainIndicator, TSpectrumIndicator, TTagEditor]);
+  RegisterComponents('Audio Utilities',  [TCDPlayer, TNULLOut, TAudioHiResTimer, TAudioSynchronizer, TCDDBInfo, TCueSplitter, TGainIndicator, TFastGainIndicator, TSpectrumIndicator, TTagEditor]);
 end;
 
 
