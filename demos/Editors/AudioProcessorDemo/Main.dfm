@@ -33,6 +33,7 @@ object Form10: TForm10
   end
   object AudioProcessor1: TAudioProcessor
     Input = WaveIn1
+    OnFlush = AudioProcessor1Flush
     OnGetData = AudioProcessor1GetData
     OnInit = AudioProcessor1Init
     Left = 96
@@ -49,7 +50,9 @@ object Form10: TForm10
     OnDone = DXAudioOut1Done
     DeviceNumber = 0
     FramesInBuffer = 32768
+    Latency = 80
     PollingInterval = 100
+    PrefetchData = True
     Left = 176
     Top = 40
   end

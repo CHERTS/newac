@@ -1,4 +1,8 @@
-(* TAudioProcessor component demo. This demo uses TAudioProcessor for swapping input channels. *)
+(*
+   TAudioProcessor component demo. This demo uses TAudioProcessor for swapping input channels:
+   AudioData --L-R-L-R-L-R-->[AudioProcessor]--R-L-R-L-R-L-->
+   So on the output the left channel becomes right and vice-versa.
+ *)
 
 unit Main;
 
@@ -22,6 +26,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure DXAudioOut1Done(Sender: TComponent);
     procedure AudioProcessor1Init(Sender: TComponent; var TotalSize: Int64);
+    procedure AudioProcessor1Flush(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -34,6 +39,19 @@ var
 implementation
 
 {$R *.dfm}
+
+(*
+  This OnGetData event handler is where the processing occures.
+  The Sender variable points to the AudioProcessor object for which the handler is called.
+  The Buffer points to the block of data to be processed. You should never delete this block.
+  The Bytes variable holds the number of bytes in the block.
+  There are two ways to return the results of the processing.
+  First you can change the contents of the block pointed by Buffer (just as we do in this example).
+  The next component in the chain will get the modified data.
+  Second you can replace the pointer in the Buffer variable itself, making it point to the new data block.
+  Of cource if the new number of data bytes differs from that before processing, you should change the Bytes value as well.
+  Returning 0 in the Bytes variable means that data processing should stop.
+*)
 
 procedure TForm10.AudioProcessor1GetData(Sender: TComponent;
   var Buffer: Pointer; var Bytes: Cardinal);
@@ -70,11 +88,34 @@ begin
   end;
 end;
 
+(*
+  This OnInit event handler is called before the processing starts.
+  The Sender variable points to the AudioProcessor object for which the handler is called and we use it to access the AudioProcessor object properties.
+  The mimum thing we should do here is to initialize processor's input which we do by calling
+  TAudioProcessor(Sender).Input.Init;
+  We can also do whatever is needed to initialize the audio processor itself.
+*)
+
 procedure TForm10.AudioProcessor1Init(Sender: TComponent; var TotalSize: Int64);
 begin
   TAudioProcessor(Sender).Input.Init;
   TotalSize := TAudioProcessor(Sender).Input.Size
 end;
+
+
+(*
+  This OnFlush event handler is called after the processing has finished
+  The Sender variable points to the AudioProcessor object for which the handler is called and we use it to access the AudioProcessor object properties.
+  The mimum thing we should do here is to uninitialize processor's input which we do by calling
+  TAudioProcessor(Sender).Input.Flush;
+  We can also do whatever is needed to uninitialize the audio processor itself.
+*)
+
+procedure TForm10.AudioProcessor1Flush(Sender: TComponent);
+begin
+  TAudioProcessor(Sender).Input.Flush;
+end;
+
 
 procedure TForm10.Button1Click(Sender: TObject);
 begin
