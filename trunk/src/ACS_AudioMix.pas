@@ -115,6 +115,7 @@ type
 
   TRealTimeMixer = class(TAuInput)
   private
+    ReadInput1, ReadInput2 : Boolean;
     FInput1, FInput2 : TAuInput;
     EndOfInput1, EndOfInput2 : Boolean;
     FVolume1, FVolume2 : Word;
@@ -159,13 +160,16 @@ type
     See the note at <Input1> *)
     property Input2 : TAuInput read FInput2 write SetInput2;
     (* Property: OutSampleRate
-    Use this property to set the output sample rate for the mixer. All the mixer inputs should have this sample rate. *)
+    Use this property to set the output sample rate for the mixer. All the mixer inputs should have this sample rate.
+    IF YOU FORGET TO SET THIS PROPERTY MULTIPLE ERRORS MAY OCCUR. *)
     property OutSampleRate : LongWord read FOutSampleRate write FOutSampleRate;
     (* Property: OutBitsPerSample
-    Use this property to set the output number of bits per sample for the mixer. The mixer inputs may have different bit depths. *)
+    Use this property to set the output number of bits per sample for the mixer. The mixer inputs may have different bit depths.
+    IF YOU FORGET TO SET THIS PROPERTY THE ZERO-DIVISION ERROR WILL OCCUR. *)
     property OutBitsPerSample : Byte read FOutBitsPerSample write FOutBitsPerSample;
     (* Property: OutChannels
-    Use this property to set the number of channels for the mixer. All the mixer inputs should have the same number of channels. *)
+    Use this property to set the number of channels for the mixer. All the mixer inputs should have the same number of channels.
+    IF YOU FORGET TO SET THIS PROPERTY THE ZERO-DIVISION ERROR WILL OCCUR. *)
     property OutChannels : Byte read FOutChannels write FOutChannels;
     (*property Volume1:
       The volume of the first input (in the amMix mode) *)
@@ -386,6 +390,8 @@ end;
 
   procedure TRealTimeMixer.InitInternal;
   begin
+    ReadInput1 := True;
+    ReadInput2 := True;
     Busy := True;
     FPosition := 0;
     SamplesCount := 0;
@@ -425,18 +431,20 @@ end;
     if EndOfInput1 then
     begin
       EndOfInput1 := False;
-      FInput1.Flush;
+      ReadInput1 := False;
+//      FInput1.Flush;
       FreeMem(InBuf1);
-      FInput1 := nil;
+//      FInput1 := nil;
       BytesPerSample1 := FOutBytesPerSample;
       GetMem(InBuf1, BUF_SIZE * BytesPerSample1);
     end;
     if EndOfInput2 then
     begin
       EndOfInput2 := False;
-      FInput2.Flush;
+      ReadInput2 := False;
+//      FInput2.Flush;
       FreeMem(InBuf2);
-      FInput2 := nil;
+//      FInput2 := nil;
       BytesPerSample2 := FOutBytesPerSample;
       GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
     end;
@@ -450,13 +458,13 @@ end;
     FillChar(FloatBuf1^, SamplesReq * SizeOf(Single), 0);
     FillChar(FloatBuf2^, SamplesReq * SizeOf(Single), 0);
     l := Bytes1;
-    if Assigned(FInput1) then
+    if ReadInput1 then
        l := FInput1.FillBuffer(InBuf1, Bytes1, EndOfInput1);
     Samples1 := l div BytesPerSample1;
     Inc(SamplesCount, Samples1);
     FillChar(InBuf2^, Bytes2, 0);
     l := Bytes2;
-    if Assigned(FInput2) then
+    if ReadInput2 then
         l := FInput2.FillBuffer(InBuf2, Bytes2, EndOfInput2);
     Samples2 := l div BytesPerSample2;
     case BytesPerSample1 of
@@ -490,8 +498,8 @@ end;
       FInput1.Flush;
     if Assigned(FInput2) then
       FInput2.Flush;
-    FInput2 := nil;
-    FInput1 := nil;
+//    FInput2 := nil;
+//    FInput1 := nil;
     FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
     FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
     FreeMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
