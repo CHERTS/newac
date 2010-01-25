@@ -83,7 +83,6 @@ object Form1: TForm1
         Width = 50
       end>
     ParentColor = True
-    ExplicitTop = 285
   end
   object Panel1: TPanel
     Left = 0
@@ -94,7 +93,6 @@ object Form1: TForm1
     BevelOuter = bvNone
     Color = 2240534
     TabOrder = 4
-    ExplicitTop = 204
     DesignSize = (
       466
       81)
@@ -313,7 +311,6 @@ object Form1: TForm1
     Height = 11
     Align = alBottom
     TabOrder = 5
-    ExplicitTop = 193
   end
   object ComboBox1: TComboBox
     Left = 0
@@ -381,7 +378,7 @@ object Form1: TForm1
     Top = 208
   end
   object DXAudioOut1: TDXAudioOut
-    Input = GainIndicator1
+    Input = FastGainIndicator1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     OnThreadException = DXAudioOut1ThreadException
@@ -391,8 +388,8 @@ object Form1: TForm1
     PollingInterval = 80
     PrefetchData = True
     OnUnderrun = DXAudioOut1Underrun
-    Left = 208
-    Top = 208
+    Left = 296
+    Top = 160
   end
   object WMStreamedIn1: TWMStreamedIn
     Loop = False
@@ -409,19 +406,25 @@ object Form1: TForm1
     Top = 160
   end
   object WMATap1: TWMATap
-    Input = WMStreamedIn1
+    Input = FastResampler1
     DesiredBitrate = 0
     Lossless = False
     VBR = False
     VBRQuality = 0
-    Left = 56
-    Top = 208
+    Left = 160
+    Top = 160
   end
-  object GainIndicator1: TGainIndicator
+  object FastGainIndicator1: TFastGainIndicator
     Input = WMATap1
-    Interval = 50
+    Interval = 60
     OnGainData = GainIndicator1GainData
-    Left = 128
-    Top = 208
+    Left = 216
+    Top = 160
+  end
+  object FastResampler1: TFastResampler
+    Input = WMStreamedIn1
+    OutSampleRate = 22050
+    Left = 96
+    Top = 160
   end
 end
