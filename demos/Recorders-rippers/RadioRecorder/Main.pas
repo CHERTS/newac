@@ -10,7 +10,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, StdCtrls, ComCtrls, ACS_Classes,
-  Buttons, ACS_WinMedia, ACS_DXAudio, ACS_Wave, NewACIndicators;
+  Buttons, ACS_WinMedia, ACS_DXAudio, ACS_Wave, NewACIndicators, ACS_Converters;
 
 type
   TForm1 = class(TForm)
@@ -45,8 +45,9 @@ type
     Label15: TLabel;
     Label16: TLabel;
     Edit1: TEdit;
-    GainIndicator1: TGainIndicator;
     ProgressBar2: TProgressBar;
+    FastGainIndicator1: TFastGainIndicator;
+    FastResampler1: TFastResampler;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
@@ -170,7 +171,7 @@ end;
 
 procedure TForm1.GainIndicator1GainData(Sender: TComponent);
 begin
-  Self.ProgressBar2.Position := Round(ProgressBar2.Position*0.67 + GainIndicator1.GainValue/60*33);
+  Self.ProgressBar2.Position := Round(ProgressBar2.Position*0.67 + FastGainIndicator1.GainValue*0.34);
 end;
 
 procedure TForm1.WMStreamedIn1StreamOpened(Sender: TComponent);
