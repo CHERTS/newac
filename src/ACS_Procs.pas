@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 2.2.1
+  This file is a part of New Audio Components package v 2.4.x
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -1001,6 +1001,9 @@ begin
   end;
 end;
 
+var
+  lDummie :Int64;
+
   procedure SingleToByte(_in : PBufferSingle; _out : PBuffer8; len : Integer);
   var
     i : Integer;
@@ -1045,15 +1048,17 @@ end;
       MOV ECX, len;
       MOV EDI, _In;
       MOV ESI, _out;
+      FILD DWORD PTR [f];
       @loop1:
       FLD DWORD PTR [EDI];
       ADD EDI, 4;
-      FIMUL DWORD PTR [f];
+      FMUL ST(0), ST(1);
       DEC ECX;
       FISTP WORD PTR [ESI];
       ADD ESI, 2;
       CMP ECX, 0;
       JNE @loop1;
+      FSTP DWORD PTR [lDummie];
       POP ESI;
       POP EDI;
     end;
@@ -1091,14 +1096,16 @@ end;
       MOV EDI, _In;
       MOV ESI, _out;
       SUB ESI, EDI;
+      FILD DWORD PTR [f];
       @loop1:
       FLD DWORD PTR [EDI];
-      FIMUL DWORD PTR [f];
+      FMUL ST(0), ST(1);
       DEC ECX;
       FISTP DWORD PTR [ESI+EDI];
       ADD EDI, 4;
       CMP ECX, 0;
       JNE @loop1;
+      FSTP DWORD PTR [lDummie];
       POP ESI;
       POP EDI;
     end;
@@ -1151,21 +1158,102 @@ end;
     SetPrecisionMode(PMode);
   end;
 
+const
+  lFfsingle : Single = 1/$8000;
+
+
   procedure SmallIntToSingle(_in : PBuffer16; _out : PBufferSingle; len : Integer);
-  var
-    i : Integer;
-    PMode : TFPUPrecisionMode;
-  const
-    f : Single = 1/$8000;
-  begin
-    PMode := GetPrecisionMode;
-    SetPrecisionMode(pmSingle);
-    for i := 0 to len - 1 do
-      _out[i] := _in[i]*f;
-    SetPrecisionMode(PMode);
+  asm
+    PUSH EDI;
+    PUSH ESI;
+    MOV ECX, len;
+    MOV EDI, _In;
+    MOV ESI, _out;
+    PUSH  0;
+    FNSTCW  [ESP].Word;
+    POP  EAX;
+    PUSH EAX;
+    AND EAX, $FCFF;
+    PUSH EAX;
+    FNCLEX;
+    FLDCW  [ESP].WORD;
+    POP EAX;
+    FLD DWORD PTR [lFfsingle];
+    XOR EAX, EAX;
+    @loop1:
+    FILD WORD PTR [EDI+EAX*2];
+    FMUL ST(0), ST(1);
+    DEC ECX;
+    FSTP DWORD PTR [ESI+EAX*4];
+    INC EAX;
+    CMP ECX, 0;
+    JNE @loop1;
+    FSTP DWORD PTR [LDummie];
+    FNCLEX;
+    FLDCW  [ESP].Word;
+    POP EAX;
+    POP ESI;
+    POP EDI;
   end;
 
-  procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
+
+
+(*
+    procedure SmallIntToSingle(_in : PBuffer16; _out : PBufferSingle; len : Integer);
+    var
+      i : Integer;
+      PMode : TFPUPrecisionMode;
+    const
+      f : Single = 1/$8000;
+    begin
+      PMode := GetPrecisionMode;
+      SetPrecisionMode(pmSingle);
+      for i := 0 to len - 1 do
+        _out[i] := _in[i]*f;
+      SetPrecisionMode(PMode);
+    end;
+
+*)
+const
+  lfDouble : Single = 1/$80000000;
+
+
+procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
+asm
+  PUSH EDI;
+  PUSH ESI;
+  MOV ECX, len;
+  MOV EDI, _In;
+  MOV ESI, _out;
+  PUSH  0;
+  FNSTCW  [ESP].Word;
+  POP  EAX;
+  PUSH EAX;
+  AND EAX, $FCFF;
+  PUSH EAX;
+  FNCLEX;
+  FLDCW  [ESP].WORD;
+  POP EAX;
+  FLD DWORD PTR [lfDouble];
+  SUB ESI, EDI;
+  @loop1:
+  FILD DWORD PTR [EDI];
+  FMUL ST(0), ST(1);
+  DEC ECX;
+  FSTP DWORD PTR [ESI+EDI];
+  ADD EDI, 4;
+  CMP ECX, 0;
+  JNE @loop1;
+  FSTP DWORD PTR [lDummie];
+  FNCLEX;
+  FLDCW  [ESP].WORD;
+  POP EAX;
+  POP ESI;
+  POP EDI;
+end;
+
+
+(*  procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
   var
     i : Integer;
     PMode : TFPUPrecisionMode;
@@ -1177,7 +1265,7 @@ end;
     for i := 0 to len - 1 do
       _out[i] := _in[i]*f;
     SetPrecisionMode(PMode);
-  end;
+  end; *)
 
   procedure Int24ToSingle(_in : PBuffer8; _out : PBufferSingle; len : Integer);
   var

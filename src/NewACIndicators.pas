@@ -293,16 +293,16 @@ begin
     3 : Int24ToSingle(PBuffer8(Buffer), @InBuffer[0], SamplesRead);
     4 : Int32ToSingle(PBuffer32(Buffer), @InBuffer[0], SamplesRead);
   end;
-  for i := 0 to SamplesRead - 1 do
+  for i := 3 to SamplesRead - 1 do
   begin
-    Accum := Accum + Sqr(InBuffer[i]);
+    Accum := Accum + Sqr(InBuffer[i] - InBuffer[i-3]);
     Inc(Counter);
   end;
   FElapsed := FElapsed + Round((SamplesRead div Finput.Channels)/FISR*100000);
   if FElapsed >= FInterval*100 then
   begin
     FElapsed := 0; //FElapsed - FInterval*100;
-    FGainValue := Round(Log10(1+ 10000*Accum/Counter)*25) - 5;
+    FGainValue := Round(Log10(1+ 1000000*Accum/Counter)*20);
     Accum := 0;
     Counter := 0;
     if Assigned(FOnGainData) then
