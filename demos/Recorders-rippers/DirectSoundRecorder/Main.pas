@@ -35,11 +35,10 @@ type
     WaveOut1: TWaveOut;
     DXAudioIn1: TDXAudioIn;
     FLACOut1: TFLACOut;
-    GainIndicator1: TGainIndicator;
-    CheckBox1: TCheckBox;
     ProgressBar1: TProgressBar;
     GainProcessor1: TGainProcessor;
     CheckBox2: TCheckBox;
+    FastGainIndicator1: TFastGainIndicator;
     procedure RecordButtonClick(Sender: TObject);
     procedure SaveDialog1TypeChange(Sender: TObject);
     procedure OutputDone(Sender: TComponent);
@@ -51,7 +50,6 @@ type
     procedure PauseButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure GainIndicator1GainData(Sender: TComponent);
-    procedure CheckBox1Click(Sender: TObject);
     procedure CheckBox2Click(Sender: TObject);
   private
     { Private declarations }
@@ -104,7 +102,6 @@ begin
   Output.Run;
   StatusBar1.Panels.Items[0].Text := Format('Recording to "%s"', [ExtractFileName(SaveDialog1.FileName)]);
   Timer1.Interval := 1000;
-  CheckBox1.Enabled := False;
 end;
 
 
@@ -125,7 +122,6 @@ begin
   begin
     Output.Stop(False);
   end;
-  CheckBox1.Enabled := True;
   ProgressBar1.Position := 0;
 end;
 
@@ -154,7 +150,7 @@ end;
 
 procedure TForm1.GainIndicator1GainData(Sender: TComponent);
 begin
-  Self.ProgressBar1.Position := (Self.ProgressBar1.Position + Round(GainIndicator1.GainValue/60*100)) div 2;
+  Self.ProgressBar1.Position := (Self.ProgressBar1.Position + FastGainIndicator1.GainValue) div 2;
 end;
 
 procedure TForm1.SpinEdit2Change(Sender: TObject);
@@ -175,17 +171,6 @@ begin
     if Output.Status = tosPlaying then Output.Pause
     else
     if Output.Status = tosPaused then Output.Resume;
-  end;
-end;
-
-procedure TForm1.CheckBox1Click(Sender: TObject);
-begin
-  if CheckBox1.Checked then
-  begin
-    GainProcessor1.Input := GainIndicator1;
-  end else
-  begin
-    GainProcessor1.Input := DXAudioIn1;
   end;
 end;
 
