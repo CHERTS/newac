@@ -187,10 +187,10 @@ var
   procedure InterleaveStereo32(Src1, Src2, Dst : Pointer; Samples : Integer);
   procedure InterleaveStereo16(Src1, Src2, Dst : Pointer; Samples : Integer);
 
-  procedure SetSingleFPUPrecision(OldCW : PWord);
-  procedure SetDoubleFPUPrecision(OldCW : PWord);
-  procedure SetExtendedFPUPrecision(OldCW : PWord);
-  procedure RestoreCW(OldCW : PWord);
+  procedure SetSingleFPUPrecision(OldCW : PLongWord);
+  procedure SetDoubleFPUPrecision(OldCW : PLongWord);
+  procedure SetExtendedFPUPrecision(OldCW : PLongWord);
+  procedure RestoreCW(OldCW : PLongWord);
 
 implementation
 
@@ -1652,10 +1652,10 @@ end;
     end;
   end;
 
-  procedure SetSingleFPUPrecision(OldCW : PWord);
+  procedure SetSingleFPUPrecision(OldCW : PLongWord);
   asm
     FNSTCW [OldCW].WORD;
-    MOV EAX, OldCW.Word;
+    MOV EAX, DWORD PTR [OldCW];
     AND EAX, $FCFF;
     PUSH EAX;
     FNCLEX;
@@ -1663,10 +1663,10 @@ end;
     POP EAX;
   end;
 
-  procedure SetDoubleFPUPrecision(OldCW : PWord);
+  procedure SetDoubleFPUPrecision(OldCW : PLongWord);
   asm
     FNSTCW [OldCW].Word;
-    MOV EAX, OldCW.Word;
+    MOV EAX, DWORD PTR [OldCW];
     AND EAX, $FEFF;
     PUSH EAX;
     FNCLEX;
@@ -1674,10 +1674,10 @@ end;
     POP EAX;
   end;
 
-  procedure SetExtendedFPUPrecision(OldCW : PWord);
+  procedure SetExtendedFPUPrecision(OldCW : PLongWord);
   asm
     FNSTCW [OldCW].Word;
-    MOV EAX, OldCW.Word;
+    MOV EAX, DWORD PTR [OldCW];
     AND EAX, $FFFF;
     PUSH EAX;
     FNCLEX;
@@ -1685,10 +1685,10 @@ end;
     POP EAX;
   end;
 
-  procedure RestoreCW(OldCW : PWord);
+  procedure RestoreCW(OldCW : PLongWord);
   asm
     FNCLEX;
-    FLDCW  WORD PTR [OldCW].Word;
+    FLDCW  [OldCW].Word;
   end;
 
 initialization
