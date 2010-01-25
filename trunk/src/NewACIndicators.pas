@@ -276,6 +276,7 @@ procedure TFastGainIndicator.GetDataInternal(var Buffer: Pointer; var Bytes: Car
 var
   i : Integer;
   SamplesRead : LongWord;
+  CW : Word;
 begin
   FPosition := FInput.Position;
   Finput.GetData(Buffer, Bytes);
@@ -293,6 +294,7 @@ begin
     3 : Int24ToSingle(PBuffer8(Buffer), @InBuffer[0], SamplesRead);
     4 : Int32ToSingle(PBuffer32(Buffer), @InBuffer[0], SamplesRead);
   end;
+  SetSingleFPUPrecision(@CW);
   for i := 3 to SamplesRead - 1 do
   begin
     Accum := Accum + Sqr(InBuffer[i] - InBuffer[i-3]);
@@ -308,6 +310,7 @@ begin
     if Assigned(FOnGainData) then
        EventHandler.PostGenericEvent(Self, FOnGainData);
   end;
+  RestoreCW(@CW);
 end;
 
 procedure TFastGainIndicator.FlushInternal;
