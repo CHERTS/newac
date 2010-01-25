@@ -187,6 +187,11 @@ var
   procedure InterleaveStereo32(Src1, Src2, Dst : Pointer; Samples : Integer);
   procedure InterleaveStereo16(Src1, Src2, Dst : Pointer; Samples : Integer);
 
+  procedure SetSingleFPUPrecision(OldCW : PWord);
+  procedure SetDoubleFPUPrecision(OldCW : PWord);
+  procedure SetExtendedFPUPrecision(OldCW : PWord);
+  procedure RestoreCW(OldCW : PWord);
+
 implementation
 
 {$IFDEF LINUX}
@@ -1046,6 +1051,8 @@ var
       PUSH EDI;
       PUSH ESI;
       MOV ECX, len;
+      CMP ECX, 0;
+      JE @loop2;
       MOV EDI, _In;
       MOV ESI, _out;
       FILD DWORD PTR [f];
@@ -1059,6 +1066,7 @@ var
       CMP ECX, 0;
       JNE @loop1;
       FSTP DWORD PTR [lDummie];
+      @loop2:
       POP ESI;
       POP EDI;
     end;
@@ -1093,6 +1101,8 @@ var
       PUSH EDI;
       PUSH ESI;
       MOV ECX, len;
+      CMP ECX, 0;
+      JE @loop2;
       MOV EDI, _In;
       MOV ESI, _out;
       SUB ESI, EDI;
@@ -1106,6 +1116,7 @@ var
       CMP ECX, 0;
       JNE @loop1;
       FSTP DWORD PTR [lDummie];
+      @loop2:
       POP ESI;
       POP EDI;
     end;
@@ -1167,6 +1178,8 @@ const
     PUSH EDI;
     PUSH ESI;
     MOV ECX, len;
+    CMP ECX, 0;
+    JE @loop2;
     MOV EDI, _In;
     MOV ESI, _out;
     PUSH  0;
@@ -1192,6 +1205,7 @@ const
     FNCLEX;
     FLDCW  [ESP].Word;
     POP EAX;
+    @loop2:
     POP ESI;
     POP EDI;
   end;
@@ -1223,6 +1237,8 @@ asm
   PUSH EDI;
   PUSH ESI;
   MOV ECX, len;
+  CMP ECX, 0;
+  JE @loop2;
   MOV EDI, _In;
   MOV ESI, _out;
   PUSH  0;
@@ -1248,6 +1264,7 @@ asm
   FNCLEX;
   FLDCW  [ESP].WORD;
   POP EAX;
+  @loop2:
   POP ESI;
   POP EDI;
 end;
@@ -1633,6 +1650,45 @@ end;
    @l3: POP EDI;
         POP ESI;
     end;
+  end;
+
+  procedure SetSingleFPUPrecision(OldCW : PWord);
+  asm
+    FNSTCW [OldCW].WORD;
+    MOV EAX, OldCW.Word;
+    AND EAX, $FCFF;
+    PUSH EAX;
+    FNCLEX;
+    FLDCW  [ESP].WORD;
+    POP EAX;
+  end;
+
+  procedure SetDoubleFPUPrecision(OldCW : PWord);
+  asm
+    FNSTCW [OldCW].Word;
+    MOV EAX, OldCW.Word;
+    AND EAX, $FEFF;
+    PUSH EAX;
+    FNCLEX;
+    FLDCW  [ESP].WORD;
+    POP EAX;
+  end;
+
+  procedure SetExtendedFPUPrecision(OldCW : PWord);
+  asm
+    FNSTCW [OldCW].Word;
+    MOV EAX, OldCW.Word;
+    AND EAX, $FFFF;
+    PUSH EAX;
+    FNCLEX;
+    FLDCW  [ESP].WORD;
+    POP EAX;
+  end;
+
+  procedure RestoreCW(OldCW : PWord);
+  asm
+    FNCLEX;
+    FLDCW  WORD PTR [OldCW].Word;
   end;
 
 initialization
