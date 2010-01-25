@@ -20,7 +20,7 @@ object Form1: TForm1
   TextHeight = 13
   object Label1: TLabel
     Left = 136
-    Top = 156
+    Top = 140
     Width = 53
     Height = 13
     Caption = 'Ogg quality'
@@ -91,7 +91,7 @@ object Form1: TForm1
   end
   object SpinEdit1: TSpinEdit
     Left = 223
-    Top = 153
+    Top = 137
     Width = 41
     Height = 22
     MaxValue = 10
@@ -149,24 +149,16 @@ object Form1: TForm1
     TabOrder = 9
     OnClick = PauseButtonClick
   end
-  object CheckBox1: TCheckBox
-    Left = 136
-    Top = 134
-    Width = 97
-    Height = 16
-    Caption = 'Show Gain'
-    TabOrder = 10
-    OnClick = CheckBox1Click
-  end
   object ProgressBar1: TProgressBar
     Left = 8
     Top = 189
     Width = 352
     Height = 13
     Anchors = [akLeft, akTop, akRight]
+    MarqueeInterval = 2
     BarColor = clLime
     BackgroundColor = clBlack
-    TabOrder = 11
+    TabOrder = 10
   end
   object CheckBox2: TCheckBox
     Left = 136
@@ -174,7 +166,7 @@ object Form1: TForm1
     Width = 97
     Height = 17
     Caption = 'Skip Silence'
-    TabOrder = 12
+    TabOrder = 11
     OnClick = CheckBox2Click
   end
   object SaveDialog1: TSaveDialog
@@ -247,19 +239,19 @@ object Form1: TForm1
     Left = 192
     Top = 208
   end
-  object GainIndicator1: TGainIndicator
-    Input = DXAudioIn1
-    Interval = 50
-    OnGainData = GainIndicator1GainData
-    Left = 248
-    Top = 208
-  end
   object GainProcessor1: TGainProcessor
-    Input = DXAudioIn1
+    Input = FastGainIndicator1
     SkipSilenceEnabled = False
     MinSilenceInterval = 1
     SilenceThreshold = 5
     Left = 296
+    Top = 208
+  end
+  object FastGainIndicator1: TFastGainIndicator
+    Input = DXAudioIn1
+    Interval = 100
+    OnGainData = GainIndicator1GainData
+    Left = 240
     Top = 208
   end
 end
