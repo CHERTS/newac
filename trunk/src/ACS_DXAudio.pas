@@ -464,7 +464,7 @@ begin
   begin
     SampleSize := Chan*(BPS shr 3);
     DataSize := ((Interval * Self.SR) div 1000)*SampleSize;
-    DataSize := (DataSize div 4)*3;
+  //  DataSize := (DataSize div 4)*3;
     DataSize := DataSize - (DataSize mod SampleSize);
     Finput._Prefetch(DataSize);
   end;

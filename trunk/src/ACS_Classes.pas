@@ -704,7 +704,6 @@ type
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
     procedure _Resume; override;
-    procedure _Prefetch(Bytes : LongWord); override;
   published
     (* Property: Input
        Like the output components, converters can be assigned an input. Unlike
@@ -2057,10 +2056,6 @@ begin
   FInput._Resume;
 end;
 
-procedure TAuConverter._Prefetch(Bytes: Cardinal);
-begin
-  FInput._Prefetch(Bytes);
-end;
 
 function TAuInput.GetTotalSamples;
 begin
