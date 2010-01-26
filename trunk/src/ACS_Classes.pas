@@ -1932,7 +1932,7 @@ begin
     DataCS.Enter;
     if Bytes > LongWord(Length(_PrefetchBuf)) then
       SetLength(_PrefetchBuf, Bytes);
-    Bytes := FillBuffer(_PrefetchBuf, Bytes, EOF);
+    Bytes := FillBuffer(@_PrefetchBuf[0], Bytes, EOF);
     if Bytes <> 0 then
     begin
       _Prefetched := Bytes;
@@ -1971,6 +1971,22 @@ begin
   DataCS.Enter;
   tmpBytes := Bytes;
   try
+    if _Prefetched > 0 then
+    begin
+      if Bytes > _Prefetched - _PrefetchOffset then
+         Bytes := _Prefetched - _PrefetchOffset;
+      Buffer := @Self._PrefetchBuf[_PrefetchOffset];
+      Inc(_PrefetchOffset, Bytes);
+      FPosition := FPosition + Bytes;
+      if _PrefetchOffset >= _Prefetched then
+      begin
+        _PrefetchOffset := 0;
+        _Prefetched := 0;
+      end;
+    end else
+    begin
+
+
     if _EndOfStream then
     begin
       Buffer :=  nil;
@@ -2016,6 +2032,8 @@ begin
          end;
       end;  // if _EndOfStream and FLoop then
     end; // if _EndOfStream then ... else
+
+    end;
   finally
     DataCS.Leave;
   end;
@@ -2025,6 +2043,21 @@ procedure TAuConverter.GetData;
 begin
   DataCS.Enter;
   try
+    if _Prefetched > 0 then
+    begin
+      if Bytes > _Prefetched - _PrefetchOffset then
+         Bytes := _Prefetched - _PrefetchOffset;
+      Buffer := @Self._PrefetchBuf[_PrefetchOffset];
+      Inc(_PrefetchOffset, Bytes);
+      FPosition := FPosition + Bytes;
+      if _PrefetchOffset >= _Prefetched then
+      begin
+        _PrefetchOffset := 0;
+        _Prefetched := 0;
+      end;
+    end else
+    begin
+
     if _EndOfStream then
     begin
       Buffer :=  nil;
@@ -2040,6 +2073,7 @@ begin
       end;
       if Bytes = 0 then
         _EndOfStream := True
+    end;
     end;
   finally
     DataCS.Leave;
