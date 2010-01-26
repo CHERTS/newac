@@ -1925,12 +1925,27 @@ end;
 procedure TAuInput._Prefetch(Bytes: Cardinal);
 var
   EOF : Boolean;
+  LenB : LongWord;
 begin
-  if _Prefetched > 0 then
-    Exit;
   try
     DataCS.Enter;
-    if Bytes > LongWord(Length(_PrefetchBuf)) then
+  LenB := LongWord(Length(_PrefetchBuf));
+  if _Prefetched > 0 then
+  begin
+    if _Prefetched < LenB then
+    begin
+      FastCopyMem(@_PrefetchBuf[0], @_PrefetchBuf[_PrefetchOffset], _Prefetched);
+      _PrefetchOffset := 0;
+      Bytes := FillBuffer(@_PrefetchBuf[_Prefetched], LongWord(LenB - _Prefetched), EOF);
+      if Bytes <> 0 then
+      begin
+        _Prefetched := Bytes + _Prefetched;
+        FPosition := FPosition - Bytes;
+      end;
+    end;
+  end else
+  begin
+    if Bytes > LenB then
       SetLength(_PrefetchBuf, Bytes);
     Bytes := FillBuffer(@_PrefetchBuf[0], Bytes, EOF);
     if Bytes <> 0 then
@@ -1938,6 +1953,7 @@ begin
       _Prefetched := Bytes;
       FPosition := FPosition - Bytes;
     end;
+  end;
   finally
     DataCS.Leave;
   end;
