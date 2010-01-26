@@ -364,7 +364,9 @@ var
   SamplesRead, FramesRead : LongWord;
   InFloatBuf : array[0..SamplesInBuf-1] of Single;
   OutFloatBuf : array[0..SamplesInBuf-1] of Single;
+  YFloatBuf : array[0..SamplesInBuf-1] of Single;
   InCmplx : array[0..Points-1] of TComplexSingle;
+  CW : LongWord;
 begin
   FPosition := FInput.Position;
   if Bytes > FSampleSize*SamplesInBuf then Bytes := FSampleSize*SamplesInBuf;
@@ -380,6 +382,8 @@ begin
   end;
   FramesRead := SamplesRead div FInput.Channels;
   Ch := FInput.Channels;
+  CW := 0;
+  SetSingleFPUPrecision(@CW);
   for i := 0 to FramesRead - 1 do
   begin
     OutFloatBuf[i] := 0;
@@ -387,11 +391,15 @@ begin
       OutFloatBuf[i] := OutFloatBuf[i] + InFloatBuf[Ch*i +j];
     OutFloatBuf[i] := OutFloatBuf[i]/Ch;
   end;
+  YFloatBuf[0] := OutFloatBuf[0];
+  for i := 1 to FramesRead - 1 do
+  YFloatBuf[i] := 0.9*(YFloatBuf[i-1] + OutFloatBuf[i] - OutFloatBuf[i-1]);
+
   for i := 0 to (FramesRead div Points) - 1 do
   begin
     for j := 0 to Points-1 do
     begin
-      InCmplx[j].Re := OutFloatBuf[i*Points + j];
+      InCmplx[j].Re := YFloatBuf[i*Points + j];
       InCmplx[j].Im := 0;
     end;
 //    try
@@ -410,6 +418,7 @@ begin
        FShadowLevels[j] := FShadowLevels[j] + (Sqrt(Sqr(InCmplx[j*2].Re) + Sqr(InCmplx[j*2].Im)) + Sqrt(Sqr(InCmplx[j*2+1].Re) + Sqr(InCmplx[j*2+1].Im)));
  {$ENDIF}
   end;
+  RestoreCW(@CW);
   FElapsed := FElapsed + Round(FramesRead/FInput.SampleRate*100000);
   if FElapsed >= FInterval*100 then
   begin
@@ -418,7 +427,7 @@ begin
 
     for j := 0 to 7 do
     begin
-       FLevels[j] := (Log10(FShadowLevels[j]/FCount*Sin((j+0.5)*Pi/16) + 1e-4)+3)*40;
+       FLevels[j] := (Log10(2*FShadowLevels[j]/FCount*Sin((j+0.5)*Pi/16) + 1e-4)+3)*40;
        FShadowLevels[j] := 0;
     end;
     FCount := 0;

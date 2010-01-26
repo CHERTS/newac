@@ -1028,7 +1028,7 @@ var
   procedure SingleToSmallInt(_in : PBufferSingle; _out : PBuffer16; len : Integer);
   var
     i : Integer;
-    PMode : TFPUPrecisionMode;
+    CW : LongWord;
     iin : PBuffer32;
   const
     f : LongWord = 32767;
@@ -1045,8 +1045,8 @@ var
           _in[i] := -1
       end;
     end;
-    PMode := GetPrecisionMode;
-    SetPrecisionMode(pmSingle);
+    CW := 0;
+    SetSingleFPUPrecision(@CW);
     asm
       PUSH EDI;
       PUSH ESI;
@@ -1072,7 +1072,7 @@ var
     end;
 //    for i := 0 to len - 1 do
 //      _out[i] := Floor(_in[i] * $7FFF);
-    SetPrecisionMode(PMode);
+    RestoreCW(@CW);
   end;
 
   procedure SingleToInt32(_in : PBufferSingle; _out : PBuffer32; len : Integer);
@@ -1096,7 +1096,7 @@ var
       end;
     end;
     PMode := GetPrecisionMode;
-    SetPrecisionMode(pmSingle);
+    SetPrecisionMode(pmDouble);
     asm
       PUSH EDI;
       PUSH ESI;

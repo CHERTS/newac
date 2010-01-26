@@ -1278,6 +1278,7 @@ implementation
     P : PBufferSingle;
     Acc : Single;
     EOF : Boolean;
+ //   CW : LongWord;
   begin
     if FPassThrough then
     begin
@@ -1304,6 +1305,8 @@ implementation
         3 : Int24ToSingle(PBuffer8(_Buffer), PBufferSingle(P), SamplesRead);
         4 : Int32ToSingle(PBuffer32(_Buffer), PBufferSingle(P), SamplesRead);
       end;
+//      CW := 0;
+//      SetSingleFPUPrecision(@CW);
       if OSize > ISize then
       begin
         k := 0;
@@ -1481,6 +1484,7 @@ implementation
         SamplesRead :=  FramesRead*SamplesInFrame;
       end; // if OSize > ISize then ... else
       P := PBufferSingle(@InputBuffer[0]);
+//      RestoreCW(@CW);
       case SampleSize of
         1 : SingleToByte(P, PBuffer8(_Buffer), SamplesRead);
         2 : SingleToSmallInt(P, PBuffer16(_Buffer), SamplesRead);
