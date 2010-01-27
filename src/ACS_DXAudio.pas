@@ -65,6 +65,22 @@ type
     destructor Destroy; override;
     procedure Pause;
     procedure Resume;
+    (* Procedure: Jump
+        This method, being a wrapper around <Seek>, simpifies navigation in
+        the input stream. Calling Jump moves you backward or forward relative
+        to the current position. Jump may be called either before starting
+        playback (in this case the playback will be started from the position
+        specified) or during the playback.
+
+      Parameters:
+        Offs - the amount of file contents, in in units of 1/1000 of the content length, that will be skipped.
+        Positive value skips forward, negative value skips backward.
+        For example calling Jump(-1000) always sets the playing position at the
+        beginning of the file and Jump(100) will skip forward to 1/10 of the file.
+        Note:
+        Use <Seek> for more exact positioning.
+    *)
+    procedure Jump(Offs : Integer);
     (* Property: DeviceCount
          This read only property returns the number of logical output DirectSound devices. *)
     property DeviceCount : Integer read FDeviceCount;
@@ -732,6 +748,21 @@ procedure TDXAudioIn.SetFramesInBuffer;
 begin
   if not Busy then
     FFramesInBuffer := value;
+end;
+
+procedure TDXAudioOut.Jump(Offs : Integer);
+begin
+  Pause;
+  DSW_FillEmptySpace(DSW, FillByte);
+  if Assigned(Finput) then
+  begin
+    FInput.EmptyCache;
+    if FInput is TAuConverter then
+      TAuConverter(FInput)._Jump(Offs);
+    if FInput is TAuFileIn then
+      TAuFileIn(FInput)._Jump(Offs);
+  end;
+  Self.Resume;
 end;
 
 end.
