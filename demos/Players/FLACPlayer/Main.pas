@@ -132,7 +132,7 @@ end;
 procedure TForm1.ScrollBar1Scroll(Sender: TObject; ScrollCode: TScrollCode;
   var ScrollPos: Integer);
 begin
-  FLACIn1.Jump(ScrollPos-DXAudioOut1.Progress);
+  DXAudioOut1.Jump((ScrollPos-DXAudioOut1.Progress)*10);
 end;
 
 procedure TForm1.BitBtn2Click(Sender: TObject);
