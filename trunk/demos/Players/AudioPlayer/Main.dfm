@@ -352,8 +352,6 @@ object Form1: TForm1
     BackgroundColor = clMedGray
     Step = 2
     TabOrder = 0
-    ExplicitTop = 285
-    ExplicitWidth = 590
   end
   object CheckBox1: TCheckBox
     Left = 8
@@ -372,8 +370,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    ExplicitTop = 408
-    ExplicitWidth = 590
   end
   object ListBox1: TListBox
     Left = 0
@@ -393,8 +389,6 @@ object Form1: TForm1
     TabOrder = 3
     OnClick = ListBox1Click
     OnKeyDown = ListBox1KeyDown
-    ExplicitTop = 319
-    ExplicitWidth = 590
   end
   object Panel1: TPanel
     Left = 0
@@ -405,8 +399,6 @@ object Form1: TForm1
     Color = clSilver
     ParentBackground = False
     TabOrder = 4
-    ExplicitTop = 302
-    ExplicitWidth = 590
   end
   object Memo1: TMemo
     Left = 2
@@ -425,7 +417,6 @@ object Form1: TForm1
     ParentFont = False
     ReadOnly = True
     TabOrder = 5
-    ExplicitWidth = 363
   end
   object Panel2: TPanel
     Left = 435
@@ -438,8 +429,6 @@ object Form1: TForm1
     Color = clMaroon
     ParentBackground = False
     TabOrder = 6
-    ExplicitLeft = 369
-    ExplicitHeight = 215
     DesignSize = (
       211
       195)
@@ -453,7 +442,6 @@ object Form1: TForm1
       BarColor = clAqua
       BackgroundColor = clMaroon
       TabOrder = 0
-      ExplicitHeight = 193
     end
     object ProgressBar3: TProgressBar
       Left = 39
@@ -465,7 +453,6 @@ object Form1: TForm1
       BarColor = clAqua
       BackgroundColor = clMaroon
       TabOrder = 1
-      ExplicitHeight = 193
     end
     object ProgressBar4: TProgressBar
       Left = 62
@@ -477,7 +464,6 @@ object Form1: TForm1
       BarColor = clLime
       BackgroundColor = clMaroon
       TabOrder = 2
-      ExplicitHeight = 193
     end
     object ProgressBar5: TProgressBar
       Left = 85
@@ -489,7 +475,6 @@ object Form1: TForm1
       BarColor = clLime
       BackgroundColor = clMaroon
       TabOrder = 3
-      ExplicitHeight = 193
     end
     object ProgressBar6: TProgressBar
       Left = 108
@@ -501,7 +486,6 @@ object Form1: TForm1
       BarColor = clLime
       BackgroundColor = clMaroon
       TabOrder = 4
-      ExplicitHeight = 193
     end
     object ProgressBar7: TProgressBar
       Left = 131
@@ -513,7 +497,6 @@ object Form1: TForm1
       BarColor = clLime
       BackgroundColor = clMaroon
       TabOrder = 5
-      ExplicitHeight = 193
     end
     object ProgressBar8: TProgressBar
       Left = 154
@@ -525,7 +508,6 @@ object Form1: TForm1
       BarColor = clAqua
       BackgroundColor = clMaroon
       TabOrder = 6
-      ExplicitHeight = 193
     end
     object ProgressBar9: TProgressBar
       Left = 177
@@ -537,7 +519,6 @@ object Form1: TForm1
       BarColor = clAqua
       BackgroundColor = clMaroon
       TabOrder = 7
-      ExplicitHeight = 193
     end
   end
   object VorbisIn1: TVorbisIn
@@ -582,8 +563,8 @@ object Form1: TForm1
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
     FramesInBuffer = 24576
-    Latency = 60
-    PollingInterval = 100
+    Latency = 100
+    PollingInterval = 80
     PrefetchData = True
     Left = 328
     Top = 160

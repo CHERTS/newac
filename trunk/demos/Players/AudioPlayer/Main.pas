@@ -255,12 +255,12 @@ end;
 
 procedure TForm1.ForwardButtonClick(Sender: TObject);
 begin
-  TAuFileIn(SpectrumIndicator1.Input).Jump(10);
+  DXAudioOut1.Jump(100);
 end;
 
 procedure TForm1.BackwardButtonClick(Sender: TObject);
 begin
-  TAuFileIn(SpectrumIndicator1.Input).Jump(-10);
+  DXAudioOut1.Jump(-100);
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
