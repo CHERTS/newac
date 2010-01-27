@@ -500,7 +500,7 @@ end;
 constructor TDXAudioIn.Create;
 begin
   inherited Create(AOwner);
-  FLatency := 80;
+  FLatency := 100;
   FBPS := 8;
   FChan := 1;
   FFreq := 8000;
