@@ -143,12 +143,12 @@ end;
 
 procedure TForm1.SpeedButton4Click(Sender: TObject);
 begin
-  WVIn1.Jump(10);
+  DXAudioOut1.Jump(100);
 end;
 
 procedure TForm1.SpeedButton5Click(Sender: TObject);
 begin
-  WVIn1.Jump(-10);
+  DXAudioOut1.Jump(-100);
 end;
 
 end.
