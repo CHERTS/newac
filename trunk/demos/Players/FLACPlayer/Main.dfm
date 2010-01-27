@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 239
   Top = 189
-  Width = 299
-  Height = 373
   Caption = 'FLAC Player'
+  ClientHeight = 346
+  ClientWidth = 291
   Color = clNavy
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,7 +14,7 @@ object Form1: TForm1
   OnClose = FormClose
   DesignSize = (
     291
-    339)
+    346)
   PixelsPerInch = 96
   TextHeight = 13
   object Label5: TLabel
@@ -107,7 +107,7 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 0
-    Top = 326
+    Top = 333
     Width = 291
     Height = 13
     Align = alBottom
@@ -117,6 +117,7 @@ object Form1: TForm1
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
+    ExplicitWidth = 3
   end
   object ScrollBar1: TScrollBar
     Left = 8
@@ -134,8 +135,7 @@ object Form1: TForm1
     Top = 136
     Width = 25
     Height = 25
-    TabOrder = 1
-    OnClick = BitBtn1Click
+    DoubleBuffered = True
     Glyph.Data = {
       76010000424D7601000000000000760000002800000020000000100000000100
       04000000000000010000130B0000130B00001000000000000000000000000000
@@ -150,14 +150,16 @@ object Form1: TForm1
       70E337F33333333337F3E0FFFFFFFFFFF0E337FFFFFFFFFFF7F3E00000000000
       00E33777777777777733EEEEEEEEEEEEEEE33333333333333333}
     NumGlyphs = 2
+    ParentDoubleBuffered = False
+    TabOrder = 1
+    OnClick = BitBtn1Click
   end
   object BitBtn2: TBitBtn
     Left = 48
     Top = 136
     Width = 25
     Height = 25
-    TabOrder = 2
-    OnClick = BitBtn2Click
+    DoubleBuffered = True
     Glyph.Data = {
       76010000424D7601000000000000760000002800000020000000100000000100
       04000000000000010000130B0000130B00001000000000000000000000000000
@@ -172,14 +174,16 @@ object Form1: TForm1
       70E337F33333333337F3E0FFFFFFFFFFF0E337FFFFFFFFFFF7F3E00000000000
       00E33777777777777733EEEEEEEEEEEEEEE33333333333333333}
     NumGlyphs = 2
+    ParentDoubleBuffered = False
+    TabOrder = 2
+    OnClick = BitBtn2Click
   end
   object BitBtn3: TBitBtn
     Left = 80
     Top = 136
     Width = 25
     Height = 25
-    TabOrder = 3
-    OnClick = BitBtn3Click
+    DoubleBuffered = True
     Glyph.Data = {
       76010000424D7601000000000000760000002800000020000000100000000100
       04000000000000010000130B0000130B00001000000000000000000000000000
@@ -194,6 +198,9 @@ object Form1: TForm1
       70E337F33333333337F3E0FFFFFFFFFFF0E337FFFFFFFFFFF7F3E00000000000
       00E33777777777777733EEEEEEEEEEEEEEE33333333333333333}
     NumGlyphs = 2
+    ParentDoubleBuffered = False
+    TabOrder = 3
+    OnClick = BitBtn3Click
   end
   object Memo1: TMemo
     Left = 8
@@ -218,15 +225,9 @@ object Form1: TForm1
     Top = 152
     Width = 80
     Height = 30
-    Orientation = trHorizontal
     PageSize = 1
-    Frequency = 1
     Position = 5
-    SelEnd = 0
-    SelStart = 0
     TabOrder = 5
-    TickMarks = tmBottomRight
-    TickStyle = tsAuto
     OnChange = TrackBar1Change
   end
   object CheckBox1: TCheckBox
@@ -250,7 +251,7 @@ object Form1: TForm1
   end
   object StereoBalance1: TStereoBalance
     Input = FLACIn1
-    Balance = 0.5
+    Balance = 0.500000000000000000
     Left = 80
     Top = 232
   end
@@ -268,7 +269,9 @@ object Form1: TForm1
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
     FramesInBuffer = 65536
+    Latency = 80
     PollingInterval = 200
+    PrefetchData = True
     Left = 120
     Top = 232
   end
