@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 488
   Top = 378
-  Width = 334
-  Height = 209
   Caption = 'Monkey'#39's Audio Player'
+  ClientHeight = 182
+  ClientWidth = 326
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -90,6 +90,8 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play...'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -99,9 +101,11 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
-    NumGlyphs = 2
   end
   object BitBtn3: TBitBtn
     Left = 152
@@ -109,24 +113,25 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
-    NumGlyphs = 2
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 156
+    Top = 163
     Width = 326
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 142
+    Top = 149
     Width = 326
     Height = 14
     Align = alBottom
@@ -135,12 +140,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 131
+    Top = 138
     Width = 326
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 5
   end
   object ForwardButton: TButton
@@ -188,7 +191,9 @@ object Form1: TForm1
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
     FramesInBuffer = 65536
+    Latency = 80
     PollingInterval = 200
+    PrefetchData = True
     Left = 48
     Top = 120
   end
