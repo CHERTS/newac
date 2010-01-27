@@ -233,7 +233,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    ExplicitTop = 175
   end
   object ProgressBar1: TProgressBar
     Left = 0
@@ -242,7 +241,6 @@ object Form1: TForm1
     Height = 11
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 83
   end
   object CheckBox1: TCheckBox
     Left = 8
@@ -511,7 +509,9 @@ object Form1: TForm1
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
     FramesInBuffer = 65536
+    Latency = 80
     PollingInterval = 200
+    PrefetchData = True
     Left = 40
     Top = 152
   end
