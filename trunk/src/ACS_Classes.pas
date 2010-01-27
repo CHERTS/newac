@@ -548,25 +548,8 @@ type
         Seconds : LongWord - Seconds 
     *)
     function SetEndTime(Minutes, Seconds : LongWord) : Boolean;
-    (* Procedure: Jump
-        This method, being a wrapper around <Seek>, simpifies navigation in
-        the input stream. Calling Jump moves you backward or forward relative
-        to the current position. Jump may be called either before starting
-        playback (in this case the playback will be started from the position
-        specified) or during the playback.
-      
-      Parameters:
-        Offs - the amount of file contents, in percent, that will be skipped.
-        Positive value skips forward, negative value skips backward.
-
-        For example calling Jump(-100) always sets the playing position at the
-        beginning of the file. 
-        
-        Note: 
-        Use <Seek> for more exact positioning.
-    *)
     procedure Reset; override;
-    procedure Jump(Offs : Integer);
+    procedure _Jump(Offs : Integer);
 //    property Time : Integer read GetTime;
     (* Property: Valid
       Read this property to determine if the file is valid. It is a good
@@ -703,6 +686,7 @@ type
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
     procedure _Resume; override;
+    procedure _Jump(Offs : Integer);
   published
     (* Property: Input
        Like the output components, converters can be assigned an input. Unlike
@@ -1546,13 +1530,13 @@ constructor TAuOutput.Create;
     DataCS.Leave;
   end;
 
-  procedure TAuFileIn.Jump;
+  procedure TAuFileIn._Jump;
   var
     Curpos : Double;
     Cursample : Integer;
   begin
     if (not FSeekable) or (FSize = 0) then Exit;
-    Curpos := FPosition/FSize + offs/100;
+    Curpos := FPosition/FSize + offs/1000;
     if Curpos < 0 then Curpos := 0;
     if Curpos > 1 then Curpos := 1;
     Cursample := Round(Curpos*FTotalSamples);
@@ -2407,6 +2391,17 @@ begin
     Result := 0;
 end;
 
+
+procedure TAuConverter._Jump(Offs: Integer);
+begin
+  if Assigned(FInput) then
+  begin
+    if FInput is TAuConverter then
+      TAuConverter(FInput)._Jump(Offs);
+    if FInput is TAuFileIn then
+      TAuFileIn(FInput)._Jump(Offs);
+  end;
+end;
 
 initialization
 
