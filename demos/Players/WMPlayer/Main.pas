@@ -142,12 +142,12 @@ end;
 
 procedure TForm1.ForwardButtonClick(Sender: TObject);
 begin
-  WMIn1.Jump(10);
+  DXAudioOut1.Jump(100);
 end;
 
 procedure TForm1.BackwardButtonClick(Sender: TObject);
 begin
-  WMIn1.Jump(-10);
+  DXAudioOut1.Jump(-100);
 end;
 
 procedure TForm1.CheckBox1Click(Sender: TObject);

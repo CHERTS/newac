@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 505
   Top = 393
-  Width = 349
-  Height = 215
   Caption = 'WinMedia Player'
+  ClientHeight = 188
+  ClientWidth = 341
   Color = clSilver
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,6 +20,8 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play...'
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -29,9 +31,11 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
-    NumGlyphs = 2
   end
   object BitBtn3: TBitBtn
     Left = 160
@@ -39,29 +43,36 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
+    DoubleBuffered = True
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
-    NumGlyphs = 2
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 162
+    Top = 169
     Width = 341
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 81
+    Top = 88
     Width = 341
     Height = 81
     Align = alBottom
     BevelOuter = bvNone
     Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Times New Roman'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 4
     DesignSize = (
       341
@@ -85,13 +96,13 @@ object Form1: TForm1
       Left = 48
       Top = 8
       Width = 32
-      Height = 13
+      Height = 15
       Caption = 'Label3'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clLime
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Times New Roman'
       Font.Style = []
       ParentColor = False
       ParentFont = False
@@ -115,13 +126,13 @@ object Form1: TForm1
       Left = 48
       Top = 24
       Width = 32
-      Height = 13
+      Height = 15
       Caption = 'Label9'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clLime
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Times New Roman'
       Font.Style = []
       ParentColor = False
       ParentFont = False
@@ -145,13 +156,13 @@ object Form1: TForm1
       Left = 48
       Top = 40
       Width = 38
-      Height = 13
+      Height = 15
       Caption = 'Label11'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clLime
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Times New Roman'
       Font.Style = []
       ParentColor = False
       ParentFont = False
@@ -175,13 +186,13 @@ object Form1: TForm1
       Left = 48
       Top = 56
       Width = 38
-      Height = 13
+      Height = 15
       Caption = 'Label13'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clLime
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Times New Roman'
       Font.Style = []
       ParentColor = False
       ParentFont = False
@@ -270,12 +281,10 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 70
+    Top = 77
     Width = 341
     Height = 11
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 5
   end
   object ForwardButton: TButton
@@ -323,6 +332,10 @@ object Form1: TForm1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
+    FramesInBuffer = 24576
+    Latency = 80
+    PollingInterval = 100
+    PrefetchData = True
     Left = 48
     Top = 152
   end
