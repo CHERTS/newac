@@ -105,6 +105,7 @@ type
     FPosition : Int64;
     FSize : Int64; // total _uncompressed_ audio stream size in bytes
     FSampleSize : Word; // size of one frame in bytes (fot 16 bps stereo FSampleSize is 4).
+    FSeekable : Boolean;
     Busy : Boolean;
     BufStart, BufEnd : LongWord;
     DataCS : TCriticalSection;
@@ -172,6 +173,7 @@ type
         Integer - Number of bytes written
     *)
     function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
+    procedure EmptyCache;
     procedure Reset; virtual;
 
     (* Procedure: Init
@@ -238,6 +240,9 @@ type
         TotalTime value may be valid only if the <Size> of the input is known.
     *)
     property TotalTime : LongWord read GetTotalTime;
+   (* Property: Seekable
+    This read only property indicates when the input is seekable. *)
+    property Seekable : Boolean read FSeekable;
     property RequestFloat : Boolean read FFloatRequested write SetRequestFloat;
   end;
 
@@ -374,7 +379,6 @@ type
   protected
     FStream : TStream;
     FStreamAssigned : Boolean;
-    FSeekable : Boolean;
     FStartSample, FEndSample : Int64;
     FLoop : Boolean;
     FTotalSamples : Int64;
@@ -413,11 +417,6 @@ type
         returned by the component. *)
     property StartSample : Int64 read FStartSample write FStartSample;
   public
-
-
-    (* Property: Seekable
-      This read only property indicates when the input is seekable. *)
-    property Seekable : Boolean read FSeekable;
     (* Property: Stream
       Use this property to set the input data stream for the input component.
       Any TStream descendant may be used as a data source. Note that if you
@@ -1613,6 +1612,15 @@ constructor TAuOutput.Create;
     if (AComponent = FInput) and (Operation = opRemove )
     then Input := nil;
     inherited Notification(AComponent, Operation);
+  end;
+
+  procedure TAuInput.EmptyCache;
+  begin
+    DataCS.Enter;
+    _Prefetched := LongWord(Length(_PrefetchBuf));
+    FillChar(_PrefetchBuf[0], _Prefetched, 0);
+    _PrefetchOffset := 0;
+    DataCS.Leave;
   end;
 
   procedure TAuInput.Reset;

@@ -427,6 +427,7 @@ begin
   FPollingInterval := 100;
   FVolume := 0; //DW
   DSW_EnumerateOutputDevices(@Devices);
+  Thread.Priority := tpHighest;
   FDeviceCount := Devices.devcount;
   FPrefetchData := True;
 end;
@@ -465,6 +466,7 @@ begin
     SampleSize := Chan*(BPS shr 3);
     DataSize := ((Interval * Self.SR) div 1000)*SampleSize;
   //  DataSize := (DataSize div 4)*3;
+    DataSize := DataSize + (DataSize shr 2);
     DataSize := DataSize - (DataSize mod SampleSize);
     Finput._Prefetch(DataSize);
   end;
@@ -491,11 +493,6 @@ begin
   FSamplesToRead := -1;
   FFramesInBuffer := $6000;
   FPollingInterval := 100;
-//  if not (csDesigning in ComponentState) then
-//  begin
-//    if not LibdswLoaded then
-//    raise EACSException.Create('Library dswrapper.dll not found');
-//  end;
   DSW_EnumerateInputDevices(@Devices);
   FDeviceCount := Devices.devcount;
 end;
