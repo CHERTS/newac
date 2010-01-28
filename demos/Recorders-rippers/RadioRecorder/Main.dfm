@@ -62,10 +62,10 @@ object Form1: TForm1
     OnClick = BitBtn2Click
   end
   object BitBtn3: TBitBtn
-    Left = 152
-    Top = 40
+    Left = 161
+    Top = 44
     Width = 49
-    Height = 25
+    Height = 22
     Caption = 'Stop'
     DoubleBuffered = True
     NumGlyphs = 2
@@ -374,22 +374,8 @@ object Form1: TForm1
   end
   object OpenDialog1: TOpenDialog
     Filter = 'WMA files|*.wma'
-    Left = 288
+    Left = 256
     Top = 208
-  end
-  object DXAudioOut1: TDXAudioOut
-    Input = FastGainIndicator1
-    OnDone = AudioOut1Done
-    OnProgress = AudioOut1Progress
-    OnThreadException = DXAudioOut1ThreadException
-    DeviceNumber = 0
-    FramesInBuffer = 6000
-    Latency = 100
-    PollingInterval = 80
-    PrefetchData = True
-    OnUnderrun = DXAudioOut1Underrun
-    Left = 296
-    Top = 160
   end
   object WMStreamedIn1: TWMStreamedIn
     Loop = False
@@ -418,13 +404,23 @@ object Form1: TForm1
     Input = WMATap1
     Interval = 60
     OnGainData = GainIndicator1GainData
-    Left = 216
+    Left = 224
     Top = 160
   end
   object FastResampler1: TFastResampler
     Input = WMStreamedIn1
     OutSampleRate = 22050
     Left = 96
+    Top = 160
+  end
+  object DXAudioOut1: TDXAudioOut
+    Input = FastGainIndicator1
+    DeviceNumber = 0
+    Latency = 100
+    PrefetchData = True
+    PollingInterval = 100
+    FramesInBuffer = 24576
+    Left = 320
     Top = 160
   end
 end

@@ -34,7 +34,6 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
-    DXAudioOut1: TDXAudioOut;
     Label14: TLabel;
     WMStreamedIn1: TWMStreamedIn;
     ComboBox1: TComboBox;
@@ -48,6 +47,7 @@ type
     ProgressBar2: TProgressBar;
     FastGainIndicator1: TFastGainIndicator;
     FastResampler1: TFastResampler;
+    DXAudioOut1: TDXAudioOut;
     procedure BitBtn1Click(Sender: TObject);
     procedure AudioOut1Progress(Sender: TComponent);
     procedure AudioOut1Done(Sender: TComponent);
