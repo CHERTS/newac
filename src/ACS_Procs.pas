@@ -923,6 +923,8 @@ procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
     PUSH EBX;
     MOV EBX, InOutBuf;
     MOV EAX, InSize;
+    CMP EAX, 2
+    JLE @loop1;
     MOV EDI, EAX;
     ADD EDI, EBX;
     MOV EDX, 0;
@@ -939,6 +941,7 @@ procedure Convert24To32(InOutBuf : PBuffer8; InSize : Integer);
     MOV [ESI], EAX;
     CMP ECX, EDI;
     JNE @loop;
+    @loop1:
     POP EBX;
     POP ESI;
     POP EDI;
@@ -951,6 +954,8 @@ procedure Convert16To32(InOutBuf : PBuffer8; InSize : Integer);
     PUSH EBX;
     MOV EBX, InOutBuf;
     MOV EAX, InSize;
+    CMP EAX, 1
+    JLE @loop1;
     MOV EDI, EAX;
     ADD EDI, EBX;
     SHL EAX, 1;
@@ -968,6 +973,7 @@ procedure Convert16To32(InOutBuf : PBuffer8; InSize : Integer);
     CMP ECX, EDI;
     JNE @loop;
     EMMS;
+    @loop1:
     POP EBX;
     POP ESI;
     POP EDI;
