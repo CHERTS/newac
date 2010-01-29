@@ -491,68 +491,31 @@ begin
     ///////////////
    //FillBuffer(tmpStop);
   ACS.Enter;
+  L := FBufferSize*(BPS shr 3)*FOutputChannels;
   if _Prefetched then
   begin
     _Prefetched := False;
-    if (BPS = 16) and (OutputBPS = 32) then
-    begin
-      L := (FBufferSize shl 1)*FOutputChannels;
-      FInput.GetData(P, L);
-      FastCopyMem(@iBuf[0], P, L);
-      Convert16To32(@iBuf[0], L);
-      L := L shl 1;
-    end else
-      if (BPS = 32) and (OutputBPS = 32) then
-      begin
-        L := (FBufferSize shl 2)*FOutputChannels;
-        FInput.GetData(P, L);
-        FastCopyMem(@iBuf[0], P, L);
-      end else
-      if (BPS = 16) and (OutputBPS = 16) then
-      begin
-        L := (FBufferSize shl 1)*FOutputChannels;
-        FInput.GetData(P, L);
-        FastCopyMem(@iBuf[0], P, L);
-      end else
-        if (BPS = 24) and (OutputBPS = 32) then
-        begin
-          L := FBufferSize*3*FOutputChannels;
-          FInput.GetData(P, L);
-          FastCopyMem(@iBuf[0], P, L);
-          Convert24To32(@iBuf[0], L);
-          L := (L shl 2) div 3;
-        end else
-        begin
-          raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
-        end;
-  end
-  else
+    FInput.GetData(P, L);
+    FastCopyMem(@iBuf[0], P, L);
+    tmpStop := L = 0;
+  end else
   begin
-    if (BPS = 16) and (OutputBPS = 32) then
-    begin
-      L := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, tmpStop);
-      Convert16To32(@iBuf[0], FBufferSize*2*FOutputChannels);
-      L := L shl 1;
-    end else
-      if (BPS = 32) and (OutputBPS = 32) then
-         L := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 2)*FOutputChannels, tmpStop)
-      else
-      if (BPS = 16) and (OutputBPS = 16) then
-        L := FInput.FillBuffer(@iBuf[0], (FBufferSize shl 1)*FOutputChannels, tmpStop)
-       else
-         if (BPS = 24) and (OutputBPS = 32) then
-         begin
-            L := FInput.FillBuffer(@iBuf[0], FBufferSize*3*FOutputChannels, tmpStop);
-           Convert24To32(@iBuf[0], FBufferSize*3*FOutputChannels);
-           L := (L shl 2) div 3;
-         end else
-         begin
-           raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
-         end;
+    L := FInput.FillBuffer(@iBuf[0], L, tmpStop);
   end;
-  tmpStop := L = 0;
   ACS.Leave;
-
+  if (BPS = 16) and (OutputBPS = 32) then
+  begin
+    Convert16To32(@iBuf[0], L);
+    L := L shl 1;
+  end else
+    if (BPS = 24) and (OutputBPS = 32) then
+    begin
+      Convert24To32(@iBuf[0], L);
+      L := (L shl 2) div 3;
+    end else
+    begin
+      raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
+    end;
 
    ////////////////
    OldStopped := Thread.Stopped;
