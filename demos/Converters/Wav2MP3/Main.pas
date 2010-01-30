@@ -42,9 +42,8 @@ type
     procedure Button1Click(Sender: TObject);
     procedure MP3Out1Done(Sender: TComponent);
     procedure MP3Out1Progress(Sender: TComponent);
-    procedure MP3Out1ThreadException(Sender: TComponent;
-      const Msg: String);
     procedure Button2Click(Sender: TObject);
+    procedure MP3Out1ThreadException(Sender: TComponent);
   private
     { Private declarations }
     function StrToBitRate(const S : String) : TMP3Bitrate;
@@ -82,10 +81,10 @@ begin
   ProgressBar1.Position := MP3Out1.Progress;
 end;
 
-procedure TForm1.MP3Out1ThreadException(Sender: TComponent;
-  const Msg: String);
+
+procedure TForm1.MP3Out1ThreadException(Sender: TComponent);
 begin
-  Self.StatusBar1.Panels[0].Text := Msg;
+  StatusBar1.Panels.Items[0].Text := MP3Out1.ExceptionMessage;
 end;
 
 function TForm1.StrToBitRate;
