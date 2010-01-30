@@ -49,6 +49,7 @@ type
     procedure VBRClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListBox1Click(Sender: TObject);
+    procedure WMAOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -89,6 +90,11 @@ end;
 
 
 
+procedure TForm1.WMAOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels[0].Text := WMAOut1.ExceptionMessage;
+end;
+
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   WMAOut1.Stop(False);
@@ -107,7 +113,7 @@ begin
     begin
       WMAOut1.FileName := SaveDialog1.FileName;
       WMAOut1.CodecIndex := ListBox1.ItemIndex;
-      WMAOut1.FormatIndex := ListBox2.ItemIndex;      
+      WMAOut1.FormatIndex := ListBox2.ItemIndex;
       WMAOut1.Id3v2Tags.Clear;
       if Self.AlbumEdit.Text <> '' then
         WMAOut1.Id3v2Tags.Album := AlbumEdit.Text;
