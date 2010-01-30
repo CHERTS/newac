@@ -497,7 +497,6 @@ begin
     _Prefetched := False;
     FInput.GetData(P, L);
     FastCopyMem(@iBuf[0], P, L);
-    tmpStop := L = 0;
   end else
   begin
     L := FInput.FillBuffer(@iBuf[0], L, tmpStop);
@@ -516,6 +515,7 @@ begin
     begin
       raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
     end;
+    tmpStop := L = 0;
 
    ////////////////
    OldStopped := Thread.Stopped;
@@ -837,6 +837,7 @@ begin
   BPS := FInput.BitsPerSample;
   GStop := False;
   DoReset := False;
+  FillChar(BufferInfo[0].buffers[0]^, FBufferSize, 0);
   AsioBufferSwitchOutput(1, AsioTrue);
   FastCopyMem(BufferInfo[0].buffers[1], BufferInfo[0].buffers[0], FBufferSize);
   if Device.Start <> ASE_OK then
