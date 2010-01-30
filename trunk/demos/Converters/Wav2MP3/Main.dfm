@@ -237,6 +237,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
+    OnThreadException = MP3Out1ThreadException
     ShareMode = 0
     BitRate = mbrAuto
     CRC = True
