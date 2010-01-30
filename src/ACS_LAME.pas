@@ -334,6 +334,7 @@ type
   var
     Len, OutSize : LongWord;
     EOF : Boolean;
+    wres : LongWord;
   begin
     Result := True;
     if not CanOutput then Exit;
@@ -346,7 +347,9 @@ type
     if Len <> 0 then
     begin
       beEncodeChunk(_Stream, Len div 2, Buffer, mp3buf, OutSize);
-      FStream.Write(mp3buf^, OutSize);
+      wres := FStream.Write(mp3buf^, OutSize);
+      if wres <> OutSize then
+         raise EAuException.Create('Error writing down mp3 file');
       Result := not EOF;
     end else
     begin

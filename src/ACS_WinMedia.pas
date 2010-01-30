@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package v. 2.2.1
-  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package v. 2.5
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -165,13 +165,13 @@ type
     FBitrate : LongWord;
     FLossless, FVBR : Boolean;
     FVBRQuality : Byte;
-    FOnOutputError : TOutputErrorEvent;
     function GetCodecs : TStringList;
     function GetCodecsCount : Word;
     function GetCodecName(Index : Word) : String;
     function GetFormats(Index : Word) : TStringList;
     function GetFormatsCount(Index : Word) : Word;
   protected
+    ErrorFlag : Boolean;
     Writer : wma_writer;
     FPort : LongWord;
     FMaxClients : LongWord;
@@ -252,13 +252,6 @@ type
        valid values range from 1 to 99. This property only has an effect if
        <VBR> is set to True and <Lossless> to False. *)
     property VBRQuality : Byte read FVBRQuality write FVBRQuality;
-    (* Property: OnOutputError
-       This event is raised if an error occurs during the output. If the event handler is not set, the error is ignored.
-       The best way to handle this event is to call
-       > Sender.Stop(True);
-       from the handler.
-       When this event is called the ExceptionMessage property returns 'Windows Media output error' string. *)
-    property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
   (* Topic: A Note on Windows Media Formats
@@ -532,7 +525,7 @@ type
     BufSize : Integer;
     FVBR : Boolean;
     Writer : wma_writer;
-    FOnOutputError : TOutputErrorEvent;
+    FErrorFlag : Boolean;
     function GetCodecs : TStringList;
     function GetCodecsCount : Word;
     function GetCodecName(Index : Word) : String;
@@ -588,13 +581,6 @@ type
        Use this property to switch between constant bitrate and variable
        bitrate encoding modes. *)
     property VBR : Boolean read FVBR write FVBR;
-    (* Property: OnOutputError
-       This event is raised if an error occurs during output. If the event handler is not set, error is ignored.
-       The best way to handle the eent is to call
-       > Sender.Stop(True);
-       from the handler.
-       When this event is called ExcaptionMessage property returns 'Windows Media output error.' string. *)
-    property OnOutputError : TOutputErrorEvent read FOnOutputError write FOnOutputError;
   end;
 
 
@@ -615,8 +601,9 @@ implementation
   procedure CallOnError(Dest : TComponent; Reason : LongWord);
   begin
     (Dest as TWMAOut).FExceptionMessage := 'Windows Media output error.';
-    if Assigned((Dest as TWMAOut).FOnOutputError) then
-       (Dest as TWMAOut).FOnOutputError(Dest, Reason);
+    (Dest as TWMAOut).ErrorFlag := True;
+//    if Assigned((Dest as TWMAOut).FOnOutputError) then
+ //      (Dest as TWMAOut).FOnOutputError(Dest, Reason);
   end;
 
   procedure CallOnATError(Dest : TComponent; Reason : LongWord);
@@ -628,8 +615,9 @@ implementation
   procedure CallOnDPError(Dest : TComponent; Reason : LongWord);
   begin
    (Dest as TWMADualPassOut).FExceptionMessage := 'Windows Media output error.';
-    if Assigned((Dest as TWMADualPassOut).FOnOutputError) then
-       (Dest as TWMADualPassOut).FOnOutputError(Dest, Reason);
+   (Dest as TWMADualPassOut).FErrorFlag := True;
+//    if Assigned((Dest as TWMADualPassOut).FOnOutputError) then
+//       (Dest as TWMADualPassOut).FOnOutputError(Dest, Reason);
   end;
 
 
@@ -853,12 +841,15 @@ implementation
     {$WARNINGS ON}
     lwma_writer_begin(Writer);
     EndOfStream := false;
+    ErrorFlag := False;
   end;
 
   function TWMAOut.DoOutput;
   var
     l : Integer;
   begin
+    if ErrorFlag then
+     raise EAuException.Create('Windows Media output error');
     Result := True;
     if not CanOutput then Exit;
     if Abort or EndOfStream then
@@ -1320,12 +1311,15 @@ implementation
     FInput.Flush;
     FInput.Init;
     EndOfStream := false;
+    FErrorFlag := False;
   end;
 
   function TWMADualPassOut.DoOutput;
   var
     l : Integer;
   begin
+    if FErrorFlag then
+     raise EAuException.Create('Windows Media output error');
     Result := True;
     if not CanOutput then Exit;
     if Abort or EndOfStream then

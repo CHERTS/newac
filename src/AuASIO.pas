@@ -1,6 +1,6 @@
 (*
-  This file is a part of New Audio Components package 2.2.1
-  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  This file is a part of New Audio Components package 2.5
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -482,7 +482,7 @@ end;
 procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
   s1, s2 : TASIOInt64;
-  OldStopped : Bool;
+//  OldStopped : Bool;
   tmpStop : Boolean;
   L : LongWord;
   P : Pointer;
@@ -497,6 +497,7 @@ begin
     _Prefetched := False;
     FInput.GetData(P, L);
     FastCopyMem(@iBuf[0], P, L);
+    tmpStop := L = 0;
   end else
   begin
     L := FInput.FillBuffer(@iBuf[0], L, tmpStop);
@@ -515,11 +516,10 @@ begin
     begin
       raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
     end;
-    tmpStop := L = 0;
 
    ////////////////
-   OldStopped := Thread.Stopped;
-   Thread.Stopped := False;
+ //  OldStopped := Thread.Stopped;
+ //  Thread.Stopped := False;
    if Assigned(FOnPositionChanged) then
    begin
      Device.GetSamplePosition(s1, s2);
@@ -540,7 +540,7 @@ begin
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady = ASE_OK;
    GStop := tmpStop;
-   Thread.Stopped := OldStopped;
+ //  Thread.Stopped := OldStopped;
 end;
 
 procedure AsioBufferSwitchOutput(doubleBufferIndex: longint; directProcess: TASIOBool); cdecl;

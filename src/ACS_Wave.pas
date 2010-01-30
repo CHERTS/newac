@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 2.4
+  This file is a part of New Audio Components package v 2.5
   Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -1321,14 +1321,16 @@ end;
         end else
         begin
           FillHeaderPCM(Header);
-          FStream.Write(Header, WaveHeaderOffs);
+          if FStream.Write(Header, WaveHeaderOffs) <> WaveHeaderOffs then
+            raise EAuException.Create('Error writing wave file');
         end;
       end;
       wtExtPCM:
       begin
         FillHeaderExtPCM(HeaderExt);
-        FStream.Write(HeaderExt, SizeOf(HeaderExt));
-      end;
+        if FStream.Write(HeaderExt, SizeOf(HeaderExt)) <> SizeOf(HeaderExt) then
+          raise EAuException.Create('Error writing wave file');
+       end;
       wtDVIADPCM :
       begin
         if FInput.BitsPerSample <> 16 then
@@ -1359,7 +1361,8 @@ end;
         end else
         begin
           FillHeaderDVIADPCM(DVIADPCMHeader);
-          FStream.Write(DVIADPCMHeader, SizeOf(DVIADPCMHeader));
+          if FStream.Write(DVIADPCMHeader, SizeOf(DVIADPCMHeader)) <> SizeOf(DVIADPCMHeader) then
+            raise EAuException.Create('Error writing wave file');
           FEncodeState.Index_l := 0;
           FEncodeState.Index_r := 0;
         end;
@@ -1416,7 +1419,8 @@ end;
             Hdr.DataSize := Size;
             Hdr.DataLength := (Hdr.DataSize div Hdr.BlockAlign) * Hdr.SamplesPerBlock;
             FStream.Seek(0, soFromBeginning);
-            FStream.Write(Hdr, SizeOf(Hdr));
+            if FStream.Write(Hdr, SizeOf(Hdr)) <> SizeOf(Hdr) then
+               raise EAuException.Create('Error writing wave file');
           end;
         end;
       end;
@@ -1438,7 +1442,8 @@ end;
       begin
         GetMem(P, BlockSize);
         FillChar(P^, BlockSize, 0);
-        FStream.Write(P^, BlockSize);
+        if FStream.Write(P^, BlockSize) <> BlockSize then
+            raise EAuException.Create('Error writing wave file');
         FreeMem(P);
       end;
     end;
@@ -1478,7 +1483,8 @@ end;
         try
           Len := BUF_SIZE;
           Finput.GetData(Ptr, Len);
-          FStream.Write(Ptr^, Len);
+          if FStream.Write(Ptr^, Len) <> Integer(Len) then
+            raise EAuException.Create('Error writing wave file');
         except
         end;
         if Len > 0 then Result := True
@@ -1511,8 +1517,9 @@ end;
             FEncodeState.PredSamp_r := DVIInBuf[m];
             m := 2;
             EncodeDVIADPCMStereo(@DVIInBuf[m], @DVIOutBuf[0]);
-            FStream.Write(DVIOutBuf[0], FBlockAlign);
-          end else
+            if FStream.Write(DVIOutBuf[0], FBlockAlign) <> FBlockAlign then
+              raise EAuException.Create('Error writing wave file');
+            end else
           begin
             l := 0;
             FillChar (DVIInBuf[0], BlockDataSize, 0);
@@ -1530,7 +1537,8 @@ end;
             FEncodeState.PredSamp_l := DVIInBuf[0];
             m := 1;
             EncodeDVIADPCMMono(@DVIInBuf[m], @DVIOutBuf[0]);
-            FStream.Write(DVIOutBuf[0], FBlockAlign);
+            if FStream.Write(DVIOutBuf[0], FBlockAlign) <> FBlockAlign then
+              raise EAuException.Create('Error writing wave file');
           end;
         except
         end;
