@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 395
   Top = 226
-  Width = 304
-  Height = 317
   Caption = 'Wav2WMA Converter'
+  ClientHeight = 290
+  ClientWidth = 296
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -74,28 +74,25 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 236
+    Top = 243
     Width = 296
     Height = 9
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 264
+    Top = 271
     Width = 296
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 245
+    Top = 252
     Width = 296
     Height = 19
     Align = alBottom
@@ -165,8 +162,8 @@ object Form1: TForm1
     OnClick = Button2Click
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 240
   end
@@ -184,7 +181,12 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = WMAOut1Done
     OnProgress = WMAOut1Progress
+    OnThreadException = WMAOut1ThreadException
+    ShareMode = 0
     DesiredBitrate = 0
+    Lossless = False
+    VBR = False
+    VBRQuality = 0
     Left = 104
     Top = 240
   end
