@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.4
+  This file is a part of New Audio Components package 2.5
   Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -305,7 +305,7 @@ type
     Header : array[0..3] of Byte;
     Comm : TVComments;
     Block : Pointer;
-    BL : Integer;
+    bresult : LongInt;
   begin
     FLACOut := TFLACOut(client_data);
     Result := FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
@@ -342,13 +342,15 @@ type
             Comm.AlbumGain := Utf8Encode(WideString(_vorbis_AlbumGain + '=') + FlacOut.FTags.AlbumGain);
           if FlacOut.FTags.AlbumPeak <> '' then
             Comm.AlbumPeak := Utf8Encode(WideString(_vorbis_AlbumPeak + '=') + FlacOut.FTags.AlbumPeak);
-          BL := BuildCommentsBlock(Comm, Block, BI.HasNext);
-          FLACOut.FStream.Write(Block^, BL);
+          bytes := BuildCommentsBlock(Comm, Block, BI.HasNext);
+          bresult := FLACOut.FStream.Write(Block^, bytes);
           FreeMem(Block);
         end else
-        FLACOut.FStream.Write(buffer^, bytes);
+        bresult := FLACOut.FStream.Write(buffer^, bytes);
       end else
-      FLACOut.FStream.Write(buffer^, bytes);
+      bresult := FLACOut.FStream.Write(buffer^, bytes);
+      if bresult <> Integer(bytes) then
+        Result := FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
     except
       Result := FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
     end;

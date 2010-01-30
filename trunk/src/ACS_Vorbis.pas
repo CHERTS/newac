@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v 2.1
+  This file is a part of New Audio Components package v 2.5
   Copyright (c) 2002-2008, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -365,6 +365,7 @@ implementation
     tmpBuf : array[0..16] of PFloat;
     buf_u : PBuffer8;
     Ptr : Pointer;
+    wres : Integer;
   begin
     // No exceptions Here
     Result := True;
@@ -437,8 +438,12 @@ implementation
         while not EndOfStream do
         begin
           if ogg_stream_pageout(OggSS, OggPg) = 0 then Break;
-          FStream.Write(OggPg.header^, OggPg.header_len);
-          FStream.Write(OggPg.body^, OggPg.body_len);
+          wres := FStream.Write(OggPg.header^, OggPg.header_len);
+          if wres <> OggPg.header_len then
+            raise EAuException.Create('Error writing ogg file');
+          wres := FStream.Write(OggPg.body^, OggPg.body_len);
+          if wres <> OggPg.body_len then
+            raise EAuException.Create('Error writing ogg file');
           if ogg_page_eos(OggPg) <> 0 then EndOfStream := True;
         end;
       end;
