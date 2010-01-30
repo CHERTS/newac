@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 395
   Top = 226
-  Width = 475
-  Height = 410
   Caption = 'Wav2WMA Converter'
+  ClientHeight = 383
+  ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,7 +15,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   DesignSize = (
     467
-    376)
+    383)
   PixelsPerInch = 96
   TextHeight = 13
   object Label6: TLabel
@@ -91,28 +91,25 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 329
+    Top = 336
     Width = 467
     Height = 9
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 357
+    Top = 364
     Width = 467
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
-    Top = 338
+    Top = 345
     Width = 467
     Height = 19
     Align = alBottom
@@ -123,40 +120,70 @@ object Form1: TForm1
     Left = 56
     Top = 176
     Width = 201
-    Height = 21
+    Height = 23
     Anchors = [akLeft, akBottom]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Times New Roman'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 4
   end
   object ArtistEdit: TEdit
     Left = 56
     Top = 200
     Width = 201
-    Height = 21
+    Height = 23
     Anchors = [akLeft, akBottom]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Times New Roman'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 5
   end
   object DateEdit: TEdit
     Left = 56
     Top = 224
     Width = 201
-    Height = 21
+    Height = 23
     Anchors = [akLeft, akBottom]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Times New Roman'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 6
   end
   object GenreEdit: TEdit
     Left = 56
     Top = 248
     Width = 201
-    Height = 21
+    Height = 23
     Anchors = [akLeft, akBottom]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Times New Roman'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 7
   end
   object TitleEdit: TEdit
     Left = 56
     Top = 272
     Width = 201
-    Height = 21
+    Height = 23
     Anchors = [akLeft, akBottom]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Times New Roman'
+    Font.Style = []
+    ParentFont = False
     TabOrder = 8
   end
   object TrackSpinEdit: TSpinEdit
@@ -207,8 +234,8 @@ object Form1: TForm1
     TabOrder = 13
   end
   object WaveIn1: TWaveIn
-    EndSample = -1
     Loop = False
+    EndSample = -1
     Left = 72
     Top = 320
   end
@@ -226,7 +253,12 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = WMAOut1Done
     OnProgress = WMAOut1Progress
+    OnThreadException = WMAOut1ThreadException
+    ShareMode = 0
     DesiredBitrate = 0
+    Lossless = False
+    VBR = False
+    VBRQuality = 0
     Left = 104
     Top = 320
   end
