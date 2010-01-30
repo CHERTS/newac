@@ -43,6 +43,7 @@ type
     procedure WMAOut1Progress(Sender: TComponent);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
+    procedure WMAOut1ThreadException(Sender: TComponent);
   private
     { Private declarations }
   public
@@ -82,6 +83,11 @@ begin
 end;
 
 
+
+procedure TForm1.WMAOut1ThreadException(Sender: TComponent);
+begin
+  StatusBar1.Panels.Items[0].Text := WMAOut1.ExceptionMessage;
+end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
