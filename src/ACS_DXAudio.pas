@@ -15,7 +15,7 @@ unit ACS_DXAudio;
 interface
 
 uses
-  SysUtils, Classes, Forms, ACS_Types, ACS_Classes, Windows, MMSystem, DSWrapper, _DirectSound;
+  SysUtils, Classes, Forms, FastMove, ACS_Types, ACS_Classes, Windows, MMSystem, DSWrapper, _DirectSound;
 
 {$DEFINE USE_EXTENDED_SPEC_FOR_24_BPS }
 

@@ -30,7 +30,7 @@ uses
   Math, MAD,
   {$ENDIF}
 
-  Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Procs;
+  Classes, SysUtils, FastMove, ACS_Types, ACS_Classes, ACS_Procs;
 
 const
 

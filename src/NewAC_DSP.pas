@@ -19,7 +19,7 @@ unit NewAC_DSP;
 interface
 
 uses
-  Windows, Classes, SysUtils, ACS_Classes, ACS_Procs, ACS_Types, FFTReal, Math, GainAnalysis;
+  Windows, Classes, SysUtils, FastMove, ACS_Classes, ACS_Procs, ACS_Types, FFTReal, Math, GainAnalysis;
 
 const
   BufSize : Integer = $6000;
@@ -682,7 +682,7 @@ implementation
   var
     i : Integer;
   begin
-    FastCopyMem(@TmpBuffer1[0], @TmpBuffer2[0], FBufferSize);
+    Move(TmpBuffer2[0], TmpBuffer1[0], FBufferSize);
     FillChar(TmpBuffer2[0], FBufferSize, 0);
     FOffset := 0;
     FInput.FillBuffer(@TmpBuffer2[0], FBufferSize, FIsEndOdSource);

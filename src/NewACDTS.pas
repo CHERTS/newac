@@ -15,7 +15,7 @@ unit NewACDTS;
 interface
 
 uses
-  Windows, Classes, SysUtils, math, ACS_Classes, ACS_Procs, ACS_Types, libdca;
+  Windows, Classes, SysUtils, math, FastMove, ACS_Classes, ACS_Procs, ACS_Types, libdca;
 
 type
 

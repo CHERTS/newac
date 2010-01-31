@@ -17,7 +17,7 @@ interface
 {$WARNINGS OFF}
 
 uses
-  Classes, SysUtils, Windows, ACS_Types, ACS_Procs, ACS_Classes, _MSACM, MMSystem, Math;
+  Classes, SysUtils, Windows, FastMove, ACS_Types, ACS_Procs, ACS_Classes, _MSACM, MMSystem, Math;
 
 const
   BUF_SIZE = $8000;
@@ -1335,7 +1335,7 @@ implementation
             Y0[j][i + OffsY] := Acc;
           end;
         for j := 0 to SamplesInFrame - 1 do
-          FastCopyMem(@X1[j][OffsX], @Y0[j][OffsY], SizeOf(Single)*FramesRead);
+          Move(Y0[j][OffsY], X1[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1352,7 +1352,7 @@ implementation
             Y1[j][i + OffsY] := Acc;
           end;
         for j := 0 to SamplesInFrame - 1 do
-          FastCopyMem(@X2[j][OffsX], @Y1[j][OffsY], SizeOf(Single)*FramesRead);
+          Move(Y1[j][OffsY], X2[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1369,7 +1369,7 @@ implementation
             Y2[j][i + OffsY] := Acc;
           end;
         for j := 0 to SamplesInFrame - 1 do
-          FastCopyMem(@X3[j][OffsX], @Y2[j][OffsY], SizeOf(Single)*FramesRead);
+          Move(Y2[j][OffsY], X3[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1408,7 +1408,7 @@ implementation
             Y0[j][i + OffsY] := Acc;
           end;
         for j :=  0 to SamplesInFrame - 1 do
-            FastCopyMem(@X1[j][OffsX], @Y0[j][OffsY], SizeOf(Single)*FramesRead);
+            Move(Y0[j][OffsY], X1[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1425,7 +1425,7 @@ implementation
             Y1[j][i + OffsY] := Acc;
           end;
         for j :=  0 to SamplesInFrame - 1 do
-            FastCopyMem(@X2[j][OffsX], @Y1[j][OffsY], SizeOf(Single)*FramesRead);
+            Move(Y1[j][OffsY], X2[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do
@@ -1442,7 +1442,7 @@ implementation
             Y2[j][i + OffsY] := Acc;
           end;
         for j :=  0 to SamplesInFrame - 1 do
-            FastCopyMem(@X3[j][OffsX], @Y2[j][OffsY], SizeOf(Single)*FramesRead);
+            Move(Y2[j][OffsY], X3[j][OffsX], SizeOf(Single)*FramesRead);
         for j :=  0 to SamplesInFrame - 1 do
         begin
           for i := 0 to OffsX - 1 do

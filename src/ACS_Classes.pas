@@ -19,7 +19,7 @@ uses
 {$IFDEF WIN32}
   Windows,
 {$ENDIF}
-  Classes, SysUtils, SyncObjs,
+  FastMove, Classes, SysUtils, SyncObjs,
   ACS_Types, ACS_Procs, ACS_Tags;
 
 type
@@ -115,6 +115,7 @@ type
     _Prefetched, _PrefetchOffset : LongWord;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
+    function BufAddr(Offset : LongWord) : Pointer; inline;
     function GetBPS : LongWord; virtual; abstract;
     function GetCh : LongWord; virtual; abstract;
     function GetSR : LongWord; virtual; abstract;
@@ -173,6 +174,7 @@ type
         Integer - Number of bytes written
     *)
     function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
+    function FillBufferUnprotected(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
     procedure EmptyCache;
     procedure Reset; virtual;
 
@@ -1041,7 +1043,8 @@ end;
 
   destructor TAuInput.Destroy;
   begin
-    DataCS.Free;
+    FreeAndNil(DataCS);
+    _PrefetchBuf := nil;
     inherited Destroy;
   end;
 
@@ -1721,7 +1724,7 @@ constructor TAuOutput.Create;
     Result := BufferSize;
     GetData(P, Result);
     if P <> nil then
-      FastCopyMem(Buffer, P, Result);
+      Move(P^, Buffer^,  Result);
   end;
 
   function TAuInput.FillBuffer;
@@ -1738,12 +1741,39 @@ constructor TAuOutput.Create;
       r := BufferSize - Result;
       GetData(P1, r);
       if P1 <> nil then
-        FastCopyMem(@P[Result], P1, r);
+        Move(P1^, P[Result], r);
       Result := Result + r;
     end;
     EOF := r = 0;
   end;
-  
+
+  function TAuInput.FillBufferUnprotected;
+  var
+    P : PByteArray;
+    P1 : Pointer;
+    r : LongWord;
+  begin
+    if Buffer = nil then
+    begin
+      Result := 0;
+      Exit;
+    end;
+    P := Buffer;
+    r := BufferSize;
+    Result := 0;
+    while (BufferSize - Result > 0) and (r > 0) do
+    begin
+      r := BufferSize - Result;
+      GetDataInternal(P1, r);
+//      if (P1 <> nil) and (r <> 0) then
+//       FastCopyMem(@P[Result], P1, r);
+      Move(P1^, P[Result], r);
+      Result := Result + r;
+    end;
+    EOF := r = 0;
+  end;
+
+
   constructor TAuFileStream.Create(const FileName: WideString; Mode: Word);
   begin
     Create(FileName, Mode, 0);
@@ -1914,6 +1944,15 @@ begin
   inherited SetStream(aStream);
 end;
 
+function TAuInput.BufAddr(Offset : LongWord) : Pointer;
+begin
+  if _PrefetchBuf = nil then
+    Result := nil
+  else
+    Result := @_PrefetchBuf[Offset];
+end;
+
+
 procedure TAuInput._Prefetch(Bytes: Cardinal);
 var
   EOF : Boolean;
@@ -1926,12 +1965,12 @@ begin
   begin
     if _Prefetched < LenB then
     begin
-      FastCopyMem(@_PrefetchBuf[0], @_PrefetchBuf[_PrefetchOffset], _Prefetched);
+      if BufAddr(0) <> nil then
+      Move(BufAddr(_PrefetchOffset)^, BufAddr(0)^, _Prefetched);
       _PrefetchOffset := 0;
-      Bytes := FillBuffer(@_PrefetchBuf[_Prefetched], LongWord(LenB - _Prefetched), EOF);
+      Bytes := FillBufferUnprotected(BufAddr(_Prefetched), LongWord(LenB - _Prefetched), EOF);
       if Bytes <> 0 then
       begin
-        _Prefetched := Bytes + _Prefetched;
         FPosition := FPosition - Bytes;
       end;
     end;
@@ -1939,7 +1978,7 @@ begin
   begin
     if Bytes > LenB then
       SetLength(_PrefetchBuf, Bytes);
-    Bytes := FillBuffer(@_PrefetchBuf[0], Bytes, EOF);
+   Bytes := FillBufferUnprotected(BufAddr(0), Bytes, EOF);
     if Bytes <> 0 then
     begin
       _Prefetched := Bytes;
