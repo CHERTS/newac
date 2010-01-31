@@ -16,7 +16,7 @@ interface
 
 uses
 
- Classes, SysUtils, ACS_Types, ACS_Classes, ACS_Tags, FLAC,
+ Classes, SysUtils, FastMove, ACS_Types, ACS_Classes, ACS_Tags, FLAC,
 {$IFDEF LINUX}
   libc;
 {$ENDIF}

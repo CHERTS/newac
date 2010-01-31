@@ -15,7 +15,7 @@ unit libwma1;
 interface
 
 uses
-  Windows, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types, ACS_Procs, SyncObjs;
+  Windows, FastMove, Classes, SysUtils, ActiveX, MMSystem, wmfintf, ACS_Classes, ACS_Types, ACS_Procs, SyncObjs;
 
 type
                               
@@ -1727,9 +1727,9 @@ implementation
      buf : PByte;
      res : HResult;
     begin
-     writer.writer.AllocateSample(2*len, writer.buffer);
+     writer.writer.AllocateSample(len, writer.buffer);
      writer.buffer.GetBuffer(buf);
-     FastCopyMem(Buf, Buffer, len);
+     Move(Buffer^, Buf^, len);
      writer.buffer.SetLength(len);
      writer.TotalTime := writer.TotalTime + Round(len/writer.BytesPerSecond/0.1e-6);
      res := writer.writer.WriteSample(writer.input, writer.TotalTime, 0, writer.buffer);
@@ -1858,7 +1858,7 @@ implementation
        pSample.GetBufferAndLength(Buffer, Length);
        GetMem(SI, SizeOf(TSampleInfo));
        GetMem(SI.Data, Length);
-       FastCopyMem(SI.Data, Buffer, Length);
+       Move(Buffer^, SI.Data^, Length);
        SI.Length := Length;
        SI.Offset := 0;
        FReader.CriticalSection.Enter;
@@ -1963,7 +1963,7 @@ implementation
   begin
      writer.writer.AllocateSample(len, writer.buffer);
      writer.buffer.GetBuffer(buf);
-     FastCopyMem(Buf, Buffer, len);
+     Move(Buffer^, Buf^, len);
      writer.buffer.SetLength(len);
      writer.TotalTime := writer.TotalTime + Round(len/writer.BytesPerSecond/0.1e-6);
      res := preprocessor.WMWriterPreprocess.PreprocessSample(writer.input, writer.TotalTime, 0, writer.buffer);

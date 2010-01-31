@@ -15,7 +15,7 @@ unit AuASIO;
 interface
 
 uses
-  SysUtils, Classes, Forms, SyncObjs, ACS_Types, ACS_Procs, ACS_Classes, Windows, AsioList, OpenAsio, Asio, Math;
+  SysUtils, Classes, Forms, SyncObjs, FastMove, ACS_Types, ACS_Procs, ACS_Classes, Windows, AsioList, OpenAsio, Asio, Math;
 
 type
 
@@ -498,7 +498,7 @@ begin
     _Prefetched := False;
     FInput.GetData(P, L);
     if P <> nil then
-    FastCopyMem(@iBuf[0], P, L);
+    Move(P^, iBuf[0], L);
     tmpStop := L = 0;
   end else
   begin
@@ -618,7 +618,7 @@ var
   if GStop  then
     Exit;
   if InputComponent.FChan = 1 then
-    FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*4)
+    Move(InputComponent.BufferInfo[0].buffers[doubleBufferIndex]^, oBuf[(WriteIndex mod BlockAlign)*BlockSize], InputComponent._BufSize*4)
   else
   begin
     if InputComponent.FBPS = 32 then
@@ -636,11 +636,11 @@ var
   Inc(WriteIndex);
   if InputComponent.FPlayRecording then
   begin
-    FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*(InputComponent.FBPS shr 3));
+    Move(InputComponent.BufferInfo[0].buffers[doubleBufferIndex]^, InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex]^, InputComponent._BufSize*(InputComponent.FBPS shr 3));
     if InputComponent.FChan = 1 then
-       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[0].buffers[doubleBufferIndex], InputComponent._BufSize*(InputComponent.FBPS shr 3))
+       Move(InputComponent.BufferInfo[0].buffers[doubleBufferIndex]^, InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex]^, InputComponent._BufSize*(InputComponent.FBPS shr 3))
     else
-       FastCopyMem(InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex], InputComponent.BufferInfo[1].buffers[doubleBufferIndex], InputComponent._BufSize*(InputComponent.FBPS shr 3))
+       Move(InputComponent.BufferInfo[1].buffers[doubleBufferIndex]^, InputComponent.BufferInfo[InputComponent.FChan+1].buffers[doubleBufferIndex]^, InputComponent._BufSize*(InputComponent.FBPS shr 3))
   end else
   begin
     FillChar(InputComponent.BufferInfo[InputComponent.FChan].buffers[doubleBufferIndex]^, InputComponent._BufSize*(InputComponent.FBPS shr 3), 0);
@@ -837,7 +837,7 @@ begin
   DoReset := False;
   FillChar(BufferInfo[0].buffers[0]^, FBufferSize, 0);
   AsioBufferSwitchOutput(1, AsioTrue);
-  FastCopyMem(BufferInfo[0].buffers[1], BufferInfo[0].buffers[0], FBufferSize);
+  Move(BufferInfo[0].buffers[0]^, BufferInfo[0].buffers[1]^, FBufferSize);
   if Device.Start <> ASE_OK then
   raise EAuException.Create('Cannot start ASIO driver');
   DevStopped := False;
@@ -1535,7 +1535,7 @@ begin
      if FBPS = 16 then
        Mix16(@iBuf, @oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2);
      if FRecordInput then
-       FastCopyMem(@oBuf[(WriteIndex mod BlockAlign)*BlockSize], @iBuf, _BufSize*2*FBPS div 8);
+       Move(iBuf, oBuf[(WriteIndex mod BlockAlign)*BlockSize], _BufSize*2*FBPS div 8);
    end else
    begin
      if FRecordInput then

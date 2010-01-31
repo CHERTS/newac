@@ -18,7 +18,7 @@ unit ACS_Vorbis;
 interface
 
 uses
-  Classes, SysUtils, ACS_Classes, ACS_Types, ACS_Tags, ACS_Procs, ogg, Codec, VorbisFile, VorbisEnc,
+  Classes, SysUtils, FastMove, ACS_Classes, ACS_Types, ACS_Tags, ACS_Procs, ogg, Codec, VorbisFile, VorbisEnc,
 {$IFDEF LINUX}
   libc;
 {$ENDIF}
