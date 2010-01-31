@@ -41,13 +41,10 @@ type
     Chan, SR, BPS : LongWord;
     FDeviceNumber : Integer;
     FDeviceCount : Integer;
-<<<<<<< .mine
-//    ACS : TCriticalSection;
-=======
+//<<<<<<< .mine//    ACS : TCriticalSection;
     ACS : TCriticalSection;
     _Prefetched : Boolean;
->>>>>>> .r1161
-//    FOnUnderrun : TUnderrunEvent;
+//>>>>>>> .theirs//    FOnUnderrun : TUnderrunEvent;
     FLatency, FBufferSize : LongWord;
     FSupportedChannels : LongWord;
     FOutputChannels : LongWord;
@@ -500,6 +497,7 @@ begin
   begin
     _Prefetched := False;
     FInput.GetData(P, L);
+    if P <> nil then
     FastCopyMem(@iBuf[0], P, L);
     tmpStop := L = 0;
   end else
@@ -529,12 +527,6 @@ begin
      Device.GetSamplePosition(s1, s2);
      FOnPositionChanged(Self, (s1.hi shl 32) + s1.lo, (s2.hi shl 32) + s2.lo)
    end;
-<<<<<<< .mine
-//   ACS.Enter;
-   FillBuffer(tmpStop);
-  // ACS.Leave;
-=======
->>>>>>> .r1161
    //   if FPrefetchData then
 //     EventHandler.PostNonGuiEvent(Self, FPrefetch);
    if Self.FOutputBPS = 16 then
@@ -788,16 +780,8 @@ constructor TASIOAudioOut.Create;
 begin
   inherited Create(AOwner);
   if not (csDesigning in ComponentState) then
-<<<<<<< .mine
-  begin
-    //  Thread.Priority := tpTimeCritical;
-    //ACS := TCriticalSection.Create;
-  end;
-=======
   begin
     Thread.Priority := tpTimeCritical;
->>>>>>> .r1161
-    ACS := TCriticalSection.Create;
   end;
   OutputComponent := Self;
   Self.Devices := nil;
@@ -809,25 +793,15 @@ begin
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
   FPrefetchData := True;
+//  Thread.Priority := tpTimeCritical;
 end;
 
 destructor TASIOAudioOut.Destroy;
 begin
   AsioDone;
   SetLength(Devices, 0);
-<<<<<<< .mine
-  if not (csDesigning in ComponentState) then
-  begin
-    //ACS.Free;
-  end;
-=======
-  if not (csDesigning in ComponentState) then
-  begin
-    ACS.Free;
-  end;
->>>>>>> .r1161
   inherited Destroy;
-end;
+ end;
 
 procedure TASIOAudioOut.SetDeviceNumber(i : Integer);
 begin
@@ -846,6 +820,7 @@ end;
 
 procedure TASIOAudioOut.Prepare;
 begin
+  ACS := TCriticalSection.Create;
   FInput.Init;
   FOutputChannels := Finput.Channels;
   ASIOInit;
@@ -894,21 +869,8 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-<<<<<<< .mine
-  sleep(0);
-  begin
-=======
->>>>>>> .r1161
     if FPrefetchData then
       if not GStop then
-<<<<<<< .mine
-      begin
-        //ACS.Enter;
-        //FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
-        //ACS.Leave;
-      end;
-  end;
-=======
       begin
         ACS.Enter;
         if not _Prefetched then
@@ -918,7 +880,6 @@ begin
         end;
         ACS.Leave;
       end;
->>>>>>> .r1161
   Result := True;
 end;
 
@@ -934,6 +895,7 @@ begin
   AsioDone;
   DoReset := False;
   FInput.Flush;
+  FreeAndNil(ACS);
 end;
 
 procedure TASIOAudioOut.ASIOInit;
