@@ -427,7 +427,7 @@ begin
 
     for j := 0 to 7 do
     begin
-       FLevels[j] := (Log10(2*FShadowLevels[j]/FCount*Sin((j+0.5)*Pi/16) + 1e-4)+3)*40;
+       FLevels[j] := (Log10(0.125*FShadowLevels[j]/(FCount)*Sin((j+0.5)*Pi/16) + 1e-4)+3)*40;
        FShadowLevels[j] := 0;
     end;
     FCount := 0;
