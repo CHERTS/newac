@@ -38,6 +38,13 @@ object Form1: TForm1
     Height = 13
     Caption = 'Bitrate'
   end
+  object TLabel
+    Left = 8
+    Top = 109
+    Width = 54
+    Height = 13
+    Caption = 'Signal level'
+  end
   object BitBtn1: TBitBtn
     Left = 8
     Top = 40
@@ -62,10 +69,10 @@ object Form1: TForm1
     OnClick = BitBtn2Click
   end
   object BitBtn3: TBitBtn
-    Left = 161
-    Top = 44
+    Left = 151
+    Top = 40
     Width = 49
-    Height = 22
+    Height = 26
     Caption = 'Stop'
     DoubleBuffered = True
     NumGlyphs = 2
@@ -363,7 +370,7 @@ object Form1: TForm1
   end
   object ProgressBar2: TProgressBar
     Left = 8
-    Top = 120
+    Top = 128
     Width = 450
     Height = 16
     Anchors = [akLeft, akTop, akRight]
@@ -420,6 +427,7 @@ object Form1: TForm1
     PrefetchData = True
     PollingInterval = 100
     FramesInBuffer = 24576
+    SpeedFactor = 1.000000000000000000
     Left = 320
     Top = 160
   end
