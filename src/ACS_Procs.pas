@@ -35,6 +35,9 @@ var
 
   FastCopyMem : procedure(Dest, Src : Pointer; Count : LongWord);
 
+  procedure SingleArrayMultByConst_SSE_4(Data : Pointer; Coeff2 : Int64; DataSize : Integer);
+  procedure SingleArrayMultByConst_SSE_2(Data : Pointer; Coeff2 : Int64; DataSize : Integer);
+
   // Direction = 1 - forward FFT, Direction = -1 - inverse FFT.
   procedure ComplexFFT(Data : PComplexArray; DataSize, Direction : Integer);
 
@@ -69,7 +72,16 @@ var
 
   procedure MultSingleArrays(Op1, Op2 : PSingle; DataSize : Integer);
 
+  procedure MultSingleArrays_SSE_2(Op1, Op2 : PSingle; DataSize : Integer);
+
+  procedure MultSingleArrays_SSE_4(Op1, Op2 : PSingle; DataSize : Integer);
+
+  procedure SumSingleArrays_SSE_2(Op1, Op2 : PSingle; DataSize : Integer);
+  procedure SumSingleArrays_SSE_4(Op1, Op2 : PSingle; DataSize : Integer);
+
   procedure MultAndSumSingleArrays(Op1, Op2 : PSingle; var Accumulator : Single; DataSize : Integer);
+
+
   (*
     Performs calculation of
                    /
@@ -410,12 +422,147 @@ implementation
     end;
   end;
 
+  procedure SingleArrayMultByConst_SSE_4(Data : Pointer; Coeff2 : Int64; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DWORD PTR DataSize;
+    MOV EDI, DWORD PTR Data;
+    MOVLPS XMM0, QWORD PTR Coeff2;
+    MOVLHPS XMM0, XMM0;
+    @loop:
+    MOVLPS XMM1, QWORD PTR [EDI];
+    MOVHPS XMM1, QWORD PTR [EDI + 8];
+    MULPS  XMM1, XMM0;
+    MOVLPS QWORD PTR [EDI], XMM1;
+    ADD EDI, 8;
+    MOVHPS QWORD PTR [EDI], XMM1;
+    ADD EDI, 8;
+    SUB ECX, 4;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
+  end;
+
+  procedure SingleArrayMultByConst_SSE_2(Data : Pointer; Coeff2 : Int64; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DWORD PTR DataSize;
+    MOV EDI, DWORD PTR Data;
+    MOVLPS XMM0, QWORD PTR Coeff2;
+    MOVLHPS XMM0, XMM0;
+    @loop:
+    MOVLPS XMM1, QWORD PTR [EDI];
+    MULPS  XMM1, XMM0;
+    MOVLPS QWORD PTR [EDI], XMM1;
+    ADD EDI, 8;
+    SUB ECX, 2;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
+  end;
+
+  procedure MultSingleArrays_SSE_4(Op1, Op2 : PSingle; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DataSize;
+    MOV ESI, Op1;
+    MOV EDI, Op2;
+    SUB EDI, ESI;
+    @loop:
+    MOVLPS XMM0, QWORD PTR [ESI];
+    MOVHPS XMM0, QWORD PTR [ESI + 8];
+    MOVLPS XMM1, QWORD PTR [ESI+EDI];
+    MOVHPS XMM1, QWORD PTR [ESI+EDI+ 8];
+    MULPS  XMM0, XMM1;
+    MOVLPS QWORD PTR [ESI], XMM0;
+    MOVHPS QWORD PTR [ESI+8], XMM0;
+    ADD ESI, 16;
+    SUB ECX, 4;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
+  end;
+
+  procedure MultSingleArrays_SSE_2(Op1, Op2 : PSingle; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DWORD PTR DataSize;
+    MOV ESI, DWORD PTR Op1;
+    MOV EDI, DWORD PTR Op2;
+    SUB EDI, ESI;
+    @loop:
+    MOVLPS XMM0, QWORD PTR [ESI];
+    MOVLPS XMM1, QWORD PTR [ESI+EDI];
+    MULPS  XMM0, XMM1;
+    MOVLPS QWORD PTR [ESI], XMM0;
+    ADD ESI, 8;
+    SUB ECX, 2;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
+  end;
+
+  procedure SumSingleArrays_SSE_4(Op1, Op2 : PSingle; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DataSize;
+    MOV ESI, Op1;
+    MOV EDI, Op2;
+    SUB EDI, ESI;
+    @loop:
+    MOVLPS XMM0, QWORD PTR [ESI];
+    MOVHPS XMM0, QWORD PTR [ESI + 8];
+    MOVLPS XMM1, QWORD PTR [ESI+EDI];
+    MOVHPS XMM1, QWORD PTR [ESI+EDI+ 8];
+    ADDPS  XMM0, XMM1;
+    MOVLPS QWORD PTR [ESI], XMM0;
+    MOVHPS QWORD PTR [ESI+8], XMM0;
+    ADD ESI, 16;
+    SUB ECX, 4;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
+  end;
+
+  procedure SumSingleArrays_SSE_2(Op1, Op2 : PSingle; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DWORD PTR DataSize;
+    MOV ESI, DWORD PTR Op1;
+    MOV EDI, DWORD PTR Op2;
+    SUB EDI, ESI;
+    @loop:
+    MOVLPS XMM0, QWORD PTR [ESI];
+    MOVLPS XMM1, QWORD PTR [ESI+EDI];
+    ADDPS  XMM0, XMM1;
+    MOVLPS QWORD PTR [ESI], XMM0;
+    ADD ESI, 8;
+    SUB ECX, 2;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
+  end;
+
+  procedure Swap64(P1, P2 : Pointer);
+  asm
+    FILD QWORD PTR [P1];
+    FILD QWORD PTR [P2];
+    FISTP QWORD PTR [P1];
+    FISTP QWORD PTR [P2];
+  end;
+
   (* This routine is converted from the original C code by P. Burke
    Direction = 1 - forward FFT, Direction = -1 - inverse FFT. *)
   procedure ComplexFFTSingle(Data : PComplexArraySingle; DataSize, Direction : Integer);
   var
     i, i1, j, k, i2, l, l1, l2, Log2n : Integer;
-    c1, c2, tx, ty, t1, t2, u1, u2, z  : Single;
+    c1, c2, t1, t2, u1, u2, z  : Single;
     OldPrec : TFPUPrecisionMode;
   begin
     OldPrec := GetPrecisionMode;
@@ -428,12 +575,7 @@ implementation
     begin
       if i < j then
       begin
-        tx := Data[i].Re;
-        ty := Data[i].Im;
-        Data[i].Re := Data[j].Re;
-        Data[i].Im := Data[j].Im;
-        Data[j].Re := tx;
-        Data[j].Im := ty;
+        Swap64(@Data[i], @Data[j]);
       end;
       k := i2;
       while k <= j do
@@ -476,13 +618,13 @@ implementation
       c1 := Sqrt((1.0 + c1)/2.0);
     end;
 
-    // Scaling for forward transform
+    (*// Scaling for forward transform
     if Direction = 1 then
     for i := 0 to DataSize-1 do
     begin
       Data[i].Re := Data[i].Re/DataSize;
       Data[i].Im := Data[i].Im/DataSize;
-    end;
+    end;*)
     SetPrecisionMode(OldPrec);
   end;
 

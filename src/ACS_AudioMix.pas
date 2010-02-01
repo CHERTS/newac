@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.2
+  This file is a part of New Audio Components package 2.5
   Copyright (c) 2002-2008 Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -15,7 +15,7 @@ unit ACS_AudioMix;
 interface
 
 uses
-  Classes, SysUtils, ACS_Types, ACS_Procs, ACS_Classes, SyncObjs, Math;
+  Classes, SysUtils, ACS_Types, FastCodeCPUID, ACS_Procs, ACS_Classes, SyncObjs, Math;
 
 const
   BUF_SIZE = $1000;
@@ -117,6 +117,7 @@ type
   private
     ReadInput1, ReadInput2 : Boolean;
     FInput1, FInput2 : TAuInput;
+    FloatBuf1P, FloatBuf2P : Pointer;
     EndOfInput1, EndOfInput2 : Boolean;
     FVolume1, FVolume2 : Word;
     InBuf1, InBuf2 : PBuffer8;
@@ -261,9 +262,35 @@ end;
     FInput2.Flush;
     FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
     FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
-    FreeMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
-    FreeMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
+    FreeMem(FloatBuf1);
+    FreeMem(FloatBuf2);
     Busy := False;
+  end;
+
+  procedure MixLive_SSE_4(Op1, Op2 : PSingle; coeff1, coeff2 : Int64; DataSize : Integer);
+  asm
+    PUSH ESI;
+    PUSH EDI;
+    MOV ECX, DataSize;
+    MOV ESI, Op1;
+    MOV EDI, Op2;
+    MOVLPS XMM2, QWORD PTR Coeff1;
+    MOVLHPS XMM2, XMM2;
+    MOVLPS XMM3, QWORD PTR Coeff2;
+    MOVLHPS XMM3, XMM3;
+    SUB EDI, ESI;
+    @loop:
+    MOVAPS XMM0, DQWORD PTR [ESI];
+    MULPS XMM0, XMM2;
+    MOVAPS XMM1, DQWORD PTR [ESI+EDI];
+    MULPS XMM1, XMM3;
+    ADDPS  XMM0, XMM1;
+    MOVAPS DQWORD PTR [ESI], XMM0;
+    ADD ESI, 16;
+    SUB ECX, 4;
+    JNE @loop;
+    POP EDI;
+    POP ESI;
   end;
 
   procedure TAudioMixer.GetDataInternal;
@@ -415,8 +442,10 @@ end;
     end else
       BytesPerSample2 := FOutBytesPerSample;
     GetMem(InBuf2, BUF_SIZE * BytesPerSample2);
-    GetMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
-    GetMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
+    GetMem(FloatBuf1P, BUF_SIZE * SizeOf(Single)+15);
+    GetMem(FloatBuf2P, BUF_SIZE * SizeOf(Single)+15);
+    LongWord(FloatBuf1) := LongWord(FloatBuf1P) + (16 - (LongWord(FloatBuf1P) mod 16));
+    LongWord(FloatBuf2) := LongWord(FloatBuf2P) + (16 - (LongWord(FloatBuf2P) mod 16));
   end;
 
   procedure TRealTimeMixer.GetDataInternal;
@@ -427,6 +456,7 @@ end;
     Bytes2, Samples2 : LongWord;
     SamplesReq : LongWord;
     v1, v2 : Single;
+    v11, v12 : array[0..1] of Single;
   begin
     if EndOfInput1 then
     begin
@@ -479,6 +509,15 @@ end;
       3 : Int24ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
       4 : Int32ToSingle(Pointer(InBuf2), FloatBuf2, BUF_SIZE);
     end;
+
+      if isSSE in CPU.InstructionSupport then
+      begin
+        v11[0] := v1/2;
+        v11[1] := v1/2;
+        v12[0] := v2/2;
+        v12[1] := v2/2;
+        MixLive_SSE_4(@FloatBuf1[0], @FloatBuf2[0], Int64(v11), Int64(v12), BUF_SIZE);
+      end else
     for i := 0 to BUF_SIZE - 1 do
       FloatBuf1[i] := (FloatBuf1[i]*v1 + FloatBuf2[i]*v2)/2;
     case FOutBytesPerSample of
@@ -502,8 +541,8 @@ end;
 //    FInput1 := nil;
     FreeMem(InBuf1, BUF_SIZE * BytesPerSample1);
     FreeMem(InBuf2, BUF_SIZE * BytesPerSample2);
-    FreeMem(FloatBuf1, BUF_SIZE * SizeOf(Single));
-    FreeMem(FloatBuf2, BUF_SIZE * SizeOf(Single));
+    FreeMem(FloatBuf1P);
+    FreeMem(FloatBuf2P);
     Busy := False;
   end;
 

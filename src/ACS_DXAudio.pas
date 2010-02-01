@@ -50,6 +50,7 @@ type
     FOnUnderrun : TUnderrunEvent;
     FVolume : longint; //DW - for more reliable volume control
     FPrefetchData : Boolean;
+    FSpeedFactor : Single;
     procedure Usleep(Interval : Word; Prefetch : Boolean);
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
@@ -139,6 +140,7 @@ type
          passing to the component, if you can. Yo can check the <Underruns>
          property for the total number of underruns. *)
     property OnUnderrun : TUnderrunEvent read FOnUnderrun write FOnUnderrun;
+    property SpeedFactor : Single read FSpeedFactor write FSpeedFactor;
   end;
 
   (* Class: TDXAudioIn
@@ -283,6 +285,8 @@ begin
   FInput.Init;
   Chan := FInput.Channels;
   SR := FInput.SampleRate;
+  if FSpeedFactor <> 1 then
+    SR := Round(SR*FSpeedFactor);
   BPS := FInput.BitsPerSample;
   if FLatency > 0 then
   begin
@@ -419,9 +423,15 @@ begin
       Exit;
     end;
   until lb <> 0;
-  //Len := FInput.FillBuffer(Buf, _Min(lb, _BufSize), EndOfInput);
-  Len := _Min(lb, _BufSize);
-  FInput.GetData(TmpBuf, Len);
+  if FPrefetchData then
+  begin
+    Len := _Min(lb, _BufSize);
+    FInput.GetData(TmpBuf, Len);
+  end else
+  begin
+    Len := FInput.FillBuffer(Buf, _Min(lb, _BufSize), EndOfInput);
+    TmpBuf := Buf;
+  end;
   EndOfInput := Len = 0;
   DSW_WriteBlock(DSW, TmpBuf, Len);
   if EndOfInput then
@@ -442,6 +452,7 @@ end;
 constructor TDXAudioOut.Create;
 begin
   inherited Create(AOwner);
+  FSpeedFactor := 1;
   FFramesInBuffer := $6000;
   FPollingInterval := 100;
   FLatency := 100;
