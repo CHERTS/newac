@@ -31,9 +31,9 @@ type
   function FindLibs(const Pattern : String) : String;
 {$ENDIF}
 
-var
+//var
 
-  FastCopyMem : procedure(Dest, Src : Pointer; Count : LongWord);
+//  FastCopyMem : procedure(Dest, Src : Pointer; Count : LongWord);
 
   procedure SingleArrayMultByConst_SSE_4(Data : Pointer; Coeff2 : Int64; DataSize : Integer);
   procedure SingleArrayMultByConst_SSE_2(Data : Pointer; Coeff2 : Int64; DataSize : Integer);
@@ -1840,12 +1840,12 @@ end;
   end;
 
 initialization
-  if SSESupported then
+(*  if SSESupported then
   begin
     FastCopyMem := CopySSE;
   end else
   begin
     FastCopyMem := CopyMemory;
-  end;
+  end; *)
 
 end.
