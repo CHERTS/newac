@@ -136,17 +136,17 @@ const
          if DataSize >= C then
          {$WARNINGS ON}
          begin
-           FastCopyMem(@b[Count - C], @Block[0], C);
+           Move(Block[0], b[Count - C], C);
            {$WARNINGS OFF}
            DataSize := DataSize - C;
            {$WARNINGS ON}
-           FastCopyMem(@Block[0], @Block[C], DataSize);
+           Move(Block[C], Block[0], DataSize);
            Move(b[0], Buffer, Count);
            Result := Count;
            C := 0;
          end else
          begin
-           FastCopyMem(@b[Count - C], @Block[0], DataSize);
+           Move(Block[0], b[Count - C], DataSize);
 
            {$WARNINGS OFF}
            C := C - DataSize;
