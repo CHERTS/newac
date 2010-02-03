@@ -32,7 +32,9 @@ Section: On the Web
 
 Section: Version History
 	Short list of new features for each NewAC version.
-
+Version: NewAC 2.5
+	- The TFastGainIndicaor component is added.
+	- Performance farther improved.
 Version: NewAC 2.4
 	- The Audio Output Latency property is added.
 	- Common audio tags properties are added.
