@@ -2,7 +2,7 @@ Format: 1.4
 
 
 Title: NewAC
-SubTitle: v2.4.1
+SubTitle: v2.5
 
 Footer: Content (c) 2008-2010 Andrei Borovsky. Design (c) 2008 Wayne Thursby. <b><u><a href="http://symmetrica.net/newac">Go to the project's main page</a></u></b>
 
@@ -103,6 +103,13 @@ Group: Tutorials  {
    File: Rip'n'Listen Demo  (demos\Recorders-rippers\Rip'n'listen\Main.pas)
    }  # Group: Tutorials
 
+File: ACS_MAC TestCases  (dunit\dunit\Test_ACS_MAC.pas)
+File: ACS_WavPack TestCases  (dunit\dunit\Test_ACS_WavPack.pas)
+File: TestFLACEncode  (dunit\dunit\Test_ACS_FLAC.pas)
+File: uLog.pas  (dunit\dunit\uLog.pas)
+File: uTestBase  (dunit\dunit\uTestBase.pas)
+File: uUtility  (dunit\dunit\uUtility.pas)
+
 Group: Index  {
 
    Index: Everything
@@ -112,5 +119,6 @@ Group: Index  {
    Property Index: Properties
    Type Index: Types
    Variable Index: Variables
+   File Index: Files
    }  # Group: Index
 
