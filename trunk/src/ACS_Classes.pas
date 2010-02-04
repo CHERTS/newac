@@ -115,7 +115,7 @@ type
     _Prefetched, _PrefetchOffset : LongWord;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
-    function BufAddr(Offset : LongWord) : Pointer; inline;
+    function BufAddr(Offset : LongWord) : Pointer; {$IF CompilerVersion > 17} inline; {$IFEND}
     function GetBPS : LongWord; virtual; abstract;
     function GetCh : LongWord; virtual; abstract;
     function GetSR : LongWord; virtual; abstract;
