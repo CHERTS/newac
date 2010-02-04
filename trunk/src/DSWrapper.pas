@@ -631,12 +631,12 @@ begin
   if Result = DS_OK then
   begin
     // Copy the buffer into the DS
-    CopyMemory(lpbuf1, buf, dwsize1);
+    Move(buf^, lpbuf1^, dwsize1);
     if lpbuf2 <> nil then
     begin
       tmpbuf := buf;
       Inc(tmpbuf, dwsize1);
-      CopyMemory(lpbuf2, tmpbuf, dwsize2);
+      Move(tmpbuf^, lpbuf2^, dwsize2);
     end;
         // Update our buffer offset and unlock sound buffer
     dsw.dsw_WriteOffset := (dsw.dsw_WriteOffset + dwsize1 + dwsize2) mod dsw.dsw_OutputSize;
