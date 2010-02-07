@@ -1982,7 +1982,7 @@ begin
     if Bytes <> 0 then
     begin
       _Prefetched := Bytes;
-      FPosition := FPosition - Bytes;
+     // FPosition := FPosition - Bytes;
     end;
   end;
   finally

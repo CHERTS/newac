@@ -130,6 +130,8 @@ contains
   mpg123_ in 'mpg123_.pas',
   taglib in 'taglib.pas',
   FastcodeCPUID in 'FastcodeCPUID.pas',
-  FastMove in 'FastMove.pas';
+  FastMove in 'FastMove.pas',
+  DSAudio in 'DSAudio.pas',
+  NewACDSAudio in 'NewACDSAudio.pas';
 
 end.
