@@ -15,6 +15,13 @@ uses
 
 type
 
+
+  (* Class: TDSAudioOut
+      Performs audio playback using the DirectSound API.
+      Descends from <TAuOutput>.
+      TDSAudioOut component buffers its output in order to make it more smooth. This buffering introduces some delay at the beginning of the audio playback with TDXAudioOut.
+      See the <Latency> property for more detail.
+  *)
   TDSAudioOut = class(TAuOutput)
   private
     Freed : Boolean;
@@ -91,14 +98,14 @@ type
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
     (* Property: Latency
-         This property sets the audio latency (the delay between the moment the audio data is passed to the component and the moment it is played.
-         The latency is set in milliseconds.
-         This is a convenience property that overrides the <FramesInBuffer> and the <PollingInterval>. If the Latency is greater than zero these properties are ignored.
-         The reasonable values for this property lie in the range between 50 (0.05 second) and 250 (0.25 second). *)
+         This property sets the average audio latency (the delay between the moment the audio data is passed to the component and the moment it is played.
+         The latency is set in milliseconds. Lower latencies tend to produce more underruns.
+         The reasonable values for this property lie in the range between 30 and 200 milliseconds. *)
     property Latency : LongWord read FLatency write FLatency;
     (* Property: PrefetchData
        This property tells the component whenever the audio data should be prefetched while playing. Prefetching data makes it run more smoothly and allows lower buffre sizes (see <FramesInBuffer>). *)
     property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
+    property SpeedFactor : Single read FSpeedFactor write FSpeedFactor;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
          This can happen if the component receives data at slow rate from a
@@ -110,7 +117,6 @@ type
          passing to the component, if you can. Yo can check the <Underruns>
          property for the total number of underruns. *)
     property OnUnderrun : TGenericEvent read FOnUnderrun write FOnUnderrun;
-    property SpeedFactor : Single read FSpeedFactor write FSpeedFactor;
   end;
 
 
@@ -224,6 +230,12 @@ begin
     Exit;
   end;
   DSQueryOutputSpace(DS, lb);
+  if DS.Underflows > 0 then
+  begin
+    Inc(FUnderruns);
+    if Assigned(FOnUnderrun) then
+      EventHandler.PostGenericEvent(Self, FOnUnderrun);
+  end;
   if lb <> 0 then
   begin
   if FPrefetchData then
@@ -262,6 +274,12 @@ begin
     Exit;
   end;
   DSQueryOutputSpace(DS, lb);
+  if DS.Underflows > 0 then
+  begin
+    Inc(FUnderruns);
+    if Assigned(FOnUnderrun) then
+      EventHandler.PostGenericEvent(Self, FOnUnderrun);
+  end;
   if lb = 0 then Exit;
   if FPrefetchData then
   begin
