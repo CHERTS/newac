@@ -340,7 +340,14 @@ begin
   begin
     FormatExt.Format.wFormatTag := 1; //WAVE_FORMAT_PCM;
     FormatExt.Format.cbSize := 0;
-    Res := DSInitOutputBuffer(DS, Wnd, BPS, SR, Chan, _BufSize);
+
+    FormatExt.Format.nChannels := Chan;
+    FormatExt.Format.nSamplesPerSec := SR;
+    FormatExt.Format.wBitsPerSample := BPS;
+    FormatExt.Format.nBlockAlign := Chan*BPS shr 3;
+    FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
+
+//    Res := DSInitOutputBuffer(DS, Wnd, BPS, SR, Chan, _BufSize);
   end else
   begin
     FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
@@ -357,8 +364,8 @@ begin
     FormatExt.Format.wBitsPerSample := BPS;
     FormatExt.Format.nBlockAlign := Chan*BPS shr 3;
     FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
-    Res := DSInitOutputBufferEx(DS, Wnd, FormatExt, _BufSize);
   end;
+  Res := DSInitOutputBufferEx(DS, Wnd, FormatExt, _BufSize);
   if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer' + IntToHex(Res, 8));
   StartInput := True;
   EndOfInput := False;
