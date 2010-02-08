@@ -1,6 +1,6 @@
 (*
   This file is a part of New Audio Components package v. 2.6
-  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -46,10 +46,11 @@ type
 
   PDSW_Devices = ^DSW_Devices;
 
-  function DSW_EnumerateOutputDevices(devices : PDSW_Devices) : HRESULT;
-  function DSOutInitOutputDevice(var ds : DSOut; lpGUID : PGUID) : HRESULT;
-  function DSOutInitOutputBuffer(var ds  : DSOut; Wnd : HWND; bps : LongWord;
+  function DSEnumerateOutputDevices(devices : PDSW_Devices) : HRESULT;
+  function DSInitOutputDevice(var ds : DSOut; lpGUID : PGUID) : HRESULT;
+  function DSInitOutputBuffer(var ds  : DSOut; Wnd : HWND; bps : LongWord;
         nFrameRate : LongWord; nChannels, bytesPerBuffer : LongWord) : HRESULT;
+  function DSInitOutputBufferEx(var ds : DSOut; Wnd : HWND; var WaveFormat : TWaveFormatExtensible; bytesPerBuffer : LongWord) : HRESULT;
   function DSStartOutput(var ds : DSOut) : HRESULT;
   function DSStopOutput(var ds : DSOut): HRESULT;
   function DSRestartOutput(var ds : DSOut) : HRESULT;
@@ -59,6 +60,8 @@ type
   procedure DSTerminateOutput(var ds : DSOut);
   function WaitForCursor(var ds: DSOut; evnt : LongWord) : Boolean;
   procedure UnlockEvents(var ds: DSOut);
+  function DSGetVolume(var ds : DSOut; out Volume: Longint) : HRESULT;
+  function DSSetVolume(var ds : DSOut; Volume: Longint) : HRESULT;
 
 implementation
 
@@ -98,18 +101,18 @@ begin
   Result := TRUE;
 end;
 
-function DSW_EnumerateOutputDevices(devices : PDSW_Devices) : HRESULT;
+function DSEnumerateOutputDevices(devices : PDSW_Devices) : HRESULT;
 begin
   devices.devcount := 0;
   Result := DirectSoundEnumerate(DSEnumOutputCallback, devices);
 end;
 
-function DSOutInitOutputDevice(var ds : DSOut; lpGUID : PGUID) : HRESULT;
+function DSInitOutputDevice(var ds : DSOut; lpGUID : PGUID) : HRESULT;
 begin
   Result := DirectSoundCreate8(lpGUID, ds.DirectSound, nil);
 end;
 
-function DSOutInitOutputBuffer(var ds  : DSOut; Wnd : HWND; bps : LongWord;
+function DSInitOutputBuffer(var ds  : DSOut; Wnd : HWND; bps : LongWord;
         nFrameRate : LongWord; nChannels, bytesPerBuffer : LongWord) : HRESULT;
 var
   dwDataLen : DWORD;
@@ -354,5 +357,118 @@ begin
   SetEvent(ds.events[0]);
   SetEvent(ds.events[1]);
 end;
+
+function DSInitOutputBufferEx(var ds : DSOut; Wnd : HWND; var WaveFormat : TWaveFormatExtensible; bytesPerBuffer : LongWord) : HRESULT;
+var
+  dwDataLen : DWORD;
+  playCursor : DWORD;
+  _hWnd : HWND;
+  hr : HRESULT;
+  primaryDesc : TDSBufferDesc;
+  secondaryDesc : TDSBufferDesc;
+  pDSBuffData : PByte;
+  DirectSoundBuffer : IDirectSoundBuffer;
+  DSN : IDirectSoundNotify8;
+  PN : array[0..1] of TDSBPositionNotify;
+begin
+  ds.BufferSize := bytesPerBuffer;
+  ds.Underflows := 0;
+  // We were using getForegroundWindow() but sometimes the ForegroundWindow may not be the
+  // applications's window. Also if that window is closed before the Buffer is closed
+  // then DirectSound can crash. (Thanks for Scott Patterson for reporting this.)
+  // So we will use GetDesktopWindow() which was suggested by Miller Puckette.
+  // hWnd = GetForegroundWindow();
+  _hWnd := Wnd;
+  if _hWnd = 0 then
+    _hWnd := GetDesktopWindow();
+  // Set cooperative level to DSSCL_EXCLUSIVE so that we can get 16 bit output, 44.1 KHz.
+  // Exclusize also prevents unexpected sounds from other apps during a performance.
+  hr := ds.DirectSound.SetCooperativeLevel(_hWnd, DSSCL_EXCLUSIVE);
+  if hr <> DS_OK then
+  begin
+    Result := hr;
+    Exit;
+  end;
+  // -----------------------------------------------------------------------
+  // Create primary buffer and set format just so we can specify our custom format.
+  // Otherwise we would be stuck with the default which might be 8 bit or 22050 Hz.
+  // Setup the primary buffer description
+  FillChar(primaryDesc, sizeof(TDSBUFFERDESC), 0);
+  primaryDesc.dwSize := sizeof(DSBUFFERDESC);
+  primaryDesc.dwFlags := DSBCAPS_PRIMARYBUFFER; // all panning, mixing, etc done by synth
+  primaryDesc.dwBufferBytes := 0;
+  primaryDesc.lpwfxFormat := nil; //PWaveFormatEx(@WaveFormat);
+  // Create the buffer
+  Result := ds.DirectSound.CreateSoundBuffer(
+        primaryDesc, ds.PrimaryBuffer, nil);  // ATTENTION
+  if (Result <> DS_OK) then Exit;
+//  Set the primary buffer's format
+Result := ds.PrimaryBuffer.SetFormat(PWaveFormatEx(@WaveFormat));
+  if (Result <> DS_OK) then Exit;
+    // ----------------------------------------------------------------------
+    // Setup the secondary buffer description
+  ZeroMemory(@secondaryDesc, sizeof(TDSBUFFERDESC));
+  secondaryDesc.dwSize := sizeof(TDSBUFFERDESC);
+  secondaryDesc.dwFlags :=  DSBCAPS_GLOBALFOCUS or DSBCAPS_GETCURRENTPOSITION2 or DSBCAPS_CTRLVOLUME or DSBCAPS_CTRLPOSITIONNOTIFY;
+  secondaryDesc.dwBufferBytes := bytesPerBuffer;
+  secondaryDesc.lpwfxFormat := PWaveFormatEx(@WaveFormat);
+    // Create the secondary buffer
+  Result := ds.DirectSound.CreateSoundBuffer(secondaryDesc, DirectSoundBuffer, nil);
+  ds.DirectSoundBuffer := DirectSoundBuffer as IDirectSoundBuffer8;
+  if Result <> DS_OK then Exit;
+  DirectSoundBuffer := nil;
+//1
+  ds.events[0] := CreateEvent(nil, True, False, nil);
+  ds.events[1] := CreateEvent(nil, True, False, nil);
+  DSN := ds.DirectSoundBuffer as IDirectSoundNotify8;
+  PN[0].dwOffset := 0;
+  PN[0].hEventNotify := ds.events[0];
+  PN[1].dwOffset := ds.BufferSize div 2;
+  PN[1].hEventNotify := ds.events[1];
+  Result := DSN.SetNotificationPositions(2, @PN);
+  if Result = DSERR_INVALIDPARAM then
+     raise Exception.Create(IntToHex(Result, 8));
+  DSN := nil;
+    // Lock the DS buffer
+
+  Result := ds.DirectSoundBuffer.Lock(0, ds.BufferSize, @pDSBuffData,
+            @dwDataLen, nil, nil, 0);
+  if Result <> DS_OK then Exit;
+    // Zero the DS buffer
+  ZeroMemory(pDSBuffData, dwDataLen);
+    // Unlock the DS buffer
+  Result := ds.DirectSoundBuffer.Unlock(pDSBuffData, dwDataLen, nil, 0);
+  if Result <> DS_OK then Exit;
+  hr := ds.DirectSoundBuffer.GetCurrentPosition(@playCursor, @(ds.Offset));
+  if( hr <> DS_OK ) then
+  begin
+    Result := hr;
+    Exit;
+  end;
+    ///* printf("DSW_InitOutputBuffer: playCursor = %d, writeCursor = %d\n", playCursor, dsw->dsw_WriteOffset ); */
+  Result := DS_OK;
+end;
+
+function DSGetVolume(var ds : DSOut; out Volume: Longint) : HRESULT;
+begin
+  if Assigned(ds.DirectSoundBuffer) then
+    Result := ds.DirectSoundBuffer.GetVolume(Volume)
+  else
+  begin
+    Volume := 0;
+    Result := S_OK;
+  end;
+end;
+
+function DSSetVolume(var ds : DSOut; Volume: Longint) : HRESULT;
+begin
+  if Assigned(ds.DirectSoundBuffer) then
+    Result := ds.DirectSoundBuffer.SetVolume(Volume)
+  else
+    Result := S_OK;
+  if Result = DSERR_CONTROLUNAVAIL then
+    raise Exception.Create('Control not available');
+end;
+
 
 end.
