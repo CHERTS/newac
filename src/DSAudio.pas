@@ -249,10 +249,14 @@ var
 //  buffersWrapped : long;
 
 begin
+  DS.Underflows := 0;
   Result := ds.DirectSoundBuffer.GetCurrentPosition(@playCursor, @writeCursor);
   if Result <> DS_OK then Exit;
   if writeCursor > ds.Offset then
+  begin
    ds.Offset := writeCursor;
+   DS.Underflows := 1;
+  end;
   numBytesEmpty := playCursor - ds.Offset;
   if numBytesEmpty < 0 then
     numBytesEmpty := numBytesEmpty + Integer(ds.BufferSize); // unwrap offset
