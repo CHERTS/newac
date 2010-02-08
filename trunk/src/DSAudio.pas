@@ -57,7 +57,7 @@ type
   function DSFillEmptySpace(var ds : DSOut; Fill : Byte) : HRESULT;
   function DSWriteBlock(var ds : DSOut; buf : PByte; numBytes : LongWord) : HRESULT;
   procedure DSTerminateOutput(var ds : DSOut);
-  procedure WaitForCursor(var ds: DSOut; evnt : LongWord);
+  function WaitForCursor(var ds: DSOut; evnt : LongWord) : Boolean;
   procedure UnlockEvents(var ds: DSOut);
 
 implementation
@@ -113,15 +113,12 @@ function DSOutInitOutputBuffer(var ds  : DSOut; Wnd : HWND; bps : LongWord;
         nFrameRate : LongWord; nChannels, bytesPerBuffer : LongWord) : HRESULT;
 var
   dwDataLen : DWORD;
-  playCursor : DWORD;
   _hWnd : HWND;
   hr : HRESULT;
   wfFormat : TWaveFormatEx;
   primaryDesc : TDSBufferDesc;
   secondaryDesc : TDSBufferDesc;
   pDSBuffData : PByte;
-  counterFrequency : LARGE_INTEGER;
-  framesInBuffer : Integer;
   DirectSoundBuffer : IDirectSoundBuffer;
   DSN : IDirectSoundNotify8;
   PN : array[0..1] of TDSBPositionNotify;
@@ -255,7 +252,7 @@ begin
    ds.Offset := writeCursor;
   numBytesEmpty := playCursor - ds.Offset;
   if numBytesEmpty < 0 then
-    numBytesEmpty := numBytesEmpty + ds.BufferSize; // unwrap offset
+    numBytesEmpty := numBytesEmpty + Integer(ds.BufferSize); // unwrap offset
 (*  if numBytesEmpty > (dsw.dsw_OutputSize - playWriteGap) then
   begin
     if dsw.dsw_OutputRunning then
@@ -345,10 +342,11 @@ begin
   CloseHandle(ds.events[1]);
 end;
 
-procedure WaitForCursor(var ds: DSOut; evnt : LongWord);
+function WaitForCursor(var ds: DSOut; evnt : LongWord) : Boolean;
 begin
   WaitForSingleObject(ds.events[evnt], INFINITE);
   ResetEvent(ds.events[evnt]);
+  Result := WaitForSingleObject(ds.events[1-evnt], 0) = WAIT_OBJECT_0;
 end;
 
 procedure UnlockEvents(var ds: DSOut);

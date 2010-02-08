@@ -18,6 +18,7 @@ type
   TDSAudioOut = class(TAuOutput)
   private
     Freed : Boolean;
+    FFrameSize : Word;
     FLatency : LongWord;
     FFramesInBuffer : LongWord;
     FPollingInterval : LongWord;
@@ -31,7 +32,7 @@ type
     _BufSize : Integer;
     FillByte : Byte;
     FUnderruns, _TmpUnderruns : LongWord;
-    //FOnUnderrun : TUnderrunEvent;
+    FOnUnderrun : TGenericEvent;
     FVolume : longint; //DW - for more reliable volume control
     FPrefetchData : Boolean;
     FSpeedFactor : Single;
@@ -39,7 +40,6 @@ type
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
     procedure SetVolume(value : Integer);
-    procedure SetFramesInBuffer(value : LongWord);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -100,18 +100,6 @@ type
     (* Property: PrefetchData
        This property tells the component whenever the audio data should be prefetched while playing. Prefetching data makes it run more smoothly and allows lower buffre sizes (see <FramesInBuffer>). *)
     property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
-     (* Property: PollingInterval
-         This property sets the audio output device polling interval in milliseconds. The smaller <FramesInBuffer> value is the smaller this polling interval should be.
-         The condition for appropriate values for the polling interval is: PollingInterval < (FramesInBuffer/SampleRate)*1000
-         Otherwise many underruns will occur. *)
-    property  PollingInterval : LongWord read FPollingInterval write FPollingInterval;
-    (* Property: FramesInBuffer
-         Use this property to set the length of the internal playback buffer.
-         The duration of the buffer depends on this value and the sample rate. For example
-         if FramesInBuffer's value is 12000 and the sample rate is 44100, the buffer duration is
-         12000/44100=0.272 sec.
-         Smaller values result in lower latency and (possibly) more underruns. See also <PollingInterval>. *)
-    property FramesInBuffer : LongWord read FFramesInBuffer write SetFramesInBuffer;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
          This can happen if the component receives data at slow rate from a
@@ -122,7 +110,7 @@ type
          OnUnderrun events, you may try to increase the speed rate of data
          passing to the component, if you can. Yo can check the <Underruns>
          property for the total number of underruns. *)
-//    property OnUnderrun : TUnderrunEvent read FOnUnderrun write FOnUnderrun;
+    property OnUnderrun : TGenericEvent read FOnUnderrun write FOnUnderrun;
     property SpeedFactor : Single read FSpeedFactor write FSpeedFactor;
   end;
 
@@ -161,12 +149,6 @@ begin
 //  FVolume := Result; //DW
 end;
 
-procedure TDSAudioOut.SetFramesInBuffer;
-begin
-  if not Busy then
-    FFramesInBuffer := value;
-end;
-
 procedure TDSAudioOut.Done;
 begin
   if not Freed then
@@ -181,7 +163,7 @@ end;
 
 function TDSAudioOut.DoOutput;
 var
-  Len, counter : LongWord;
+  Len : LongWord;
   lb : Integer;
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
@@ -224,9 +206,17 @@ begin
     Result := False;
     Exit;
   end;
+
+  Len := _BufSize div 2;
+  Len := Len + (FFrameSize - (Len mod FFrameSize));
   if FPrefetchData then
-    Finput._Prefetch(_BufSize div 2);
-  WaitForCursor(DS, 0);
+    Finput._Prefetch(Len);
+  if WaitForCursor(DS, 0) then
+  begin
+    Inc(FUnderruns);
+    if Assigned(FOnUnderrun) then
+      EventHandler.PostGenericEvent(Self, FOnUnderrun);
+  end;
   if Abort then
   begin
     DSStopOutput(DS);
@@ -240,11 +230,10 @@ begin
   if FPrefetchData then
   begin
    // Len := _Min(lb, _BufSize);
-    Len := _BufSize div 2;
     FInput.GetData(TmpBuf, Len);
   end else
   begin
-    Len := FInput.FillBuffer(Buf, _BufSize div 2, EndOfInput);
+    Len := FInput.FillBuffer(Buf, Len, EndOfInput);
     TmpBuf := Buf;
   end;
   EndOfInput := Len = 0;
@@ -254,11 +243,18 @@ begin
     DSFillEmptySpace(DS, FillByte);
     Exit;
   end;
-  if FPrefetchData then
-    Finput._Prefetch(Self._BufSize div 2);
-  end;
 
-  WaitForCursor(DS, 1);
+  Len := _BufSize div 2;
+  Len := Len -(Len mod FFrameSize);
+  if FPrefetchData then
+    Finput._Prefetch(Len);
+  end;
+  if WaitForCursor(DS, 1) then
+  begin
+    Inc(FUnderruns);
+    if Assigned(FOnUnderrun) then
+      EventHandler.PostGenericEvent(Self, FOnUnderrun);
+  end;
   if Abort then
   begin
     DSStopOutput(DS);
@@ -271,11 +267,10 @@ begin
   if FPrefetchData then
   begin
 //    Len := _Min(lb, _BufSize);
-    Len := _BufSize div 2;
     FInput.GetData(TmpBuf, Len);
   end else
   begin
-    Len := FInput.FillBuffer(Buf, _BufSize div 2, EndOfInput);
+    Len := FInput.FillBuffer(Buf, Len, EndOfInput);
     TmpBuf := Buf;
   end;
   EndOfInput := Len = 0;
@@ -293,7 +288,7 @@ begin
   FSpeedFactor := 1;
   FFramesInBuffer := $6000;
   FPollingInterval := 100;
-  FLatency := 100;
+  FLatency := 60;
   FVolume := 0; //DW
   if not (csDesigning in ComponentState) then
   begin
@@ -356,6 +351,7 @@ begin
   if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer' + IntToHex(Res, 8));
   StartInput := True;
   EndOfInput := False;
+  FFrameSize := (BPS shr 3)*Chan;
 end;
 
 procedure TDSAudioOut.Pause;
