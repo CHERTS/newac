@@ -1,6 +1,6 @@
 (*
   This file is a part of New Audio Components package v. 2.6
-  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -21,7 +21,6 @@ type
     FFrameSize : Word;
     FLatency : LongWord;
     FFramesInBuffer : LongWord;
-    FPollingInterval : LongWord;
     DS : DSOut;
     Devices : DSW_Devices;
     Chan, SR, BPS : LongWord;
@@ -31,7 +30,7 @@ type
     FDeviceCount : Integer;
     _BufSize : Integer;
     FillByte : Byte;
-    FUnderruns, _TmpUnderruns : LongWord;
+    FUnderruns : LongWord;
     FOnUnderrun : TGenericEvent;
     FVolume : longint; //DW - for more reliable volume control
     FPrefetchData : Boolean;
@@ -140,13 +139,13 @@ end;
 procedure TDSAudioOut.SetVolume;
 begin
   FVolume := Value; //DW
-//  dsSetVolume(DSW, value);
+  DSSetVolume(DS, value);
 end;
 
 function TDSAudioOut.GetVolume;
 begin
-//  dsw_GetVolume(DSW, Result);
-//  FVolume := Result; //DW
+  DSGetVolume(DS, Result);
+  FVolume := Result; //DW
 end;
 
 procedure TDSAudioOut.Done;
@@ -208,12 +207,12 @@ begin
   end;
 
   Len := _BufSize div 2;
-  Len := Len + (FFrameSize - (Len mod FFrameSize));
   if FPrefetchData then
     Finput._Prefetch(Len);
   if WaitForCursor(DS, 0) then
   begin
     Inc(FUnderruns);
+    ResetEvent(DS.events[1]);
     if Assigned(FOnUnderrun) then
       EventHandler.PostGenericEvent(Self, FOnUnderrun);
   end;
@@ -245,13 +244,13 @@ begin
   end;
 
   Len := _BufSize div 2;
-  Len := Len -(Len mod FFrameSize);
   if FPrefetchData then
     Finput._Prefetch(Len);
   end;
   if WaitForCursor(DS, 1) then
   begin
     Inc(FUnderruns);
+    ResetEvent(DS.events[0]);
     if Assigned(FOnUnderrun) then
       EventHandler.PostGenericEvent(Self, FOnUnderrun);
   end;
@@ -286,13 +285,11 @@ constructor TDSAudioOut.Create;
 begin
   inherited Create(AOwner);
   FSpeedFactor := 1;
-  FFramesInBuffer := $6000;
-  FPollingInterval := 100;
   FLatency := 60;
   FVolume := 0; //DW
   if not (csDesigning in ComponentState) then
   begin
-    DSW_EnumerateOutputDevices(@Devices);
+    DSEnumerateOutputDevices(@Devices);
     FDeviceCount := Devices.devcount;
     Thread.Priority := tpHighest;
   end;
@@ -319,13 +316,10 @@ begin
   if FSpeedFactor <> 1 then
     SR := Round(SR*FSpeedFactor);
   BPS := FInput.BitsPerSample;
-  if FLatency > 0 then
-  begin
-    if FLatency < 10 then Flatency := 10;
-    FFramesInBuffer := FLatency*SR div 1000;
-    FPollingInterval := FLatency div 3;
-  end;
-  Res := DSOutInitOutputDevice(DS, @(Devices.dinfo[FDeviceNumber].guid));
+  if FLatency < 10 then Flatency := 10;
+  FFramesInBuffer := FLatency*SR div 2000;
+  FFramesInBuffer := FFramesInBuffer*2;
+  Res := DSInitOutputDevice(DS, @(Devices.dinfo[FDeviceNumber].guid));
   if Res <> 0 then raise EAuException.Create('Failed to create DirectSound device');
   if Owner is TForm then
   begin
@@ -346,7 +340,24 @@ begin
   begin
     FormatExt.Format.wFormatTag := 1; //WAVE_FORMAT_PCM;
     FormatExt.Format.cbSize := 0;
-    Res := DSOutInitOutputBuffer(DS, Wnd, BPS, SR, Chan, _BufSize);
+    Res := DSInitOutputBuffer(DS, Wnd, BPS, SR, Chan, _BufSize);
+  end else
+  begin
+    FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+    FormatExt.Format.cbSize := SizeOf(FormatExt) - SizeOf(FormatExt.Format);
+    FormatExt.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
+    if Chan = 2 then
+       FormatExt.dwChannelMask := $3;
+    if Chan = 6 then
+      FormatExt.dwChannelMask := $3F;
+    if Chan = 8 then
+      FormatExt.dwChannelMask := $FF;
+    FormatExt.Format.nChannels := Chan;
+    FormatExt.Format.nSamplesPerSec := SR;
+    FormatExt.Format.wBitsPerSample := BPS;
+    FormatExt.Format.nBlockAlign := Chan*BPS shr 3;
+    FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
+    Res := DSInitOutputBufferEx(DS, Wnd, FormatExt, _BufSize);
   end;
   if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer' + IntToHex(Res, 8));
   StartInput := True;
