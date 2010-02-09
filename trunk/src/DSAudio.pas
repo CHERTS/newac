@@ -241,35 +241,30 @@ end;
 
 function DSQueryOutputSpace(var ds : DSOut; var bytesEmpty : Integer) : HRESULT;
 var
-  //hr : HRESULT;
   playCursor :  DWORD;
   writeCursor : DWORD;
   numBytesEmpty : Integer;
-//  bytesExpected : long;
-//  buffersWrapped : long;
-
 begin
   DS.Underflows := 0;
   Result := ds.DirectSoundBuffer.GetCurrentPosition(@playCursor, @writeCursor);
   if Result <> DS_OK then Exit;
-  if writeCursor > ds.Offset then
+  if (WriteCursor > ds.Offset) and (PlayCursor < WriteCursor) then
   begin
-   ds.Offset := writeCursor;
-   DS.Underflows := 1;
-  end;
+    if ds.Offset <> 0 then
+    begin
+      ds.Offset := writeCursor;
+      DS.Underflows := 1;
+    end;
+  end; (*else
+  if (WriteCursor < ds.Offset) and (PlayCursor > WriteCursor) then
+  begin
+    ds.Offset := writeCursor;
+//    if (PlayCursor <  writeCursor) and (PlayCursor > ds.Offset) then
+    DS.Underflows := 1;
+  end;  *)
   numBytesEmpty := playCursor - ds.Offset;
   if numBytesEmpty < 0 then
     numBytesEmpty := numBytesEmpty + Integer(ds.BufferSize); // unwrap offset
-(*  if numBytesEmpty > (dsw.dsw_OutputSize - playWriteGap) then
-  begin
-    if dsw.dsw_OutputRunning then
-    begin
-      Inc(dsw.dsw_OutputUnderflows);
-                //            AddTraceMessage("underflow detected! numBytesEmpty", numBytesEmpty );
-    end;
-    dsw.dsw_WriteOffset := writeCursor;
-    numBytesEmpty := dsw.dsw_OutputSize - playWriteGap;
-  end;                        *)
   bytesEmpty := numBytesEmpty;
 end;
 
@@ -377,12 +372,7 @@ var
 begin
   ds.BufferSize := bytesPerBuffer;
   ds.Underflows := 0;
-  // We were using getForegroundWindow() but sometimes the ForegroundWindow may not be the
-  // applications's window. Also if that window is closed before the Buffer is closed
-  // then DirectSound can crash. (Thanks for Scott Patterson for reporting this.)
-  // So we will use GetDesktopWindow() which was suggested by Miller Puckette.
-  // hWnd = GetForegroundWindow();
-  _hWnd := Wnd;
+   _hWnd := Wnd;
   if _hWnd = 0 then
     _hWnd := GetDesktopWindow();
   // Set cooperative level to DSSCL_EXCLUSIVE so that we can get 16 bit output, 44.1 KHz.

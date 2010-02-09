@@ -181,20 +181,29 @@ begin
     Result := False;
     Exit;
   end;
-  if StartInput then
-  begin
-    Len := FInput.FillBuffer(Buf, _BufSize, EndOfInput);
-    DSWriteBlock(DS, @Buf[0], Len);
-    Volume := FVolume; //DW
-    DSStartOutput(DS);
-    StartInput := False;
-  end;
   if Abort then
   begin
     DSStopOutput(DS);
     CanOutput := False;
     Result := False;
     Exit;
+  end;
+  if StartInput then
+  begin
+    Len := _BufSize div 2;
+    if FPrefetchData then
+    begin
+      FInput._Prefetch(Len);
+      FInput.GetData(TmpBuf, Len);
+    end else
+    begin
+      Len := FInput.FillBuffer(Buf, Len, EndOfInput);
+      TmpBuf := Buf;
+    end;
+    DSWriteBlock(DS, TmpBuf, Len);
+    Volume := FVolume; //DW
+    DSStartOutput(DS);
+    StartInput := False;
   end;
   if EndOfInput then
   begin
@@ -203,9 +212,9 @@ begin
     CTime := 0;
     while CTime < PlayTime do
     begin
-      Sleep(100);
+      Sleep(50);
       DSFillEmptySpace(DS, FillByte);
-      Inc(CTime, 100);
+      Inc(CTime, 50);
     end;
     DSStopOutput(DS);
     Result := False;
@@ -400,7 +409,7 @@ end;
 procedure TDSAudioOut.Resume;
 begin
   if EndOfInput then Exit;
-  DSStartOutput(DS);
+  DSRestartOutput(DS);
   inherited Resume;
 end;
 
@@ -416,7 +425,8 @@ begin
     if FInput is TAuFileIn then
       TAuFileIn(FInput)._Jump(Offs);
   end;
-  Self.Resume;
+  Resume;
+  StartInput := True;
 end;
 
 
