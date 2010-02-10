@@ -46,6 +46,7 @@ type
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
     procedure SetVolume(value : Integer);
+    procedure SetLatency(v : LongWord);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -100,10 +101,11 @@ type
     (* Property: Latency
          This property sets the average audio latency (the delay between the moment the audio data is passed to the component and the moment it is played.
          The latency is set in milliseconds. Lower latencies tend to produce more underruns.
-         The reasonable values for this property lie in the range between 30 and 200 milliseconds. *)
-    property Latency : LongWord read FLatency write FLatency;
+         The reasonable values for this property lie in the range between 30 and 200 milliseconds.
+         If this property's value is changed during the playback, the internal buffer will be dynamically reset to the new value. *)
+    property Latency : LongWord read FLatency write SetLatency;
     (* Property: PrefetchData
-       This property tells the component whenever the audio data should be prefetched while playing. Prefetching data makes it run more smoothly and allows lower buffre sizes (see <FramesInBuffer>). *)
+       This property tells the component whenever the audio data should be prefetched while playing. Prefetching data makes it run more smoothly and allows lower latencies. *)
     property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
     property SpeedFactor : Single read FSpeedFactor write FSpeedFactor;
     (* Property: OnUnderrun
@@ -321,6 +323,7 @@ begin
     Thread.Priority := tpHighest;
   end;
   FPrefetchData := True;
+  Freed := True;
 end;
 
 destructor TDSAudioOut.Destroy;
@@ -335,7 +338,6 @@ var
   Form : TForm;
   FormatExt : TWaveFormatExtensible;
 begin
-  Freed := False;
   if (FDeviceNumber >= FDeviceCount) then raise EAuException.Create('Invalid device number');
   FInput.Init;
   Chan := FInput.Channels;
@@ -397,6 +399,7 @@ begin
   StartInput := True;
   EndOfInput := False;
   FFrameSize := (BPS shr 3)*Chan;
+  Freed := False;
 end;
 
 procedure TDSAudioOut.Pause;
@@ -429,5 +432,66 @@ begin
   StartInput := True;
 end;
 
+procedure TDSAudioOut.SetLatency(v: Cardinal);
+var
+  Res : HResult;
+  Wnd : HWND;
+  Form : TForm;
+  FormatExt : TWaveFormatExtensible;
+begin
+  if (csDesigning in ComponentState) or Freed then
+  begin
+    FLatency := v;
+  end else
+  begin
+    Pause;
+    FLatency := v;
+    FreeMem(Buf);
+    DS.DirectSoundBuffer := nil;
+    FFramesInBuffer := FLatency*SR div 2000;
+    FFramesInBuffer := FFramesInBuffer*2;
+    {$WARNINGS OFF}
+    _BufSize := Integer(FFramesInBuffer*(BPS shr 3)*Chan);
+    {$WARNINGS ON}
+    GetMem(Buf, _BufSize);
+    if (Chan < 3) then
+    begin
+      FormatExt.Format.wFormatTag := 1; //WAVE_FORMAT_PCM;
+      FormatExt.Format.cbSize := 0;
+      FormatExt.Format.nChannels := Chan;
+      FormatExt.Format.nSamplesPerSec := SR;
+      FormatExt.Format.wBitsPerSample := BPS;
+      FormatExt.Format.nBlockAlign := Chan*BPS shr 3;
+      FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
+    end else
+    begin
+      FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+      FormatExt.Format.cbSize := SizeOf(FormatExt) - SizeOf(FormatExt.Format);
+      FormatExt.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
+      if Chan = 2 then
+         FormatExt.dwChannelMask := $3;
+      if Chan = 6 then
+        FormatExt.dwChannelMask := $3F;
+      if Chan = 8 then
+        FormatExt.dwChannelMask := $FF;
+      FormatExt.Format.nChannels := Chan;
+      FormatExt.Format.nSamplesPerSec := SR;
+      FormatExt.Format.wBitsPerSample := BPS;
+      FormatExt.Format.nBlockAlign := Chan*BPS shr 3;
+      FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
+    end;
+    if Owner is TForm then
+    begin
+      Form := Owner as TForm;
+      Wnd := Form.Handle;
+    end else Wnd := 0;
+    Res := DSInitOutputBufferEx(DS, Wnd, FormatExt, _BufSize);
+    if Res <> 0 then raise EAuException.Create('Failed to create DirectSound buffer' + IntToHex(Res, 8));
+    StartInput := True;
+    EndOfInput := False;
+    FFrameSize := (BPS shr 3)*Chan;
+    Resume;
+  end;
+end;
 
 end.
