@@ -30,6 +30,7 @@ package NewAC;
 {$R 'NewACDTS.dcr'}
 {$R 'NewACAC3.dcr'}
 {$R 'NewACIndicators.dcr'}
+{$R 'NewACDSAudio.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
