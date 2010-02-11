@@ -243,28 +243,23 @@ function DSQueryOutputSpace(var ds : DSOut; var bytesEmpty : Integer) : HRESULT;
 var
   playCursor :  DWORD;
   writeCursor : DWORD;
-  numBytesEmpty : Integer;
+  numBytesEmpty, PlaySpace : Integer;
 begin
   DS.Underflows := 0;
   Result := ds.DirectSoundBuffer.GetCurrentPosition(@playCursor, @writeCursor);
-  if Result <> DS_OK then Exit;
-  if (WriteCursor > ds.Offset) and (PlayCursor < WriteCursor) then
-  begin
-    if ds.Offset <> 0 then
-    begin
-      ds.Offset := writeCursor;
-      DS.Underflows := 1;
-    end;
-  end; (*else
-  if (WriteCursor < ds.Offset) and (PlayCursor > WriteCursor) then
-  begin
+  if (WriteCursor > ds.Offset) and (ds.Offset <> 0) {(PlayCursor < WriteCursor)} then
     ds.Offset := writeCursor;
-//    if (PlayCursor <  writeCursor) and (PlayCursor > ds.Offset) then
-    DS.Underflows := 1;
-  end;  *)
+  if Result <> DS_OK then Exit;
   numBytesEmpty := playCursor - ds.Offset;
   if numBytesEmpty < 0 then
     numBytesEmpty := numBytesEmpty + Integer(ds.BufferSize); // unwrap offset
+  PlaySpace := WriteCursor - playCursor;
+  if PlaySpace < 0 then
+    PlaySpace := PlaySpace + Integer(ds.BufferSize); // unwrap offset
+  if numBytesEmpty > (Integer(ds.BufferSize) -  PlaySpace) then
+  begin
+     DS.Underflows := 1;
+  end;
   bytesEmpty := numBytesEmpty;
 end;
 
