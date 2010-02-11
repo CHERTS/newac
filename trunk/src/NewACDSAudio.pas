@@ -399,6 +399,7 @@ begin
   StartInput := True;
   EndOfInput := False;
   FFrameSize := (BPS shr 3)*Chan;
+  FUnderruns := 0;
   Freed := False;
 end;
 
