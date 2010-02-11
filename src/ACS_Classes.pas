@@ -825,7 +825,6 @@ type
     FP : Pointer;
     FBufSize : LongWord;
     ReadPos, WritePos : Int64;
-    FWrapCount : LongWord;
     CS : TCriticalSection;
     Flags : Word;
     FOnHalfFree : TGenericEvent;
@@ -2405,7 +2404,7 @@ end;
 function TCircularBuffer.Read;
 var
   sp1, l : LongWord;
-  _Buf : PByte;
+  _Buf : PBuffer8;
   P : Pointer;
 begin
   if FEOF then
@@ -2471,7 +2470,7 @@ end;
 function TCircularBuffer.Write(Buf: Pointer; BufSize: Cardinal) : LongWord;
 var
   sp1, l : LongWord;
-  _Buf : PByte;
+  _Buf : PBuffer8;
   P : Pointer;
 begin
   if FEOF then

@@ -101,7 +101,7 @@ type
     (* Property: Latency
          This property sets the average audio latency (the delay between the moment the audio data is passed to the component and the moment it is played.
          The latency is set in milliseconds. Lower latencies tend to produce more underruns.
-         The reasonable values for this property lie in the range between 30 and 200 milliseconds.
+         The reasonable values for this property lie in the range between 30 and 200 milliseconds. When passing audio through RDP or terminal services latency should be set to about 1000 milliseconds.
          If this property's value is changed during the playback, the internal buffer will be dynamically reset to the new value. *)
     property Latency : LongWord read FLatency write SetLatency;
     (* Property: PrefetchData
