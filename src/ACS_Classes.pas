@@ -837,8 +837,8 @@ type
     procedure Unlock;
     procedure ExposeSingleBufferWrite(var Buffer : Pointer; var Bytes : LongWord);
     procedure ExposeSingleBufferRead(var Buffer : Pointer; var Bytes : LongWord);
-    procedure ExposeDoubleBufferWrite(var Buffer1 : Pointer; var Bytes1 : LongWord; var Buffer2 : Pointer; var Bytes2 : LongWord);
-    procedure ExposeDoubleBufferRead(var Buffer1 : Pointer; var Bytes1 : LongWord; var Buffer2 : Pointer; var Bytes2 : LongWord);
+//    procedure ExposeDoubleBufferWrite(var Buffer1 : Pointer; var Bytes1 : LongWord; var Buffer2 : Pointer; var Bytes2 : LongWord);
+//    procedure ExposeDoubleBufferRead(var Buffer1 : Pointer; var Bytes1 : LongWord; var Buffer2 : Pointer; var Bytes2 : LongWord);
     procedure AddBytesWritten(Bytes : LongWord);
     procedure AddBytesRead(Bytes : LongWord);
     function Read(Buf : Pointer; BufSize : LongWord) : LongWord;
@@ -2291,9 +2291,11 @@ end;
 constructor TCircularBuffer.Create;
 begin
   inherited Create;
-  GetMem(FP, BufSize+15);
-  LongWord(BufSize) := LongWord(FP) + 15 - ((LongWord(FP) + 15) mod 16);
   FBufSize := BufSize;
+  GetMem(FP, BufSize+15);
+ // LongWord(FP) := LongWord(FP) + 15 - ((LongWord(FP) + 15) mod 16);
+  FBufSize := BufSize;
+  FBuffer := FP;
   CS := TCriticalSection.Create;
 end;
 
@@ -2321,9 +2323,15 @@ begin
   WritePtrPos := WritePos mod FBufSize;
   ReadPtrPos := ReadPos  mod FBufSize;
   Buffer := @FBuffer[WritePtrPos];
-  if WritePtrPos >= ReadPtrPos then
+  if WritePtrPos > ReadPtrPos then
   begin
     Bytes := FBufSize - WritePtrPos;
+  end else
+  if WritePtrPos = ReadPtrPos then
+  begin
+     Bytes := FBufSize - WritePos + ReadPos;
+     if Bytes > FBufSize - WritePtrPos then
+       Bytes := FBufSize - WritePtrPos;
   end else
   begin
     Bytes := ReadPtrPos - WritePtrPos;
@@ -2337,56 +2345,18 @@ begin
   WritePtrPos := WritePos mod FBufSize;
   ReadPtrPos := ReadPos  mod FBufSize;
   Buffer := @FBuffer[ReadPtrPos];
-  if WritePtrPos >= ReadPtrPos then
+  if WritePtrPos > ReadPtrPos then
   begin
     Bytes := WritePtrPos - ReadPtrPos;
   end else
+  if WritePtrPos = ReadPtrPos then
+  begin
+    Bytes := WritePos - ReadPos;
+    if Bytes > FBufSize - ReadPtrPos then
+      Bytes := FBufSize - ReadPtrPos
+  end else
   begin
     Bytes := FBufSize - ReadPtrPos;
-  end;
-end;
-
-procedure TCircularBuffer.ExposeDoubleBufferWrite;
-var
-  WritePtrPos, ReadPtrPos : LongWord;
-begin
-  WritePtrPos := WritePos mod FBufSize;
-  ReadPtrPos := ReadPos  mod FBufSize;
-  if WritePtrPos >= ReadPtrPos then
-  begin
-    Buffer1 := @FBuffer[WritePtrPos];
-    Bytes1 := FBufSize - WritePtrPos;
-    Buffer2 := @FBuffer[0];
-    Bytes2 :=  ReadPtrPos;
-  end
-  else
-  begin
-    Buffer1 := @FBuffer[WritePtrPos];
-    Bytes1 := ReadPtrPos - WritePtrPos;
-    Buffer2 := @FBuffer[ReadPtrPos];
-    Bytes2 :=  0;
-  end;
-end;
-
-procedure TCircularBuffer.ExposeDoubleBufferRead;
-var
-  WritePtrPos, ReadPtrPos : LongWord;
-begin
-  WritePtrPos := WritePos mod FBufSize;
-  ReadPtrPos := ReadPos  mod FBufSize;
-  if WritePtrPos <= ReadPtrPos then
-  begin
-    Buffer1 := @FBuffer[ReadPtrPos];
-    Bytes1 := FBufSize - ReadPtrPos;
-    Buffer2 := @FBuffer[0];
-    Bytes2 :=  WritePtrPos;
-  end
-  else
-  begin
-    Buffer1 := @FBuffer[ReadPtrPos];
-    Bytes1 := WritePtrPos - ReadPtrPos;
-    Buffer2 := @FBuffer[WritePtrPos];
-    Bytes2 :=  0;
   end;
 end;
 
@@ -2407,11 +2377,6 @@ var
   _Buf : PBuffer8;
   P : Pointer;
 begin
-  if FEOF then
-  begin
-    Result := 0;
-    Exit;
-  end;
   sp1 := LongWord(WritePos - ReadPos);
   if sp1 = 0 then
   begin
@@ -2424,6 +2389,13 @@ begin
     begin
       while sp1 = 0 do
       begin
+        if FEOF then
+        begin
+          WritePos := 0;
+          ReadPos := 0;
+          Result := 0;
+          Exit;
+        end;
         Sleep(1);
         if FBreak then
         begin
@@ -2447,18 +2419,6 @@ begin
     Move(P^, _Buf[0], l);
     Result := l;
     ReadPos := ReadPos + l;
-    ExposeSingleBufferRead(P, l);
-    if l >= BufSize - Result then
-    begin
-      Move(P^, _Buf[Result], BufSize - Result);
-      Result := BufSize;
-      ReadPos := ReadPos + BufSize - Result;
-    end else
-    begin
-      Move(P^, _Buf[Result], l);
-      Result := Result + l;
-      ReadPos := ReadPos + l;
-    end;
   end;
   CS.Leave;
   if WritePos - ReadPos > (FBufSize shr 1) then
@@ -2470,9 +2430,10 @@ end;
 function TCircularBuffer.Write(Buf: Pointer; BufSize: Cardinal) : LongWord;
 var
   sp1, l : LongWord;
-  _Buf : PBuffer8;
   P : Pointer;
+  _Buf : PBuffer8;
 begin
+  _Buf := Buf;
   if FEOF then
   begin
     Result := 0;
@@ -2492,7 +2453,6 @@ begin
       sp1 := LongWord(ReadPos + FBufSize - WritePos);
     end;
   end;
-  _Buf := Buf;
   CS.Enter;
   ExposeSingleBufferWrite(P, l);
   if l >= BufSize then
@@ -2505,18 +2465,6 @@ begin
     Move(_Buf[0], P^, l);
     Result := l;
     WritePos := WritePos + l;
-    ExposeSingleBufferWrite(P, l);
-    if l >= BufSize - Result then
-    begin
-      Move(_Buf[Result], P^, BufSize - Result);
-      Result := BufSize;
-      WritePos := WritePos + BufSize - Result;
-    end else
-    begin
-      Move(_Buf[Result], P^, l);
-      Result := Result + l;
-      WritePos := WritePos + l;
-    end;
   end;
   CS.Leave;
 end;
