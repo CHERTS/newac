@@ -767,10 +767,6 @@ const
 
 type
 
-  // Circular buffer with TStream interface
-
-  TACSBufferMode = (bmBlock, bmReport);
-
   TEventType = (etOnProgress, etOnDone, etGeneric, etNonGUI);
 
   TEventRecord = record
@@ -819,6 +815,7 @@ type
 
 
 type
+
   TCircularBuffer = class(TObject)
   private
     FBuffer : PBuffer8;
@@ -850,6 +847,28 @@ type
     procedure Stop;
     property EOF : Boolean read FEOF write FEOF;
     property OnHalfFree : TGenericEvent read FOnHalfFree write FOnHalfFree;
+  end;
+
+  TAuFIFOStream = class(TStream)
+  private
+    FCircularBuffer : TCircularBuffer;
+    procedure SetEOF(v : Boolean);
+    function GetEOF : Boolean;
+  protected
+    function GetSize: Int64; override;
+    procedure SetSize(NewSize: Longint); overload; override;
+    procedure SetSize(const NewSize: Int64); overload; override;
+  public
+    constructor Create(BufSize : LongWord; PadWithZeros : Boolean = False);
+    destructor Destroy; override;
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
+    function WouldReadBlock : Boolean;
+    function WouldWriteBlock(Bytes : LongWord = 1) : Boolean;
+    procedure Reset;
+    property EOF : Boolean read GetEOF write SetEOF;
   end;
 
 procedure CreateEventHandler;
@@ -2380,7 +2399,7 @@ begin
   sp1 := LongWord(WritePos - ReadPos);
   if sp1 = 0 then
   begin
-    if (Flags and cbmAlwaysRead)  <> 0 then
+    if ((Flags and cbmAlwaysRead)  <> 0) and (not FEOF) then
     begin
        FillChar(Buf^, BufSize, 0);
        Result := BufSize;
@@ -2541,6 +2560,93 @@ begin
     if FInput is TAuFileIn then
       TAuFileIn(FInput)._Jump(Offs);
   end;
+end;
+
+constructor TAuFIFOStream.Create;
+var
+  f : Word;
+begin
+  inherited Create();
+  f := cbmBlocking;
+  if PadWithZeros then f := f + cbmAlwaysRead;
+  FCircularBuffer := TCircularBuffer.Create(BufSize, f);
+end;
+
+destructor TAuFIFOStream.Destroy;
+begin
+  FCircularBuffer.EOF := True;
+  FCircularBuffer.CS.Enter;
+  Sleep(0);
+  FCircularBuffer.CS.Leave;
+  FCircularBuffer.Free;
+  inherited;
+end;
+
+procedure TAuFIFOStream.SetEOF(v: Boolean);
+begin
+  FCircularBuffer.EOF := v;
+end;
+
+function TAuFIFOStream.GetEOF;
+begin
+  Result := FCircularBuffer.EOF;
+end;
+
+procedure TAuFIFOStream.SetSize(NewSize: Integer);
+begin
+
+end;
+
+procedure TAuFIFOStream.SetSize(const NewSize: Int64);
+begin
+
+end;
+
+function TAuFIFOStream.GetSize;
+begin
+  Result := FCircularBuffer.WritePos;
+end;
+
+function TAuFIFOStream.Seek(Offset: Integer; Origin: Word) : LongInt;
+begin
+  Result := 0;
+end;
+
+function TAuFIFOStream.Seek(const Offset: Int64; Origin: TSeekOrigin) : Int64;
+begin
+  Result := 0;
+end;
+
+function TAuFIFOStream.WouldReadBlock;
+begin
+  Result := (FCircularBuffer.WritePos - FCircularBuffer.ReadPos = 0) and (not FCircularBuffer.EOF);
+end;
+
+function TAuFIFOStream.WouldWriteBlock;
+begin
+  Result := FCircularBuffer.FBufSize - (FCircularBuffer.WritePos - FCircularBuffer.ReadPos) < Bytes;
+end;
+
+function TAuFIFOStream.Read(var Buffer; Count: Integer) : Integer;
+begin
+  Result := Integer(FCircularBuffer.Read(@Buffer, LongWord(Count)));
+end;
+
+function TAuFIFOStream.Write(const Buffer; Count: Integer) : Integer;
+var
+  l : Integer;
+  B : PBuffer8;
+begin
+  l := 0;
+  B := @Buffer;
+  while l < Count do
+    l := l + Integer(FCircularBuffer.Write(@B[l], LongWord(Count - l)));
+  Result := l;
+end;
+
+procedure TAuFIFOStream.Reset;
+begin
+  FCircularBuffer.Reset;
 end;
 
 initialization
