@@ -98,6 +98,44 @@ type
     property Seekable : Boolean read FSeekable write FSeekable;
   end;
 
+  TAudioInputStream = class(TAuInput)
+  private
+    FBPS, FChan, FFreq : LongWord;
+    FZerosWnehNoInput : Boolean;
+    FIFO : TAuFIFOStream;
+    CurrentBufferSize : LongWord;
+    function GetStream : TStream;
+  protected
+    function GetBPS : LongWord; override;
+    function GetCh : LongWord; override;
+    function GetSR : LongWord; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure ResetStream(NewSize : LongWord);
+    property Stream : TStream read GetStream;
+    property ZerosWnehNoInput : Boolean read FZerosWnehNoInput write FZerosWnehNoInput;
+  published
+   (* Property: InBitsPerSample
+      Sets the number of bits per sample (8, 16, 24, 32) for the incoming audio
+      data. Since raw audio has no descriptive headers providing information
+      about its parameters, you must provide this information yourself. *)
+    property InBitsPerSample : LongWord read FBPS write FBPS;
+   (* Property: InChannels
+      Sets the number of channels (1 or more) for the incoming audio data. Since
+      raw audio has no descriptive headers providing information about its
+      parameters you must provide this information yourself. *)
+    property InChannels : LongWord read FChan write FChan;
+   (* Property: InSampleRate
+      Sets the sample rate (in Hz) for the incoming audio data. Since raw audio
+      has no descriptive headers providing information about its parameters you
+      must provide this information yourself. *)
+    property InSampleRate : LongWord read FFreq write FFreq;
+  end;
+
 
 implementation
 

@@ -819,7 +819,7 @@ procedure TCDPlayer.CloseCD;
       for i := 0 to en-1 do
       begin
         TE := GetTOCEntry(i);
-        if TE.btFlag = AUDIOTRKFLAG then
+        if TE.btFlag >= AUDIOTRKFLAG then
         begin
           case Result of
             cdiUnknown : Result := cdiDiscAudio;
