@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.5
+  This file is a part of New Audio Components package 2.6
   Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -111,11 +111,8 @@ type
     DataCS : TCriticalSection;
     _EndOfStream : Boolean;
     FFloatRequested : Boolean;
-    _PrefetchBuf : array of Byte;
-    _Prefetched, _PrefetchOffset : LongWord;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
-    function BufAddr(Offset : LongWord) : Pointer; {$IF CompilerVersion > 17} inline; {$IFEND}
     function GetBPS : LongWord; virtual; abstract;
     function GetCh : LongWord; virtual; abstract;
     function GetSR : LongWord; virtual; abstract;
@@ -175,7 +172,6 @@ type
     *)
     function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
     function FillBufferUnprotected(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
-    procedure EmptyCache;
     procedure Reset; virtual;
 
     (* Procedure: Init
@@ -205,7 +201,6 @@ type
   > InputComponent.Flush;
     *)
     procedure Flush;
-    procedure _Prefetch(Bytes : LongWord); virtual;
     procedure _Lock;
     procedure _Unlock;
     procedure _Pause; virtual;
@@ -1077,7 +1072,6 @@ end;
   destructor TAuInput.Destroy;
   begin
     FreeAndNil(DataCS);
-    _PrefetchBuf := nil;
     inherited Destroy;
   end;
 
@@ -1106,8 +1100,6 @@ end;
   procedure TAuInput.Flush;
   begin
     DataCS.Enter;
-    _Prefetched := 0;
-    _PrefetchOffset := 0;
     try
       FlushInternal;
     finally
@@ -1119,20 +1111,7 @@ end;
   begin
     DataCS.Enter;
     try
-      if _Prefetched > 0 then
-      begin
-        if Bytes > _Prefetched - _PrefetchOffset then
-           Bytes := _Prefetched - _PrefetchOffset;
-        Buffer := @Self._PrefetchBuf[_PrefetchOffset];
-        Inc(_PrefetchOffset, Bytes);
-        FPosition := FPosition + Bytes;
-        if _PrefetchOffset >= _Prefetched then
-        begin
-          _PrefetchOffset := 0;
-          _Prefetched := 0;
-        end;
-      end else
-        GetDataInternal(Buffer, Bytes);
+      GetDataInternal(Buffer, Bytes);
     finally
       DataCS.Leave;
     end;
@@ -1555,8 +1534,6 @@ constructor TAuOutput.Create;
     end else
     begin
       try
-        _Prefetched := 0;
-        _PrefetchOffset := 0;
         Inc(SampleNum, FStartSample);
         Result := SeekInternal(SampleNum);
         FPosition := (SampleNum - FStartSample)*FSampleSize;
@@ -1634,14 +1611,6 @@ constructor TAuOutput.Create;
     inherited Notification(AComponent, Operation);
   end;
 
-  procedure TAuInput.EmptyCache;
-  begin
-    DataCS.Enter;
-    _Prefetched := LongWord(Length(_PrefetchBuf));
-    FillChar(_PrefetchBuf[0], _Prefetched, 0);
-    _PrefetchOffset := 0;
-    DataCS.Leave;
-  end;
 
   procedure TAuInput.Reset;
   begin
@@ -1791,17 +1760,20 @@ constructor TAuOutput.Create;
       Result := 0;
       Exit;
     end;
-    P := Buffer;
-    r := BufferSize;
-    Result := 0;
-    while (BufferSize - Result > 0) and (r > 0) do
-    begin
-      r := BufferSize - Result;
-      GetDataInternal(P1, r);
-//      if (P1 <> nil) and (r <> 0) then
-//       FastCopyMem(@P[Result], P1, r);
-      Move(P1^, P[Result], r);
-      Result := Result + r;
+    try
+      DataCS.Enter;
+      P := Buffer;
+      r := BufferSize;
+      Result := 0;
+      while (BufferSize - Result > 0) and (r > 0) do
+      begin
+        r := BufferSize - Result;
+        GetDataInternal(P1, r);
+        Move(P1^, P[Result], r);
+        Result := Result + r;
+      end;
+    finally
+      DataCS.Leave;
     end;
     EOF := r = 0;
   end;
@@ -1977,52 +1949,6 @@ begin
   inherited SetStream(aStream);
 end;
 
-function TAuInput.BufAddr(Offset : LongWord) : Pointer;
-begin
-  if _PrefetchBuf = nil then
-    Result := nil
-  else
-    Result := @_PrefetchBuf[Offset];
-end;
-
-
-procedure TAuInput._Prefetch(Bytes: Cardinal);
-var
-  EOF : Boolean;
-  LenB : LongWord;
-begin
-  try
-    DataCS.Enter;
-  LenB := LongWord(Length(_PrefetchBuf));
-  if _Prefetched > 0 then
-  begin
-    if _Prefetched < LenB then
-    begin
-      if BufAddr(0) <> nil then
-      Move(BufAddr(_PrefetchOffset)^, BufAddr(0)^, _Prefetched);
-      _PrefetchOffset := 0;
-      Bytes := FillBufferUnprotected(BufAddr(_Prefetched), LongWord(LenB - _Prefetched), EOF);
-      if Bytes <> 0 then
-      begin
-        FPosition := FPosition - Bytes;
-      end;
-    end;
-  end else
-  begin
-    if Bytes > LenB then
-      SetLength(_PrefetchBuf, Bytes);
-   Bytes := FillBufferUnprotected(BufAddr(0), Bytes, EOF);
-    if Bytes <> 0 then
-    begin
-      _Prefetched := Bytes;
-     // FPosition := FPosition - Bytes;
-    end;
-  end;
-  finally
-    DataCS.Leave;
-  end;
-end;
-
 procedure TAuInput._Lock;
 begin
   DataCS.Enter;
@@ -2051,22 +1977,6 @@ begin
   DataCS.Enter;
   tmpBytes := Bytes;
   try
-    if _Prefetched > 0 then
-    begin
-      if Bytes > _Prefetched - _PrefetchOffset then
-         Bytes := _Prefetched - _PrefetchOffset;
-      Buffer := @Self._PrefetchBuf[_PrefetchOffset];
-      Inc(_PrefetchOffset, Bytes);
-      FPosition := FPosition + Bytes;
-      if _PrefetchOffset >= _Prefetched then
-      begin
-        _PrefetchOffset := 0;
-        _Prefetched := 0;
-      end;
-    end else
-    begin
-
-
     if _EndOfStream then
     begin
       Buffer :=  nil;
@@ -2112,8 +2022,6 @@ begin
          end;
       end;  // if _EndOfStream and FLoop then
     end; // if _EndOfStream then ... else
-
-    end;
   finally
     DataCS.Leave;
   end;
@@ -2123,21 +2031,6 @@ procedure TAuConverter.GetData;
 begin
   DataCS.Enter;
   try
-    if _Prefetched > 0 then
-    begin
-      if Bytes > _Prefetched - _PrefetchOffset then
-         Bytes := _Prefetched - _PrefetchOffset;
-      Buffer := @Self._PrefetchBuf[_PrefetchOffset];
-      Inc(_PrefetchOffset, Bytes);
-      FPosition := FPosition + Bytes;
-      if _PrefetchOffset >= _Prefetched then
-      begin
-        _PrefetchOffset := 0;
-        _Prefetched := 0;
-      end;
-    end else
-    begin
-
     if _EndOfStream then
     begin
       Buffer :=  nil;
@@ -2153,7 +2046,6 @@ begin
       end;
       if Bytes = 0 then
         _EndOfStream := True
-    end;
     end;
   finally
     DataCS.Leave;
