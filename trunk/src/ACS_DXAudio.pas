@@ -497,12 +497,11 @@ begin
   Start := timeGetTime;
   if Prefetch then
   begin
-    SampleSize := Chan*(BPS shr 3);
-    DataSize := ((Interval * Self.SR) div 1000)*SampleSize;
+//    SampleSize := Chan*(BPS shr 3);
+//    DataSize := ((Interval * Self.SR) div 1000)*SampleSize;
   //  DataSize := (DataSize div 4)*3;
-    DataSize := DataSize + (DataSize shr 2);
-    DataSize := DataSize - (DataSize mod SampleSize);
-    Finput._Prefetch(DataSize);
+//    DataSize := DataSize + (DataSize shr 2);
+//    DataSize := DataSize - (DataSize mod SampleSize);
   end;
   Elapsed := timeGetTime - Start;
   if Elapsed >= Interval then Exit;
@@ -774,7 +773,6 @@ begin
   DSW_FillEmptySpace(DSW, FillByte);
   if Assigned(Finput) then
   begin
-    FInput.EmptyCache;
     if FInput is TAuConverter then
       TAuConverter(FInput)._Jump(Offs);
     if FInput is TAuFileIn then

@@ -98,7 +98,7 @@ type
     property Seekable : Boolean read FSeekable write FSeekable;
   end;
 
-  TAudioInputStream = class(TAuInput)
+{  TAudioInputStream = class(TAuInput)
   private
     FBPS, FChan, FFreq : LongWord;
     FZerosWnehNoInput : Boolean;
@@ -134,7 +134,7 @@ type
       has no descriptive headers providing information about its parameters you
       must provide this information yourself. *)
     property InSampleRate : LongWord read FFreq write FFreq;
-  end;
+  end; }
 
 
 implementation

@@ -891,7 +891,7 @@ begin
         ACS.Enter;
         if not _Prefetched then
         begin
-          FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
+//          FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
           _Prefetched := True;
         end;
         ACS.Leave;
@@ -1669,7 +1669,6 @@ begin
   Pause;
   if Assigned(Finput) then
   begin
-    FInput.EmptyCache;
     if FInput is TAuConverter then
       TAuConverter(FInput)._Jump(Offs);
     if FInput is TAuFileIn then

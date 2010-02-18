@@ -40,7 +40,6 @@ type
     FUnderruns : LongWord;
     FOnUnderrun : TGenericEvent;
     FVolume : longint; //DW - for more reliable volume control
-    FPrefetchData : Boolean;
     FSpeedFactor : Single;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
@@ -104,9 +103,6 @@ type
          The reasonable values for this property lie in the range between 30 and 200 milliseconds. When passing audio through RDP or terminal services latency should be set to about 1000 milliseconds.
          If this property's value is changed during the playback, the internal buffer will be dynamically reset to the new value. *)
     property Latency : LongWord read FLatency write SetLatency;
-    (* Property: PrefetchData
-       This property tells the component whenever the audio data should be prefetched while playing. Prefetching data makes it run more smoothly and allows lower latencies. *)
-    property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
     property SpeedFactor : Single read FSpeedFactor write FSpeedFactor;
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
@@ -174,7 +170,6 @@ var
   lb : Integer;
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
-  TmpBuf : Pointer;
 begin
   Result := True;
   if not Busy then Exit;
@@ -193,16 +188,8 @@ begin
   if StartInput then
   begin
     Len := _BufSize div 2;
-    if FPrefetchData then
-    begin
-      FInput._Prefetch(Len);
-      FInput.GetData(TmpBuf, Len);
-    end else
-    begin
-      Len := FInput.FillBuffer(Buf, Len, EndOfInput);
-      TmpBuf := Buf;
-    end;
-    DSWriteBlock(DS, TmpBuf, Len);
+    Len := FInput.FillBufferUnprotected(Buf, Len, EndOfInput);
+    DSWriteBlock(DS, @Buf[0], Len);
     Volume := FVolume; //DW
     DSStartOutput(DS);
     StartInput := False;
@@ -224,8 +211,7 @@ begin
   end;
 
   Len := _BufSize div 2;
-  if FPrefetchData then
-    Finput._Prefetch(Len);
+  Len := FInput.FillBufferUnprotected(Buf, Len, EndOfInput);
   if WaitForCursor(DS, 0) then
   begin
     Inc(FUnderruns);
@@ -249,64 +235,42 @@ begin
   end;
   if lb <> 0 then
   begin
-  if FPrefetchData then
-  begin
-   // Len := _Min(lb, _BufSize);
-    FInput.GetData(TmpBuf, Len);
-  end else
-  begin
-    Len := FInput.FillBuffer(Buf, Len, EndOfInput);
-    TmpBuf := Buf;
-  end;
-  EndOfInput := Len = 0;
-  DSWriteBlock(DS, TmpBuf, Len);
-  if EndOfInput then
-  begin
-    DSFillEmptySpace(DS, FillByte);
-    Exit;
-  end;
-
-  Len := _BufSize div 2;
-  if FPrefetchData then
-    Finput._Prefetch(Len);
-  end;
-  if WaitForCursor(DS, 1) then
-  begin
-    Inc(FUnderruns);
-    ResetEvent(DS.events[0]);
-    if Assigned(FOnUnderrun) then
-      EventHandler.PostGenericEvent(Self, FOnUnderrun);
-  end;
-  if Abort then
-  begin
-    DSStopOutput(DS);
-    CanOutput := False;
-    Result := False;
-    Exit;
-  end;
-  DSQueryOutputSpace(DS, lb);
-  if DS.Underflows > 0 then
-  begin
-    Inc(FUnderruns);
-    if Assigned(FOnUnderrun) then
-      EventHandler.PostGenericEvent(Self, FOnUnderrun);
-  end;
-  if lb = 0 then Exit;
-  if FPrefetchData then
-  begin
-//    Len := _Min(lb, _BufSize);
-    FInput.GetData(TmpBuf, Len);
-  end else
-  begin
-    Len := FInput.FillBuffer(Buf, Len, EndOfInput);
-    TmpBuf := Buf;
-  end;
-  EndOfInput := Len = 0;
-  DSWriteBlock(DS, TmpBuf, Len);
-  if EndOfInput then
-  begin
-    DSFillEmptySpace(DS, FillByte);
-    Exit;
+    DSWriteBlock(DS, @Buf[0], Len);
+    if EndOfInput then
+    begin
+      DSFillEmptySpace(DS, FillByte);
+      Exit;
+    end;
+    Len := _BufSize div 2;
+    Len := FInput.FillBufferUnprotected(Buf, Len, EndOfInput);
+    if WaitForCursor(DS, 1) then
+    begin
+      Inc(FUnderruns);
+      ResetEvent(DS.events[0]);
+      if Assigned(FOnUnderrun) then
+        EventHandler.PostGenericEvent(Self, FOnUnderrun);
+    end;
+    if Abort then
+    begin
+      DSStopOutput(DS);
+      CanOutput := False;
+      Result := False;
+      Exit;
+    end;
+    DSQueryOutputSpace(DS, lb);
+    if DS.Underflows > 0 then
+    begin
+      Inc(FUnderruns);
+      if Assigned(FOnUnderrun) then
+        EventHandler.PostGenericEvent(Self, FOnUnderrun);
+    end;
+    if lb = 0 then Exit;
+    DSWriteBlock(DS, @Buf[0], Len);
+    if EndOfInput then
+    begin
+      DSFillEmptySpace(DS, FillByte);
+      Exit;
+    end;
   end;
 end;
 
@@ -322,7 +286,6 @@ begin
     FDeviceCount := Devices.devcount;
     Thread.Priority := tpHighest;
   end;
-  FPrefetchData := True;
   Freed := True;
 end;
 
@@ -423,7 +386,6 @@ begin
   DSFillEmptySpace(DS, FillByte);
   if Assigned(Finput) then
   begin
-    FInput.EmptyCache;
     if FInput is TAuConverter then
       TAuConverter(FInput)._Jump(Offs);
     if FInput is TAuFileIn then
