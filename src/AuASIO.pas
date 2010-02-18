@@ -61,7 +61,8 @@ type
     DevStopped : Boolean;
     FOnPositionChanged : TASIOPositionEvent;
     FASIOBufferSize : TASIOBufferSize;
-    FPrefetchData : Boolean;
+    L : LongWord;
+    FLastBlock : Boolean;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     procedure ASIOInit;
@@ -150,7 +151,6 @@ type
          The event handler is passed the current sample number and a timestamp from the beginning of playback.
          Note that unlike most other NewAC events, this event is a real-time one. Performing some lengthy operation in this event handler may cause gaps in playback. *)
     property OnPositionChanged : TASIOPositionEvent read FOnPositionChanged write FOnPositionChanged;
-    property PrefetchData : Boolean read FPrefetchData write FPrefetchData;
   end;
 
   (* Class: TASIOAudioIn
@@ -499,28 +499,17 @@ end;
 procedure TASIOAudioOut.ProcessBuffer(sender : TComponent);
 var
   s1, s2 : TASIOInt64;
-//  OldStopped : Bool;
-  tmpStop : Boolean;
-  L : LongWord;
-  P : Pointer;
 begin
    if Device = nil then Exit;
     ///////////////
    //FillBuffer(tmpStop);
   ACS.Enter;
-  L := FBufferSize*(BPS shr 3)*FOutputChannels;
-  if _Prefetched then
+  if not _Prefetched then
   begin
-    _Prefetched := False;
-    FInput.GetData(P, L);
-    if P <> nil then
-    Move(P^, iBuf[0], L);
-    tmpStop := L = 0;
-  end else
-  begin
-    L := FInput.FillBuffer(@iBuf[0], L, tmpStop);
+    _Prefetched := True;
+    L := FBufferSize*(BPS shr 3)*FOutputChannels;
+    L := FInput.FillBufferUnprotected(@iBuf[0], L, FLastBlock);
   end;
-  ACS.Leave;
   if (BPS = 16) and (OutputBPS = 32) then
   begin
     Convert16To32(@iBuf[0], L);
@@ -534,6 +523,8 @@ begin
     begin
       raise EAuException.Create(Format('TASIOAudioOut cannot play %d bps stream in this set up (actual output bps is %d). Use BPS converter.', [BPS, OutputBPS]));
     end;
+    _Prefetched := False;
+    ACS.Leave;
 
    ////////////////
  //  OldStopped := Thread.Stopped;
@@ -557,7 +548,7 @@ begin
    end;
    if CallOutputReady then
       CallOutputReady := TASIOAudioOut(sender).Device.OutputReady = ASE_OK;
-   GStop := tmpStop;
+   GStop := FLastBlock;
  //  Thread.Stopped := OldStopped;
 end;
 
@@ -808,7 +799,6 @@ begin
   Callbacks.sampleRateDidChange := AuAsio.AsioSampleRateDidChange;
   Callbacks.asioMessage := AuAsio.AsioMessage;
   Callbacks.bufferSwitchTimeInfo := AuAsio.AsioBufferSwitchTimeInfo;
-  FPrefetchData := True;
 //  Thread.Priority := tpTimeCritical;
 end;
 
@@ -835,6 +825,8 @@ begin
 end;
 
 procedure TASIOAudioOut.Prepare;
+var
+  i : Integer;
 begin
   ACS := TCriticalSection.Create;
   FInput.Init;
@@ -851,12 +843,18 @@ begin
   BPS := FInput.BitsPerSample;
   GStop := False;
   DoReset := False;
-  FillChar(BufferInfo[0].buffers[0]^, FBufferSize, 0);
-  AsioBufferSwitchOutput(1, AsioTrue);
-  Move(BufferInfo[0].buffers[0]^, BufferInfo[0].buffers[1]^, FBufferSize);
+  for i := 0 to Chan - 1 do
+  begin
+    FillChar(BufferInfo[i].buffers[0]^, FBufferSize, 0);
+    FillChar(BufferInfo[i].buffers[1]^, FBufferSize, 0);
+  end;
+//  AsioBufferSwitchOutput(1, AsioTrue);
+//  Move(BufferInfo[0].buffers[0]^, BufferInfo[0].buffers[1]^, FBufferSize);
   if Device.Start <> ASE_OK then
   raise EAuException.Create('Cannot start ASIO driver');
   DevStopped := False;
+  FLastBlock := False;
+  _Prefetched := False;
 end;
 
 function TASIOAudioOut.DoOutput(Abort: Boolean) : Boolean;
@@ -885,13 +883,13 @@ begin
     if Assigned(FOnDriverReset) then
         EventHandler.PostGenericEvent(Self, FOnDriverReset);
   end;
-    if FPrefetchData then
-      if not GStop then
+      if not (FLastBlock or GStop) then
       begin
         ACS.Enter;
         if not _Prefetched then
         begin
-//          FInput._Prefetch(FBufferSize*(BPS shr 3)*FOutputChannels);
+          L :=  FBufferSize*(BPS shr 3)*FOutputChannels;
+          L := FInput.FillBufferUnprotected(@iBuf[0], L, FLastBlock);
           _Prefetched := True;
         end;
         ACS.Leave;
