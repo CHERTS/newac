@@ -98,12 +98,13 @@ type
     property Seekable : Boolean read FSeekable write FSeekable;
   end;
 
-{  TAudioInputStream = class(TAuInput)
+  TAudioInputStream = class(TAuInput)
   private
     FBPS, FChan, FFreq : LongWord;
     FZerosWnehNoInput : Boolean;
     FIFO : TAuFIFOStream;
     CurrentBufferSize : LongWord;
+    EmptyBuf : array[0..71] of Byte;
     function GetStream : TStream;
   protected
     function GetBPS : LongWord; override;
@@ -115,7 +116,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure ResetStream(NewSize : LongWord);
+    procedure ResetBufferSize(NewSize : LongWord);
     property Stream : TStream read GetStream;
     property ZerosWnehNoInput : Boolean read FZerosWnehNoInput write FZerosWnehNoInput;
   published
@@ -134,7 +135,7 @@ type
       has no descriptive headers providing information about its parameters you
       must provide this information yourself. *)
     property InSampleRate : LongWord read FFreq write FFreq;
-  end; }
+  end;
 
 
 implementation
@@ -292,5 +293,84 @@ begin
   Result := Self.FFreq;
 end;
 
+constructor TAudioInputStream.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FillChar(EmptyBuf, 72, 0);
+  CurrentBufferSize := $B4000;
+  FIFO := TAuFIFOStream.Create(CurrentBufferSize);
+end;
+
+destructor TAudioInputStream.Destroy;
+begin
+  FIFO.Free;
+  Inherited;
+end;
+
+procedure TAudioInputStream.ResetBufferSize(NewSize: Cardinal);
+begin
+  FIFO.ReleaseReadBuffer;
+  FIFO.Free;
+  CurrentBufferSize := NewSize;
+  FIFO := TAuFIFOStream.Create(CurrentBufferSize);
+end;
+
+function TAudioInputStream.GetStream;
+begin
+  Result := FIFO;
+end;
+
+function TAudioInputStream.GetBPS;
+begin
+  Result := FBPS;
+end;
+
+function TAudioInputStream.GetCh;
+begin
+  Result := FChan;
+end;
+
+function TAudioInputStream.GetSR;
+begin
+  Result := FFreq;
+end;
+
+procedure TAudioInputStream.InitInternal;
+begin
+  FIFO.EOF := False;
+end;
+
+procedure TAudioInputStream.FlushInternal;
+begin
+  FIFO.ReleaseReadBuffer;
+  FIFO.EOF := True;
+  FIFO.Reset;
+end;
+
+procedure TAudioInputStream.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+begin
+  FIFO.ReleaseReadBuffer;
+  if FIFO.EOF then
+  begin
+    Buffer := nil;
+    Bytes := 0;
+    Exit;
+  end;
+  if FIFO.WouldReadBlock then
+  begin
+    if FZerosWnehNoInput then
+    begin
+      Sleep(1);
+      if FIFO.WouldReadBlock then
+      begin
+        if Bytes > 72 then Bytes := 72;
+        Buffer := @EmptyBuf[0];
+        Exit;
+      end;
+    end;
+    while FIFO.WouldReadBlock do Sleep(1);
+  end;
+  FIFO.LockReadBuffer(Buffer, Bytes);
+end;
 
 end.

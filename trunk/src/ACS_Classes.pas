@@ -819,7 +819,6 @@ type
     ReadPos, WritePos : Int64;
     CS : TCriticalSection;
     Flags : Word;
-    FOnHalfFree : TGenericEvent;
     FBreak : Boolean;
     FEOF : Boolean;
   public
@@ -841,12 +840,19 @@ type
     procedure Reset;
     procedure Stop;
     property EOF : Boolean read FEOF write FEOF;
-    property OnHalfFree : TGenericEvent read FOnHalfFree write FOnHalfFree;
   end;
+
+   (* Class: TAuFIFOStream
+      This class that implements the FIFO queue with a TStream-compatible interface.
+      The first thing you write to the stream is the first thing you will read from it.
+      The TAuFIFOStream operates on assumption that one agent is constantly writing the data to it while other is constantly reading.
+      Descends from TStream.
+   *)
 
   TAuFIFOStream = class(TStream)
   private
     FCircularBuffer : TCircularBuffer;
+    FBytesLocked : LongWord;
     procedure SetEOF(v : Boolean);
     function GetEOF : Boolean;
   protected
@@ -854,15 +860,52 @@ type
     procedure SetSize(NewSize: Longint); overload; override;
     procedure SetSize(const NewSize: Int64); overload; override;
   public
+    (* Procedure: Create
+       The TAuFIFOStream constructor.
+       BufSize is the internal buffer size in bytes.
+       Set PadWithZeros if you want <Read> to never block and return zero-filled buffer when there is no data.
+    *)
     constructor Create(BufSize : LongWord; PadWithZeros : Boolean = False);
     destructor Destroy; override;
+    (* Function: Read
+       This function reimplementsthat of TStream.
+       If you created the stream with PadWithZeros equal to False, Read will block until there is some data in the buffer.
+       See also <WouldReadBlock>.
+       If Read returns 0 it means that there is no data in the buffer and the writer will not write any new data.
+    *)
     function Read(var Buffer; Count: Longint): Longint; override;
+    (* Function: Write
+       This function reimplementsthat of TStream. Write returns only after all the data has been written or <Reset> is called (or <EOF> is iset to True).
+       The size of the data to be written may be more than the size of the internal buffer.
+       Write will block if there is not enough free space in the buffer (until enough data is read by the reader).
+       See also <WouldWriteBlock>.
+    *)
     function Write(const Buffer; Count: Longint): Longint; override;
+    (* Function: Seek
+       This function reimplementsthat of TStream. Since TAuFIFOStream is non-seekable, it does nothing.
+    *)
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
+    (* Function: WouldReadBlock
+       This function returns True if the <Read> would block (that is there is no data in the buffer) and False otherwise.
+    *)
     function WouldReadBlock : Boolean;
+    (* Function: WouldWriteBlock
+       This function returns True if the <Write> would block (that is there is not enough free space in the buffer to write Bytes bytes) and False otherwise.
+    *)
     function WouldWriteBlock(Bytes : LongWord = 1) : Boolean;
+    procedure LockReadBuffer(var Buffer : Pointer; var Bytes : LongWord);
+    procedure ReleaseReadBuffer;
+    (* Procedure: Reset
+       Call this to reset the stream.
+       Any blocked call to <Read> or <Write> returns immediately.
+    *)
     procedure Reset;
+    (* Property: EOF
+      The writer sets this property to True when it has written all the data.
+      After this the reader reads all the data that is left in the buffer and then <Read> calls start returning 0 as a resulting value (which is the End of File indicator for the reader).
+
+    *)
     property EOF : Boolean read GetEOF write SetEOF;
   end;
 
@@ -2332,10 +2375,6 @@ begin
     ReadPos := ReadPos + l;
   end;
   CS.Leave;
-  if WritePos - ReadPos > (FBufSize shr 1) then
-    if sp1 < (FBufSize shr 1) then
-      if Assigned(FOnHalfFree) then
-        FOnHalfFree(nil);
 end;
 
 function TCircularBuffer.Write(Buf: Pointer; BufSize: Cardinal) : LongWord;
@@ -2462,6 +2501,7 @@ begin
   f := cbmBlocking;
   if PadWithZeros then f := f + cbmAlwaysRead;
   FCircularBuffer := TCircularBuffer.Create(BufSize, f);
+  FBytesLocked := 0;
 end;
 
 destructor TAuFIFOStream.Destroy;
@@ -2539,6 +2579,18 @@ end;
 procedure TAuFIFOStream.Reset;
 begin
   FCircularBuffer.Reset;
+end;
+
+procedure TAuFIFOStream.LockReadBuffer(var Buffer: Pointer; var Bytes: Cardinal);
+begin
+  FCircularBuffer.ExposeSingleBufferRead(Buffer, Bytes);
+  FBytesLocked := Bytes;
+end;
+
+procedure TAuFIFOStream.ReleaseReadBuffer;
+begin
+  FCircularBuffer.AddBytesRead(FBytesLocked);
+  FBytesLocked := 0;
 end;
 
 initialization

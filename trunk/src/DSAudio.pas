@@ -27,7 +27,19 @@ type
     Offset : LongWord;
   end;
 
-  DSW_DeviceInfo = record
+   DSIn = record
+    DirectSoundCapture : IDirectSoundCapture8;
+    DirectSoundBuffer : IDirectSoundCaptureBuffer8;
+//    PrimaryBuffer : IDirectSoundBuffer;
+    events : array [0..1] of THandle;
+    IsPlaying : Boolean;
+    BufferSize : LongWord;
+    Overruns : LongWord;
+    Offset : LongWord;
+  end;
+
+
+  DSDeviceInfo = record
     guid : TGUID;
     {$IFDEF UNICODE}
     name : array [0..127] of WideChar;
@@ -37,11 +49,11 @@ type
     {$ENDIF}
   end;
 
-  PDSW_DeviceInfo = ^DSW_DeviceInfo;
+  PDSW_DeviceInfo = ^DSDeviceInfo;
 
   DSW_Devices = record
     devcount : Integer;
-    dinfo : array [0..15] of DSW_DeviceInfo;
+    dinfo : array [0..15] of DSDeviceInfo;
   end;
 
   PDSW_Devices = ^DSW_Devices;
@@ -62,6 +74,17 @@ type
   procedure UnlockEvents(var ds: DSOut);
   function DSGetVolume(var ds : DSOut; out Volume: Longint) : HRESULT;
   function DSSetVolume(var ds : DSOut; Volume: Longint) : HRESULT;
+
+  function DSEnumerateInputDevices(devices : PDSW_Devices) : HRESULT;
+  function DSInitInputDevice(var ds : DSIn; lpGUID : PGUID) : HRESULT;
+  function DSInitInputBuffer(var ds : DSIn; bps : Integer;
+                nFrameRate : LongWord; nChannels, bufSize : Integer) : HRESULT;
+  function DSStartInput(var ds : DSIn) : HRESULT;
+  function DSStopInput(var ds : DSIn) : HRESULT;
+  function DSQueryInputFilled(var ds : DSIn; var bytesFilled : Integer) : HRESULT;
+  function DSReadBlock(var ds : DSIn; buf : PByte; numBytes : LongWord) : HRESULT;
+  procedure DSTerminateInput(var ds : DSIn);
+  function WaitForInputCursor(var ds: DSIn; evnt : LongWord) : Boolean;
 
 implementation
 
@@ -457,6 +480,140 @@ begin
     Result := S_OK;
   if Result = DSERR_CONTROLUNAVAIL then
     raise Exception.Create('Control not available');
+end;
+
+function DSEnumerateInputDevices(devices : PDSW_Devices) : HRESULT;
+begin
+  devices.devcount := 0;
+  Result := DirectSoundCaptureEnumerate(DSEnumOutputCallback, devices);
+end;
+
+function DSInitInputDevice(var ds : DSIn; lpGUID : PGUID) : HRESULT;
+begin
+  Result := DirectSoundCaptureCreate8(lpGUID, ds.DirectSoundCapture, nil);
+end;
+
+function DSInitInputBuffer(var ds : DSIn; bps : Integer;
+                nFrameRate : LongWord; nChannels, bufSize : Integer) : HRESULT;
+var
+  wfFormat : TWaveFormatEx;
+  captureDesc : TDSCBufferDesc;
+  CaptBuf : IDirectSoundCaptureBuffer;
+  DSN : IDirectSoundNotify8;
+  PN : array[0..1] of TDSBPositionNotify;
+begin
+  wfFormat.wFormatTag      := WAVE_FORMAT_PCM;
+  wfFormat.nChannels       := nChannels;
+  wfFormat.nSamplesPerSec  := nFrameRate;
+  wfFormat.wBitsPerSample  := bps;
+  wfFormat.nBlockAlign     := wfFormat.nChannels * (wfFormat.wBitsPerSample div 8);
+  wfFormat.nAvgBytesPerSec := wfFormat.nSamplesPerSec * wfFormat.nBlockAlign;
+  wfFormat.cbSize          := 0;   //* No extended format info. */
+  ds.BufferSize := bufSize;
+  ZeroMemory(@captureDesc, sizeof(TDSCBUFFERDESC));
+  captureDesc.dwSize := sizeof(TDSCBUFFERDESC);
+  captureDesc.dwFlags :=  DSBCAPS_GETCURRENTPOSITION2 or DSBCAPS_CTRLPOSITIONNOTIFY;
+  captureDesc.dwBufferBytes := bufSize;
+  captureDesc.lpwfxFormat := @wfFormat;
+  // Create the capture buffer
+  Result :=  ds.DirectSoundCapture.CreateCaptureBuffer(captureDesc, CaptBuf, nil);
+  if Result <> DS_OK then Exit;
+  ds.DirectSoundBuffer := CaptBuf as IDirectSoundCaptureBuffer8;
+  CaptBuf := nil;
+
+  ds.events[0] := CreateEvent(nil, True, False, nil);
+  ds.events[1] := CreateEvent(nil, True, False, nil);
+  DSN := ds.DirectSoundBuffer as IDirectSoundNotify8;
+  PN[0].dwOffset := 0;
+  PN[0].hEventNotify := ds.events[0];
+  PN[1].dwOffset := ds.BufferSize div 2;
+  PN[1].hEventNotify := ds.events[1];
+  Result := DSN.SetNotificationPositions(2, @PN);
+  if Result = DSERR_INVALIDPARAM then
+     raise Exception.Create(IntToHex(Result, 8));
+  DSN := nil;
+
+  ds.Offset := 0;  // reset last read position to start of buffer
+  Result := DS_OK;
+end;
+
+function DSStartInput(var ds : DSIn) : HRESULT;
+begin
+  // Start the buffer playback
+  if ds.DirectSoundBuffer <> nil then
+    Result := ds.DirectSoundBuffer.Start(DSCBSTART_LOOPING)
+  else Result := 0;
+end;
+
+function DSStopInput(var ds : DSIn) : HRESULT;
+begin
+  // Stop the buffer playback
+  if ds.DirectSoundBuffer <> nil  then
+     Result := ds.DirectSoundBuffer.Stop
+  else Result := 0;
+end;
+
+function DSQueryInputFilled(var ds : DSIn; var bytesFilled : Integer) : HRESULT;
+var
+  capturePos : DWORD;
+  readPos : DWORD;
+  filled : Integer;
+begin
+  Result := ds.DirectSoundBuffer.GetCurrentPosition(@capturePos, @readPos);
+  if Result <> DS_OK  then Exit;
+  filled := readPos - ds.Offset;
+  if filled < 0  then
+     Inc(filled, ds.BufferSize); // unwrap offset
+  bytesFilled := filled;
+end;
+
+function DSReadBlock(var ds : DSIn; buf : PByte; numBytes : LongWord) : HRESULT;
+var
+  lpbuf1 : PBYTE;
+  lpbuf2 : PBYTE;
+  dwsize1 : DWORD;
+  dwsize2 : DWORD;
+  tmpbuf : PByte;
+begin
+    // Lock free space in the DS
+  Result := ds.DirectSoundBuffer.Lock(ds.Offset, numBytes, @lpbuf1, @dwsize1,
+              @lpbuf2, @dwsize2, 0);
+  if Result = DS_OK then
+  begin
+    // Copy from DS to the buffer
+    Move(lpbuf1^, buf^, dwsize1);
+    if lpbuf2 <> nil then
+    begin
+      tmpbuf := buf;
+      Inc(tmpbuf, dwsize1);
+      Move(lpbuf2^, tmpbuf^, dwsize2);
+    end;
+    // Update our buffer offset and unlock sound buffer
+    ds.Offset := (ds.Offset + dwsize1 + dwsize2) mod ds.BufferSize;
+    ds.DirectSoundBuffer.Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
+  end;
+end;
+
+procedure DSTerminateInput(var ds : DSIn);
+begin
+  if Assigned(ds.DirectSoundBuffer) then
+  begin
+    ds.DirectSoundBuffer.Stop;
+    ds.DirectSoundBuffer := nil;
+  end;
+  if Assigned(ds.DirectSoundCapture) then
+  begin
+    ds.DirectSoundCapture := nil;
+  end;
+  CloseHandle(ds.events[0]);
+  CloseHandle(ds.events[1]);
+end;
+
+function WaitForInputCursor(var ds: DSIn; evnt : LongWord) : Boolean;
+begin
+  WaitForSingleObject(ds.events[evnt], INFINITE);
+  ResetEvent(ds.events[evnt]);
+  Result := WaitForSingleObject(ds.events[1-evnt], 0) = WAIT_OBJECT_0;
 end;
 
 
