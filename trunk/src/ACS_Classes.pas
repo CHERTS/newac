@@ -843,9 +843,10 @@ type
   end;
 
    (* Class: TAuFIFOStream
-      This class that implements the FIFO queue with a TStream-compatible interface.
+      This class implements the FIFO queue with a TStream-compatible interface.
       The first thing you write to the stream is the first thing you will read from it.
       The TAuFIFOStream operates on assumption that one agent is constantly writing the data to it while other is constantly reading.
+      The stream is not seekable and the Size property has no meaning for it.
       Descends from TStream.
    *)
 
@@ -868,21 +869,21 @@ type
     constructor Create(BufSize : LongWord; PadWithZeros : Boolean = False);
     destructor Destroy; override;
     (* Function: Read
-       This function reimplementsthat of TStream.
+       This function reimplements that of TStream.
        If you created the stream with PadWithZeros equal to False, Read will block until there is some data in the buffer.
-       See also <WouldReadBlock>.
+       See also <WouldReadBlock>, <EOF>.
        If Read returns 0 it means that there is no data in the buffer and the writer will not write any new data.
     *)
     function Read(var Buffer; Count: Longint): Longint; override;
     (* Function: Write
-       This function reimplementsthat of TStream. Write returns only after all the data has been written or <Reset> is called (or <EOF> is iset to True).
+       This function reimplements that of TStream. Write returns only after all the data has been written or <Reset> is called (or <EOF> is set to True).
        The size of the data to be written may be more than the size of the internal buffer.
        Write will block if there is not enough free space in the buffer (until enough data is read by the reader).
        See also <WouldWriteBlock>.
     *)
     function Write(const Buffer; Count: Longint): Longint; override;
     (* Function: Seek
-       This function reimplementsthat of TStream. Since TAuFIFOStream is non-seekable, it does nothing.
+       This function reimplements that of TStream. Since TAuFIFOStream is non-seekable, it does nothing.
     *)
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
@@ -903,7 +904,7 @@ type
     procedure Reset;
     (* Property: EOF
       The writer sets this property to True when it has written all the data.
-      After this the reader reads all the data that is left in the buffer and then <Read> calls start returning 0 as a resulting value (which is the End of File indicator for the reader).
+      After this the reader reads all the data that is left in the buffer and then <Read> calls start returning 0 as the resulting value (which is the End of File indicator for the reader).
 
     *)
     property EOF : Boolean read GetEOF write SetEOF;
