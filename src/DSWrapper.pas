@@ -66,7 +66,7 @@ type
   LPDIRECTSOUNDCAPTURE = ^IDIRECTSOUNDCAPTURE;
   LPDIRECTSOUNDCAPTUREBUFFER = ^IDIRECTSOUNDCAPTUREBUFFER;
   INT = Integer;
-  long = Integer;
+  long = LongWord;
 
   DSoundWrapper = record
     dsw_pDirectSound : IDIRECTSOUND;

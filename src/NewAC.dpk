@@ -30,7 +30,6 @@ package NewAC;
 {$R 'NewACDTS.dcr'}
 {$R 'NewACAC3.dcr'}
 {$R 'NewACIndicators.dcr'}
-{$R 'NewACDSAudio.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -131,8 +130,6 @@ contains
   mpg123_ in 'mpg123_.pas',
   taglib in 'taglib.pas',
   FastcodeCPUID in 'FastcodeCPUID.pas',
-  FastMove in 'FastMove.pas',
-  DSAudio in 'DSAudio.pas',
-  NewACDSAudio in 'NewACDSAudio.pas';
+  FastMove in 'FastMove.pas';
 
 end.

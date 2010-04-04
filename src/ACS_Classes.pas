@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package 2.6
+  This file is a part of New Audio Components package 2.5
   Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -111,8 +111,11 @@ type
     DataCS : TCriticalSection;
     _EndOfStream : Boolean;
     FFloatRequested : Boolean;
+    _PrefetchBuf : array of Byte;
+    _Prefetched, _PrefetchOffset : LongWord;
     (* We don't declare the buffer variable here
      because different descendants may need different buffer sizes *)
+    function BufAddr(Offset : LongWord) : Pointer; {$IF CompilerVersion > 17} inline; {$IFEND}
     function GetBPS : LongWord; virtual; abstract;
     function GetCh : LongWord; virtual; abstract;
     function GetSR : LongWord; virtual; abstract;
@@ -172,6 +175,7 @@ type
     *)
     function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
     function FillBufferUnprotected(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
+    procedure EmptyCache;
     procedure Reset; virtual;
 
     (* Procedure: Init
@@ -201,6 +205,7 @@ type
   > InputComponent.Flush;
     *)
     procedure Flush;
+    procedure _Prefetch(Bytes : LongWord); virtual;
     procedure _Lock;
     procedure _Unlock;
     procedure _Pause; virtual;
@@ -762,6 +767,10 @@ const
 
 type
 
+  // Circular buffer with TStream interface
+
+  TACSBufferMode = (bmBlock, bmReport);
+
   TEventType = (etOnProgress, etOnDone, etGeneric, etNonGUI);
 
   TEventRecord = record
@@ -803,111 +812,30 @@ type
     procedure UnblockEvents(Sender : TComponent);
   end;
 
-  const
-    cbmBlocking = 1;
-    cbmNonBlocking = 2;
-    cbmAlwaysRead = 4;
-
-
-type
-
   TCircularBuffer = class(TObject)
   private
     FBuffer : PBuffer8;
-    FP : Pointer;
     FBufSize : LongWord;
-    ReadPos, WritePos : Int64;
+    FWrap : Boolean;
+    FWritePtr : LongWord;
+    FReadPtr : LongWord;
+    FOverrun : Boolean;
+    FUnderrun : Boolean;
     CS : TCriticalSection;
-    Flags : Word;
-    FBreak : Boolean;
-    FEOF : Boolean;
   public
-    constructor Create(BufSize : LongWord; Mode : Word = cbmBlocking);
+    constructor Create(BufSize : LongWord);
     destructor Destroy; override;
     procedure Lock;
     procedure Unlock;
-    procedure ExposeSingleBufferWrite(var Buffer : Pointer; var Bytes : LongWord);
-    procedure ExposeSingleBufferRead(var Buffer : Pointer; var Bytes : LongWord);
-//    procedure ExposeDoubleBufferWrite(var Buffer1 : Pointer; var Bytes1 : LongWord; var Buffer2 : Pointer; var Bytes2 : LongWord);
-//    procedure ExposeDoubleBufferRead(var Buffer1 : Pointer; var Bytes1 : LongWord; var Buffer2 : Pointer; var Bytes2 : LongWord);
-    procedure AddBytesWritten(Bytes : LongWord);
-    procedure AddBytesRead(Bytes : LongWord);
-    function Read(Buf : Pointer; BufSize : LongWord) : LongWord;
-    function Write(Buf : Pointer; BufSize : LongWord) : LongWord;
-    function WouldWriteBlock : Boolean;
-    function WouldReadBlock : Boolean;
-    function FreeSpace : LongWord;
+    procedure ExposeSingleBufferWrite(var Buffer : Pointer; var BufSize : LongWord);
+    procedure ExposeSingleBufferRead(var Buffer : Pointer; var BufSize : LongWord);
+    procedure ExposeDoubleBufferWrite(var Buffer1 : Pointer; var BufSize1 : LongWord; var Buffer2 : Pointer; var BufSize2 : LongWord);
+    procedure ExposeDoubleBufferRead(var Buffer1 : Pointer; var BufSize1 : LongWord; var Buffer2 : Pointer; var BufSize2 : LongWord);
+    procedure SetBytesWritten(Bytes : LongWord);
+    procedure SetBytesRead(Bytes : LongWord);
     procedure Reset;
-    procedure Stop;
-    property EOF : Boolean read FEOF write FEOF;
-  end;
-
-   (* Class: TAuFIFOStream
-      This class implements the FIFO queue with a TStream-compatible interface.
-      The first thing you write to the stream is the first thing you will read from it.
-      The TAuFIFOStream operates on assumption that one agent is constantly writing the data to it while other is constantly reading.
-      The stream is not seekable and the Size property has no meaning for it.
-      Descends from TStream.
-   *)
-
-  TAuFIFOStream = class(TStream)
-  private
-    FCircularBuffer : TCircularBuffer;
-    FBytesLocked : LongWord;
-    procedure SetEOF(v : Boolean);
-    function GetEOF : Boolean;
-  protected
-    function GetSize: Int64; override;
-    procedure SetSize(NewSize: Longint); overload; override;
-    procedure SetSize(const NewSize: Int64); overload; override;
-  public
-    (* Procedure: Create
-       The TAuFIFOStream constructor.
-       BufSize is the internal buffer size in bytes.
-       Set PadWithZeros if you want <Read> to never block and return zero-filled buffer when there is no data.
-    *)
-    constructor Create(BufSize : LongWord; PadWithZeros : Boolean = False);
-    destructor Destroy; override;
-    (* Function: Read
-       This function reimplements that of TStream.
-       If you created the stream with PadWithZeros equal to False, Read will block until there is some data in the buffer.
-       See also <WouldReadBlock>, <EOF>.
-       If Read returns 0 it means that there is no data in the buffer and the writer will not write any new data.
-    *)
-    function Read(var Buffer; Count: Longint): Longint; override;
-    (* Function: Write
-       This function reimplements that of TStream. Write returns only after all the data has been written or <Reset> is called (or <EOF> is set to True).
-       The size of the data to be written may be more than the size of the internal buffer.
-       Write will block if there is not enough free space in the buffer (until enough data is read by the reader).
-       See also <WouldWriteBlock>.
-    *)
-    function Write(const Buffer; Count: Longint): Longint; override;
-    (* Function: Seek
-       This function reimplements that of TStream. Since TAuFIFOStream is non-seekable, it does nothing.
-    *)
-    function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
-    (* Function: WouldReadBlock
-       This function returns True if the <Read> would block (that is there is no data in the buffer) and False otherwise.
-    *)
-    function WouldReadBlock : Boolean;
-    (* Function: WouldWriteBlock
-       This function returns True if the <Write> would block (that is there is not enough free space in the buffer to write Bytes bytes) and False otherwise.
-    *)
-    function WouldWriteBlock(Bytes : LongWord = 1) : Boolean;
-    procedure LockReadBuffer(var Buffer : Pointer; var Bytes : LongWord);
-    procedure ReleaseReadBuffer;
-    (* Procedure: Reset
-       Call this to reset the stream.
-       Any blocked call to <Read> or <Write> returns immediately.
-    *)
-    procedure Reset;
-    (* Property: EOF
-      The writer sets this property to True when it has written all the data.
-      After this the reader reads all the data that is left in the buffer and then <Read> calls start returning 0 as the resulting value (which is the End of File indicator for the reader).
-
-    *)
-    property EOF : Boolean read GetEOF write SetEOF;
+    property Underrun : Boolean read FUnderrun;
+    property Overrun  : Boolean read FOverrun;
   end;
 
 procedure CreateEventHandler;
@@ -1116,6 +1044,7 @@ end;
   destructor TAuInput.Destroy;
   begin
     FreeAndNil(DataCS);
+    _PrefetchBuf := nil;
     inherited Destroy;
   end;
 
@@ -1144,6 +1073,8 @@ end;
   procedure TAuInput.Flush;
   begin
     DataCS.Enter;
+    _Prefetched := 0;
+    _PrefetchOffset := 0;
     try
       FlushInternal;
     finally
@@ -1155,7 +1086,20 @@ end;
   begin
     DataCS.Enter;
     try
-      GetDataInternal(Buffer, Bytes);
+      if _Prefetched > 0 then
+      begin
+        if Bytes > _Prefetched - _PrefetchOffset then
+           Bytes := _Prefetched - _PrefetchOffset;
+        Buffer := @Self._PrefetchBuf[_PrefetchOffset];
+        Inc(_PrefetchOffset, Bytes);
+        FPosition := FPosition + Bytes;
+        if _PrefetchOffset >= _Prefetched then
+        begin
+          _PrefetchOffset := 0;
+          _Prefetched := 0;
+        end;
+      end else
+        GetDataInternal(Buffer, Bytes);
     finally
       DataCS.Leave;
     end;
@@ -1578,6 +1522,8 @@ constructor TAuOutput.Create;
     end else
     begin
       try
+        _Prefetched := 0;
+        _PrefetchOffset := 0;
         Inc(SampleNum, FStartSample);
         Result := SeekInternal(SampleNum);
         FPosition := (SampleNum - FStartSample)*FSampleSize;
@@ -1655,6 +1601,14 @@ constructor TAuOutput.Create;
     inherited Notification(AComponent, Operation);
   end;
 
+  procedure TAuInput.EmptyCache;
+  begin
+    DataCS.Enter;
+    _Prefetched := LongWord(Length(_PrefetchBuf));
+    FillChar(_PrefetchBuf[0], _Prefetched, 0);
+    _PrefetchOffset := 0;
+    DataCS.Leave;
+  end;
 
   procedure TAuInput.Reset;
   begin
@@ -1804,20 +1758,17 @@ constructor TAuOutput.Create;
       Result := 0;
       Exit;
     end;
-    try
-      DataCS.Enter;
-      P := Buffer;
-      r := BufferSize;
-      Result := 0;
-      while (BufferSize - Result > 0) and (r > 0) do
-      begin
-        r := BufferSize - Result;
-        GetDataInternal(P1, r);
-        Move(P1^, P[Result], r);
-        Result := Result + r;
-      end;
-    finally
-      DataCS.Leave;
+    P := Buffer;
+    r := BufferSize;
+    Result := 0;
+    while (BufferSize - Result > 0) and (r > 0) do
+    begin
+      r := BufferSize - Result;
+      GetDataInternal(P1, r);
+//      if (P1 <> nil) and (r <> 0) then
+//       FastCopyMem(@P[Result], P1, r);
+      Move(P1^, P[Result], r);
+      Result := Result + r;
     end;
     EOF := r = 0;
   end;
@@ -1993,6 +1944,52 @@ begin
   inherited SetStream(aStream);
 end;
 
+function TAuInput.BufAddr(Offset : LongWord) : Pointer;
+begin
+  if _PrefetchBuf = nil then
+    Result := nil
+  else
+    Result := @_PrefetchBuf[Offset];
+end;
+
+
+procedure TAuInput._Prefetch(Bytes: Cardinal);
+var
+  EOF : Boolean;
+  LenB : LongWord;
+begin
+  try
+    DataCS.Enter;
+  LenB := LongWord(Length(_PrefetchBuf));
+  if _Prefetched > 0 then
+  begin
+    if _Prefetched < LenB then
+    begin
+      if BufAddr(0) <> nil then
+      Move(BufAddr(_PrefetchOffset)^, BufAddr(0)^, _Prefetched);
+      _PrefetchOffset := 0;
+      Bytes := FillBufferUnprotected(BufAddr(_Prefetched), LongWord(LenB - _Prefetched), EOF);
+      if Bytes <> 0 then
+      begin
+        FPosition := FPosition - Bytes;
+      end;
+    end;
+  end else
+  begin
+    if Bytes > LenB then
+      SetLength(_PrefetchBuf, Bytes);
+   Bytes := FillBufferUnprotected(BufAddr(0), Bytes, EOF);
+    if Bytes <> 0 then
+    begin
+      _Prefetched := Bytes;
+      FPosition := FPosition - Bytes;
+    end;
+  end;
+  finally
+    DataCS.Leave;
+  end;
+end;
+
 procedure TAuInput._Lock;
 begin
   DataCS.Enter;
@@ -2021,6 +2018,22 @@ begin
   DataCS.Enter;
   tmpBytes := Bytes;
   try
+    if _Prefetched > 0 then
+    begin
+      if Bytes > _Prefetched - _PrefetchOffset then
+         Bytes := _Prefetched - _PrefetchOffset;
+      Buffer := @Self._PrefetchBuf[_PrefetchOffset];
+      Inc(_PrefetchOffset, Bytes);
+      FPosition := FPosition + Bytes;
+      if _PrefetchOffset >= _Prefetched then
+      begin
+        _PrefetchOffset := 0;
+        _Prefetched := 0;
+      end;
+    end else
+    begin
+
+
     if _EndOfStream then
     begin
       Buffer :=  nil;
@@ -2066,6 +2079,8 @@ begin
          end;
       end;  // if _EndOfStream and FLoop then
     end; // if _EndOfStream then ... else
+
+    end;
   finally
     DataCS.Leave;
   end;
@@ -2075,6 +2090,21 @@ procedure TAuConverter.GetData;
 begin
   DataCS.Enter;
   try
+    if _Prefetched > 0 then
+    begin
+      if Bytes > _Prefetched - _PrefetchOffset then
+         Bytes := _Prefetched - _PrefetchOffset;
+      Buffer := @Self._PrefetchBuf[_PrefetchOffset];
+      Inc(_PrefetchOffset, Bytes);
+      FPosition := FPosition + Bytes;
+      if _PrefetchOffset >= _Prefetched then
+      begin
+        _PrefetchOffset := 0;
+        _Prefetched := 0;
+      end;
+    end else
+    begin
+
     if _EndOfStream then
     begin
       Buffer :=  nil;
@@ -2090,6 +2120,7 @@ begin
       end;
       if Bytes = 0 then
         _EndOfStream := True
+    end;
     end;
   finally
     DataCS.Leave;
@@ -2246,17 +2277,14 @@ end;
 constructor TCircularBuffer.Create;
 begin
   inherited Create;
+  GetMem(FBuffer, BufSize);
   FBufSize := BufSize;
-  GetMem(FP, BufSize+15);
- // LongWord(FP) := LongWord(FP) + 15 - ((LongWord(FP) + 15) mod 16);
-  FBufSize := BufSize;
-  FBuffer := FP;
   CS := TCriticalSection.Create;
 end;
 
 destructor TCircularBuffer.Destroy;
 begin
-  FreeMem(FP);
+  FreeMem(FBuffer);
   CS.Free;
   inherited Destroy;
 end;
@@ -2272,187 +2300,107 @@ begin
 end;
 
 procedure TCircularBuffer.ExposeSingleBufferWrite;
-var
-  WritePtrPos, ReadPtrPos : LongWord;
 begin
-  WritePtrPos := WritePos mod FBufSize;
-  ReadPtrPos := ReadPos  mod FBufSize;
-  Buffer := @FBuffer[WritePtrPos];
-  if WritePtrPos > ReadPtrPos then
+  Buffer := @FBuffer[FWritePtr];
+  if not FWrap then
   begin
-    Bytes := FBufSize - WritePtrPos;
-  end else
-  if WritePtrPos = ReadPtrPos then
-  begin
-     Bytes := FBufSize - WritePos + ReadPos;
-     if Bytes > FBufSize - WritePtrPos then
-       Bytes := FBufSize - WritePtrPos;
+    BufSize := FBufSize - FWritePtr;
+    if BufSize = 0 then
+    begin
+       Buffer := @FBuffer[0];
+       BufSize := FReadPtr;
+    end;
   end else
   begin
-    Bytes := ReadPtrPos - WritePtrPos;
+    if FReadPtr > FWritePtr then
+      BufSize := FReadPtr - FWritePtr
+    else
+      BufSize := 0;
   end;
 end;
 
 procedure TCircularBuffer.ExposeSingleBufferRead;
-var
-  WritePtrPos, ReadPtrPos : LongWord;
 begin
-  WritePtrPos := WritePos mod FBufSize;
-  ReadPtrPos := ReadPos  mod FBufSize;
-  Buffer := @FBuffer[ReadPtrPos];
-  if WritePtrPos > ReadPtrPos then
+  Buffer := @FBuffer[FReadPtr];
+  if FWrap then
   begin
-    Bytes := WritePtrPos - ReadPtrPos;
-  end else
-  if WritePtrPos = ReadPtrPos then
-  begin
-    Bytes := WritePos - ReadPos;
-    if Bytes > FBufSize - ReadPtrPos then
-      Bytes := FBufSize - ReadPtrPos
-  end else
-  begin
-    Bytes := FBufSize - ReadPtrPos;
-  end;
-end;
-
-procedure TCircularBuffer.AddBytesWritten;
-begin
-  WritePos := WritePos + Bytes;
-end;
-
-
-procedure TCircularBuffer.AddBytesRead;
-begin
-  ReadPos := ReadPos + Bytes;
-end;
-
-function TCircularBuffer.Read;
-var
-  sp1, l : LongWord;
-  _Buf : PBuffer8;
-  P : Pointer;
-begin
-  sp1 := LongWord(WritePos - ReadPos);
-  if sp1 = 0 then
-  begin
-    if ((Flags and cbmAlwaysRead)  <> 0) and (not FEOF) then
+    BufSize := FBufSize - FReadPtr;
+    if BufSize = 0 then
     begin
-       FillChar(Buf^, BufSize, 0);
-       Result := BufSize;
-       Exit;
-    end else
-    begin
-      while sp1 = 0 do
-      begin
-        if FEOF then
-        begin
-          WritePos := 0;
-          ReadPos := 0;
-          Result := 0;
-          Exit;
-        end;
-        Sleep(1);
-        if FBreak then
-        begin
-          Result := 0;
-          Exit;
-        end;
-        sp1 := LongWord(WritePos - ReadPos);
-      end;
+      Buffer := @FBuffer[0];
+      BufSize := FWritePtr;
     end;
-  end;
-  _Buf := Buf;
-  CS.Enter;
-  ExposeSingleBufferRead(P, l);
-  if l >= BufSize then
-  begin
-    Move(P^, _Buf[0], BufSize);
-    Result := BufSize;
-    ReadPos := ReadPos + BufSize;
   end else
   begin
-    Move(P^, _Buf[0], l);
-    Result := l;
-    ReadPos := ReadPos + l;
+    if FWritePtr > FReadPtr then
+      BufSize := FWritePtr - FReadPtr
+    else
+      BufSize := 0;
   end;
-  CS.Leave;
 end;
 
-function TCircularBuffer.Write(Buf: Pointer; BufSize: Cardinal) : LongWord;
-var
-  sp1, l : LongWord;
-  P : Pointer;
-  _Buf : PBuffer8;
+procedure TCircularBuffer.ExposeDoubleBufferWrite;
 begin
-  _Buf := Buf;
-  if FEOF then
+  Buffer1 := @FBuffer[FWritePtr];
+  if FWritePtr >= FReadPtr then
   begin
-    Result := 0;
-    Exit;
-  end;
-  sp1 := ReadPos + FBufSize - WritePos;
-  if sp1 = 0 then
-  begin
-    while sp1 = 0 do
-    begin
-      Sleep(1);
-      if FBreak then
-      begin
-        Result := 0;
-        Exit;
-      end;
-      sp1 := LongWord(ReadPos + FBufSize - WritePos);
-    end;
-  end;
-  CS.Enter;
-  ExposeSingleBufferWrite(P, l);
-  if l >= BufSize then
-  begin
-    Move(_Buf[0], P^, BufSize);
-    Result := BufSize;
-    WritePos := WritePos + BufSize;
+     BufSize1 := FBufSize - FWritePtr;
+     Buffer2 := @FBuffer[0];
+     BufSize2 := FReadPtr;
   end else
   begin
-    Move(_Buf[0], P^, l);
-    Result := l;
-    WritePos := WritePos + l;
+    BufSize1 := FReadPtr - FWritePtr;
+    Buffer2 := nil;
+    BufSize2 := 0;
   end;
-  CS.Leave;
 end;
 
-function TCircularBuffer.WouldWriteBlock;
+procedure TCircularBuffer.ExposeDoubleBufferRead;
 begin
-  Result := ReadPos + FBufSize - WritePos = 0;
+  Buffer1 := @FBuffer[FReadPtr];
+  if FWritePtr >= FReadPtr then
+  begin
+     BufSize1 := FWritePtr - FReadPtr;
+     Buffer2 := nil;
+     BufSize2 := 0;
+  end else
+  begin
+    BufSize1 := FBufSize - FReadPtr;
+    Buffer2 := @FBuffer[0];
+    BufSize2 := FWritePtr;
+  end;
 end;
 
-function TCircularBuffer.WouldReadBlock;
+procedure TCircularBuffer.SetBytesWritten;
 begin
-  Result := WritePos - ReadPos = 0;
+  if FWritePtr = FBufSize then
+  begin
+    FWrap := True;
+    FWritePtr := 0;
+  end;
+  Inc(FWritePtr, Bytes);
+  if FWrap = (FWritePtr > FReadPtr) then FOverrun := True
+  else FOverrun := False;
 end;
 
-function TCircularBuffer.FreeSpace;
+
+procedure TCircularBuffer.SetBytesRead;
 begin
-  Result := ReadPos + FBufSize - WritePos;
+  if FReadPtr = FBufSize then
+  begin
+    FWrap := False;
+    FReadPtr := 0;
+  end;
+  Inc(FReadPtr, Bytes);
+  if FWrap = (FWritePtr > FReadPtr) then FUnderrun := True
+  else FOverrun := False;
 end;
 
 procedure TCircularBuffer.Reset;
 begin
-  CS.Enter;
-  ReadPos := 0;
-  WritePos := 0;
-  FBreak := False;
-  FEOF := False;
-  CS.Leave;
-end;
-
-procedure TCircularBuffer.Stop;
-begin
-  CS.Enter;
-  ReadPos := 0;
-  WritePos := 0;
-  FBreak := True;
-  FEOF := True;
-  CS.Leave;
+  FReadPtr := 0;
+  FWritePtr := 0;
+  FWrap := False;
 end;
 
 function TAuConverter.GetBPS;
@@ -2492,106 +2440,6 @@ begin
     if FInput is TAuFileIn then
       TAuFileIn(FInput)._Jump(Offs);
   end;
-end;
-
-constructor TAuFIFOStream.Create;
-var
-  f : Word;
-begin
-  inherited Create();
-  f := cbmBlocking;
-  if PadWithZeros then f := f + cbmAlwaysRead;
-  FCircularBuffer := TCircularBuffer.Create(BufSize, f);
-  FBytesLocked := 0;
-end;
-
-destructor TAuFIFOStream.Destroy;
-begin
-  FCircularBuffer.EOF := True;
-  FCircularBuffer.CS.Enter;
-  Sleep(0);
-  FCircularBuffer.CS.Leave;
-  FCircularBuffer.Free;
-  inherited;
-end;
-
-procedure TAuFIFOStream.SetEOF(v: Boolean);
-begin
-  FCircularBuffer.EOF := v;
-end;
-
-function TAuFIFOStream.GetEOF;
-begin
-  Result := FCircularBuffer.EOF;
-end;
-
-procedure TAuFIFOStream.SetSize(NewSize: Integer);
-begin
-
-end;
-
-procedure TAuFIFOStream.SetSize(const NewSize: Int64);
-begin
-
-end;
-
-function TAuFIFOStream.GetSize;
-begin
-  Result := FCircularBuffer.WritePos;
-end;
-
-function TAuFIFOStream.Seek(Offset: Integer; Origin: Word) : LongInt;
-begin
-  Result := 0;
-end;
-
-function TAuFIFOStream.Seek(const Offset: Int64; Origin: TSeekOrigin) : Int64;
-begin
-  Result := 0;
-end;
-
-function TAuFIFOStream.WouldReadBlock;
-begin
-  Result := (FCircularBuffer.WritePos - FCircularBuffer.ReadPos = 0) and (not FCircularBuffer.EOF);
-end;
-
-function TAuFIFOStream.WouldWriteBlock;
-begin
-  Result := FCircularBuffer.FBufSize - (FCircularBuffer.WritePos - FCircularBuffer.ReadPos) < Bytes;
-end;
-
-function TAuFIFOStream.Read(var Buffer; Count: Integer) : Integer;
-begin
-  Result := Integer(FCircularBuffer.Read(@Buffer, LongWord(Count)));
-end;
-
-function TAuFIFOStream.Write(const Buffer; Count: Integer) : Integer;
-var
-  l : Integer;
-  B : PBuffer8;
-begin
-  l := 0;
-  B := @Buffer;
-  while l < Count do
-    l := l + Integer(FCircularBuffer.Write(@B[l], LongWord(Count - l)));
-  Result := l;
-end;
-
-procedure TAuFIFOStream.Reset;
-begin
-  FCircularBuffer.Reset;
-end;
-
-procedure TAuFIFOStream.LockReadBuffer(var Buffer: Pointer; var Bytes: Cardinal);
-begin
-  FCircularBuffer.ExposeSingleBufferRead(Buffer, Bytes);
-  FBytesLocked := Bytes;
-end;
-
-procedure TAuFIFOStream.ReleaseReadBuffer;
-begin
-  FCircularBuffer.AddBytesRead(FBytesLocked);
-  FBytesLocked := 0;
 end;
 
 initialization

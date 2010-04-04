@@ -1,6 +1,6 @@
 (*
   This file is a part of New Audio Components package v. 2.4.x
-  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
+  Copyright (c) 2002-2007, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 
@@ -304,7 +304,7 @@ type
        This value should be greater than that of <CompareSectors> and less than that of <ReadSectorsPerBurst>. *)
     property OverlapSectors : Integer read GetOverlapSectors write FOverlapSectors;
     (* Property: CompareSectors
-       This property controls the number of CD-DA sectors to be compared when jitter correction is enabled.
+       This property controls the number of CD-DA sectors to bbe compared when jitter correction is enabled.
        It is a low level property that you can use to ajust the jitter correction efficiency.
        This value should be less than that of <OverlapSectors>. *)
     property CompareSectors : Integer read GetCompareSectors write FCompareSectors;
@@ -325,7 +325,7 @@ type
        If this property's value is greater than 0, this mechanism will be enabled and each sector will be re-read the specified number of times. *)
     property MultiReadCount : Integer read FMultiReadCount write FMultiReadCount;
     (* Property: Paranoid
-       Set this property to True to enable paranoid, that is extra error checking ripping mode.   *)
+       Set this property to True to enable paranoid, tha is extra error checking ripping mode.   *)
     property Paranoid : Boolean read FParanoid write FParanoid;
     (* Property: ParanoiaMode
        Use this property to set the level of paranoia.  *)
@@ -819,7 +819,7 @@ procedure TCDPlayer.CloseCD;
       for i := 0 to en-1 do
       begin
         TE := GetTOCEntry(i);
-        if TE.btFlag >= AUDIOTRKFLAG then
+        if TE.btFlag = AUDIOTRKFLAG then
         begin
           case Result of
             cdiUnknown : Result := cdiDiscAudio;
@@ -1204,13 +1204,11 @@ procedure TCDPlayer.CloseCD;
   procedure TCDIn.Eject;
   begin
     if Busy then raise EAuException.Create('The component is busy');
-    CR_SetActiveCDROM(FCurrentDrive);
     CR_EjectCD(True);
   end;
 
   procedure TCDIn.CloseTray;
   begin
-    CR_SetActiveCDROM(FCurrentDrive);
     CR_EjectCD(False);
   end;
 
