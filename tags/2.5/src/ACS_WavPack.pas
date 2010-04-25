@@ -591,8 +591,9 @@ begin
       raise EAuException.Create('File name is not assigned')
     else
       FStream := TAuFileStream.Create(
-        FWideFileName, fmCreate or fmShareDenyWrite);
-
+//        FWideFileName, fmCreate or fmShareDenyWrite);
+// Pasted from ACS_FLAC.TFLACOut.Prepare
+        FWideFileName, fmCreate or FShareMode, FAccessMask);
   if FHybridMode then
     if not FCorrectionsStreamAssigned then
       try
