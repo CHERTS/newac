@@ -11,7 +11,11 @@ unit NewACDSAudio;
 
 interface
 uses
-  SysUtils, Classes, Forms, FastMove, ACS_Types, ACS_Classes, Windows, MMSystem, DSAudio, _DirectSound;
+  SysUtils, Classes, Forms, FastMove, ACS_Types, ACS_Classes, Windows, MMSystem, DSAudio, _DirectSound, inifiles;
+
+
+const
+   DefaultLatency = 200;
 
 type
 
@@ -41,11 +45,14 @@ type
     FOnUnderrun : TGenericEvent;
     FVolume : longint; //DW - for more reliable volume control
     FSpeedFactor : Single;
+    FCalibrate : Boolean;
+    FINIFile : String;
     procedure SetDeviceNumber(i : Integer);
     function GetDeviceName(Number : Integer) : String;
     function GetVolume : Integer;
     procedure SetVolume(value : Integer);
     procedure SetLatency(v : LongWord);
+    procedure OnLatency(Sender : TComponent);
   protected
     procedure Done; override;
     function DoOutput(Abort : Boolean):Boolean; override;
@@ -97,6 +104,12 @@ type
          device in your system. Valid numbers range from 0 to <DeviceCount> -
          1. *)
     property DeviceNumber : Integer read FDeviceNumber write SetDeviceNumber;
+    (* Property: Calibrate
+         If this property is set to True the <Latency> value is increased until underruns are no more reported. This way the Latency may be ajusted automatically. *)
+    property Calibrate : Boolean read FCalibrate write FCalibrate;
+    (* Property: INIFile
+         Set this property to the ini file name where the <Latency> value should be stored. If <Calibrate> is set to True the calibrated Latency value is written to the file.  *)
+    property INIFile : String read FINIFile write FINIFile;
     (* Property: Latency
          This property sets the average audio latency (the delay between the moment the audio data is passed to the component and the moment it is played.
          The latency is set in milliseconds. Lower latencies tend to produce more underruns.
@@ -168,10 +181,12 @@ function TDSAudioOut.DoOutput;
 var
   Len : LongWord;
   lb : Integer;
+  IncreaseLatency : Boolean;
 //  Res : HRESULT;
   PlayTime, CTime : LongWord;
 begin
   Result := True;
+  IncreaseLatency := False;
   if not Busy then Exit;
   if not CanOutput then
   begin
@@ -216,6 +231,7 @@ begin
   begin
     Inc(FUnderruns);
     ResetEvent(DS.events[1]);
+    IncreaseLatency := True;
     if Assigned(FOnUnderrun) then
       EventHandler.PostGenericEvent(Self, FOnUnderrun);
   end;
@@ -230,6 +246,7 @@ begin
   if DS.Underflows > 0 then
   begin
     Inc(FUnderruns);
+    IncreaseLatency := True;
     if Assigned(FOnUnderrun) then
       EventHandler.PostGenericEvent(Self, FOnUnderrun);
   end;
@@ -247,6 +264,7 @@ begin
     begin
       Inc(FUnderruns);
       ResetEvent(DS.events[0]);
+      IncreaseLatency := True;
       if Assigned(FOnUnderrun) then
         EventHandler.PostGenericEvent(Self, FOnUnderrun);
     end;
@@ -261,6 +279,7 @@ begin
     if DS.Underflows > 0 then
     begin
       Inc(FUnderruns);
+      IncreaseLatency := True;
       if Assigned(FOnUnderrun) then
         EventHandler.PostGenericEvent(Self, FOnUnderrun);
     end;
@@ -272,13 +291,26 @@ begin
       Exit;
     end;
   end;
+  if IncreaseLatency then
+      EventHandler.PostNonGuiEvent(Self, OnLatency);
 end;
 
 constructor TDSAudioOut.Create;
+var
+  Ini : TIniFile;
 begin
   inherited Create(AOwner);
   FSpeedFactor := 1;
-  FLatency := 60;
+  if FINIFile <> '' then
+  begin
+    Ini := TIniFile.Create(FINIFile);
+    try
+      FLatency := Ini.ReadInteger('AudioOutput', 'Latency', DefaultLatency);
+    except
+       FLatency :=  DefaultLatency;
+    end;
+    Ini.Free;
+  end;
   FVolume := 0; //DW
   if not (csDesigning in ComponentState) then
   begin
@@ -290,8 +322,15 @@ begin
 end;
 
 destructor TDSAudioOut.Destroy;
+var
+  Ini : TIniFile;
 begin
-  inherited Destroy;
+  if (FINIFile <> '') and FCalibrate then
+  begin
+    Ini := TIniFile.Create(FINIFile);
+    Ini.WriteInteger('AudioOutput', 'Latency', FLatency);
+    Ini.Free;
+  end;
 end;
 
 procedure TDSAudioOut.Prepare;
@@ -455,6 +494,11 @@ begin
     FFrameSize := (BPS shr 3)*Chan;
     Resume;
   end;
+end;
+
+procedure TDSAudioOut.OnLatency(Sender: TComponent);
+begin
+  SetLatency(FLatency + 10);
 end;
 
 end.

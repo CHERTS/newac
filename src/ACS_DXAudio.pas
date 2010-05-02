@@ -492,7 +492,7 @@ end;
 
 procedure TDXAudioOut.Usleep(Interval : Word; Prefetch : Boolean);
 var
-  Start, Elapsed, DataSize, SampleSize : LongWord;
+  Start, Elapsed {, DataSize, SampleSize} : LongWord;
 begin
   Start := timeGetTime;
   if Prefetch then

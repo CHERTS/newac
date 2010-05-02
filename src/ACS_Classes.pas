@@ -857,7 +857,7 @@ type
     procedure SetEOF(v : Boolean);
     function GetEOF : Boolean;
   protected
-    function GetSize: Int64; override;
+    function GetSize: Int64; {$IF CompilerVersion > 18}override;{$IFEND}
     procedure SetSize(NewSize: Longint); overload; override;
     procedure SetSize(const NewSize: Int64); overload; override;
   public
