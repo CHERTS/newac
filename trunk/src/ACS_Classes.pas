@@ -257,6 +257,7 @@ type
     Thread : TAuThread;
     FInput : TAuInput;
     FOnDone : TOutputDoneEvent;
+    FOnSyncDone : TOutputDoneEvent;
     FOnProgress : TOutputProgressEvent;
     Busy : Boolean;  // Set to true by Run and to False by WhenDone.
     FOnThreadException : TThreadExceptionEvent;
@@ -365,8 +366,11 @@ type
        component from the event handler. *)
     property OnProgress : TOutputProgressEvent read FOnProgress write FOnProgress;
     (* Property: OnThreadException
-       This event is raised if an exception has occurred. Exception string is stored in <ExceptionMessage>. *) 
+       This event is raised if an exception has occurred. Exception string is stored in <ExceptionMessage>. *)
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
+   (* Property: OnSyncDone
+      The synchronous analogue of the <OnDone> event. This event is not synchronized with the main GUI thread so be careful with the methods you call from the handler. *)
+    property OnSyncDone : TOutputDoneEvent read FOnSyncDone write FOnSyncDone;
   end;
 
 (* Class: TAuStreamedInput
@@ -1252,9 +1256,15 @@ end;
       except
         ParentComponent.Busy := False;
       end;
-       EventHandler.PostOnDone(Parent, Self);
-       Stopped := True;
-       if not Terminated then Self.SoftSleep;
+      if Assigned(ParentComponent.FOnSyncDone) then
+         ParentComponent.FOnSyncDone(ParentComponent)
+       else
+         EventHandler.PostOnDone(Parent, Self);
+       if not ParentComponent.Busy then
+       begin
+         Stopped := True;
+         if not Terminated then Self.SoftSleep;
+       end;
     end; //  while not Terminated do
   end;
 
@@ -1337,10 +1347,17 @@ constructor TAuOutput.Create;
   end;
 
   procedure TAuOutput.Stop;
+  var
+    e : TOutputDoneEvent;
   begin
     FStopped := True;
     if Thread = nil then
       Exit;
+    if not Async then
+    begin
+      e := FOnSyncDone;
+      FOnSyncDone := nil;
+    end;
     Thread.DoNotify := Async;
     Thread.Stopped := False;
     Thread.Stop := True;
@@ -1360,6 +1377,7 @@ constructor TAuOutput.Create;
       end;
       EventHandler.UnblockEvents(Self);
       Thread.DoNotify := True;
+      FOnSyncDone := e;
     end;
   end;
 
@@ -1816,6 +1834,7 @@ constructor TAuOutput.Create;
         Move(P1^, P[Result], r);
         Result := Result + r;
       end;
+      Inc(FPosition, Result);
     finally
       DataCS.Leave;
     end;
