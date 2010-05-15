@@ -291,7 +291,7 @@ begin
       Exit;
     end;
   end;
-  if IncreaseLatency then
+  if IncreaseLatency and FCalibrate then
       EventHandler.PostNonGuiEvent(Self, OnLatency);
 end;
 

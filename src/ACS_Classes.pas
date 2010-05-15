@@ -846,6 +846,35 @@ type
     property EOF : Boolean read FEOF write FEOF;
   end;
 
+  const
+     AuCacheSize = $80000;
+
+  type
+
+  TCacheThread  = class(TThread)
+  public
+    FCS : TCriticalSection;
+    B : array[0..AuCacheSize-1] of Byte;
+    Buf : TCircularBuffer;
+    h : Thandle;
+    Stopped : Boolean;
+    procedure Execute; override;
+  end;
+
+  TAuCachedStream = class(TAuFileStream)
+  strict private
+    FCBuffer : TCircularBuffer;
+    FThread : TCacheThread;
+    FPosition : Int64;
+  public
+    constructor Create(const AFileName: string; Mode: Word; Cached : Boolean); overload;
+    constructor Create(const AFileName: string; Mode: Word; Rights: Cardinal; Cached : Boolean); overload;
+    destructor Destroy; override;
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+  end;
+
+
    (* Class: TAuFIFOStream
       This class implements the FIFO queue with a TStream-compatible interface.
       The first thing you write to the stream is the first thing you will read from it.
@@ -2612,6 +2641,88 @@ begin
   FCircularBuffer.AddBytesRead(FBytesLocked);
   FBytesLocked := 0;
 end;
+
+procedure TCacheThread.Execute;
+var
+  bf : LongWord;
+  br, t : LongWord;
+begin
+  Stopped := False;
+  while not Terminated do
+  begin
+    bf := Buf.FreeSpace;
+    if bf > 0 then
+    begin
+      t := 0;
+      FCS.Enter;
+      if ReadFile(h, B[0], bf, br, nil) then
+      begin
+        while t < br  do
+          t := t + Buf.Write(@B[t], br - t);
+      end else
+        Break;
+      FCS.Leave;
+    end;
+    Sleep(0);
+  end;
+  Buf.EOF := True;
+  Stopped := True;
+end;
+
+  constructor TAuCachedStream.Create(const AFileName: string; Mode: Word; Cached : Boolean);
+  begin
+    Create(AFileName, Mode);
+    FCBuffer := TCircularBuffer.Create(AuCacheSize);
+    FThread := TCacheThread.Create(True);
+    FThread.FCS := TCriticalSection.Create;
+    FThread.FreeOnTerminate := False;
+    FPosition := 0;
+    FThread.h := Handle;
+    FThread.Buf := FCBuffer;
+    FThread.Start;
+  end;
+
+  constructor TAuCachedStream.Create(const AFileName: string; Mode: Word; Rights: Cardinal; Cached : Boolean);
+  begin
+    Create(AFileName, Mode, Rights);
+    FThread.FCS := TCriticalSection.Create;
+    FCBuffer := TCircularBuffer.Create(AuCacheSize);
+    FThread := TCacheThread.Create(True);
+    FThread.FreeOnTerminate := False;
+    FPosition := 0;
+    FThread.h := Handle;
+    FThread.Buf := FCBuffer;
+    FThread.Start;
+  end;
+
+  destructor TAuCachedStream.Destroy;
+  begin
+    FThread.Terminate;
+    while not FThread.Stopped do
+      Sleep(0);
+    FCBuffer.Free;
+    FThread.FCS.Free;
+    inherited Destroy;
+  end;
+
+  function TAuCachedStream.Read(var Buffer; Count: Longint): Longint;
+  begin
+    Result := FCBuffer.Read(@Buffer, Count);
+    Inc(FPosition, Result);
+  end;
+
+  function TAuCachedStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+  begin
+    FThread.FCS.Enter;
+    if Origin <> soCurrent then
+    begin
+      FCBuffer.Reset;
+      FPosition := FileSeek(Handle, Offset, Ord(Origin));
+    end;
+    Result := FPosition;
+    FThread.FCS.Leave;
+  end;
+
 
 initialization
 
