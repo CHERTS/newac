@@ -1270,6 +1270,7 @@ end;
           end;
           Res := ParentComponent.DoOutput(Stop);
         end; // while (not Stop) and Res do
+        Stop := False;
       except
         on E : Exception do
         begin
@@ -1279,7 +1280,6 @@ end;
           Stop := True;
         end;
       end;
-      Stop := False;
       try
         ParentComponent.WhenDone;
       except
@@ -1365,6 +1365,7 @@ constructor TAuOutput.Create;
       raise EAuException.Create('Input is not assigned');
     end;
     try
+      Thread.Stopped := False;
       while Thread.Sleeping do
       begin
         Thread.Stop := False;
@@ -1388,7 +1389,7 @@ constructor TAuOutput.Create;
       FOnSyncDone := nil;
     end;
     Thread.DoNotify := Async;
-    Thread.Stopped := False;
+//    Thread.Stopped := False;
     Thread.Stop := True;
     while Thread.Paused do
     begin
