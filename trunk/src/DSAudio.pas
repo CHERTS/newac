@@ -74,6 +74,7 @@ type
   procedure UnlockEvents(var ds: DSOut);
   function DSGetVolume(var ds : DSOut; out Volume: Longint) : HRESULT;
   function DSSetVolume(var ds : DSOut; Volume: Longint) : HRESULT;
+  procedure DSFlush(var ds : DSOut; FillByte : Byte);
 
   function DSEnumerateInputDevices(devices : PDSW_Devices) : HRESULT;
   function DSInitInputDevice(var ds : DSIn; lpGUID : PGUID) : HRESULT;
@@ -316,6 +317,21 @@ begin
     ds.Offset := (ds.Offset + dwsize1 + dwsize2) mod ds.BufferSize;
     ds.DirectSoundBuffer.Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
   end;
+end;
+
+procedure DSFlush(var ds : DSOut; FillByte : Byte);
+var
+  lpbuf1 : PBYTE;
+  lpbuf2 : PBYTE;
+  dwsize1 : DWORD;
+  dwsize2 : DWORD;
+begin
+  ds.DirectSoundBuffer.Lock(0, ds.BufferSize, @lpbuf1,
+                @dwsize1, @lpbuf2, @dwsize2, 0);
+  FillChar(lpbuf1^, dwsize1, FillByte);
+  FillChar(lpbuf2^, dwsize2, FillByte);
+  ds.Offset := 0; //(ds.Offset + dwsize1 + dwsize2) mod ds.BufferSize;
+  ds.DirectSoundBuffer.Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
 end;
 
 function DSWriteBlock(var ds : DSOut; buf : PByte; numBytes : LongWord) : HRESULT;
