@@ -120,7 +120,7 @@ type
     (* Property: OnUnderrun
          OnUnderrun event is raised when the component has run out of data.
          This can happen if the component receives data at slow rate from a
-         slow CD-ROM unit or a network link. You will also get OnUnderrun
+         slow CD-ROM unit or a network link. You may also get OnUnderrun
          event when unpausing paused playback (this is a normal situation).
          Usually TDXAudioOut successfully recovers from underruns by itself,
          but this causes pauses in playback so if you start to receive
@@ -179,7 +179,7 @@ end;
 
 function TDSAudioOut.DoOutput;
 var
-  Len : LongWord;
+  Len : Integer;
   lb : Integer;
   IncreaseLatency : Boolean;
 //  Res : HRESULT;
@@ -202,7 +202,9 @@ begin
   end;
   if StartInput then
   begin
-    Len := _BufSize div 2;
+    DSQueryOutputSpace(DS, Len);
+    if Len  = 0 then
+        Len := _BufSize div 2;
     Len := FInput.FillBufferUnprotected(Buf, Len, EndOfInput);
     DSWriteBlock(DS, @Buf[0], Len);
     Volume := FVolume; //DW
@@ -415,14 +417,16 @@ end;
 procedure TDSAudioOut.Resume;
 begin
   if EndOfInput then Exit;
-  DSRestartOutput(DS);
+  StartInput := True;
   inherited Resume;
+  DSRestartOutput(DS);
 end;
 
 procedure TDSAudioOut.Jump(Offs : Integer);
 begin
   Pause;
-  DSFillEmptySpace(DS, FillByte);
+  //DSFillEmptySpace(DS, FillByte);
+  DSFlush(DS, FillByte);
   if Assigned(Finput) then
   begin
     if FInput is TAuConverter then
