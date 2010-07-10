@@ -1403,7 +1403,8 @@ constructor TAuOutput.Create;
       while (not Thread.Sleeping) and (not Thread.Stopped) do
       begin
         sleep(0);
-        CheckSynchronize; // to release possible deadlocks
+        if GetCurrentThreadID = MainThreadID then
+          CheckSynchronize; // to release possible deadlocks
       end;
       EventHandler.UnblockEvents(Self);
       Thread.DoNotify := True;
