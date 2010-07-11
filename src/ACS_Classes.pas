@@ -1380,6 +1380,8 @@ constructor TAuOutput.Create;
   var
     e : TOutputDoneEvent;
   begin
+    if  GetCurrentThreadID = Thread.ThreadID then
+      raise EAuException.Create.Create('You are trying to stop this thread from the thread itself!');
     FStopped := True;
     if Thread = nil then
       Exit;
