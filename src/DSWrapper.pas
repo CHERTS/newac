@@ -149,7 +149,7 @@ type
   function DSW_StartInput(var dsw : DSoundWrapper) : HRESULT;
   function DSW_StopInput(var dsw : DSoundWrapper) : HRESULT;
   function DSW_QueryInputFilled(var dsw : DSoundWrapper; var bytesFilled : long) : HRESULT;
-  function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : long) : HRESULT;
+  function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; var numBytes : long) : HRESULT;
   procedure DSW_Term(var dsw : DSoundWrapper);
 
   function DSW_FlushOutputBuffer(var dsw : DSoundWrapper; BytesToLeave : Integer) : HRESULT;
@@ -768,7 +768,7 @@ begin
   bytesFilled := filled;
 end;
 
-function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : long) : HRESULT;
+function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; var numBytes : long) : HRESULT;
 var
   lpbuf1 : PBYTE;
   lpbuf2 : PBYTE;
@@ -793,6 +793,7 @@ begin
     dsw.dsw_ReadOffset := (dsw.dsw_ReadOffset + dwsize1 + dwsize2) mod dsw.dsw_InputSize;
     dsw.dsw_InputBuffer.Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
   end;
+  numBytes := dwsize1 + dwsize2;
 end;
 
 function DSW_GetVolume(var dsw : DSoundWrapper; out Volume: Longint) : HRESULT;

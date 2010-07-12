@@ -1,5 +1,5 @@
 (*
-  This file is a part of New Audio Components package v. 2.5
+  This file is a part of New Audio Components package v. 2.6
   Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
@@ -547,7 +547,7 @@ begin
     begin
       if FLatency < 10 then Flatency := 10;
       FFramesInBuffer := FLatency*FFreq div 1000;
-      FPollingInterval := (FLatency div 4)*3;
+      FPollingInterval := (FLatency div 2); //4)*3;
     end;
     DSW_Init(DSW);
     //if not Assigned(DSW_InitInputDevice) then raise EACSException.Create('Failed');
