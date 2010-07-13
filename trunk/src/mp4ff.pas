@@ -13,7 +13,8 @@ interface
 uses
   Windows,
   SysUtils,
-  ACS_Classes;
+  ACS_Classes,
+  neaac;
 
 const
   Libmp4ffPath = 'libmp4ff.dll';
@@ -166,6 +167,7 @@ var
   mp4ff_meta_update : mp4ff_meta_update_t;
 {$ENDIF}
 
+function GetAACTrack(infile : p_mp4ff_t) : Integer;
 procedure Loadmp4ff;
 procedure Freem4ff;
 
@@ -173,6 +175,32 @@ implementation
 
 var
   hlib: THandle;
+
+function GetAACTrack(infile : p_mp4ff_t) : Integer;
+var
+  i, rc, numTracks : Integer;
+  buff : PByte;
+  buff_size : Integer;
+  mp4ASC : mp4AudioSpecificConfig;
+begin
+    numTracks := mp4ff_total_tracks(infile);
+    for i := 0 to numTracks - 1 do
+    begin
+        buff := nil;
+        buff_size:=0;
+        mp4ff_get_decoder_config(infile, i, buff, buff_size);
+        if buff <> nil then
+        begin
+          rc := NeAACDecAudioSpecificConfig(buff, buff_size, @mp4ASC);
+          FreeMem(buff);
+          if rc < 0 then
+               continue;
+          Result := i;
+          Exit;
+        end;
+    end;
+    Result :=  -1;
+end;
 
 procedure Freemp4ff;
 begin
