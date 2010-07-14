@@ -1735,6 +1735,8 @@ begin
     Buffer := @InBuf[0]
   else
     Buffer := nil;
+  if FPosition + Bytes > FSize then
+    FPosition := 0;
 //  Inc(FPosition, Bytes);
 end;
 
