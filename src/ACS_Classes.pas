@@ -762,7 +762,7 @@ type
 
 const
 
-  STREAM_BUFFER_SIZE = $80000;
+  STREAM_BUFFER_SIZE = $100000;
 
 type
 
@@ -847,7 +847,7 @@ type
   end;
 
   const
-     AuCacheSize = $80000;
+     AuCacheSize = $8000000;
 
   type
 
@@ -2414,8 +2414,9 @@ begin
     end;
   end;
   _Buf := Buf;
-  CS.Enter;
+//  CS.Enter;
   ExposeSingleBufferRead(P, l);
+//  CS.Leave;
   if l >= BufSize then
   begin
     Move(P^, _Buf[0], BufSize);
@@ -2427,7 +2428,6 @@ begin
     Result := l;
     ReadPos := ReadPos + l;
   end;
-  CS.Leave;
 end;
 
 function TCircularBuffer.Write(Buf: Pointer; BufSize: Cardinal) : LongWord;
@@ -2456,8 +2456,9 @@ begin
       sp1 := LongWord(ReadPos + FBufSize - WritePos);
     end;
   end;
-  CS.Enter;
+//  CS.Enter;
   ExposeSingleBufferWrite(P, l);
+//  CS.Leave;
   if l >= BufSize then
   begin
     Move(_Buf[0], P^, BufSize);
@@ -2469,7 +2470,6 @@ begin
     Result := l;
     WritePos := WritePos + l;
   end;
-  CS.Leave;
 end;
 
 function TCircularBuffer.WouldWriteBlock;
@@ -2655,16 +2655,25 @@ begin
   while not Terminated do
   begin
     bf := Buf.FreeSpace;
-    if bf > 0 then
+    if bf > Buf.FBufSize div 16 then
     begin
+      if (bf > Buf.FBufSize div 2) then
+      begin
+        Sleep(1);
+      end;
+
       t := 0;
       FCS.Enter;
       if ReadFile(h, B[0], bf, br, nil) then
       begin
+        if br > bf then raise Exception.Create('Error Message');
         while t < br  do
           t := t + Buf.Write(@B[t], br - t);
       end else
+      begin
+        FCS.Leave;
         Break;
+      end;
       FCS.Leave;
     end;
     Sleep(0);
@@ -2711,18 +2720,23 @@ end;
 
   function TAuCachedStream.Read(var Buffer; Count: Longint): Longint;
   begin
+//    FThread.FCS.Enter;
     Result := FCBuffer.Read(@Buffer, Count);
     Inc(FPosition, Result);
+//    FThread.FCS.Leave;
   end;
 
   function TAuCachedStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
   begin
-    FThread.FCS.Enter;
-    if Origin <> soCurrent then
+{    if (Origin = soCurrent) and (Offset = 0) then
     begin
-      FCBuffer.Reset;
+      Result := FPosition;
+      Exit;
+    end; }
+
+    FThread.FCS.Enter;
+      FCBuffer.ReadPos := FCBuffer.WritePos; //.Reset;
       FPosition := FileSeek(Handle, Offset, Ord(Origin));
-    end;
     Result := FPosition;
     FThread.FCS.Leave;
   end;
