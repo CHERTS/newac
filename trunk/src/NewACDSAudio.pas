@@ -424,16 +424,14 @@ end;
 
 procedure TDSAudioOut.Jump(Offs : Integer);
 begin
+  if not Assigned(Finput)
+    then Exit;
+  if Status <> tosPlaying then Exit;
   Pause;
   //DSFillEmptySpace(DS, FillByte);
   DSFlush(DS, FillByte);
   if Assigned(Finput) then
-  begin
-    if FInput is TAuConverter then
-      TAuConverter(FInput)._Jump(Offs);
-    if FInput is TAuFileIn then
-      TAuFileIn(FInput)._Jump(Offs);
-  end;
+    FInput._Jump(Offs);
   Resume;
   StartInput := True;
 end;
