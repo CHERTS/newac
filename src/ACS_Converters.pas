@@ -351,6 +351,31 @@ type
     property OnClipping : TClippingEvent read FOnCliping write FOnCliping;
   end;
 
+  const
+     AudioCacheSize = $200000;
+     ACBufLen = AudioCacheSize div 8;
+
+ type
+
+  TAudioCacheThread =  class(TThread)
+  public
+    Parent : TAuInput;
+    Buf : TCircularBuffer;
+    Stopped : Boolean;
+    procedure Execute; override;
+  end;
+
+  TAudioCache = class(TAuConverter)
+  private
+    InBuf : array[0..ACBufLen-1] of Byte;
+    CacheThread : TAudioCacheThread;
+  protected
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    procedure InitInternal; override;
+    procedure FlushInternal; override;
+    procedure _Jump(Offs : Integer); override;
+  end;
+
 implementation
 
   function SHGetFolderPathA(hwndOwner : HWND; nFolder : Integer; hToken : THANDLE; dwFlags : DWORD; pszPath : PChar) : HResult; stdcall; external 'shell32.dll';
@@ -1638,5 +1663,89 @@ implementation
   end;
 
 {$WARNINGS ON}
+
+procedure TAudioCacheThread.Execute;
+var
+  bf : LongWord;
+  t, n : LongWord;
+  P : Pointer;
+begin
+  Stopped := False;
+  while not Terminated do
+  begin
+    bf := Buf.FreeSpace;
+//    if bf > ACBufLen then bf := ACBufLen;
+    if (bf > ACBufLen div 2) and not Buf.EOF then
+    begin
+      Parent.GetData(P, bf);
+      if bf = 0 then
+      begin
+        Buf.EOF := True;
+        Continue;
+      end;
+      t := 0;
+      while t < bf do
+      begin
+        n := Buf.Write(P, bf - t);
+        LongWord(P) := LongWord(P) + n;
+        Inc(t, n);
+      end;
+    end;
+    Sleep(10);
+  end;
+  Stopped := True;
+  Buf.EOF := True;
+end;
+
+
+procedure TAudioCache.InitInternal;
+begin
+  if not Assigned(FInput) then
+   raise EAuException.Create('Input is not assigned');
+  FInput.Init;
+  CacheThread := TAudioCacheThread.Create(True);
+  CacheThread.Buf := TCircularBuffer.Create(AudioCacheSize);
+  CacheThread.Buf.EOF := False;
+  CacheThread.Parent := FInput;
+  CacheThread.Resume;
+  FPOsition := 0;
+  FSize := Finput.Size;
+  Sleep(5);
+end;
+
+procedure TAudioCache.FlushInternal;
+begin
+  CacheThread.Terminate;
+  while not CacheThread.Stopped do
+    Sleep(0);
+  FInput.Flush;
+  CacheThread.Buf.Free;
+  CacheThread.Free;
+end;
+
+procedure TAudioCache.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
+begin
+  if Bytes > ACBufLen then
+  begin
+    Bytes := ACBufLen - (ACBufLen mod ((BitsPerSample div 8)*Channels));
+  end;
+  InBuf[0] := 255;
+  Bytes := CacheThread.Buf.Read(@InBuf[0], Bytes);
+  if Bytes <> 0 then
+    Buffer := @InBuf[0]
+  else
+    Buffer := nil;
+//  Inc(FPosition, Bytes);
+end;
+
+procedure TAudioCache._Jump(Offs : Integer);
+begin
+  if CacheThread.Buf.EOF then
+     Exit;
+  inherited _Jump(Offs - Round(1000*(AudioCacheSize - CacheThread.Buf.FreeSpace)/Finput.Size));
+  FPosition := FInput.Position;
+  CacheThread.Buf.Reset2;
+end;
+
 
 end.

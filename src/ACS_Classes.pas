@@ -205,6 +205,7 @@ type
     procedure _Unlock;
     procedure _Pause; virtual;
     procedure _Resume; virtual;
+    procedure _Jump(Offs : Integer); virtual;
     (* Property: BitsPerSample
        The number of bits per sample in the input stream. Possible values are 8, 16, and 24.*)
     property BitsPerSample : LongWord read GetBPS;
@@ -687,7 +688,7 @@ type
     procedure GetData(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure _Pause; override;
     procedure _Resume; override;
-    procedure _Jump(Offs : Integer);
+    procedure _Jump(Offs : Integer); override;
   published
     (* Property: Input
        Like the output components, converters can be assigned an input. Unlike
@@ -842,6 +843,7 @@ type
     function WouldReadBlock : Boolean;
     function FreeSpace : LongWord;
     procedure Reset;
+    procedure Reset2;
     procedure Stop;
     property EOF : Boolean read FEOF write FEOF;
   end;
@@ -2169,6 +2171,11 @@ begin
   FFloatRequested := rf;
 end;
 
+procedure TAuInput._Jump(Offs : Integer);
+begin
+end;
+
+
 function TAudioTap.GetStatus;
 begin
   if FRecording then
@@ -2497,6 +2504,12 @@ begin
   CS.Leave;
 end;
 
+procedure TCircularBuffer.Reset2;
+begin
+ ReadPos := WritePos;
+end;
+
+
 procedure TCircularBuffer.Stop;
 begin
   CS.Enter;
@@ -2538,12 +2551,7 @@ end;
 procedure TAuConverter._Jump(Offs: Integer);
 begin
   if Assigned(FInput) then
-  begin
-    if FInput is TAuConverter then
-      TAuConverter(FInput)._Jump(Offs);
-    if FInput is TAuFileIn then
-      TAuFileIn(FInput)._Jump(Offs);
-  end;
+    FInput._Jump(Offs);
 end;
 
 constructor TAuFIFOStream.Create;
