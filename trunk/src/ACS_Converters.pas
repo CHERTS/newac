@@ -1675,6 +1675,15 @@ begin
   begin
     bf := Buf.FreeSpace;
 //    if bf > ACBufLen then bf := ACBufLen;
+    if (bf < AudioCacheSize - ACBufLen) then
+    begin
+      if Parent.Size > 0 then
+      if bf >= Parent.Size - Parent.Position then
+      begin
+        Sleep(10);
+        Continue;
+      end;
+    end;
     if (bf > ACBufLen div 2) and not Buf.EOF then
     begin
       Parent.GetData(P, bf);
@@ -1735,6 +1744,7 @@ begin
     Buffer := @InBuf[0]
   else
     Buffer := nil;
+  if FSize > 0 then
   if FPosition + Bytes > FSize then
     FPosition := 0;
 end;
@@ -1743,9 +1753,11 @@ procedure TAudioCache._Jump(Offs : Integer);
 begin
   if CacheThread.Buf.EOF then
      Exit;
-  inherited _Jump(Offs - Round(1000*(AudioCacheSize - CacheThread.Buf.FreeSpace)/Finput.Size));
+  if Assigned(FInput) then
+    FInput._Jump(Offs);
   FPosition := FInput.Position;
   CacheThread.Buf.Reset2;
+  Sleep(10);
 end;
 
 
