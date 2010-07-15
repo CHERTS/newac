@@ -1667,14 +1667,15 @@ implementation
 procedure TAudioCacheThread.Execute;
 var
   bf : LongWord;
-  t, n : LongWord;
+  t, r : LongWord;
   P : Pointer;
+  B : array[0..ACBufLen-1] of Byte;
+  EOF : Boolean;
 begin
   Stopped := False;
   while not Terminated do
   begin
     bf := Buf.FreeSpace;
-//    if bf > ACBufLen then bf := ACBufLen;
     if (bf < AudioCacheSize - ACBufLen) then
     begin
       if Parent.Size > 0 then
@@ -1684,20 +1685,28 @@ begin
         Continue;
       end;
     end;
+    if bf > ACBufLen then
+      bf := ACBufLen;
+    bf := bf - (bf mod ((Parent.BitsPerSample shr 3)*Parent.Channels));
     if (bf > ACBufLen div 2) and not Buf.EOF then
     begin
-      Parent.GetData(P, bf);
-      if bf = 0 then
+      EOF := False;
+      t := 0;
+      r:=bf;
+      while (t < bf) and (r <> 0) do
       begin
-        Buf.EOF := True;
-        Continue;
+        r := Parent.CopyData(@B[t], bf-t);
+        t := t + r; //.GetData(P, bf);
       end;
+      EOF := r = 0;
       t := 0;
       while t < bf do
       begin
-        n := Buf.Write(P, bf - t);
-        LongWord(P) := LongWord(P) + n;
-        Inc(t, n);
+        t := t + Buf.Write(@B[t], bf - t);
+      end;
+      if EOF then
+      begin
+        Buf.EOF := True;
       end;
     end;
     Sleep(10);
