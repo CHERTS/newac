@@ -1737,7 +1737,6 @@ begin
     Buffer := nil;
   if FPosition + Bytes > FSize then
     FPosition := 0;
-//  Inc(FPosition, Bytes);
 end;
 
 procedure TAudioCache._Jump(Offs : Integer);
