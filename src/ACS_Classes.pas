@@ -551,7 +551,7 @@ type
     *)
     function SetEndTime(Minutes, Seconds : LongWord) : Boolean;
     procedure Reset; override;
-    procedure _Jump(Offs : Integer);
+    procedure _Jump(Offs : Integer); override;
 //    property Time : Integer read GetTime;
     (* Property: Valid
       Read this property to determine if the file is valid. It is a good
