@@ -139,7 +139,7 @@ NeAACDecConfiguration = packed record
     useOldADTSFormat : Byte;
     dontUpSampleImplicitSBR : Byte;
 end;
-PNeAACDecConfigurationPtr = ^NeAACDecConfigurationPtr;
+NeAACDecConfigurationPtr = ^NeAACDecConfiguration;
 
 NeAACDecFrameInfo = packed record
     bytesconsumed : LongWord;
@@ -199,7 +199,7 @@ NeAACDecInit_t = function(hDecoder : NeAACDecHandle;
 //* Init the library using a DecoderSpecificInfo */
 NeAACDecInit2_t = function(hDecoder : NeAACDecHandle;
                                pBuffer : PByte;
-                               SizeOfDecoderSpecificInfo : LongWird;
+                               SizeOfDecoderSpecificInfo : LongWord;
                               var samplerate : LongWord;
                               var channels : Byte) : Byte; cdecl;
 
@@ -294,4 +294,4 @@ begin
   NeAACDecDecode2 := GetProcAddress(hlib, 'NeAACDecDecode2');
   NeAACDecAudioSpecificConfig := GetProcAddress(hlib, 'NeAACDecAudioSpecificConfig');
 end;
-
+end.

@@ -25,9 +25,9 @@ var
 
 type
 read_callback_t = function(user_data : Pointer; buffer : Pointer; length : LongWord) : LongWord; cdecl;
-write_callbackk_t = function(user_data : Pointer; buffer : Pointer; length : LongWord) : LongWord; cdecl;
-seek_callbackk_t = function(user_data : Pointer; Position : Int64) : LongWord; cdecl;
-truncate_callbackk_t = function(user_data : Pointer) : LongWord; cdecl;
+write_callback_t = function(user_data : Pointer; buffer : Pointer; length : LongWord) : LongWord; cdecl;
+seek_callback_t = function(user_data : Pointer; Position : Int64) : LongWord; cdecl;
+truncate_callback_t = function(user_data : Pointer) : LongWord; cdecl;
 
 mp4ff_callback_t = packed record
   read : read_callback_t;
@@ -45,53 +45,53 @@ uint32_t = LongWord;
 
 mp4ff_open_read_t = function(f : p_mp4ff_callback_t) : mp4ff_t; cdecl;
 mp4ff_open_read_metaonly_t = function(f : p_mp4ff_callback_t) : mp4ff_t; cdecl;
-mp4ff_close_t = procedure(f : p_mp4ff_t); cdecl;
-mp4ff_get_sample_duration_t = function(f : p_mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
-mp4ff_get_sample_duration_use_offsets_t = function(f : p_mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
-mp4ff_get_sample_position_t = function(f : p_mp4ff_t; track, sample : int32_t) : int64_t; cdecl;
-mp4ff_get_sample_offset_t = function(f : p_mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
-mp4ff_find_sample_t = function(f : p_mp4ff_t; track : int32_t;  offset : int64_t; var toskip : int32_t) : int32_t; cdecl;
-mp4ff_find_sample_use_offsets_t = function(f : p_mp4ff_t; track : int32_t; offset : int64_t; var toskip : int32_t) : int32_t; cdecl;
+mp4ff_close_t = procedure(f : mp4ff_t); cdecl;
+mp4ff_get_sample_duration_t = function(f : mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
+mp4ff_get_sample_duration_use_offsets_t = function(f : mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
+mp4ff_get_sample_position_t = function(f : mp4ff_t; track, sample : int32_t) : int64_t; cdecl;
+mp4ff_get_sample_offset_t = function(f : mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
+mp4ff_find_sample_t = function(f : mp4ff_t; track : int32_t;  offset : int64_t; var toskip : int32_t) : int32_t; cdecl;
+mp4ff_find_sample_use_offsets_t = function(f : mp4ff_t; track : int32_t; offset : int64_t; var toskip : int32_t) : int32_t; cdecl;
 
-mp4ff_read_sample_t = function(f : p_mp4ff_t; track, sample  : int32_t;
+mp4ff_read_sample_t = function(f : mp4ff_t; track, sample  : int32_t;
                           var audio_buffer : PByte; var bytes : LongWord) : int32_t; cdecl;
 
-mp4ff_read_sample_v2_t = function(f : p_mp4ff_t; track, sample : int32_t; buffer : PByte): int32_t; cdecl; //returns 0 on error, number of bytes read on success, use mp4ff_read_sample_getsize_t = function() to check buffer size needed
-mp4ff_read_sample_getsize_t = function(f : p_mp4ff_t; track, sample : Integer) : int32_t; cdecl; //returns 0 on error, buffer size needed for mp4ff_read_sample_v2_t = function() on success
+mp4ff_read_sample_v2_t = function(f : mp4ff_t; track, sample : int32_t; buffer : PByte): int32_t; cdecl; //returns 0 on error, number of bytes read on success, use mp4ff_read_sample_getsize_t = function() to check buffer size needed
+mp4ff_read_sample_getsize_t = function(f : mp4ff_t; track, sample : Integer) : int32_t; cdecl; //returns 0 on error, buffer size needed for mp4ff_read_sample_v2_t = function() on success
 
-mp4ff_get_decoder_config_t = function(f : p_mp4ff_t; track : Integer; var ppBuf : PByte; var pBufSize : LongWord) : int32_t; cdecl;
-mp4ff_get_track_type_t = function(f : p_mp4ff_t; const track : Integer) : int32_t; cdecl;
-mp4ff_total_tracks_t = function(f : p_mp4ff_t) : int32_t; cdecl;
-mp4ff_num_samples_t = function(f : p_mp4ff_t; track : Integer) : int32_t; cdecl;
-mp4ff_time_scale_t = function(f : p_mp4ff_t; track : Integer) : int32_t; cdecl;
+mp4ff_get_decoder_config_t = function(f : mp4ff_t; track : Integer; var ppBuf : PByte; var pBufSize : LongWord) : int32_t; cdecl;
+mp4ff_get_track_type_t = function(f : mp4ff_t; const track : Integer) : int32_t; cdecl;
+mp4ff_total_tracks_t = function(f : mp4ff_t) : int32_t; cdecl;
+mp4ff_num_samples_t = function(f : mp4ff_t; track : Integer) : int32_t; cdecl;
+mp4ff_time_scale_t = function(f : mp4ff_t; track : Integer) : int32_t; cdecl;
 
-mp4ff_get_avg_bitrate_t = function(f : p_mp4ff_t; track : int32_t) : uint32_t; cdecl;
-mp4ff_get_max_bitrate_t = function(f : p_mp4ff_t; track : int32_t) : uint32_t; cdecl;
-mp4ff_get_track_duration_t = function(f : p_mp4ff_t; track : int32_t) : int64_t; cdecl; //returns _t = function(-1) if unknown
-mp4ff_get_track_duration_use_offsets_t = function(f : p_mp4ff_t; track : int32_t) : Integer; cdecl;  cdecl; //returns _t = function(-1) if unknown
-mp4ff_get_sample_rate_t = function(f : p_mp4ff_t; track : int32_t) : uint32_t; cdecl;
-mp4ff_get_channel_count_t = function(f : p_mp4ff_t; track : int32_t) : uint32_t; cdecl;
-mp4ff_get_audio_type_t = function(f : p_mp4ff_t; track : int32_t) : uint32_t; cdecl;
+mp4ff_get_avg_bitrate_t = function(f : mp4ff_t; track : int32_t) : uint32_t; cdecl;
+mp4ff_get_max_bitrate_t = function(f : mp4ff_t; track : int32_t) : uint32_t; cdecl;
+mp4ff_get_track_duration_t = function(f : mp4ff_t; track : int32_t) : int64_t; cdecl; //returns _t = function(-1) if unknown
+mp4ff_get_track_duration_use_offsets_t = function(f : mp4ff_t; track : int32_t) : Integer; cdecl;  //returns _t = function(-1) if unknown
+mp4ff_get_sample_rate_t = function(f : mp4ff_t; track : int32_t) : uint32_t; cdecl;
+mp4ff_get_channel_count_t = function(f : mp4ff_t; track : int32_t) : uint32_t; cdecl;
+mp4ff_get_audio_type_t = function(f : mp4ff_t; track : int32_t) : uint32_t; cdecl;
 
 //* metadata */
-mp4ff_meta_get_num_items_t = function(f : p_mp4ff_t) : Integer; cdecl;
-mp4ff_meta_get_by_index_t = function(f : p_mp4ff_t; index : LongWord;
+mp4ff_meta_get_num_items_t = function(f : mp4ff_t) : Integer; cdecl;
+mp4ff_meta_get_by_index_t = function(f : mp4ff_t; index : LongWord;
                             var item, value : PChar) : Integer; cdecl;
-mp4ff_meta_get_title_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_artist_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_writer_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_album_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_date_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_tool_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_comment_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_genre_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_track_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_disc_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_totaltracks_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_totaldiscs_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_compilation_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_tempo_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_coverart_t = function(f : p_mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_title_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_artist_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_writer_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_album_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_date_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_tool_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_comment_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_genre_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_track_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_disc_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_totaltracks_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_totaldiscs_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_compilation_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_tempo_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_coverart_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
 
 {$IFDEF USE_TAGGING}
 
@@ -101,12 +101,12 @@ mp4ff_tag_t = packed record
     value : PChar;
 end;
 
-p_mp4ff_tag_t = ^mp4ff_tag_t;
+mp4ff_tag_t = ^mp4ff_tag_t;
 
 
 //* metadata list structure */
 mp4ff_metadata_t = packed record
-    tags : p_mp4ff_tag_t;
+    tags : mp4ff_tag_t;
     count : uint32_t;
 end;
 
@@ -167,20 +167,20 @@ var
   mp4ff_meta_update : mp4ff_meta_update_t;
 {$ENDIF}
 
-function GetAACTrack(infile : p_mp4ff_t) : Integer;
+function GetAACTrack(infile : mp4ff_t) : Integer;
 procedure Loadmp4ff;
-procedure Freem4ff;
+procedure Freemp4ff;
 
 implementation
 
 var
   hlib: THandle;
 
-function GetAACTrack(infile : p_mp4ff_t) : Integer;
+function GetAACTrack(infile : mp4ff_t) : Integer;
 var
   i, rc, numTracks : Integer;
   buff : PByte;
-  buff_size : Integer;
+  buff_size : LongWord;
   mp4ASC : mp4AudioSpecificConfig;
 begin
     numTracks := mp4ff_total_tracks(infile);
