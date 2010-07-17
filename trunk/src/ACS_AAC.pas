@@ -320,6 +320,7 @@ implementation
       if SampleNum > FTotalSamples then SampleNum := FTotalSamples;
       aac_sample := Trunc(SampleNum/FTotalSamples*FSamples);
       mp4ff_find_sample(MP4Handle, FTrack, 0, aac_sample);
+      FStream.Seek(mp4ff_get_sample_position(MP4Handle, FTrack, aac_sample), soFromBeginning);
       FPosition := mp4ff_get_sample_position(MP4Handle, FTrack, aac_sample);
       SampleNum := FPosition div (FChan*(FBPS div 8));
       Result := True;
