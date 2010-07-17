@@ -34,6 +34,7 @@ Suported formats:
 - Musepack: decoding, encoding, editing tags.
 - DTS (Digital Theater System): decoding.
 - AC-3 (Dolby Digital): decoding.
+- AAC (MPEG-4, M4A, MP4) files decoding
 - OptimFROG: decoding.
 - TAK: decoding.
 
