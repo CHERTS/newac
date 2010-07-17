@@ -127,7 +127,7 @@ implementation
       case config.outputFormat of
        FAAD_FMT_16BIT : FBPS := 16;
        FAAD_FMT_24BIT : FBPS := 24;
-       FAAD_FMT_32BIT : FBPS := 24;
+       FAAD_FMT_32BIT : FBPS := 32;
        else  raise EAuException.Create('Unsupported sample format.');
       end;
       config.downMatrix := 1; //!!!!
@@ -241,6 +241,12 @@ implementation
     rc := mp4ff_read_sample(MP4Handle, FTrack, FSampleId, audio_buffer,  audio_buffer_size);
     if rc = 0 then
     begin
+      if FPosition >= FSize then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;
       raise EAuException.Create('Error reading data.');
     end;
     sample_buffer := NeAACDecDecode(hDecoder, @frameInfo, audio_buffer, audio_buffer_size);
@@ -305,27 +311,19 @@ implementation
   end;
 
   function TMP4In.SeekInternal(var SampleNum: Int64) : Boolean;
+  var
+    aac_sample : Integer;
   begin
-{    Result := False;
+    Result := False;
     if FSeekable then
     begin
       if SampleNum > FTotalSamples then SampleNum := FTotalSamples;
-      mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
-      FBOffset := FBytesRead;
-      while (FBOffset < _lBufSize) and (FBytesRead <> 0) do
-      begin
-        mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
-        FBOffset := FBOffset + FBytesRead;
-      end;
-      FBOffset := 0;
-      FBytesRead := 0;
-      Pos := 0;
-      mpg123_feedseek(FHandle, SampleNum, 0, @Pos);
-      FStream.Seek(Pos, soFromBeginning);
-      SampleNum := Round(FStream.Position/FStream.Size*FTotalSamples);
-     //mpg123_tell(FHandle);
-     Result := True;
-    end;}
+      aac_sample := Trunc(SampleNum/FTotalSamples*FSamples);
+      mp4ff_find_sample(MP4Handle, FTrack, 0, aac_sample);
+      FPosition := mp4ff_get_sample_position(MP4Handle, FTrack, aac_sample);
+      SampleNum := FPosition div (FChan*(FBPS div 8));
+      Result := True;
+    end;
   end;
 
 
