@@ -1690,7 +1690,6 @@ begin
     bf := bf - (bf mod ((Parent.BitsPerSample shr 3)*Parent.Channels));
     if (bf > ACBufLen div 2) and not Buf.EOF then
     begin
-      EOF := False;
       t := 0;
       r:=bf;
       while (t < bf) and (r <> 0) do
@@ -1699,6 +1698,7 @@ begin
         t := t + r; //.GetData(P, bf);
       end;
       EOF := r = 0;
+      bf := t;
       t := 0;
       while t < bf do
       begin
@@ -1723,6 +1723,7 @@ begin
   FInput.Init;
   CacheThread := TAudioCacheThread.Create(True);
   CacheThread.Buf := TCircularBuffer.Create(AudioCacheSize);
+  CacheThread.Buf.Reset;
   CacheThread.Buf.EOF := False;
   CacheThread.Parent := FInput;
   CacheThread.Resume;
@@ -1747,12 +1748,15 @@ begin
   begin
     Bytes := ACBufLen - (ACBufLen mod ((BitsPerSample div 8)*Channels));
   end;
-  InBuf[0] := 255;
   Bytes := CacheThread.Buf.Read(@InBuf[0], Bytes);
   if Bytes <> 0 then
     Buffer := @InBuf[0]
   else
+  begin
     Buffer := nil;
+    Bytes := 0;
+    Exit;
+  end;
   if FSize > 0 then
   if FPosition + Bytes > FSize then
     FPosition := 0;
