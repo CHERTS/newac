@@ -224,7 +224,7 @@ NeAACDecDecode2_t = function(hDecoder : NeAACDecHandle;
                                  sample_buffer_size : LongWord) : Pointer; cdecl;
 
 NeAACDecAudioSpecificConfig_t = function(pBuffer : PByte; buffer_size : LongWord;
-                                             mp4ASC : Pmp4AudioSpecificConfig) : Byte;  cdecl;
+                                             var mp4ASC : Pmp4AudioSpecificConfig) : Byte;  cdecl;
 
 
 var

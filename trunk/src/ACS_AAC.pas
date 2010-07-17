@@ -30,6 +30,7 @@ type
   private
       MP4Handle : mp4ff_t;
       HDecoder : NeAACDecHandle;
+      FTrack : Integer;
       FBytesRead, FBOffset : LongWord;
 //      _Buf : array[0.._lBufSize - 1] of Byte;
       FBitrate : LongWord;
@@ -93,6 +94,16 @@ implementation
   procedure TMP4In.OpenFile;
   var
     cbs : mp4ff_callback_t;
+    config : NeAACDecConfigurationPtr;
+    buffer : Pointer;
+    buffer_size : Integer;
+    samplerate : LongWord;
+    channels : Byte;
+    useAacLength : LongWord;
+    initial : LongWord;
+    framesize : LongWord;
+    timescale : LongWord;
+    mp4ASC : mp4AudioSpecificConfig;
   begin
     Loadmp4ff;
     if not Libmp4ffLoaded then
@@ -113,29 +124,41 @@ implementation
       cbs.seek := CBMP4Seek;
       cbs.truncate := CBMP4Truncate;
       cbs.user_data := Pointer(Self);
-      FHandle :=  mpg123_new(nil, @err);
-      if FHandle = nil then
-        raise Exception.Create('');
-      mpg123_param(FHandle, MPG123_VERBOSE, 2, 0);
-      mpg123_open_feed(FHandle);
-      if FHandle = nil then
-        raise Exception.Create('');
+      hDecoder := NeAACDecOpen();
+      config := NeAACDecGetCurrentConfiguration(hDecoder);
+      config.outputFormat := FAAD_FMT_16BIT; //!!!
       FBPS := 16;
-      err := 0;
-      FStream.Read(iBuf, Inbufsize);
-      err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, @FBytesRead);
-      while err = MPG123_NEED_MORE do
+      config.downMatrix := 1; //!!!!
+      NeAACDecSetConfiguration(hDecoder, config);
+      MP4Handle := mp4ff_open_read(@cbs);
+      if MP4Handle = nil then
+        raise EAuException.Create('Unable to open file.');
+      FTrack := GetAACTrack(MP4Handle);
+      if FTrack < 0 then
+        raise EAuException.Create('Unable to find correct AAC sound track in the MP4 file.');
+      buffer := nil;
+      mp4ff_get_decoder_config(MP4Handle, FTrack, buffer, buffer_size);
+      if NeAACDecInit2(HDecoder, buffer, buffer_size, samplerate, channels) < 0 then
       begin
-        FStream.Read(iBuf, Inbufsize);
-        err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, @FBytesRead);
+        NeAACDecClose(hDecoder);
+        mp4ff_close(MP4Handle);
+        raise EAuException.Create('Error initializing decoder library.');
       end;
-      if err = MPG123_NEW_FORMAT then
+      FSR := samplerate;
+      FChan := channels;
+      timescale := mp4ff_time_scale(MP4Handle, FTrack);
+      framesize := 1024;
+      useAacLength := 0;
+      if buffer <> nil then
       begin
-         mpg123_getformat(FHandle, @FSR, @FChan, @err);
-      end else
-      begin
-        raise EAuException.Create('Failed to open stream');
+        if NeAACDecAudioSpecificConfig(buffer, buffer_size, mp4ASC) >= 0 then
+        begin
+          if mp4ASC.frameLengthFlag = 1 then framesize := 960;
+          if mp4ASC.sbr_present_flag = 1 then framesize := framesize*2;
+        end;
+        FreeMem(buffer);
       end;
+
 
 //      mpg123_seek(FHandle, 0, 2);
       mpg123_set_filesize(FHandle, FStream.Size);
