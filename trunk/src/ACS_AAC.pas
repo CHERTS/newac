@@ -20,10 +20,10 @@ uses
 
 type
 
-(* Class: TMpgIn
-   Yet another mp3 file/stream decoder that uses libmpg123.dll.
+(* Class: TMP4In
+   This component can decode AAC audio from M4A and MP4 files. It requires mp4ff.dll (derived from the faad package) and libfaad2p.dll.
    Descends from <TAuTaggedFileIn>.
-   This decoder provides better sound than the Windows one but doesn't suppoer the precise positioning.
+   Exact positioning isn't implemented yet.
  *)
 
   TMP4In = class(TAuTaggedFileIn)
@@ -44,10 +44,6 @@ type
     procedure CloseFile; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
-  public
-    (* Property: Bitrate
-    Reurns the file's bitrate in kbps. *)
-    property Bitrate : LongWord read FBitrate;
   end;
 
 
@@ -245,6 +241,7 @@ implementation
       begin
         Buffer := nil;
         Bytes := 0;
+        FSampleId := FSamples + 1;
         Exit;
       end;
       raise EAuException.Create('Error reading data.');
@@ -315,13 +312,20 @@ implementation
     aac_sample : Integer;
   begin
     Result := False;
+    if (FSamples= 0) or (FTotalSamples = 0) then Exit;
     if FSeekable then
     begin
       if SampleNum > FTotalSamples then SampleNum := FTotalSamples;
       aac_sample := Trunc(SampleNum/FTotalSamples*FSamples);
-      mp4ff_find_sample(MP4Handle, FTrack, 0, aac_sample);
-      FStream.Seek(mp4ff_get_sample_position(MP4Handle, FTrack, aac_sample), soFromBeginning);
-      FPosition := mp4ff_get_sample_position(MP4Handle, FTrack, aac_sample);
+      Self.FSampleId := aac_sample;
+//      aac_sample := Trunc(SampleNum/FTotalSamples*FSize);
+//      FPosition := FStream.Seek(aac_sample, soFromBeginning);
+//      mp4ff_find_sample(MP4Handle, FTrack, 0, aac_sample);
+//      mp4ff_set_sample_position(MP4Handle, FTrack,aac_sample);
+      FPosition := Trunc(FSize*aac_sample/FSamples);
+       //mp4ff_get_sample_position(MP4Handle, FTrack, aac_sample);
+      Self.FBOffset := 0;
+      Self.FBytesRead := 0;
       SampleNum := FPosition div (FChan*(FBPS div 8));
       Result := True;
     end;

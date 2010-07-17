@@ -52,7 +52,7 @@ mp4ff_get_sample_position_t = function(f : mp4ff_t; track, sample : int32_t) : i
 mp4ff_get_sample_offset_t = function(f : mp4ff_t; track, sample : int32_t) : int32_t; cdecl;
 mp4ff_find_sample_t = function(f : mp4ff_t; track : int32_t;  offset : int64_t; var toskip : int32_t) : int32_t; cdecl;
 mp4ff_find_sample_use_offsets_t = function(f : mp4ff_t; track : int32_t; offset : int64_t; var toskip : int32_t) : int32_t; cdecl;
-
+mp4ff_set_sample_position_t = function(f : mp4ff_t; track : int32_t; sample : int64_t) : int32_t; cdecl;
 mp4ff_read_sample_t = function(f : mp4ff_t; track, sample  : int32_t;
                           var audio_buffer : PByte; var bytes : LongWord) : int32_t; cdecl;
 
@@ -126,6 +126,7 @@ var
   mp4ff_get_sample_offset : mp4ff_get_sample_offset_t;
   mp4ff_find_sample : mp4ff_find_sample_t;
   mp4ff_find_sample_use_offsets : mp4ff_find_sample_use_offsets_t;
+  mp4ff_set_sample_position : mp4ff_set_sample_position_t;
 
   mp4ff_read_sample : mp4ff_read_sample_t;
 
@@ -235,6 +236,7 @@ begin
   mp4ff_get_sample_offset := GetProcAddress(hlib, 'mp4ff_get_sample_offset');
   mp4ff_find_sample := GetProcAddress(hlib, 'mp4ff_find_sample');
   mp4ff_find_sample_use_offsets := GetProcAddress(hlib, 'mp4ff_find_sample_use_offsets');
+  mp4ff_set_sample_position := GetProcAddress(hlib, 'mp4ff_set_sample_position');
 
   mp4ff_read_sample := GetProcAddress(hlib, 'mp4ff_read_sample');
 
