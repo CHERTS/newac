@@ -1669,8 +1669,6 @@ var
   bf : LongWord;
   t, r : LongWord;
   P : Pointer;
-  B : array[0..ACBufLen-1] of Byte;
-  EOF : Boolean;
 begin
   Stopped := False;
   while not Terminated do
@@ -1694,20 +1692,13 @@ begin
       r:=bf;
       while (t < bf) and (r <> 0) do
       begin
-        r := Parent.CopyData(@B[t], bf-t);
+        r := bf - t;
+        Buf.ExposeSingleBufferWrite(P, r);
+        r := Parent.CopyData(P, r);
+        Buf.AddBytesWritten(r);
         t := t + r; //.GetData(P, bf);
       end;
-      EOF := r = 0;
-      bf := t;
-      t := 0;
-      while t < bf do
-      begin
-        t := t + Buf.Write(@B[t], bf - t);
-      end;
-      if EOF then
-      begin
-        Buf.EOF := True;
-      end;
+      Buf.EOF := r = 0;
     end;
     Sleep(10);
   end;
