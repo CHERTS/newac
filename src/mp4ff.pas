@@ -278,6 +278,7 @@ begin
 {$IFDEF USE_TAGGING}
   mp4ff_meta_update := GetProcAddress(hlib, 'mp4ff_meta_update');
 {$ENDIF}
+  LoadLibCS.Leave;
 end;
 end.
 

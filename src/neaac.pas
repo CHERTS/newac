@@ -293,5 +293,6 @@ begin
   NeAACDecDecode := GetProcAddress(hlib, 'NeAACDecDecode');
   NeAACDecDecode2 := GetProcAddress(hlib, 'NeAACDecDecode2');
   NeAACDecAudioSpecificConfig := GetProcAddress(hlib, 'NeAACDecAudioSpecificConfig');
+  LoadLibCS.Leave;
 end;
 end.
