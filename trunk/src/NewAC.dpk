@@ -133,6 +133,9 @@ contains
   FastcodeCPUID in 'FastcodeCPUID.pas',
   FastMove in 'FastMove.pas',
   DSAudio in 'DSAudio.pas',
-  NewACDSAudio in 'NewACDSAudio.pas';
+  NewACDSAudio in 'NewACDSAudio.pas',
+  ACS_AAC in 'ACS_AAC.pas',
+  mp4ff in 'mp4ff.pas',
+  neaac in 'neaac.pas';
 
 end.

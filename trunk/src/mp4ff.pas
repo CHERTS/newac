@@ -17,7 +17,7 @@ uses
   neaac;
 
 const
-  Libmp4ffPath = 'libmp4ff.dll';
+  Libmp4ffPath = 'mp4ff.dll';
 
 var
   Libmp4ffLoaded : Boolean = False;
@@ -29,7 +29,7 @@ write_callback_t = function(user_data : Pointer; buffer : Pointer; length : Long
 seek_callback_t = function(user_data : Pointer; Position : Int64) : LongWord; cdecl;
 truncate_callback_t = function(user_data : Pointer) : LongWord; cdecl;
 
-mp4ff_callback_t = packed record
+mp4ff_callback_t = record
   read : read_callback_t;
   write : write_callback_t;
     seek : seek_callback_t;
@@ -60,6 +60,8 @@ mp4ff_read_sample_v2_t = function(f : mp4ff_t; track, sample : int32_t; buffer :
 mp4ff_read_sample_getsize_t = function(f : mp4ff_t; track, sample : Integer) : int32_t; cdecl; //returns 0 on error, buffer size needed for mp4ff_read_sample_v2_t = function() on success
 
 mp4ff_get_decoder_config_t = function(f : mp4ff_t; track : Integer; var ppBuf : PByte; var pBufSize : LongWord) : int32_t; cdecl;
+mp4ff_free_decoder_config_t = procedure(Buf : PByte); cdecl;
+
 mp4ff_get_track_type_t = function(f : mp4ff_t; const track : Integer) : int32_t; cdecl;
 mp4ff_total_tracks_t = function(f : mp4ff_t) : int32_t; cdecl;
 mp4ff_num_samples_t = function(f : mp4ff_t; track : Integer) : int32_t; cdecl;
@@ -77,26 +79,26 @@ mp4ff_get_audio_type_t = function(f : mp4ff_t; track : int32_t) : uint32_t; cdec
 mp4ff_meta_get_num_items_t = function(f : mp4ff_t) : Integer; cdecl;
 mp4ff_meta_get_by_index_t = function(f : mp4ff_t; index : LongWord;
                             var item, value : PChar) : Integer; cdecl;
-mp4ff_meta_get_title_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_artist_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_writer_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_album_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_date_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_tool_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_comment_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_genre_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_track_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_disc_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_totaltracks_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_totaldiscs_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_compilation_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_tempo_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
-mp4ff_meta_get_coverart_t = function(f : mp4ff_t; var value : PChar) : Integer; cdecl;
+mp4ff_meta_get_title_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_artist_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_writer_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_album_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_date_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_tool_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_comment_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_genre_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_track_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_disc_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_totaltracks_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_totaldiscs_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_compilation_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_tempo_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
+mp4ff_meta_get_coverart_t = function(f : mp4ff_t; var value : PAnsiChar) : Integer; cdecl;
 
 {$IFDEF USE_TAGGING}
 
 //* metadata tag structure */
-mp4ff_tag_t = packed record
+mp4ff_tag_t = record
     item : PChar;
     value : PChar;
 end;
@@ -105,7 +107,7 @@ mp4ff_tag_t = ^mp4ff_tag_t;
 
 
 //* metadata list structure */
-mp4ff_metadata_t = packed record
+mp4ff_metadata_t = record
     tags : mp4ff_tag_t;
     count : uint32_t;
 end;
@@ -143,6 +145,7 @@ var
   mp4ff_get_sample_rate : mp4ff_get_sample_rate_t;
   mp4ff_get_channel_count : mp4ff_get_channel_count_t;
   mp4ff_get_audio_type : mp4ff_get_audio_type_t;
+  mp4ff_free_decoder_config : mp4ff_free_decoder_config_t;
 
 //* metadata */
   mp4ff_meta_get_num_items : mp4ff_meta_get_num_items_t;
@@ -191,8 +194,8 @@ begin
         mp4ff_get_decoder_config(infile, i, buff, buff_size);
         if buff <> nil then
         begin
-          rc := NeAACDecAudioSpecificConfig(buff, buff_size, @mp4ASC);
-          FreeMem(buff);
+          rc := NeAACDecAudioSpecificConfig(buff, buff_size, mp4ASC);
+          mp4ff_free_decoder_config(buff);
           if rc < 0 then
                continue;
           Result := i;
@@ -251,6 +254,7 @@ begin
   mp4ff_get_sample_rate := GetProcAddress(hlib, 'mp4ff_get_sample_rate');
   mp4ff_get_channel_count := GetProcAddress(hlib, 'mp4ff_get_channel_count');
   mp4ff_get_audio_type := GetProcAddress(hlib, 'mp4ff_get_audio_type');
+  mp4ff_free_decoder_config := GetProcAddress(hlib, 'mp4ff_free_decoder_config');
 
 //* metadata */
   mp4ff_meta_get_num_items := GetProcAddress(hlib, 'mp4ff_meta_get_num_items');

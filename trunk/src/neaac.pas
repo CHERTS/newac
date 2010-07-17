@@ -108,7 +108,7 @@ const
 type
   NeAACDecHandle = Pointer;
 
-mp4AudioSpecificConfig = packed record
+mp4AudioSpecificConfig = record
     objectTypeIndex : Byte;
     samplingFrequencyIndex : Byte;
     samplingFrequency : LongWord;
@@ -131,7 +131,7 @@ end;
 
 Pmp4AudioSpecificConfig = ^mp4AudioSpecificConfig;
 
-NeAACDecConfiguration = packed record
+NeAACDecConfiguration = record
     defObjectType : Byte;
     defSampleRate : LongWord;
     outputFormat : Byte;
@@ -141,7 +141,7 @@ NeAACDecConfiguration = packed record
 end;
 NeAACDecConfigurationPtr = ^NeAACDecConfiguration;
 
-NeAACDecFrameInfo = packed record
+NeAACDecFrameInfo = record
     bytesconsumed : LongWord;
     samples : LongWord;
     channels : Byte;
@@ -224,7 +224,7 @@ NeAACDecDecode2_t = function(hDecoder : NeAACDecHandle;
                                  sample_buffer_size : LongWord) : Pointer; cdecl;
 
 NeAACDecAudioSpecificConfig_t = function(pBuffer : PByte; buffer_size : LongWord;
-                                             var mp4ASC : Pmp4AudioSpecificConfig) : Byte;  cdecl;
+                                             var mp4ASC : mp4AudioSpecificConfig) : Byte;  cdecl;
 
 
 var
