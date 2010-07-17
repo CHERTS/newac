@@ -29,27 +29,22 @@ type
   TMP4In = class(TAuTaggedFileIn)
   private
       MP4Handle : mp4ff_t;
+      cbs : mp4ff_callback_t;
+      R : PChar;
       HDecoder : NeAACDecHandle;
       FTrack : Integer;
       FBytesRead, FBOffset : LongWord;
-//      _Buf : array[0.._lBufSize - 1] of Byte;
+      FSampleId, FSamples : Integer;
+      FTimescale : LongWord;
+
+      _Buf : array[0..1024*1024-1] of Byte;
       FBitrate : LongWord;
-      procedure FindTags;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
-    function GetId3v1Tags : TId3v1Tags;
-    function GetId3v2Tags : TId3v2Tags;
   public
-    (* Property: Id3v1Tags
-    Reurns the file's Id3v1Tags if available.  *)
-    property Id3v1Tags : TId3v1Tags read GetId3v1Tags;
-    (* Property: Id3v2Tags
-    Reurns the file's Id3v2Tags if available.
-    If Id3v2Tags are not present in the file, the Id3v1Tags values are returned by this proeprty. *)
-    property Id3v2Tags : TId3v2Tags read GetId3v2Tags;
     (* Property: Bitrate
     Reurns the file's bitrate in kbps. *)
     property Bitrate : LongWord read FBitrate;
@@ -93,21 +88,24 @@ implementation
 
   procedure TMP4In.OpenFile;
   var
-    cbs : mp4ff_callback_t;
     config : NeAACDecConfigurationPtr;
-    buffer : Pointer;
-    buffer_size : Integer;
+    buffer : PByte;
+    buffer_size : LongWord;
     samplerate : LongWord;
     channels : Byte;
     useAacLength : LongWord;
     initial : LongWord;
     framesize : LongWord;
-    timescale : LongWord;
     mp4ASC : mp4AudioSpecificConfig;
+    f, seconds : Double;
+    tag : PAnsiChar;
   begin
     Loadmp4ff;
     if not Libmp4ffLoaded then
     raise EAuException.Create(Libmp4ffPath + ' library could not be loaded.');
+    Loadneaac;
+    if not LibneaacLoaded then
+    raise EAuException.Create(LibneaacPath + ' library could not be loaded.');
     OpenCS.Enter;
     try
     if FOpened = 0 then
@@ -126,11 +124,16 @@ implementation
       cbs.user_data := Pointer(Self);
       hDecoder := NeAACDecOpen();
       config := NeAACDecGetCurrentConfiguration(hDecoder);
-      config.outputFormat := FAAD_FMT_16BIT; //!!!
-      FBPS := 16;
+      case config.outputFormat of
+       FAAD_FMT_16BIT : FBPS := 16;
+       FAAD_FMT_24BIT : FBPS := 24;
+       FAAD_FMT_32BIT : FBPS := 24;
+       else  raise EAuException.Create('Unsupported sample format.');
+      end;
       config.downMatrix := 1; //!!!!
       NeAACDecSetConfiguration(hDecoder, config);
       MP4Handle := mp4ff_open_read(@cbs);
+      R := MP4Handle;
       if MP4Handle = nil then
         raise EAuException.Create('Unable to open file.');
       FTrack := GetAACTrack(MP4Handle);
@@ -138,15 +141,18 @@ implementation
         raise EAuException.Create('Unable to find correct AAC sound track in the MP4 file.');
       buffer := nil;
       mp4ff_get_decoder_config(MP4Handle, FTrack, buffer, buffer_size);
+//      Channels := 2;
       if NeAACDecInit2(HDecoder, buffer, buffer_size, samplerate, channels) < 0 then
       begin
         NeAACDecClose(hDecoder);
         mp4ff_close(MP4Handle);
         raise EAuException.Create('Error initializing decoder library.');
       end;
-      FSR := samplerate;
-      FChan := channels;
-      timescale := mp4ff_time_scale(MP4Handle, FTrack);
+      FSR := mp4ff_get_audio_type(MP4Handle, FTrack); //samplerate;
+      FSR := mp4ff_get_sample_rate(MP4Handle, FTrack); //samplerate;
+      FChan := mp4ff_get_channel_count(MP4Handle, FTrack);
+//      FChan := channels;
+      FTimescale := mp4ff_time_scale(MP4Handle, FTrack);
       framesize := 1024;
       useAacLength := 0;
       if buffer <> nil then
@@ -156,28 +162,51 @@ implementation
           if mp4ASC.frameLengthFlag = 1 then framesize := 960;
           if mp4ASC.sbr_present_flag = 1 then framesize := framesize*2;
         end;
-        FreeMem(buffer);
+        mp4ff_free_decoder_config(buffer);
       end;
-
-
-//      mpg123_seek(FHandle, 0, 2);
-      mpg123_set_filesize(FHandle, FStream.Size);
-      FTotalSamples := mpg123_length(FHandle);
-      FSize := FTotalSamples*FChan*2;
+      FSamples := mp4ff_num_samples(MP4Handle, FTrack);
+      f := 1024.0;
+      if mp4ASC.sbr_present_flag = 1 then
+         f := f * 2.0;
+      seconds := FSamples*(f-1.0)/mp4ASC.samplingFrequency;
+   //   FChan :=  2; //mp4ASC.channelsConfiguration;
+      FSR :=  mp4ASC.samplingFrequency;
+      FTotalSamples := Trunc(seconds*mp4ASC.samplingFrequency);
+      FSize := FTotalSamples*FChan*(FBPS div 8);
       if Fsize > 0 then
         FSeekable := True;
+      (*
+        j = mp4ff_meta_get_num_items(infile);
+        for (k = 0; k < j; k++)
+        {
+            if (mp4ff_meta_get_by_index(infile, k, &item, &tag))
+            {
+                if (item != NULL && tag != NULL)
+                {
+                    faad_fprintf(stderr, "%s: %s\n", item, tag);
+                    free(item); item = NULL;
+                    free(tag); tag = NULL;
+                }
+            }
+        *)
+      _CommonTags.Clear;
+      mp4ff_meta_get_artist(MP4Handle, tag);
+      _CommonTags.Artist := tag;
+      mp4ff_meta_get_title(MP4Handle, tag);
+      _CommonTags.Title := tag;
+      mp4ff_meta_get_album(MP4Handle, tag);
+      _CommonTags.Album := tag;
+      mp4ff_meta_get_date(MP4Handle, tag);
+      _CommonTags.Year := tag;
+      mp4ff_meta_get_genre(MP4Handle, tag);
+      _CommonTags.Genre := tag;
+      mp4ff_meta_get_track(MP4Handle, tag);
+      _CommonTags.Track := tag;
 
-      mpg123_info(FHandle, @fi);
-      FBitrate := fi.bitrate;
-
-      if FBytesRead = 0 then
-      begin
-        FStream.Read(iBuf, Inbufsize);
-        err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, @_Buf[0], _lBufSize, @FBytesRead);
-      end;
       FValid := True;
       FBOffset := 0;
       FBytesRead := 0;
+      FSampleId := 0;
       Inc(FOpened);
     end;
     finally
@@ -185,67 +214,87 @@ implementation
     end;
   end;
 
-  procedure TMpgIn.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
-  const
-    Inbufsize = _lBufSize div 10;
+  procedure TMP4In.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
   var
-    err : LongInt;
-    iBuf : array[0..Inbufsize - 1] of Byte;
+    dur : LongWord;
+    rc : Integer;
+    audio_buffer : PByte;
+    audio_buffer_size : LongWord;
+    sample_buffer : Pointer;
+    frameInfo : NeAACDecFrameInfo;
+    sample_count : LongWord;
   begin
-    if FStream.Position >= FStream.Size then
+    if FSampleId > FSamples then
     begin
       Buffer := nil;
       Bytes := 0;
       Exit;
     end;
-    Buffer := @_Buf[FBOffset];
-    if FBytesRead = 0 then
+    if FBOffset = FBytesRead then
     begin
-      err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
-      FBOffset := FBOffset + FBytesRead;
-      while (FBOffset < _lBufSize) and (FBytesRead <> 0) do
-      begin
-        err := mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
-        FBOffset := FBOffset + FBytesRead;
-      end;
-      if (err = MPG123_ERR) and (FStream.Position < FStream.Size - 4*Inbufsize) then
-         raise EAuException.Create('MP3 data error');
-      if (FStream.Position < FStream.Size) and (FBytesRead = 0) then
-      begin
-        FStream.Read(iBuf, Inbufsize);
-        err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, nil);
-        while (err = MPG123_NEED_MORE) and (FStream.Position < FStream.Size) do
-        begin
-          FStream.Read(iBuf, Inbufsize);
-          err := mpg123_decode(FHandle, @iBuf[0], Inbufsize, nil, 0, nil);
-        end;
-      end;
-      FBytesRead := FBOffset;
-      FBOffset := 0;
+    frameInfo.samples := 0;
+    while frameInfo.samples = 0 do
+    begin
+    dur := mp4ff_get_sample_duration(MP4Handle, FTrack, FSampleId);
+    audio_buffer_size := 0;
+    audio_buffer := nil;
+    rc := mp4ff_read_sample(MP4Handle, FTrack, FSampleId, audio_buffer,  audio_buffer_size);
+    if rc = 0 then
+    begin
+      raise EAuException.Create('Error reading data.');
     end;
-    if FBytesRead = 0 then
-    begin
-      mpg123_decode(FHandle, nil, 0, @_Buf[FBOffset], _lBufSize - FBOffset, @FBytesRead);
+    sample_buffer := NeAACDecDecode(hDecoder, @frameInfo, audio_buffer, audio_buffer_size);
+    if audio_buffer <> nil then mp4ff_free_decoder_config(audio_buffer);
+    if frameInfo.error <> 0 then
+      raise EAuException.Create('Error reading data.');
+
+(*            if (!noGapless)
+        {
+            if (sampleId == 0) dur = 0;
+
+            if (useAacLength || (timescale != samplerate)) {
+                sample_count = frameInfo.samples;
+            } else {
+                sample_count = (unsigned int)(dur * frameInfo.channels);
+                if (sample_count > frameInfo.samples)
+                    sample_count = frameInfo.samples;
+
+                if (!useAacLength && !initial && (sampleId < numSamples/2) && (sample_count != frameInfo.samples))
+                {
+                    faad_fprintf(stderr, "MP4 seems to have incorrect frame duration, using values from AAC data.\n");
+                    useAacLength = 1;
+                    sample_count = frameInfo.samples;
+                }
+            }
+
+            if (initial && (sample_count < framesize*frameInfo.channels) && (frameInfo.samples > sample_count))
+                delay = frameInfo.samples - sample_count;
+        } else {
+            sample_count = frameInfo.samples;
+        } *)
+
+    sample_count := frameInfo.samples;
+//  sample_count := (dur * frameInfo.channels);
+    FBytesRead := sample_count*frameInfo.channels;//*(FBPS div 8);
+    Move(sample_buffer^, _Buf[0], FBytesRead);
+    FBOffset := 0;
+    Inc(FSampleId);
     end;
-    if Bytes >= FBytesRead - FBOffset then
-    begin
+    end; // if FBOffset = FBytesRead then
+    if Bytes > FBytesRead - FBOffset then
       Bytes := FBytesRead - FBOffset;
-      FBOffset := 0;
-      FBytesRead := 0;
-    end else
-    begin
-      FBOffset := FBOffset + Bytes;
-    end;
+    Buffer := @_Buf[FBOffset];
+    Inc(FBOffset, Bytes);
   end;
 
-  procedure TMpgIn.CloseFile;
+  procedure TMP4In.CloseFile;
   begin
     OpenCS.Enter;
     try
     if FOpened > 0 then
     begin
-      mpg123_delete(FHandle);
-      mpg123_exit;
+      NeAACDecClose(hDecoder);
+      mp4ff_close(MP4Handle);
       if not FStreamAssigned then
          FStream.Free;
       FOpened  := 0;
@@ -255,13 +304,9 @@ implementation
     end;
   end;
 
-  function TMpgIn.SeekInternal(var SampleNum: Int64) : Boolean;
-  const
-    iBufSize = _lBufSize div 4;
-  var
-    Pos : Longint;
+  function TMP4In.SeekInternal(var SampleNum: Int64) : Boolean;
   begin
-    Result := False;
+{    Result := False;
     if FSeekable then
     begin
       if SampleNum > FTotalSamples then SampleNum := FTotalSamples;
@@ -280,150 +325,9 @@ implementation
       SampleNum := Round(FStream.Position/FStream.Size*FTotalSamples);
      //mpg123_tell(FHandle);
      Result := True;
-    end;
+    end;}
   end;
 
-  procedure TMpgIn.FindTags;
-  var
-    fv1: Pmpg123_id3v1;
-    fv2: Pmpg123_id3v2;
-    handle :  pmpg123_handle;
-    S : AnsiString;
-    meta : Integer;
-  begin
-    _Id3v2Tags.Artist := '';
-    _Id3v2Tags.Album := '';
-    _Id3v2Tags.Title := '';
-    _Id3v2Tags.Year := '';
-    _Id3v2Tags.Track := '';
-    _Id3v2Tags.Genre := '';
-    _Id3v2Tags.Comment := '';
-    _Id3v1Tags.Artist := '';
-    _Id3v1Tags.Album := '';
-    _Id3v1Tags.Title := '';
-    _Id3v1Tags.Year := 0;
-    _Id3v1Tags.Track := 0;
-    _Id3v1Tags.Genre := '';
-    mpg123_init();
-    handle := mpg123_new(nil, nil);
-    //AbsiString
-    S := AnsiString(FFileName);
-    mpg123_open(handle, @S[1]);
-    mpg123_scan(handle);
-    meta := mpg123_meta_check(handle);
-    fv1 := nil;
-    fv2 := nil;
-   if(meta and MPG123_ID3 <> 0) and (mpg123_id3_(handle, fv1, fv2) = MPG123_OK) then
-   begin
-     if fv1 <>  nil then
-     begin
-       _Id3v1Tags.Title := fv1.title;
-       _Id3v1Tags.Artist := fv1.artist;
-       _Id3v1Tags.Album := fv1.album;
-       if fv1.year[0] > ' ' then
-        _Id3v1Tags.Year := StrToInt(String(fv1.year));
-     end;
-   try
-     if fv2 <>  nil then
-     begin
-        if fv2.title <> nil then
-        begin
-          SetLength(S, fv2.title.Size);
-          Move(fv2.title.p[0], S[1], fv2.title.Size);
-          {$IF CompilerVersion < 20}
-          _Id3v2Tags.Title := UTF8Decode(S);
-          {$IFEND}
-          {$IF CompilerVersion >= 20}
-          _Id3v2Tags.Title := UTF8ToString(S);
-          {$IFEND}
-        end;
-        if fv2.artist <> nil then
-        begin
-          SetLength(S, fv2.artist.Size);
-          Move(fv2.artist.p[0], S[1], fv2.artist.Size);
-          {$IF CompilerVersion < 20}
-          _Id3v2Tags.Artist := UTF8Decode(S);
-         {$IFEND}
-          {$IF CompilerVersion >= 20}
-          _Id3v2Tags.Artist := UTF8ToString(S);
-          {$IFEND}
-        end;
-        if fv2.album <> nil then
-        begin
-          SetLength(S, fv2.album.Size);
-          Move(fv2.album.p[0], S[1], fv2.album.Size);
-          {$IF CompilerVersion < 20}
-          _Id3v2Tags.Album := UTF8Decode(S);
-         {$IFEND}
-          {$IF CompilerVersion >= 20}
-          _Id3v2Tags.Album := UTF8ToString(S);
-          {$IFEND}
-        end;
-        if fv2.year <> nil then
-        begin
-          SetLength(S, fv2.year.Size);
-          Move(fv2.year.p[0], S[1], fv2.year.Size);
-          _Id3v2Tags.Year := S;
-        end;
-        if fv2.genre <> nil then
-        begin
-          SetLength(S, fv2.genre.Size);
-          Move(fv2.genre.p[0], S[1], fv2.genre.Size);
-          {$IF CompilerVersion < 20}
-          _Id3v2Tags.Genre := UTF8Decode(S);
-         {$IFEND}
-         {$IF CompilerVersion >= 20}
-          _Id3v2Tags.Genre := UTF8ToString(S);
-         {$IFEND}
-        end;
-        if fv2.comment <> nil then
-        begin
-          SetLength(S, fv2.comment.Size);
-          Move(fv2.comment.p[0], S[1], fv2.comment.Size);
-          {$IF CompilerVersion < 20}
-          _Id3v2Tags.Comment := UTF8Decode(S);
-         {$IFEND}
-         {$IF CompilerVersion >= 20}
-          _Id3v2Tags.Comment := UTF8ToString(S);
-         {$IFEND}
-        end;
-     end else
-     begin
-      {$WARNINGS OFF}
-       _Id3v2Tags.Artist := _Id3v1Tags.Artist;
-       _Id3v2Tags.Album := _Id3v1Tags.Album;
-       _Id3v2Tags.Title := _Id3v1Tags.Title;
-       _Id3v2Tags.Year := IntToStr(_Id3v1Tags.Year);
-       _Id3v2Tags.Track := IntToStr(_Id3v1Tags.Track);
-       _Id3v2Tags.Genre := _Id3v1Tags.Genre;
-      {$WARNINGS ON}
-     end;
-     {$WARNINGS OFF}
-     _CommonTags.Clear;
-     _CommonTags.Artist := _Id3v2Tags.Artist;
-     _CommonTags.Album := _Id3v2Tags.Album;
-     _CommonTags.Title := _Id3v2Tags.Title;
-     _CommonTags.Year := _Id3v2Tags.Year;
-     _CommonTags.Track := _Id3v2Tags.Track;
-     _CommonTags.Genre := _Id3v2Tags.Genre;
-     {$WARNINGS ON}
-   except
-   end;
-   end;
-    mpg123_close(handle);
-  end;
-
-  function TMpgIn.GetId3v1Tags;
-  begin
-    OpenFile;
-    Result := _Id3v1Tags;
-  end;
-
-  function TMpgIn.GetId3v2Tags;
-  begin
-    OpenFile;
-    Result := _Id3v2Tags;
-  end;
 
 
 end.
