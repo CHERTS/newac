@@ -365,6 +365,12 @@ type
     procedure Execute; override;
   end;
 
+  (* Class: TAudioCache
+     TAudioCache is a converter component that caches what it gets on input to provide the smooth output.
+     Audio Player demo uses TAudioCache btween the spectrum indicator and audio output and the file reading components.
+     Descends from <TAuConverter>.
+   *)
+
   TAudioCache = class(TAuConverter)
   private
     InBuf : array[0..ACBufLen-1] of Byte;

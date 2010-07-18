@@ -1,6 +1,6 @@
 (*
   This file is a part of New Audio Components package v 2.6
-  Copyright (c) 2002-2009, Andrei Borovsky. All rights reserved.
+  Copyright (c) 2002-2010, Andrei Borovsky. All rights reserved.
   See the LICENSE file for more details.
   You can contact me at anb@symmetrica.net
 *)
@@ -36,14 +36,18 @@ type
       FBytesRead, FBOffset : LongWord;
       FSampleId, FSamples : Integer;
       FTimescale : LongWord;
-
-      _Buf : array[0..1024*1024-1] of Byte;
+      _Buf : array[0..2024*1024-1] of Byte;
       FBitrate : LongWord;
+      function GetBitrate : LongWord;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     function SeekInternal(var SampleNum : Int64) : Boolean; override;
+  public
+      (* Property: Bitrate
+       Read this property to get the file's average bitrate. *)
+     property Bitrate : LongWord read GetBitrate;
   end;
 
 
@@ -89,9 +93,9 @@ implementation
     buffer_size : LongWord;
     samplerate : LongWord;
     channels : Byte;
-    useAacLength : LongWord;
-    initial : LongWord;
-    framesize : LongWord;
+//    useAacLength : LongWord;
+//    initial : LongWord;
+//    framesize : LongWord;
     mp4ASC : mp4AudioSpecificConfig;
     f, seconds : Double;
     tag : PAnsiChar;
@@ -137,27 +141,17 @@ implementation
         raise EAuException.Create('Unable to find correct AAC sound track in the MP4 file.');
       buffer := nil;
       mp4ff_get_decoder_config(MP4Handle, FTrack, buffer, buffer_size);
-//      Channels := 2;
-      if NeAACDecInit2(HDecoder, buffer, buffer_size, samplerate, channels) < 0 then
-      begin
-        NeAACDecClose(hDecoder);
-        mp4ff_close(MP4Handle);
-        raise EAuException.Create('Error initializing decoder library.');
-      end;
-      FSR := mp4ff_get_audio_type(MP4Handle, FTrack); //samplerate;
+      NeAACDecInit2(HDecoder, buffer, buffer_size, samplerate, channels);
       FSR := mp4ff_get_sample_rate(MP4Handle, FTrack); //samplerate;
       FChan := mp4ff_get_channel_count(MP4Handle, FTrack);
-//      FChan := channels;
       FTimescale := mp4ff_time_scale(MP4Handle, FTrack);
-      framesize := 1024;
-      useAacLength := 0;
+//      framesize := 1024;
+//      useAacLength := 0;
       if buffer <> nil then
       begin
-        if NeAACDecAudioSpecificConfig(buffer, buffer_size, mp4ASC) >= 0 then
-        begin
-          if mp4ASC.frameLengthFlag = 1 then framesize := 960;
-          if mp4ASC.sbr_present_flag = 1 then framesize := framesize*2;
-        end;
+        NeAACDecAudioSpecificConfig(buffer, buffer_size, mp4ASC);
+        //if mp4ASC.frameLengthFlag = 1 then framesize := 960;
+        //if mp4ASC.sbr_present_flag = 1 then framesize := framesize*2;
         mp4ff_free_decoder_config(buffer);
       end;
       FSamples := mp4ff_num_samples(MP4Handle, FTrack);
@@ -165,9 +159,9 @@ implementation
       if mp4ASC.sbr_present_flag = 1 then
          f := f * 2.0;
       seconds := FSamples*(f-1.0)/mp4ASC.samplingFrequency;
-   //   FChan :=  2; //mp4ASC.channelsConfiguration;
-      FSR :=  mp4ASC.samplingFrequency;
+      //FSR :=  mp4ASC.samplingFrequency;
       FTotalSamples := Trunc(seconds*mp4ASC.samplingFrequency);
+      if mp4ASC.samplingFrequency > FSR then FSR := mp4ASC.samplingFrequency;
       FSize := FTotalSamples*FChan*(FBPS div 8);
       if Fsize > 0 then
         FSeekable := True;
@@ -198,7 +192,7 @@ implementation
       _CommonTags.Genre := tag;
       mp4ff_meta_get_track(MP4Handle, tag);
       _CommonTags.Track := tag;
-
+      FBitrate := mp4ff_get_avg_bitrate(MP4Handle, FTrack);
       FValid := True;
       FBOffset := 0;
       FBytesRead := 0;
@@ -228,61 +222,61 @@ implementation
     end;
     if FBOffset = FBytesRead then
     begin
-    frameInfo.samples := 0;
-    while frameInfo.samples = 0 do
-    begin
-    dur := mp4ff_get_sample_duration(MP4Handle, FTrack, FSampleId);
-    audio_buffer_size := 0;
-    audio_buffer := nil;
-    rc := mp4ff_read_sample(MP4Handle, FTrack, FSampleId, audio_buffer,  audio_buffer_size);
-    if rc = 0 then
-    begin
-      if FPosition >= FSize then
+      frameInfo.samples := 0;
+      while frameInfo.samples = 0 do
       begin
-        Buffer := nil;
-        Bytes := 0;
-        FSampleId := FSamples + 1;
-        Exit;
-      end;
-      raise EAuException.Create('Error reading data.');
-    end;
-    sample_buffer := NeAACDecDecode(hDecoder, @frameInfo, audio_buffer, audio_buffer_size);
-    if audio_buffer <> nil then mp4ff_free_decoder_config(audio_buffer);
-    if frameInfo.error <> 0 then
-      raise EAuException.Create('Error reading data.');
+        dur := mp4ff_get_sample_duration(MP4Handle, FTrack, FSampleId);
+        audio_buffer_size := 0;
+        audio_buffer := nil;
+        rc := mp4ff_read_sample(MP4Handle, FTrack, FSampleId, audio_buffer,  audio_buffer_size);
+        if rc = 0 then
+        begin
+          if FPosition >= FSize then
+          begin
+            Buffer := nil;
+            Bytes := 0;
+            FSampleId := FSamples + 1;
+            Exit;
+          end;
+          raise EAuException.Create('Error reading data.');
+        end;
+        sample_buffer := NeAACDecDecode(hDecoder, @frameInfo, audio_buffer, audio_buffer_size);
+        if audio_buffer <> nil then mp4ff_free_decoder_config(audio_buffer);
+        if frameInfo.error <> 0 then
+          raise EAuException.Create('Error reading data.');
 
-(*            if (!noGapless)
-        {
-            if (sampleId == 0) dur = 0;
-
-            if (useAacLength || (timescale != samplerate)) {
-                sample_count = frameInfo.samples;
-            } else {
-                sample_count = (unsigned int)(dur * frameInfo.channels);
-                if (sample_count > frameInfo.samples)
-                    sample_count = frameInfo.samples;
-
-                if (!useAacLength && !initial && (sampleId < numSamples/2) && (sample_count != frameInfo.samples))
+                (*                        if (!noGapless)
                 {
-                    faad_fprintf(stderr, "MP4 seems to have incorrect frame duration, using values from AAC data.\n");
-                    useAacLength = 1;
-                    sample_count = frameInfo.samples;
-                }
-            }
+                        if (sampleId == 0) dur = 0;
 
-            if (initial && (sample_count < framesize*frameInfo.channels) && (frameInfo.samples > sample_count))
-                delay = frameInfo.samples - sample_count;
-        } else {
-            sample_count = frameInfo.samples;
-        } *)
+                        if (useAacLength || (timescale != samplerate)) {
+                                sample_count = frameInfo.samples;
+                        } else {
+                                sample_count = (unsigned int)(dur * frameInfo.channels);
+                                if (sample_count > frameInfo.samples)
+                                        sample_count = frameInfo.samples;
 
-    sample_count := frameInfo.samples;
-//  sample_count := (dur * frameInfo.channels);
-    FBytesRead := sample_count*frameInfo.channels;//*(FBPS div 8);
-    Move(sample_buffer^, _Buf[0], FBytesRead);
-    FBOffset := 0;
-    Inc(FSampleId);
-    end;
+                                if (!useAacLength && !initial && (sampleId < numSamples/2) && (sample_count != frameInfo.samples))
+                                {
+                                        faad_fprintf(stderr, "MP4 seems to have incorrect frame duration, using values from AAC data.\n");
+                                        useAacLength = 1;
+                                        sample_count = frameInfo.samples;
+                                }
+                        }
+
+                        if (initial && (sample_count < framesize*frameInfo.channels) && (frameInfo.samples > sample_count))
+                                delay = frameInfo.samples - sample_count;
+                } else {
+                        sample_count = frameInfo.samples;
+                } *)
+
+        sample_count := frameInfo.samples;
+        //  sample_count := (dur * frameInfo.channels);
+        FBytesRead := sample_count*(FBPS div 8);
+        Move(sample_buffer^, _Buf[0], FBytesRead);
+        FBOffset := 0;
+        Inc(FSampleId);
+      end;  // while frameInfo.samples = 0 do
     end; // if FBOffset = FBytesRead then
     if Bytes > FBytesRead - FBOffset then
       Bytes := FBytesRead - FBOffset;
@@ -331,6 +325,11 @@ implementation
     end;
   end;
 
+  function TMP4In.GetBitrate : LongWord;
+  begin
+    OpenFile;
+    Result := FBitrate;
+  end;
 
 
 end.
