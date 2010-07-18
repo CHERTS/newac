@@ -87,7 +87,7 @@ Group: Main Units  {
    File: NewAC_DSP  (src\NewAC_DSP.pas)
    File: NewACAC3  (src\NewACAC3.pas)
    File: NewACIndicators  (src\NewACIndicators.pas)
-   File: TDSAudioOut  (src\NewACDSAudio.pas)
+   File: NewACDSAudio  (no auto-title, src\NewACDSAudio.pas)
    File: ACS_AAC  (src\ACS_AAC.pas)
    }  # Group: Main Units
 
