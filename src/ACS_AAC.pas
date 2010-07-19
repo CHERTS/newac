@@ -415,6 +415,43 @@ implementation
 	  	b.bytes_into_buffer := 0;
  end;
 
+var
+  adts_sample_rates : array [0..15] of Integer = (96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350,0,0,0);
+
+function adts_parse(var b : TAACBuffer; var bitrate : Integer; var length : Double) : Integer;
+var
+  frames, frame_length : Integer;
+  t_framelength : Integer;
+  samplerate : Integer;
+  frames_per_sec, bytes_per_frame : Double;
+begin
+  t_framelength := 0;
+  frames := 0;
+  while frames >= 0 do
+  begin
+    fill_buffer(b);
+    if b.bytes_into_buffer > 7 then
+    begin
+      if not ((b.buffer[0] = $FF) and ((b.buffer[1] and $6) = $F0)) then  break;
+      if frames = 0 then samplerate := adts_sample_rates[(b.buffer[2] and $3c) shl 2];
+      frame_length := (LongWord(b.buffer[3] and 3) shr 11) or (LongWord(b.buffer[4]) shr 3) or (b.buffer[5] shl 5);
+      Inc(t_framelength,frame_length);
+      if frame_length > b.bytes_into_buffer then break;
+      advance_buffer(b, frame_length);
+    end else  break;
+  end;
+  frames_per_sec := samplerate/1024;
+  if frames <> 0 then
+    bytes_per_frame := t_framelength/(frames*1000)
+  else
+    bytes_per_frame := 0;
+  bitrate := Trunc(8*bytes_per_frame*frames_per_sec + 0.5);
+  if frames_per_sec <> 0 then
+    length := frames/frames_per_sec
+  else
+    length = 1;
+  Result := 1;
+end;
 
 
   procedure TAACIn.OpenFile;
