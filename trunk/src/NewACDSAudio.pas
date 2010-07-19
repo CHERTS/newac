@@ -15,7 +15,7 @@ uses
 
 
 const
-   DefaultLatency = 200;
+   DefaultLatency = 100;
 
 type
 
@@ -312,7 +312,8 @@ begin
        FLatency :=  DefaultLatency;
     end;
     Ini.Free;
-  end;
+  end else
+    FLatency :=  DefaultLatency;;
   FVolume := 0; //DW
   if not (csDesigning in ComponentState) then
   begin

@@ -773,12 +773,9 @@ begin
   DSW_FillEmptySpace(DSW, FillByte);
   if Assigned(Finput) then
   begin
-    if FInput is TAuConverter then
-      TAuConverter(FInput)._Jump(Offs);
-    if FInput is TAuFileIn then
-      TAuFileIn(FInput)._Jump(Offs);
+    FInput._Jump(Offs);
   end;
-  Self.Resume;
+  Resume;
 end;
 
 end.

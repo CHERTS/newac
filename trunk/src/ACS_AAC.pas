@@ -30,7 +30,37 @@ type
   private
       MP4Handle : mp4ff_t;
       cbs : mp4ff_callback_t;
-      R : PChar;
+      HDecoder : NeAACDecHandle;
+      FTrack : Integer;
+      FBytesRead, FBOffset : LongWord;
+      FSampleId, FSamples : Integer;
+      FTimescale : LongWord;
+      _Buf : array[0..2024*1024-1] of Byte;
+      FBitrate : LongWord;
+      function GetBitrate : LongWord;
+  protected
+    procedure OpenFile; override;
+    procedure CloseFile; override;
+    procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
+    function SeekInternal(var SampleNum : Int64) : Boolean; override;
+  public
+      (* Property: Bitrate
+       Read this property to get the file's average bitrate. *)
+     property Bitrate : LongWord read GetBitrate;
+  end;
+
+  TAACBuffer = record
+    bytes_into_buffer : Integer;
+    bytes_consumed : Integer;
+    file_offset : Integer;
+    buffer : PByteArray;
+    at_eof : Boolean;
+    infile : TStream;
+  end;
+
+  TAACIn = class(TAuTaggedFileIn)
+  private
+      b : TAACBuffer;
       HDecoder : NeAACDecHandle;
       FTrack : Integer;
       FBytesRead, FBOffset : LongWord;
@@ -329,6 +359,177 @@ implementation
   begin
     OpenFile;
     Result := FBitrate;
+  end;
+
+  function memcmp(B1 : PByteArray; B2 : PAnsiChar; Length : Integer) : Integer;
+  var
+    i : Integer;
+  begin
+    Result := 0;
+    for i := 0 to Length-1 do
+      if B1[i] <> B2[i] then
+        Result := -1;
+  end;
+
+ function fill_buffer(var b : TAACBuffer) : Integer;
+ var
+   bread : Integer;
+   i : Integer;
+ begin
+    if b.bytes_consumed > 0 then
+    begin
+      if b.bytes_into_buffer <> 0 then
+      begin
+        for i := 0 to b.bytes_into_buffer - 1 do
+            b.buffer[i] := b.buffer[i+b.bytes_consumed];
+      end;
+      if not b.at_eof then
+      begin
+        bread := b.infile.Read(b.buffer[b.bytes_into_buffer], b.bytes_consumed);
+        if bread <> b.bytes_consumed then
+        begin
+          b.at_eof = True;
+          Inc(b.bytes_into_buffer, bread);
+        end;
+      end;
+      b.bytes_consumed := 0;
+      if b.bytes_into_buffer > 3 then
+        if memcmp(b.buffer, 'TAG', 3) = 0 then
+              b.bytes_into_buffer := 0;
+      if b.bytes_into_buffer > 11 then
+        if memcmp(b.buffer, 'LYRICSBEGIN', 11) = 0 then
+          b.bytes_into_buffer := 0;
+      if b.bytes_into_buffer > 8 then
+        if memcmp(b.buffer, 'APETAGEX', 8) = 0 then
+          b.bytes_into_buffer := 0;
+    end;
+    Result := 1;
+ end;
+
+ procedure advance_buffer(var b : TAACBuffer; bytes : Integer);
+ begin
+    Inc(b.file_offset, bytes);
+    b.bytes_consumed := bytes;
+    Dec(b.bytes_into_buffer, bytes);
+  	if b.bytes_into_buffer < 0 then
+	  	b.bytes_into_buffer := 0;
+ end;
+
+
+
+  procedure TAACIn.OpenFile;
+  var
+    config : NeAACDecConfigurationPtr;
+    buffer : PByte;
+    buffer_size : LongWord;
+    samplerate : LongWord;
+    channels : Byte;
+//    useAacLength : LongWord;
+//    initial : LongWord;
+//    framesize : LongWord;
+    mp4ASC : mp4AudioSpecificConfig;
+    f, seconds : Double;
+    tag : PAnsiChar;
+  begin
+    Loadneaac;
+    if not LibneaacLoaded then
+    raise EAuException.Create(LibneaacPath + ' library could not be loaded.');
+    OpenCS.Enter;
+    try
+    if FOpened = 0 then
+    begin
+      FValid := False;
+      if not FStreamAssigned then
+      try
+        FStream := TAuFileStream.Create(FWideFileName, fmOpenRead or fmShareDenyWrite);
+      except
+        raise EAuException.Create('Failed to open stream');
+      end;
+      cbs.read := CBMP4Read;
+      cbs.write := CBMP4Write;
+      cbs.seek := CBMP4Seek;
+      cbs.truncate := CBMP4Truncate;
+      cbs.user_data := Pointer(Self);
+      hDecoder := NeAACDecOpen();
+      config := NeAACDecGetCurrentConfiguration(hDecoder);
+      case config.outputFormat of
+       FAAD_FMT_16BIT : FBPS := 16;
+       FAAD_FMT_24BIT : FBPS := 24;
+       FAAD_FMT_32BIT : FBPS := 32;
+       else  raise EAuException.Create('Unsupported sample format.');
+      end;
+      config.downMatrix := 1; //!!!!
+      NeAACDecSetConfiguration(hDecoder, config);
+      MP4Handle := mp4ff_open_read(@cbs);
+      R := MP4Handle;
+      if MP4Handle = nil then
+        raise EAuException.Create('Unable to open file.');
+      FTrack := GetAACTrack(MP4Handle);
+      if FTrack < 0 then
+        raise EAuException.Create('Unable to find correct AAC sound track in the MP4 file.');
+      buffer := nil;
+      mp4ff_get_decoder_config(MP4Handle, FTrack, buffer, buffer_size);
+      NeAACDecInit2(HDecoder, buffer, buffer_size, samplerate, channels);
+      FSR := mp4ff_get_sample_rate(MP4Handle, FTrack); //samplerate;
+      FChan := mp4ff_get_channel_count(MP4Handle, FTrack);
+      FTimescale := mp4ff_time_scale(MP4Handle, FTrack);
+//      framesize := 1024;
+//      useAacLength := 0;
+      if buffer <> nil then
+      begin
+        NeAACDecAudioSpecificConfig(buffer, buffer_size, mp4ASC);
+        //if mp4ASC.frameLengthFlag = 1 then framesize := 960;
+        //if mp4ASC.sbr_present_flag = 1 then framesize := framesize*2;
+        mp4ff_free_decoder_config(buffer);
+      end;
+      FSamples := mp4ff_num_samples(MP4Handle, FTrack);
+      f := 1024.0;
+      if mp4ASC.sbr_present_flag = 1 then
+         f := f * 2.0;
+      seconds := FSamples*(f-1.0)/mp4ASC.samplingFrequency;
+      //FSR :=  mp4ASC.samplingFrequency;
+      FTotalSamples := Trunc(seconds*mp4ASC.samplingFrequency);
+      if mp4ASC.samplingFrequency > FSR then FSR := mp4ASC.samplingFrequency;
+      FSize := FTotalSamples*FChan*(FBPS div 8);
+      if Fsize > 0 then
+        FSeekable := True;
+      (*
+        j = mp4ff_meta_get_num_items(infile);
+        for (k = 0; k < j; k++)
+        {
+            if (mp4ff_meta_get_by_index(infile, k, &item, &tag))
+            {
+                if (item != NULL && tag != NULL)
+                {
+                    faad_fprintf(stderr, "%s: %s\n", item, tag);
+                    free(item); item = NULL;
+                    free(tag); tag = NULL;
+                }
+            }
+        *)
+      _CommonTags.Clear;
+      mp4ff_meta_get_artist(MP4Handle, tag);
+      _CommonTags.Artist := tag;
+      mp4ff_meta_get_title(MP4Handle, tag);
+      _CommonTags.Title := tag;
+      mp4ff_meta_get_album(MP4Handle, tag);
+      _CommonTags.Album := tag;
+      mp4ff_meta_get_date(MP4Handle, tag);
+      _CommonTags.Year := tag;
+      mp4ff_meta_get_genre(MP4Handle, tag);
+      _CommonTags.Genre := tag;
+      mp4ff_meta_get_track(MP4Handle, tag);
+      _CommonTags.Track := tag;
+      FBitrate := mp4ff_get_avg_bitrate(MP4Handle, FTrack);
+      FValid := True;
+      FBOffset := 0;
+      FBytesRead := 0;
+      FSampleId := 0;
+      Inc(FOpened);
+    end;
+    finally
+      OpenCS.Leave;
+    end;
   end;
 
 
