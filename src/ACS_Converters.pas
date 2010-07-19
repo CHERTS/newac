@@ -379,6 +379,9 @@ type
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
     procedure InitInternal; override;
     procedure FlushInternal; override;
+  public
+    procedure _Pause; override;
+    procedure _Resume; override;
     procedure _Jump(Offs : Integer); override;
   end;
 
@@ -1768,6 +1771,14 @@ begin
   FPosition := FInput.Position;
   CacheThread.Buf.Reset2;
   Sleep(10);
+end;
+
+procedure TAudioCache._Pause;
+begin
+end;
+
+procedure TAudioCache._Resume;
+begin
 end;
 
 
