@@ -66,14 +66,15 @@ type
       FBytesRead, FBOffset : LongWord;
       FSampleId, FSamples : Integer;
       FTimescale : LongWord;
-      _Buf : array[0..2024*1024-1] of Byte;
+      _Buf : array[0..FAAD_MIN_STREAMSIZE*8-1] of Byte;
+      Buf2 : array[0..1024*1024-1] of Byte;
       FBitrate : LongWord;
       function GetBitrate : LongWord;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
     procedure GetDataInternal(var Buffer : Pointer; var Bytes : LongWord); override;
-    function SeekInternal(var SampleNum : Int64) : Boolean; override;
+//    function SeekInternal(var SampleNum : Int64) : Boolean; override;
   public
       (* Property: Bitrate
        Read this property to get the file's average bitrate. *)
@@ -163,7 +164,6 @@ implementation
       config.downMatrix := 1; //!!!!
       NeAACDecSetConfiguration(hDecoder, config);
       MP4Handle := mp4ff_open_read(@cbs);
-      R := MP4Handle;
       if MP4Handle = nil then
         raise EAuException.Create('Unable to open file.');
       FTrack := GetAACTrack(MP4Handle);
@@ -367,7 +367,7 @@ implementation
   begin
     Result := 0;
     for i := 0 to Length-1 do
-      if B1[i] <> B2[i] then
+      if B1[i] <> Byte(B2[i]) then
         Result := -1;
   end;
 
@@ -388,9 +388,9 @@ implementation
         bread := b.infile.Read(b.buffer[b.bytes_into_buffer], b.bytes_consumed);
         if bread <> b.bytes_consumed then
         begin
-          b.at_eof = True;
-          Inc(b.bytes_into_buffer, bread);
+          b.at_eof := True;
         end;
+        Inc(b.bytes_into_buffer, bread);
       end;
       b.bytes_consumed := 0;
       if b.bytes_into_buffer > 3 then
@@ -449,7 +449,7 @@ begin
   if frames_per_sec <> 0 then
     length := frames/frames_per_sec
   else
-    length = 1;
+    length := 1;
   Result := 1;
 end;
 
@@ -457,16 +457,12 @@ end;
   procedure TAACIn.OpenFile;
   var
     config : NeAACDecConfigurationPtr;
-    buffer : PByte;
-    buffer_size : LongWord;
+    mp4ASC : mp4AudioSpecificConfig;
+    bread, tagsize : Integer;
+    bitrate, header_type, skip_size : Integer;
+    length  : Double;
     samplerate : LongWord;
     channels : Byte;
-//    useAacLength : LongWord;
-//    initial : LongWord;
-//    framesize : LongWord;
-    mp4ASC : mp4AudioSpecificConfig;
-    f, seconds : Double;
-    tag : PAnsiChar;
   begin
     Loadneaac;
     if not LibneaacLoaded then
@@ -482,82 +478,89 @@ end;
       except
         raise EAuException.Create('Failed to open stream');
       end;
-      cbs.read := CBMP4Read;
-      cbs.write := CBMP4Write;
-      cbs.seek := CBMP4Seek;
-      cbs.truncate := CBMP4Truncate;
-      cbs.user_data := Pointer(Self);
+      b.bytes_into_buffer := 0;
+      b.bytes_consumed := 0;
+      b.file_offset := 0;
+      b.buffer := @_Buf[0];
+      b.at_eof := False;
+      b.infile := FStream;
+      bread := b.infile.Read(b.buffer[0], FAAD_MIN_STREAMSIZE*8);
+      b.bytes_into_buffer := bread;
+      b.bytes_consumed := 0;
+      b.file_offset := 0;
+      if bread <> FAAD_MIN_STREAMSIZE*8 then
+         b.at_eof := True;
+      tagsize := 0;
+      if memcmp(b.buffer, 'ID3', 3) = 0 then
+      begin
+//      tagsize := ((b.buffer[6] and 127) shr 21) or ((b.buffer[7] and 127) shr 14) or
+//          ((b.buffer[8] and 127) shr  7) or ((b.buffer[9] and 127) shr  0);
+        tagsize := (b.buffer[8] and 127)*127 + (b.buffer[9] and 127);
+        Inc(tagsize, 11);
+        advance_buffer(b, tagsize);
+        fill_buffer(b);
+      end;
+ {    tagsize := 196;
+      advance_buffer(b, tagsize);
+      fill_buffer(b);}
       hDecoder := NeAACDecOpen();
       config := NeAACDecGetCurrentConfiguration(hDecoder);
+      config.defSampleRate := 44100;
+      config.defObjectType := LC;
+      config.outputFormat := FAAD_FMT_16BIT;
+      config.downMatrix := 0;
+      config.useOldADTSFormat := 0;
+      NeAACDecSetConfiguration(hDecoder, config);
+
+      if (b.buffer[0] = $FF) and ((b.buffer[1] and $F6) = $F0) then
+      begin
+        adts_parse(b, bitrate, length);
+        b.infile.Seek(tagsize, soFromBeginning);
+        bread := b.infile.Read(b.buffer[0], FAAD_MIN_STREAMSIZE*8);
+        if bread <> FAAD_MIN_STREAMSIZE*8 then
+            b.at_eof := True
+        else
+            b.at_eof := False;
+        b.bytes_into_buffer := bread;
+        b.bytes_consumed := 0;
+        b.file_offset := tagsize;
+        header_type := 1;
+      end else
+      if memcmp(b.buffer, 'ADIF', 4) = 0 then
+      begin
+        if(b.buffer[4] and $80) <> 0 then
+        skip_size := 9
+        else
+        skip_size := 0;
+        bitrate := (LongWord((b.buffer[4 + skip_size]) and $0F)shr 19) or
+            (LongWord(b.buffer[5 + skip_size]) shr 11) or
+            (LongWord(b.buffer[6 + skip_size]) shr 3) or
+            (LongWord(b.buffer[7 + skip_size]) and $E0);
+
+        length := b.infile.Size;
+        if length <> 0 then
+            length := (length*8)/bitrate + 0.5;
+        bitrate := Trunc(bitrate/1000 + 0.5);
+         header_type := 2;
+      end;
+      fill_buffer(b);
+      bread := NeAACDecInit(hDecoder, @(b.buffer[0]), b.bytes_into_buffer, samplerate, channels);
+      if bread < 0 then
+      begin
+        NeAACDecClose(hDecoder);
+        raise EAuException.Create('Error nitializing the decoder');
+      end;
+      advance_buffer(b, bread);
+      fill_buffer(b);
+      FSR := samplerate;
+      FChan := channels;
       case config.outputFormat of
        FAAD_FMT_16BIT : FBPS := 16;
        FAAD_FMT_24BIT : FBPS := 24;
        FAAD_FMT_32BIT : FBPS := 32;
        else  raise EAuException.Create('Unsupported sample format.');
       end;
-      config.downMatrix := 1; //!!!!
-      NeAACDecSetConfiguration(hDecoder, config);
-      MP4Handle := mp4ff_open_read(@cbs);
-      R := MP4Handle;
-      if MP4Handle = nil then
-        raise EAuException.Create('Unable to open file.');
-      FTrack := GetAACTrack(MP4Handle);
-      if FTrack < 0 then
-        raise EAuException.Create('Unable to find correct AAC sound track in the MP4 file.');
-      buffer := nil;
-      mp4ff_get_decoder_config(MP4Handle, FTrack, buffer, buffer_size);
-      NeAACDecInit2(HDecoder, buffer, buffer_size, samplerate, channels);
-      FSR := mp4ff_get_sample_rate(MP4Handle, FTrack); //samplerate;
-      FChan := mp4ff_get_channel_count(MP4Handle, FTrack);
-      FTimescale := mp4ff_time_scale(MP4Handle, FTrack);
-//      framesize := 1024;
-//      useAacLength := 0;
-      if buffer <> nil then
-      begin
-        NeAACDecAudioSpecificConfig(buffer, buffer_size, mp4ASC);
-        //if mp4ASC.frameLengthFlag = 1 then framesize := 960;
-        //if mp4ASC.sbr_present_flag = 1 then framesize := framesize*2;
-        mp4ff_free_decoder_config(buffer);
-      end;
-      FSamples := mp4ff_num_samples(MP4Handle, FTrack);
-      f := 1024.0;
-      if mp4ASC.sbr_present_flag = 1 then
-         f := f * 2.0;
-      seconds := FSamples*(f-1.0)/mp4ASC.samplingFrequency;
-      //FSR :=  mp4ASC.samplingFrequency;
-      FTotalSamples := Trunc(seconds*mp4ASC.samplingFrequency);
-      if mp4ASC.samplingFrequency > FSR then FSR := mp4ASC.samplingFrequency;
-      FSize := FTotalSamples*FChan*(FBPS div 8);
-      if Fsize > 0 then
-        FSeekable := True;
-      (*
-        j = mp4ff_meta_get_num_items(infile);
-        for (k = 0; k < j; k++)
-        {
-            if (mp4ff_meta_get_by_index(infile, k, &item, &tag))
-            {
-                if (item != NULL && tag != NULL)
-                {
-                    faad_fprintf(stderr, "%s: %s\n", item, tag);
-                    free(item); item = NULL;
-                    free(tag); tag = NULL;
-                }
-            }
-        *)
-      _CommonTags.Clear;
-      mp4ff_meta_get_artist(MP4Handle, tag);
-      _CommonTags.Artist := tag;
-      mp4ff_meta_get_title(MP4Handle, tag);
-      _CommonTags.Title := tag;
-      mp4ff_meta_get_album(MP4Handle, tag);
-      _CommonTags.Album := tag;
-      mp4ff_meta_get_date(MP4Handle, tag);
-      _CommonTags.Year := tag;
-      mp4ff_meta_get_genre(MP4Handle, tag);
-      _CommonTags.Genre := tag;
-      mp4ff_meta_get_track(MP4Handle, tag);
-      _CommonTags.Track := tag;
-      FBitrate := mp4ff_get_avg_bitrate(MP4Handle, FTrack);
+      FBitrate := bitrate;
       FValid := True;
       FBOffset := 0;
       FBytesRead := 0;
@@ -569,6 +572,66 @@ end;
     end;
   end;
 
+  procedure TAACIn.CloseFile;
+  begin
+    OpenCS.Enter;
+    try
+    if FOpened > 0 then
+    begin
+      NeAACDecClose(hDecoder);
+      if not FStreamAssigned then
+         FStream.Free;
+      FOpened  := 0;
+    end;
+    finally
+      OpenCS.Leave;
+    end;
+  end;
+
+  procedure TAACIn.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
+  var
+    audio_buffer_size : LongWord;
+    sample_buffer : Pointer;
+    frameInfo : NeAACDecFrameInfo;
+    S : PAnsiChar;
+  begin
+    if FBOffset = FBytesRead then
+    begin
+      if b.at_eof then
+      begin
+        Buffer := nil;
+        Bytes := 0;
+        Exit;
+      end;
+//      FillChar(frameinfo, SizeOf(frameinfo), 0);
+      FBytesRead := 0;
+      while FBytesRead = 0 do
+      begin
+        sample_buffer := NeAACDecDecode(hDecoder, @frameInfo, @(b.buffer[0]), b.bytes_into_buffer);
+        advance_buffer(b, frameInfo.bytesconsumed);
+        fill_buffer(b);
+        if frameInfo.error > 0 then
+        begin
+          S := NeAACDecGetErrorMessage(frameInfo.error);
+          raise EAuException.Create(S);
+        end;
+        //  sample_count := (dur * frameInfo.channels);
+        FBytesRead := frameInfo.samples*(FBPS div 8);
+        Move(sample_buffer^, Buf2[0], FBytesRead);
+        FBOffset := 0;
+      end;
+    end;
+    if Bytes > FBytesRead - FBOffset then
+      Bytes := FBytesRead - FBOffset;
+    Buffer := @Buf2[FBOffset];
+    Inc(FBOffset, Bytes);
+  end;
+
+  function TAACIn.GetBitrate : LongWord;
+  begin
+    OpenFile;
+    Result := FBitrate;
+  end;
 
 end.
 

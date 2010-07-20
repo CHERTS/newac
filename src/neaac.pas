@@ -179,7 +179,7 @@ AACNewFrameInfo_t = function : PNeAACDecFrameInfo; cdecl;
 
 AACDeleteFrameInfo_t = procedure(fi : PNeAACDecFrameInfo); cdecl;
 
-NeAACDecGetErrorMessage_t = function(errcode : Byte) : Pchar; cdecl;
+NeAACDecGetErrorMessage_t = function(errcode : Byte) : PAnsiChar; cdecl;
 
 NeAACDecGetCapabilities_t = function : LongWord; cdecl;
 
