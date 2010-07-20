@@ -432,13 +432,14 @@ begin
     fill_buffer(b);
     if b.bytes_into_buffer > 7 then
     begin
-      if not ((b.buffer[0] = $FF) and ((b.buffer[1] and $6) = $F0)) then  break;
-      if frames = 0 then samplerate := adts_sample_rates[(b.buffer[2] and $3c) shl 2];
+      if not ((b.buffer[0] = $FF) and ((b.buffer[1] and $F6) = $F0)) then  break;
+      if frames = 0 then samplerate := adts_sample_rates[(b.buffer[2] and $3c) div 4];
       frame_length := (LongWord(b.buffer[3] and 3) shr 11) or (LongWord(b.buffer[4]) shr 3) or (b.buffer[5] shl 5);
       Inc(t_framelength,frame_length);
       if frame_length > b.bytes_into_buffer then break;
       advance_buffer(b, frame_length);
     end else  break;
+    Inc(frames);
   end;
   frames_per_sec := samplerate/1024;
   if frames <> 0 then
@@ -505,13 +506,12 @@ end;
       fill_buffer(b);}
       hDecoder := NeAACDecOpen();
       config := NeAACDecGetCurrentConfiguration(hDecoder);
-      config.defSampleRate := 44100;
+{      config.defSampleRate := 44100;
       config.defObjectType := LC;
       config.outputFormat := FAAD_FMT_16BIT;
       config.downMatrix := 0;
       config.useOldADTSFormat := 0;
-      NeAACDecSetConfiguration(hDecoder, config);
-
+      NeAACDecSetConfiguration(hDecoder, config);}
       if (b.buffer[0] = $FF) and ((b.buffer[1] and $F6) = $F0) then
       begin
         adts_parse(b, bitrate, length);
