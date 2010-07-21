@@ -370,7 +370,8 @@ type
        This event is raised if an exception has occurred. Exception string is stored in <ExceptionMessage>. *)
     property OnThreadException : TThreadExceptionEvent read FOnThreadException write FOnThreadException;
    (* Property: OnSyncDone
-      The synchronous analogue of the <OnDone> event. This event is not synchronized with the main GUI thread so be careful with the methods you call from the handler. *)
+      The synchronous analogue of the <OnDone> event. This event is called from an audio output thread and is not synchronized with the main (GUI) thread so be careful with the methods you call from the handler.
+      DO NOT modify any of your GUI controls from this event's handler *)
     property OnSyncDone : TOutputDoneEvent read FOnSyncDone write FOnSyncDone;
   end;
 
@@ -1288,8 +1289,8 @@ end;
         ParentComponent.Busy := False;
       end;
       if Assigned(ParentComponent.FOnSyncDone) then
-         ParentComponent.FOnSyncDone(ParentComponent)
-       else
+         ParentComponent.FOnSyncDone(ParentComponent);
+       //else
          EventHandler.PostOnDone(Parent, Self);
        if not ParentComponent.Busy then
        begin
@@ -1389,8 +1390,8 @@ constructor TAuOutput.Create;
       Exit;
     if not Async then
     begin
-      e := FOnSyncDone;
-      FOnSyncDone := nil;
+//      e := FOnSyncDone;
+//      FOnSyncDone := nil;
     end;
     Thread.DoNotify := Async;
 //    Thread.Stopped := False;
@@ -1412,7 +1413,7 @@ constructor TAuOutput.Create;
       end;
       EventHandler.UnblockEvents(Self);
       Thread.DoNotify := True;
-      FOnSyncDone := e;
+//      FOnSyncDone := e;
     end;
   end;
 
