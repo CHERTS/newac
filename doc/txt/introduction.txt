@@ -32,6 +32,7 @@ Section: On the Web
 
 Section: Version History
 	Short list of new features for each NewAC version.
+
 Version: NewAC 2.6
 	- The TDSAudioOut - new and better sound output  component is added.
 	- The TAudioCache component is added.
@@ -175,17 +176,6 @@ Note from Andrei Borovsky:
 	Not being a native English speaker, I especially apologise for any grammatical and orthographical mistakes and clumsiness you may find in this documentation. If you find such a thing it is most probably my fault and not Wayne's. 
 
 Section: Introduction to NewAC Programming
-
-Topic: Important notes for the last version
-
-As Delphi Language evolves with the time we desided to provide several compilation options for different versions of Delphi. Under one option the components will be compilable under all versions of Delphi starting with Delphi 6. Another option activates new Delphi Language features, but requires Delphi 2009 or higher version. In the file NewAC.dpk you will see a string
-
-	> {$DEFINE DELPHI_6P}
-
-This makes the code Delphi 6 compatible. If you want to use new language fetures turn this string into
-
-	> {$DEFINE DELPHI_2009P}
-
 
 Topic: Basic Operation
 
