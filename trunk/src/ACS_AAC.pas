@@ -58,6 +58,14 @@ type
     infile : TStream;
   end;
 
+(* Class: TAACIn
+   This component can decode raw AAC files. It requires libfaad2p.dll.
+   The component is experimenatal and will probably not work for all types of AAC file.
+   Please send me samples of the files that it cannot play.
+   Descends from <TAuTaggedFileIn>.
+   Seeking isn't implemented yet.
+ *)
+
   TAACIn = class(TAuTaggedFileIn)
   private
       b : TAACBuffer;
