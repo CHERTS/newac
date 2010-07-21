@@ -33,8 +33,9 @@ Section: On the Web
 Section: Version History
 	Short list of new features for each NewAC version.
 Version: NewAC 2.6
+	- The TDSAudioOut - new and better sound output  component is added.
 	- The TAudioCache component is added.
-	- The TMP4In component is added.
+	- The TMP4In component for AAC playback is added.
 	- OnSyncDone event (like OnDone, but fired at ones) is added.
 	- Windows 7 compatibility is attested.
 	- Some minor fixes.
