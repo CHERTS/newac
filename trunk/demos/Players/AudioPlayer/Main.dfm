@@ -383,7 +383,6 @@ object Form1: TForm1
     Font.Height = -13
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
-    ItemHeight = 16
     MultiSelect = True
     ParentFont = False
     TabOrder = 3
@@ -525,13 +524,14 @@ object Form1: TForm1
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'
     Loop = False
     EndSample = -1
-    Left = 8
-    Top = 160
+    Left = 64
+    Top = 120
   end
   object OpenDialog1: TOpenDialog
     Filter = 
       'All files|*.*|Ogg Vorbis files|*.ogg|MP3 files|*.mp3|FLAC files|' +
-      '*.flac|Monkey Audio|*.ape|Wavpack|*.wv|Wave files|*.wav'
+      '*.flac|Monkey Audio|*.ape|Wavpack|*.wv|Wave files|*.wav|MPEG 4 A' +
+      'udio files|*.m4a'
     Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
     Left = 392
     Top = 160
@@ -539,41 +539,29 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 56
-    Top = 160
+    Left = 120
+    Top = 120
   end
   object FLACIn1: TFLACIn
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
-    Left = 168
-    Top = 160
+    Left = 240
+    Top = 128
   end
   object MP3In1: TMP3In
     Loop = False
     EndSample = -1
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
-    Left = 232
-    Top = 160
-  end
-  object DXAudioOut1: TDXAudioOut
-    Input = SpectrumIndicator1
-    OnDone = AudioOut1Done
-    OnProgress = AudioOut1Progress
-    DeviceNumber = 0
-    FramesInBuffer = 24576
-    Latency = 100
-    PollingInterval = 80
-    PrefetchData = True
-    Left = 328
-    Top = 160
+    Left = 288
+    Top = 128
   end
   object MACIn1: TMACIn
     Loop = False
     EndSample = -1
-    Left = 104
-    Top = 160
+    Left = 176
+    Top = 128
   end
   object WVIn1: TWVIn
     Loop = False
@@ -582,9 +570,28 @@ object Form1: TForm1
     Top = 120
   end
   object SpectrumIndicator1: TSpectrumIndicator
-    Interval = 80
+    Input = AudioCache1
+    Interval = 50
     OnGainData = SpectrumIndicator1GainData
-    Left = 280
+    Left = 296
+    Top = 160
+  end
+  object DSAudioOut1: TDSAudioOut
+    Input = SpectrumIndicator1
+    DeviceNumber = 0
+    Calibrate = True
+    Latency = 50
+    SpeedFactor = 1.000000000000000000
+    Left = 344
+    Top = 160
+  end
+  object MP4In1: TMP4In
+    Loop = False
+    Left = 328
+    Top = 128
+  end
+  object AudioCache1: TAudioCache
+    Left = 208
     Top = 160
   end
 end

@@ -11,7 +11,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_Classes, ACS_Wave, StdCtrls, ComCtrls, ACS_Vorbis,
   ACS_FLAC, ACS_smpeg, ExtCtrls, ACS_DXAudio, ACS_WinMedia, ACS_WavPack, ACS_MAC,
-  NewACIndicators, Buttons;
+  NewACIndicators, Buttons, ACS_Converters, ACS_AAC, NewACDSAudio;
 
 type
   TForm1 = class(TForm)
@@ -26,7 +26,6 @@ type
     ListBox1: TListBox;
     MP3In1: TMP3In;
     Panel1: TPanel;
-    DXAudioOut1: TDXAudioOut;
     MACIn1: TMACIn;
     WVIn1: TWVIn;
     Memo1: TMemo;
@@ -48,6 +47,9 @@ type
     SpeedButton6: TSpeedButton;
     SpeedButton7: TSpeedButton;
     SpeedButton8: TSpeedButton;
+    DSAudioOut1: TDSAudioOut;
+    MP4In1: TMP4In;
+    AudioCache1: TAudioCache;
     procedure PlayButtonClick(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);
@@ -112,13 +114,13 @@ end;
 
 procedure TForm1.AudioOut1Progress(Sender: TComponent);
 begin
-  ProgressBar1.Position :=  Self.DXAudioOut1.Progress;
+  ProgressBar1.Position :=  DSAudioOut1.Progress;
 end;
 
 procedure TForm1.StopButtonClick(Sender: TObject);
 begin
   StopPlaying := True;
-  DXAudioOut1.Stop;
+  DSAudioOut1.Stop;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -158,7 +160,7 @@ var
   FI : TAuFileIn;
   Ext : String;
 begin
-  DXAudioOut1.Stop(False);
+  DSAudioOut1.Stop(False);
   FileName := ListBox1.Items[PlayingIndex];
   Ext := SysUtils.ExtractFileExt(FileName);
   Ext := AnsiLowerCase(Ext);
@@ -169,6 +171,7 @@ begin
   if Ext = '.flac' then FI := FLACIn1;
   if Ext = '.ape' then FI := MACIn1;
   if Ext = '.wv' then FI := WVIn1;
+  if Ext = '.m4a' then FI := MP4In1;
   if FI = nil then
   begin
     StatusBar1.Panels[0].Text := 'Unknown file extension';
@@ -182,9 +185,9 @@ begin
   end;
   StatusBar1.Panels[0].Text := 'Playing: ' + ExtractFileName(FileName);
   FI.Loop := CheckBox1.Checked;
-  SpectrumIndicator1.Input := FI;
+  AudioCache1.Input := FI;
   PlayButton.Enabled := False;
-  DXAudioOut1.Run;
+  DSAudioOut1.Run;
   Sec := FI.TotalTime;
   Min := Sec div 60;
   Sec := Sec - Min*60;
@@ -233,12 +236,12 @@ end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  DXAudioOut1.Stop(False);
+  DSAudioOut1.Stop(False);
 end;
 
 procedure TForm1.SkipButtonClick(Sender: TObject);
 begin
-  DXAudioOut1.Stop;
+  DSAudioOut1.Stop;
 end;
 
 procedure TForm1.SpectrumIndicator1GainData(Sender: TComponent);
@@ -255,20 +258,20 @@ end;
 
 procedure TForm1.ForwardButtonClick(Sender: TObject);
 begin
-  DXAudioOut1.Jump(100);
+  DSAudioOut1.Jump(100);
 end;
 
 procedure TForm1.BackwardButtonClick(Sender: TObject);
 begin
-  DXAudioOut1.Jump(-100);
+  DSAudioOut1.Jump(-100);
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  if DXAudioOut1.Status = tosPlaying then
-    DXAudioOut1.Pause
+  if DSAudioOut1.Status = tosPlaying then
+    DSAudioOut1.Pause
   else
-    DXAudioOut1.Resume;
+    DSAudioOut1.Resume;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
