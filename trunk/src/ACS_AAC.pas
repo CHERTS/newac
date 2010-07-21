@@ -78,6 +78,7 @@ type
       Buf2 : array[0..1024*1024-1] of Byte;
       FBitrate : LongWord;
       function GetBitrate : LongWord;
+      procedure ReadAACSamples;
   protected
     procedure OpenFile; override;
     procedure CloseFile; override;
@@ -568,11 +569,13 @@ end;
        FAAD_FMT_32BIT : FBPS := 32;
        else  raise EAuException.Create('Unsupported sample format.');
       end;
+      ReadAACSamples;
       FBitrate := bitrate;
       FValid := True;
       FBOffset := 0;
       FBytesRead := 0;
       FSampleId := 0;
+      FSize := -1;
       Inc(FOpened);
     end;
     finally
@@ -597,24 +600,35 @@ end;
   end;
 
   procedure TAACIn.GetDataInternal(var Buffer : Pointer; var Bytes : LongWord);
-  var
-    audio_buffer_size : LongWord;
-    sample_buffer : Pointer;
-    frameInfo : NeAACDecFrameInfo;
-    S : PAnsiChar;
   begin
     if FBOffset = FBytesRead then
     begin
-      if b.at_eof then
+      if b.at_eof and (b.bytes_into_buffer = 0) then
       begin
         Buffer := nil;
         Bytes := 0;
         Exit;
       end;
-//      FillChar(frameinfo, SizeOf(frameinfo), 0);
+      ReadAACSamples;
+    end;
+    if Bytes > FBytesRead - FBOffset then
+      Bytes := FBytesRead - FBOffset;
+    Buffer := @Buf2[FBOffset];
+    Inc(FBOffset, Bytes);
+  end;
+
+  procedure TAACIn.ReadAACSamples;
+  var
+    S : PAnsiChar;
+    sample_buffer : Pointer;
+    frameInfo : NeAACDecFrameInfo;
+  begin
       FBytesRead := 0;
+      FBOffset := 0;
       while FBytesRead = 0 do
       begin
+        if b.at_eof and (b.bytes_into_buffer = 0) then
+          break;
         sample_buffer := NeAACDecDecode(hDecoder, @frameInfo, @(b.buffer[0]), b.bytes_into_buffer);
         advance_buffer(b, frameInfo.bytesconsumed);
         fill_buffer(b);
@@ -626,13 +640,11 @@ end;
         //  sample_count := (dur * frameInfo.channels);
         FBytesRead := frameInfo.samples*(FBPS div 8);
         Move(sample_buffer^, Buf2[0], FBytesRead);
-        FBOffset := 0;
       end;
-    end;
-    if Bytes > FBytesRead - FBOffset then
-      Bytes := FBytesRead - FBOffset;
-    Buffer := @Buf2[FBOffset];
-    Inc(FBOffset, Bytes);
+      FChan := frameInfo.channels;
+      FSR := frameInfo.samplerate;
+ //     FSize := Trunc(frameInfo.samples/frameInfo.bytesconsumed*FStream.Size)*(FBPS div 8);
+//      FTotalSamples := FSize div (FChan*(FBPS div 8));
   end;
 
   function TAACIn.GetBitrate : LongWord;
