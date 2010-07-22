@@ -70,10 +70,7 @@ type
   private
       b : TAACBuffer;
       HDecoder : NeAACDecHandle;
-      FTrack : Integer;
       FBytesRead, FBOffset : LongWord;
-      FSampleId, FSamples : Integer;
-      FTimescale : LongWord;
       _Buf : array[0..FAAD_MIN_STREAMSIZE*8-1] of Byte;
       Buf2 : array[0..1024*1024-1] of Byte;
       FBitrate : LongWord;
@@ -574,7 +571,6 @@ end;
       FValid := True;
       FBOffset := 0;
       FBytesRead := 0;
-      FSampleId := 0;
       FSize := -1;
       Inc(FOpened);
     end;
