@@ -426,7 +426,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMAuthor);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMAuthor, Result);
    end;
 
@@ -435,7 +435,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMTitle);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMTitle, Result);
    end;
 
@@ -444,7 +444,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMAlbumTitle);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMAlbumTitle, result);
    end;
 
@@ -453,7 +453,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMGenre);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMGenre, Result);
    end;
 
@@ -462,7 +462,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMTrack);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMTrack, Result);
    end;
 
@@ -471,7 +471,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMYear);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMYear, result);
    end;
 
@@ -480,7 +480,7 @@ implementation
      len : Word;
    begin
      len := get_async_tag_length(async_reader, g_wszWMCopyright);
-     SetLength(Result, len);
+     Result := StringOfChar(#0,len);
      get_async_tag(async_reader, g_wszWMCopyright, result);
    end;
 
