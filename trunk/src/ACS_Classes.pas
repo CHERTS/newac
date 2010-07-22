@@ -865,7 +865,7 @@ type
   end;
 
   TAuCachedStream = class(TAuFileStream)
-  strict private
+  private
     FCBuffer : TCircularBuffer;
     FThread : TCacheThread;
     FPosition : Int64;
@@ -2701,7 +2701,7 @@ end;
     FPosition := 0;
     FThread.h := Handle;
     FThread.Buf := FCBuffer;
-    FThread.Start;
+    FThread.Resume;
   end;
 
   constructor TAuCachedStream.Create(const AFileName: string; Mode: Word; Rights: Cardinal; Cached : Boolean);
@@ -2714,7 +2714,7 @@ end;
     FPosition := 0;
     FThread.h := Handle;
     FThread.Buf := FCBuffer;
-    FThread.Start;
+    FThread.Resume;
   end;
 
   destructor TAuCachedStream.Destroy;
