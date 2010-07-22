@@ -25,6 +25,7 @@ type
       Descends from <TAuOutput>.
       TDSAudioOut component buffers its output in order to make it more smooth. This buffering introduces some delay at the beginning of the audio playback with TDXAudioOut.
       See the <Latency> property for more detail.
+      This component is more advanced than the TDxAudioOut and should replace the later.
   *)
   TDSAudioOut = class(TAuOutput)
   private
