@@ -578,6 +578,8 @@ object Form1: TForm1
   end
   object DSAudioOut1: TDSAudioOut
     Input = SpectrumIndicator1
+    OnDone = AudioOut1Done
+    OnProgress = AudioOut1Progress
     DeviceNumber = 0
     Calibrate = True
     Latency = 50
