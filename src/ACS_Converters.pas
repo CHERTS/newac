@@ -352,7 +352,7 @@ type
   end;
 
   const
-     AudioCacheSize = $200000;
+     AudioCacheSize = $600000;
      ACBufLen = AudioCacheSize div 8;
 
  type
