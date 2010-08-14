@@ -329,12 +329,20 @@ destructor TDSAudioOut.Destroy;
 var
   Ini : TIniFile;
 begin
-  if (FINIFile <> '') and FCalibrate then
-  begin
-    Ini := TIniFile.Create(FINIFile);
-    Ini.WriteInteger('AudioOutput', 'Latency', FLatency);
-    Ini.Free;
+  try
+    if (FINIFile <> '') and FCalibrate then
+    begin
+      Ini := TIniFile.Create(FINIFile);
+      try
+      Ini.WriteInteger('AudioOutput', 'Latency', FLatency);
+      finally
+        Ini.Free;
+      end;
+    end;
+  except
   end;
+  //DW
+  inherited Destroy;
 end;
 
 procedure TDSAudioOut.Prepare;
