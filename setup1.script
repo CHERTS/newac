@@ -1,0 +1,18 @@
+USE master;
+DROP DATABASE [БД заказов];
+RESTORE FILELISTONLY
+FROM DISK = '%path%';
+RESTORE DATABASE [БД заказов] 
+FROM DISK = '%path%' WITH REPLACE, MOVE 'БД Заказов 2000SQL_dat' TO 'C:\Program Files\Microsoft SQL Server\MSSQL.1\MSSQL\Data\БД Заказов 2000SQL.mdf', MOVE 'БД Заказов 2000SQL_log' TO 'C:\Program Files\Microsoft SQL Server\MSSQL.1\MSSQL\Data\БД Заказов 2000SQL_log.ldf'; 
+ALTER DATABASE [БД заказов] SET MULTI_USER;
+CREATE LOGIN %user% WITH PASSWORD = '%password%', DEFAULT_DATABASE = [БД заказов], DEFAULT_LANGUAGE = Russian;
+exec sp_addsrvrolemember %user%, securityadmin;
+exec sp_addsrvrolemember %user%, setupadmin;
+exec sp_addsrvrolemember %user%, serveradmin;
+exec sp_addsrvrolemember %user%, sysadmin;
+--exec sp_addrolemember db_datareader, %user%;
+--exec sp_addrolemember db_datawriter, %user%;
+--exec sp_addrolemember db_securityadmin, %user%;
+--exec sp_addrolemember db_accessadmin, %user%;
+--exec sp_addrolemember db_owner, %user%;
+
