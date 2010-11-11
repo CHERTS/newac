@@ -1757,6 +1757,11 @@ end;
         end;
         LookingForDATA :
         begin
+          if Buff[i-4] = #0 then
+          begin
+            FStream.Read(Buff[i], 1);
+            Inc(i);
+          end;
           if not Compare4(@Buff[i-4], 'data') then
           begin
             FStream.Read(Buff[i], 4);
@@ -1861,6 +1866,11 @@ end;
         end;
         LookingForFACT :
         begin
+          if Buff[i-4] = #0 then
+          begin
+            FStream.Read(Buff[i], 1);
+            Inc(i);
+          end;
           if not Compare4(@Buff[i-4], 'fact') then
           begin
             FStream.Read(Buff[i], 4);

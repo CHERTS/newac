@@ -305,6 +305,7 @@ implementation
        async_reader.CriticalSection.Free;
        Exit;
      end;
+     if OutputCount > 0 then
      for i := 0 to OutputCount - 1 do
      begin
        async_reader.reader.GetOutputProps(i, MediaProps);
@@ -314,11 +315,11 @@ implementation
        if GUIDSEqual(MediaType.majortype, WMMEDIATYPE_Audio) and GUIDSEqual(MediaType.formattype, WMFORMAT_WaveFormatEx) then
        begin
          async_reader.has_audio := True;
-	 async_reader.output := i;
-	 format := PWAVEFORMATEX(MediaType.pbFormat);
-	 async_reader.channels := format.nChannels;
-	 async_reader.SampleRate := format.nSamplesPerSec;
-	 async_reader.BitsPerSample := format.wBitsPerSample;
+      	 async_reader.output := i;
+      	 format := PWAVEFORMATEX(MediaType.pbFormat);
+      	 async_reader.channels := format.nChannels;
+      	 async_reader.SampleRate := format.nSamplesPerSec;
+      	 async_reader.BitsPerSample := format.wBitsPerSample;
        end;
        FreeMem(MediaType);
        MediaProps := nil;
@@ -605,6 +606,7 @@ implementation
        sync_reader.AudioStream := nil;
        Exit;
      end;
+     if OutputCount > 0 then
      for i := 0 to OutputCount - 1 do
      begin
        sync_reader.reader.GetOutputProps(i, MediaProps);
@@ -621,6 +623,7 @@ implementation
            sync_reader.SampleRate := format.nSamplesPerSec;
            sync_reader.channels := format.nChannels;
            sync_reader.reader.GetOutputFormatCount(i, FormatCount);
+           if FormatCount > 0 then
            for j := 0 to FormatCount  - 1 do
            begin
              sync_reader.reader.GetOutputFormat(i, j, MediaProps);
@@ -654,6 +657,7 @@ implementation
              sync_reader.reader.SetOutputSetting(i, g_wszSpeakerConfig, WMT_TYPE_DWORD, PByte(@Value), 4);
            end;
            sync_reader.reader.GetOutputFormatCount(i, FormatCount);
+           if FormatCount > 0 then
            for j := 0 to FormatCount  - 1 do
            begin
              sync_reader.reader.GetOutputFormat(i, j, MediaProps);
@@ -737,6 +741,7 @@ implementation
        sync_reader.AudioStream := nil;
        Exit;
      end;
+     if OutputCount > 0 then
      for i := 0 to OutputCount - 1 do
      begin
        sync_reader.reader.GetOutputProps(i, MediaProps);
@@ -1049,6 +1054,7 @@ implementation
      WMCreateProfileManager(ProfileManager);
      CodecInfo := ProfileManager as IWMCodecInfo3;
      CodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, Codecs);
+     if Codecs > 0 then
      for CodecIndex := 0 to Codecs - 1 do
      begin
        CodecInfo.GetCodecName(WMMEDIATYPE_Audio, CodecIndex, nil, CNameSize);
@@ -1076,6 +1082,7 @@ implementation
      WMCreateProfileManager(ProfileManager);
      CodecInfo := ProfileManager as IWMCodecInfo3;
      CodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, Codecs);
+     if Codecs > 0 then
      for CodecIndex := 0 to Codecs - 1 do
      begin
        CodecInfo.GetCodecName(WMMEDIATYPE_Audio, CodecIndex, nil, CNameSize);
@@ -1089,6 +1096,7 @@ implementation
            CodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszNumPasses, WMT_TYPE_DWORD, PByte(@Passes), 4);
            Formats := 0;
            CodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, CodecIndex, Formats);
+           if Formats > 0 then
            for FormatIndex := 0 to Formats - 1 do
            begin
              Name := ' ';
@@ -1304,6 +1312,7 @@ implementation
     WMCreateProfileManager(pProfileMgr); 
     pCodecInfo := pProfileMgr as IWMCodecInfo2;
     pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
+    if cEntries > 0 then
     for i := 0 to cEntries - 1 do
     begin
       pCodecInfo.GetCodecName(WMMEDIATYPE_Audio, i, nil, len);
@@ -1335,6 +1344,7 @@ implementation
        if pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@VBR), SizeOf(VBR)) <> S_OK then
           Exit;
     pCodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, CodecIndex, cEntries2);
+    if cEntries2 > 0 then
     for i := 0 to cEntries2 - 1 do
     begin
       pCodecInfo.GetCodecFormatDesc(WMMEDIATYPE_Audio, CodecIndex, i, Dummie, nil, len);
@@ -1370,6 +1380,7 @@ implementation
     if pCodecInfo.SetCodecEnumerationSetting(WMMEDIATYPE_Audio, CodecIndex, g_wszVBREnabled, WMT_TYPE_BOOL, PByte(@VBR), SizeOf(VBR)) <> S_OK then
           Exit;
     pCodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, CodecIndex, cEntries2);
+    if cEntries2 > 0 then
     for i := 0 to cEntries2 - 1 do
     begin
       pCodecInfo.GetCodecFormatDesc(WMMEDIATYPE_Audio, CodecIndex, i, Dummie, nil, len);
@@ -1416,6 +1427,7 @@ implementation
      Config := nil;
      Profile := nil;
      writer.writer.GetInputCount(cInputs);
+     if cInputs > 0 then
      for inputIndex := 0 to cInputs - 1 do
      begin
        writer.writer.GetInputProps(inputIndex, pProps);
@@ -1477,6 +1489,7 @@ implementation
      Config := nil;
      Profile := nil;
      writer.writer.GetInputCount(cInputs);
+     if cInputs > 0 then
      for inputIndex := 0 to cInputs - 1 do
      begin
        writer.writer.GetInputProps(inputIndex, pProps);
@@ -1537,6 +1550,7 @@ implementation
      pCodecInfo := pProfileMgr as IWMCodecInfo3;
      pCodecInfo.GetCodecInfoCount(WMMEDIATYPE_Audio, cEntries);
      ES := True;
+     if cEntries > 0 then
      for index := 0 to  cEntries -1 do
      begin
         if Lossless or VBR then
@@ -1548,6 +1562,7 @@ implementation
 //       if pStreamConfig = nil then
 //        Break;
        pCodecInfo.GetCodecFormatCount(WMMEDIATYPE_Audio, Index, cEntries2);
+       if cEntries2 > 0 then
        for index2 := 0 to cEntries2 - 1 do
        begin
          pCodecInfo.GetCodecFormat(WMMEDIATYPE_Audio, Index, index2, pStreamConfig);
@@ -1638,6 +1653,7 @@ implementation
      Config := nil;
      Profile := nil;
      writer.writer.GetInputCount(cInputs);
+     if cInputs > 0 then
      for inputIndex := 0 to cInputs - 1 do
      begin
        writer.writer.GetInputProps(inputIndex, pProps);
