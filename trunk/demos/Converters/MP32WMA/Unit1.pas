@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, ACS_Classes, ACS_WinMedia, ACS_smpeg, StdCtrls;
+  Dialogs, ComCtrls, ACS_Classes, ACS_WinMedia, ACS_smpeg, StdCtrls,
+  Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -15,6 +16,8 @@ type
     Edit1: TEdit;
     Label1: TLabel;
     MP3In1: TMP3In;
+    Panel1: TPanel;
+    StatusBar1: TStatusBar;
     procedure Button1Click(Sender: TObject);
     procedure WMAOut1Done(Sender: TComponent);
     procedure WMAOut1Progress(Sender: TComponent);

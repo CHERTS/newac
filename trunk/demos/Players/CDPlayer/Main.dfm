@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 206
   Top = 234
-  Width = 196
-  Height = 209
   Caption = 'CD Player'
+  ClientHeight = 175
+  ClientWidth = 188
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
@@ -52,7 +53,6 @@ object Form1: TForm1
     Width = 121
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 2
     OnDropDown = ComboBox2DropDown
     OnEnter = ComboBox2Enter
@@ -91,7 +91,6 @@ object Form1: TForm1
     Width = 49
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 6
     OnSelect = ComboBox1Select
   end
@@ -99,7 +98,7 @@ object Form1: TForm1
     CurrentDrive = 0
     LVolume = 0
     RVolume = 0
-    Left = 96
-    Top = 96
+    Left = 144
+    Top = 64
   end
 end

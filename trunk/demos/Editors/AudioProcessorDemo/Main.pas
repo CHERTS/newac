@@ -13,7 +13,7 @@ uses
   Dialogs, ACS_Classes, ACS_DXAudio, ACS_Wave, ACS_Misc, ACS_Types, StdCtrls;
 
 type
-  TForm10 = class(TForm)
+  TForm1 = class(TForm)
     AudioProcessor1: TAudioProcessor;
     WaveIn1: TWaveIn;
     DXAudioOut1: TDXAudioOut;
@@ -34,7 +34,7 @@ type
   end;
 
 var
-  Form10: TForm10;
+  Form1: TForm1;
 
 implementation
 
@@ -53,7 +53,7 @@ implementation
   Returning 0 in the Bytes variable means that data processing should stop.
 *)
 
-procedure TForm10.AudioProcessor1GetData(Sender: TComponent;
+procedure TForm1.AudioProcessor1GetData(Sender: TComponent;
   var Buffer: Pointer; var Bytes: Cardinal);
 var
  B32 : PBuffer32;
@@ -96,7 +96,7 @@ end;
   We can also do whatever is needed to initialize the audio processor itself.
 *)
 
-procedure TForm10.AudioProcessor1Init(Sender: TComponent; var TotalSize: Int64);
+procedure TForm1.AudioProcessor1Init(Sender: TComponent; var TotalSize: Int64);
 begin
   TAudioProcessor(Sender).Input.Init;
   TotalSize := TAudioProcessor(Sender).Input.Size
@@ -111,13 +111,13 @@ end;
   We can also do whatever is needed to uninitialize the audio processor itself.
 *)
 
-procedure TForm10.AudioProcessor1Flush(Sender: TComponent);
+procedure TForm1.AudioProcessor1Flush(Sender: TComponent);
 begin
   TAudioProcessor(Sender).Input.Flush;
 end;
 
 
-procedure TForm10.Button1Click(Sender: TObject);
+procedure TForm1.Button1Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
   begin
@@ -127,13 +127,13 @@ begin
   end;
 end;
 
-procedure TForm10.Button2Click(Sender: TObject);
+procedure TForm1.Button2Click(Sender: TObject);
 begin
   DXAudioOut1.Stop;
 end;
 
 
-procedure TForm10.DXAudioOut1Done(Sender: TComponent);
+procedure TForm1.DXAudioOut1Done(Sender: TComponent);
 begin
   Button1.Enabled := True;
 end;

@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 372
   Top = 218
-  Width = 276
-  Height = 309
   Caption = 'Wav2Ogg Converter'
+  ClientHeight = 279
+  ClientWidth = 268
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,54 +11,55 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object Label4: TLabel
-    Left = 8
-    Top = 48
+    Left = 11
+    Top = 50
     Width = 32
     Height = 13
     Caption = 'Quality'
   end
   object Label6: TLabel
-    Left = 8
-    Top = 80
+    Left = 11
+    Top = 75
     Width = 29
     Height = 13
     Caption = 'Album'
   end
   object Label7: TLabel
-    Left = 8
-    Top = 104
+    Left = 11
+    Top = 99
     Width = 23
     Height = 13
     Caption = 'Artist'
   end
   object Label8: TLabel
-    Left = 8
-    Top = 128
+    Left = 11
+    Top = 123
     Width = 23
     Height = 13
     Caption = 'Date'
   end
   object Label9: TLabel
-    Left = 8
-    Top = 152
+    Left = 11
+    Top = 147
     Width = 29
     Height = 13
     Caption = 'Genre'
   end
   object Label10: TLabel
-    Left = 8
-    Top = 176
+    Left = 11
+    Top = 171
     Width = 20
     Height = 13
     Caption = 'Title'
   end
   object Label11: TLabel
-    Left = 8
-    Top = 200
+    Left = 11
+    Top = 195
     Width = 28
     Height = 13
     Caption = 'Track'
@@ -74,17 +75,16 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 228
+    Top = 224
     Width = 268
-    Height = 9
+    Height = 17
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 1
+    ExplicitTop = 223
   end
   object SpinEdit1: TSpinEdit
-    Left = 48
-    Top = 40
+    Left = 59
+    Top = 47
     Width = 33
     Height = 22
     MaxValue = 10
@@ -94,58 +94,49 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 256
+    Top = 260
     Width = 268
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
-  end
-  object Panel1: TPanel
-    Left = 0
-    Top = 237
-    Width = 268
-    Height = 19
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 4
+    ExplicitTop = 256
   end
   object AlbumEdit: TEdit
-    Left = 56
-    Top = 80
+    Left = 59
+    Top = 72
+    Width = 201
+    Height = 21
+    TabOrder = 4
+  end
+  object ArtistEdit: TEdit
+    Left = 59
+    Top = 96
     Width = 201
     Height = 21
     TabOrder = 5
   end
-  object ArtistEdit: TEdit
-    Left = 56
-    Top = 104
+  object DateEdit: TEdit
+    Left = 59
+    Top = 120
     Width = 201
     Height = 21
     TabOrder = 6
   end
-  object DateEdit: TEdit
-    Left = 56
-    Top = 128
+  object GenreEdit: TEdit
+    Left = 59
+    Top = 144
     Width = 201
     Height = 21
     TabOrder = 7
   end
-  object GenreEdit: TEdit
-    Left = 56
-    Top = 152
+  object TitleEdit: TEdit
+    Left = 59
+    Top = 168
     Width = 201
     Height = 21
     TabOrder = 8
-  end
-  object TitleEdit: TEdit
-    Left = 56
-    Top = 176
-    Width = 201
-    Height = 21
-    TabOrder = 9
   end
   object Button2: TButton
     Left = 8
@@ -153,44 +144,56 @@ object Form1: TForm1
     Width = 75
     Height = 25
     Caption = 'Select...'
-    TabOrder = 10
+    TabOrder = 9
     OnClick = Button2Click
   end
   object TrackEdit: TEdit
-    Left = 56
-    Top = 200
+    Left = 59
+    Top = 192
     Width = 97
     Height = 21
+    TabOrder = 10
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 241
+    Width = 268
+    Height = 19
+    Align = alBottom
+    BevelOuter = bvNone
     TabOrder = 11
+    ExplicitTop = 237
   end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 72
-    Top = 232
+    StartSample = 0
+    Left = 179
+    Top = 208
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wav files|*.wav'
-    Left = 8
-    Top = 232
+    Left = 115
+    Top = 208
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'ogg'
-    Left = 40
-    Top = 232
+    Left = 147
+    Top = 208
   end
   object VorbisOut1: TVorbisOut
     Input = WaveIn1
     OnDone = VorbisOut1Done
     OnProgress = VorbisOut1Progress
     OnThreadException = VorbisOut1ThreadException
-    Compression = 0.400000005960464
+    ShareMode = 0
+    Compression = 0.400000005960464400
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
     FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
-    Left = 104
-    Top = 232
+    Left = 211
+    Top = 208
   end
 end

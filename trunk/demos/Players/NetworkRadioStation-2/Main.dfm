@@ -2,8 +2,8 @@ object Form5: TForm5
   Left = 0
   Top = 0
   Caption = 'NetStation'
-  ClientHeight = 275
-  ClientWidth = 510
+  ClientHeight = 128
+  ClientWidth = 390
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,10 +11,11 @@ object Form5: TForm5
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   DesignSize = (
-    510
-    275)
+    390
+    128)
   PixelsPerInch = 96
   TextHeight = 13
   object Panel1: TPanel
@@ -45,10 +46,11 @@ object Form5: TForm5
   object Panel2: TPanel
     Left = 8
     Top = 55
-    Width = 494
+    Width = 374
     Height = 66
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
+    ExplicitWidth = 494
     object Label1: TLabel
       Left = 8
       Top = 8
@@ -60,31 +62,39 @@ object Form5: TForm5
     object Label2: TLabel
       Left = 89
       Top = 8
-      Width = 31
+      Width = 42
       Height = 13
-      Caption = 'Label2'
+      Caption = 'No Artist'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
     end
     object Label3: TLabel
-      Left = 88
-      Top = 24
-      Width = 31
+      Left = 89
+      Top = 25
+      Width = 36
       Height = 13
-      Caption = 'Label3'
+      Caption = 'No Title'
     end
     object Label4: TLabel
-      Left = 88
+      Left = 89
       Top = 43
-      Width = 31
+      Width = 45
       Height = 13
-      Caption = 'Label4'
+      Caption = 'No Album'
     end
   end
   object Panel3: TPanel
-    Left = 216
+    Left = 199
     Top = 8
-    Width = 185
+    Width = 183
     Height = 41
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
+    ExplicitWidth = 185
     object Label5: TLabel
       Left = 8
       Top = 13
@@ -117,24 +127,25 @@ object Form5: TForm5
     end
   end
   object MP3In1: TMP3In
-    FileName = 'C:\Music\CCCatch\02 - Soul Survivor.mp3'
     Loop = False
     EndSample = -1
+    StartSample = 0
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
-    Left = 56
-    Top = 128
+    Left = 208
+    Top = 56
   end
   object AudioPlayList1: TAudioPlayList
     Input = MP3In1
     CurrentItem = 0
     OnPlayItemChanged = AudioPlayList1PlayItemChanged
-    Left = 120
-    Top = 128
+    Left = 256
+    Top = 56
   end
   object WMStreamedOut1: TWMStreamedOut
     Input = AudioPlayList1
     OnDone = WMStreamedOut1Done
+    ShareMode = 0
     Id3v2Tags.Artist = 'Home Radio'
     DesiredBitrate = 256
     Lossless = False
@@ -142,7 +153,12 @@ object Form5: TForm5
     VBRQuality = 0
     MaxClients = 0
     Port = 8886
-    Left = 192
-    Top = 128
+    Left = 312
+    Top = 56
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'MP3|*.mp3'
+    Left = 168
+    Top = 56
   end
 end

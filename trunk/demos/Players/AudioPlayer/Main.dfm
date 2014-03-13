@@ -4,13 +4,14 @@ object Form1: TForm1
   Caption = 'Audio Player'
   ClientHeight = 407
   ClientWidth = 652
-  Color = clSilver
+  Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
@@ -411,8 +412,6 @@ object Form1: TForm1
     Font.Height = -16
     Font.Name = 'Times New Roman'
     Font.Style = [fsBold]
-    Lines.Strings = (
-      'Memo1')
     ParentFont = False
     ReadOnly = True
     TabOrder = 5
@@ -424,7 +423,6 @@ object Form1: TForm1
     Height = 195
     Anchors = [akTop, akRight, akBottom]
     BevelOuter = bvNone
-    Caption = 'Panel2'
     Color = clMaroon
     ParentBackground = False
     TabOrder = 6
@@ -524,6 +522,7 @@ object Form1: TForm1
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 64
     Top = 120
   end
@@ -539,6 +538,7 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 120
     Top = 120
   end
@@ -546,12 +546,14 @@ object Form1: TForm1
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
+    StartSample = 0
     Left = 240
     Top = 128
   end
   object MP3In1: TMP3In
     Loop = False
     EndSample = -1
+    StartSample = 0
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
     Left = 288
@@ -560,12 +562,14 @@ object Form1: TForm1
   object MACIn1: TMACIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 176
     Top = 128
   end
   object WVIn1: TWVIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 8
     Top = 120
   end

@@ -10,7 +10,7 @@ uses
   Dialogs, ACS_WavPack, ACS_FLAC, ACS_Classes, ACS_MAC, ACS_Misc, StdCtrls;
 
 type
-  TForm10 = class(TForm)
+  TForm1 = class(TForm)
     Button1: TButton;
     MACIn1: TMACIn;
     FLACIn1: TFLACIn;
@@ -35,13 +35,13 @@ type
   end;
 
 var
-  Form10: TForm10;
+  Form1: TForm1;
 
 implementation
 
 {$R *.dfm}
 
-procedure TForm10.FillList;
+procedure TForm1.FillList;
 var
   i, min, sec : Integer;
   S : String;
@@ -61,7 +61,7 @@ begin
   end;
 end;
 
-procedure TForm10.Button1Click(Sender: TObject);
+procedure TForm1.Button1Click(Sender: TObject);
 var
   Ext : WideString;
   FileName : String;
@@ -159,7 +159,7 @@ begin
 
 end;
 
-procedure TForm10.FLACOut1Done(Sender: TComponent);
+procedure TForm1.FLACOut1Done(Sender: TComponent);
 begin
   if CueSplitter1.CurrentItem < CueSplitter1.ItemsCount - 1 then
   begin
@@ -176,7 +176,7 @@ begin
     Button1.Enabled := True;
 end;
 
-procedure TForm10.MACOut1Done(Sender: TComponent);
+procedure TForm1.MACOut1Done(Sender: TComponent);
 begin
   if CueSplitter1.CurrentItem < CueSplitter1.ItemsCount - 1 then
   begin
@@ -193,7 +193,7 @@ begin
     Button1.Enabled := True;
 end;
 
-procedure TForm10.WVOut1Done(Sender: TComponent);
+procedure TForm1.WVOut1Done(Sender: TComponent);
 begin
   if CueSplitter1.CurrentItem < CueSplitter1.ItemsCount - 1 then
   begin

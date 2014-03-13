@@ -25,7 +25,6 @@ type
     SpinEdit1: TSpinEdit;
     Label4: TLabel;
     StatusBar1: TStatusBar;
-    Panel1: TPanel;
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
@@ -40,6 +39,7 @@ type
     VorbisOut1: TVorbisOut;
     Button2: TButton;
     TrackEdit: TEdit;
+    Panel1: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure VorbisOut1Done(Sender: TComponent);
     procedure VorbisOut1Progress(Sender: TComponent);

@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   DesignSize = (
     475
@@ -205,7 +206,6 @@ object Form1: TForm1
       Width = 105
       Height = 21
       Style = csDropDownList
-      ItemHeight = 13
       ItemIndex = 0
       TabOrder = 3
       Text = 'RAW PCM'
@@ -245,6 +245,7 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 248
     Top = 224
   end
@@ -268,6 +269,7 @@ object Form1: TForm1
     OnDone = WaveOut1Done
     OnProgress = WaveOut1Progress
     OnThreadException = WaveOut1ThreadException
+    ShareMode = 0
     WavType = wtPCM
     BlockSize = 512
     CreateNonMsHeaders = False

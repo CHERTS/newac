@@ -11,11 +11,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Wave, ExtCtrls, ACS_WinMedia,
-  Spin;
+  Spin, NewACDTS;
 
 type
   TForm1 = class(TForm)
-    WaveIn1: TWaveIn;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     Button1: TButton;
@@ -41,6 +40,7 @@ type
     Label2: TLabel;
     ListBox1: TListBox;
     ListBox2: TListBox;
+    DTSIn1: TDTSIn;
     procedure Button1Click(Sender: TObject);
     procedure WMAOut1Done(Sender: TComponent);
     procedure WMAOut1Progress(Sender: TComponent);
@@ -66,8 +66,8 @@ procedure TForm1.Button1Click(Sender: TObject);
 begin
   If OpenDialog1.Execute then
   begin
-    WaveIn1.FileName := OpenDialog1.FileName;
-    StatusBar1.Panels.Items[0].Text := 'File to convert: ' + WaveIn1.FileName;
+    DTSIn1.FileName := OpenDialog1.FileName;
+    StatusBar1.Panels.Items[0].Text := 'File to convert: ' + DTSIn1.FileName;
   end;
 end;
 
@@ -99,9 +99,9 @@ var
   S : WideString;
   i : Integer;
 begin
-  if WaveIn1.FileName <> '' then
+  if DTSIn1.FileName <> '' then
   begin
-    S := WaveIn1.FileName;
+    S := DTSIn1.FileName;
     SaveDialog1.FileName := ChangeFileExt(S, '.wma');
     if SaveDialog1.Execute then
     begin

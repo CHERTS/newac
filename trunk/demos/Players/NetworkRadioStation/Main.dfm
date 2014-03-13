@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 246
   Top = 304
-  Width = 347
-  Height = 246
   Caption = 'Home Station'
+  ClientHeight = 212
+  ClientWidth = 339
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
@@ -60,8 +61,6 @@ object Form1: TForm1
     Width = 339
     Height = 17
     Anchors = [akLeft, akTop, akRight]
-    Min = 0
-    Max = 100
     Smooth = True
     Step = 2
     TabOrder = 1
@@ -92,7 +91,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Panel1: TPanel
     Left = 0
@@ -133,6 +131,7 @@ object Form1: TForm1
     FileName = 'D:\Program Files\Borland\Delphi6\Projects\mozart.ogg'
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 8
     Top = 160
   end
@@ -146,6 +145,7 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 40
     Top = 160
   end
@@ -153,12 +153,14 @@ object Form1: TForm1
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
+    StartSample = 0
     Left = 72
     Top = 160
   end
   object MP3In1: TMP3In
     Loop = False
     EndSample = -1
+    StartSample = 0
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
     Left = 104
@@ -167,6 +169,7 @@ object Form1: TForm1
   object WMStreamedOut1: TWMStreamedOut
     OnDone = WMStreamedOut1Done
     OnProgress = WMStreamedOut1Progress
+    ShareMode = 0
     Id3v2Tags.Title = 'Home Radio Station'
     DesiredBitrate = 0
     Lossless = False
@@ -182,6 +185,7 @@ object Form1: TForm1
   object WMIn1: TWMIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
     Left = 136

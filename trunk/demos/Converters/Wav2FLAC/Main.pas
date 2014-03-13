@@ -21,11 +21,8 @@ type
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     Button1: TButton;
-    ProgressBar1: TProgressBar;
-    StatusBar1: TStatusBar;
     SpinEdit1: TSpinEdit;
     Label4: TLabel;
-    Panel1: TPanel;
     Button2: TButton;
     Label1: TLabel;
     Label2: TLabel;
@@ -40,6 +37,9 @@ type
     Edit5: TEdit;
     FLACOut1: TFLACOut;
     Edit6: TEdit;
+    StatusBar1: TStatusBar;
+    Panel2: TPanel;
+    ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
     procedure FLACOut1Progress(Sender: TComponent);
     procedure FLACOut1Done(Sender: TComponent);

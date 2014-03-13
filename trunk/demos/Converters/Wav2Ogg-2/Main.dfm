@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 192
   Top = 109
-  Width = 258
-  Height = 192
   Caption = 'Wav2Ogg Converter'
+  ClientHeight = 137
+  ClientWidth = 247
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,16 +11,14 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  DesignSize = (
-    250
-    158)
   PixelsPerInch = 96
   TextHeight = 13
   object Label4: TLabel
     Left = 8
-    Top = 72
+    Top = 51
     Width = 30
     Height = 13
     Caption = 'Bitrate'
@@ -35,22 +33,20 @@ object Form1: TForm1
     OnClick = Button1Click
   end
   object ProgressBar1: TProgressBar
-    Left = 8
-    Top = 112
-    Width = 233
-    Height = 9
-    Anchors = [akLeft, akTop, akRight]
-    Min = 0
-    Max = 100
+    Left = 0
+    Top = 82
+    Width = 247
+    Height = 17
+    Align = alBottom
     TabOrder = 1
+    ExplicitTop = 79
   end
   object ComboBox1: TComboBox
-    Left = 48
-    Top = 64
+    Left = 44
+    Top = 48
     Width = 81
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     ItemIndex = 4
     TabOrder = 2
     Text = '192'
@@ -67,14 +63,13 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 139
-    Width = 250
+    Top = 118
+    Width = 247
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object Button2: TButton
     Left = 8
@@ -85,34 +80,45 @@ object Form1: TForm1
     TabOrder = 4
     OnClick = Button2Click
   end
+  object Panel1: TPanel
+    Left = 0
+    Top = 99
+    Width = 247
+    Height = 19
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 5
+  end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 72
-    Top = 128
+    StartSample = 0
+    Left = 168
+    Top = 48
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wav files|*.wav'
-    Left = 8
-    Top = 128
+    Left = 104
+    Top = 48
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'ogg'
-    Left = 40
-    Top = 128
+    Left = 136
+    Top = 48
   end
   object VorbisOut1: TVorbisOut
     Input = WaveIn1
     OnDone = VorbisOut1Done
     OnProgress = VorbisOut1Progress
     OnThreadException = VorbisOut1ThreadException
-    Compression = 0.200000002980232
+    ShareMode = 0
+    Compression = 0.200000002980232200
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
     FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
-    Left = 104
-    Top = 128
+    Left = 200
+    Top = 48
   end
 end

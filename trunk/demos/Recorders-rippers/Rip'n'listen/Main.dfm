@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 229
   Top = 225
-  Width = 366
-  Height = 214
   Caption = 'Rip and Listen'
+  ClientHeight = 180
+  ClientWidth = 358
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
@@ -50,8 +51,6 @@ object Form1: TForm1
     Top = 56
     Width = 345
     Height = 17
-    Min = 0
-    Max = 100
     ParentShowHint = False
     Smooth = True
     Step = 5
@@ -73,7 +72,6 @@ object Form1: TForm1
     Width = 161
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 3
     OnSelect = ComboBox1Select
   end
@@ -83,7 +81,6 @@ object Form1: TForm1
     Width = 105
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 4
     OnDropDown = ComboBox2DropDown
     OnEnter = ComboBox2Enter
@@ -116,7 +113,6 @@ object Form1: TForm1
       item
         Width = 50
       end>
-    SimplePanel = False
   end
   object ComboBox3: TComboBox
     Left = 288
@@ -124,7 +120,6 @@ object Form1: TForm1
     Width = 65
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     ItemIndex = 3
     TabOrder = 8
     Text = 'FLAC'
@@ -147,57 +142,67 @@ object Form1: TForm1
   object SaveDialog1: TSaveDialog
     DefaultExt = 'ogg'
     Filter = 'Vorbis files|*.ogg'
-    Left = 232
-    Top = 144
+    Left = 288
+    Top = 120
   end
   object WaveOut1: TWaveOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     WavType = wtPCM
     BlockSize = 512
+    CreateNonMsHeaders = True
     FileMode = foRewrite
-    Left = 136
-    Top = 144
+    Left = 192
+    Top = 120
   end
   object VorbisOut1: TVorbisOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
-    Compression = 0.200000002980232
+    ShareMode = 0
+    Compression = 0.200000002980232200
     Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
     DesiredNominalBitrate = brAutoSelect
     FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
-    Left = 168
-    Top = 144
+    Left = 224
+    Top = 120
   end
   object CDIn1: TCDIn
-    Left = 8
-    Top = 144
+    EnableJitterCorrection = False
+    LockTray = False
+    MultiReadCount = 0
+    Paranoid = False
+    ParanoiaMode = 0
+    Left = 64
+    Top = 120
   end
   object AudioPass1: TAudioPass
     Input = CDIn1
     DeviceNumber = 0
     Mute = False
-    Left = 40
-    Top = 144
+    Left = 96
+    Top = 120
   end
   object MACOut1: TMACOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     CompressionLevel = 2000
     MaxAudioBytes = -1
-    Left = 72
-    Top = 144
+    Left = 128
+    Top = 120
   end
   object FLACOut1: TFLACOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
@@ -210,15 +215,19 @@ object Form1: TForm1
     QLPCoeffPrecisionSearch = False
     Tags.Track = '0'
     Verify = False
-    Left = 104
-    Top = 144
+    Left = 160
+    Top = 120
   end
   object WMAOut1: TWMAOut
     Input = AudioPass1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     DesiredBitrate = 0
-    Left = 200
-    Top = 144
+    Lossless = False
+    VBR = False
+    VBRQuality = 0
+    Left = 256
+    Top = 120
   end
 end

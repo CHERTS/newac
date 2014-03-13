@@ -4,13 +4,14 @@ object Form1: TForm1
   Caption = 'i-Radio ;)'
   ClientHeight = 191
   ClientWidth = 361
-  Color = 3763336
+  Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
@@ -30,8 +31,6 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play'
-    DoubleBuffered = True
-    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -41,9 +40,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
   end
@@ -53,9 +50,13 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
-    DoubleBuffered = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
     NumGlyphs = 2
-    ParentDoubleBuffered = False
+    ParentFont = False
     TabOrder = 2
     OnClick = BitBtn3Click
   end
@@ -88,9 +89,9 @@ object Form1: TForm1
       Width = 23
       Height = 13
       Caption = 'Artist'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -100,12 +101,11 @@ object Form1: TForm1
     object Label3: TLabel
       Left = 48
       Top = 8
-      Width = 32
+      Width = 3
       Height = 13
-      Caption = 'Label3'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -118,9 +118,9 @@ object Form1: TForm1
       Width = 29
       Height = 13
       Caption = 'Album'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -130,12 +130,11 @@ object Form1: TForm1
     object Label9: TLabel
       Left = 48
       Top = 24
-      Width = 32
+      Width = 3
       Height = 13
-      Caption = 'Label9'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -148,9 +147,9 @@ object Form1: TForm1
       Width = 20
       Height = 13
       Caption = 'Title'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -160,12 +159,11 @@ object Form1: TForm1
     object Label11: TLabel
       Left = 48
       Top = 40
-      Width = 38
+      Width = 3
       Height = 13
-      Caption = 'Label11'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -178,9 +176,9 @@ object Form1: TForm1
       Width = 22
       Height = 13
       Caption = 'Year'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -190,12 +188,11 @@ object Form1: TForm1
     object Label13: TLabel
       Left = 48
       Top = 56
-      Width = 38
+      Width = 3
       Height = 13
-      Caption = 'Label13'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -203,15 +200,15 @@ object Form1: TForm1
       ParentFont = False
     end
     object Label4: TLabel
-      Left = 230
+      Left = 232
       Top = 8
-      Width = 62
+      Width = 8
       Height = 13
       Anchors = [akTop, akRight]
-      Caption = 'samplerate'
-      Color = 1716752
+      Caption = '0'
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -225,10 +222,10 @@ object Form1: TForm1
       Height = 17
       Anchors = [akTop, akRight]
       AutoSize = False
-      Caption = 'bitrate'
-      Color = 1716752
+      Caption = '0'
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -242,9 +239,9 @@ object Form1: TForm1
       Height = 13
       Anchors = [akTop, akRight]
       Caption = 'Total time'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -254,13 +251,13 @@ object Form1: TForm1
     object Label7: TLabel
       Left = 296
       Top = 56
-      Width = 39
+      Width = 8
       Height = 13
       Anchors = [akTop, akRight]
-      Caption = 'Label7'
-      Color = 1716752
+      Caption = '0'
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -274,9 +271,9 @@ object Form1: TForm1
       Height = 13
       Anchors = [akTop, akRight]
       Caption = 'mono'
-      Color = 1716752
+      Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -297,33 +294,33 @@ object Form1: TForm1
     Top = 8
     Width = 353
     Height = 21
+    Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 6
-    Text = 'ComboBox1'
   end
   object OpenDialog1: TOpenDialog
     Filter = 'WAX Shortcuts|*.wax|ASX Shortcuts|*.asx'
-    Left = 136
-    Top = 152
+    Left = 296
+    Top = 40
   end
   object DXAudioOut1: TDXAudioOut
     Input = WMStreamedIn1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
-    FramesInBuffer = 32768
     Latency = 100
-    PollingInterval = 200
     PrefetchData = True
+    PollingInterval = 200
+    FramesInBuffer = 32768
     OnUnderrun = DXAudioOut1Underrun
-    Left = 96
-    Top = 152
+    SpeedFactor = 1.000000000000000000
+    Left = 256
+    Top = 40
   end
   object WMStreamedIn1: TWMStreamedIn
     Loop = False
     BufferingTime = 2
-    EnableHTTP = False
+    EnableHTTP = True
     EnableTCP = False
     EnableUDP = False
     MaxWaitMilliseconds = 10000
@@ -331,7 +328,7 @@ object Form1: TForm1
     StretchFactor = 1.000000000000000000
     OnStreamOpened = WMStreamedIn1StreamOpened
     OnStartedPlaying = WMStreamedIn1StartedPlaying
-    Left = 8
-    Top = 152
+    Left = 216
+    Top = 40
   end
 end

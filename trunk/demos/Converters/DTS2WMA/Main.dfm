@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
@@ -91,9 +92,9 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 336
+    Top = 327
     Width = 467
-    Height = 9
+    Height = 18
     Align = alBottom
     TabOrder = 1
   end
@@ -177,8 +178,8 @@ object Form1: TForm1
     OnClick = Button2Click
   end
   object VBR: TCheckBox
-    Left = 200
-    Top = 8
+    Left = 169
+    Top = 12
     Width = 65
     Height = 17
     Caption = 'VBR'
@@ -203,14 +204,8 @@ object Form1: TForm1
     ItemHeight = 13
     TabOrder = 13
   end
-  object WaveIn1: TWaveIn
-    Loop = False
-    EndSample = -1
-    Left = 72
-    Top = 320
-  end
   object OpenDialog1: TOpenDialog
-    Filter = 'Wav files|*.wav'
+    Filter = 'DTS files|*.dts|VOB files|*.vob'
     Left = 8
     Top = 320
   end
@@ -220,14 +215,21 @@ object Form1: TForm1
     Top = 320
   end
   object WMAOut1: TWMAOut
-    Input = WaveIn1
+    Input = DTSIn1
     OnDone = WMAOut1Done
     OnProgress = WMAOut1Progress
+    ShareMode = 0
     DesiredBitrate = 0
     Lossless = False
     VBR = False
     VBRQuality = 0
     Left = 104
+    Top = 320
+  end
+  object DTSIn1: TDTSIn
+    Loop = False
+    OutputChannels = dtsStereo
+    Left = 72
     Top = 320
   end
 end

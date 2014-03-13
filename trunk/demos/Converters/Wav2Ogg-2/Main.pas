@@ -13,7 +13,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Vorbis, ACS_Wave, Spin,
-  ACS_Converters;
+  ACS_Converters, Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -27,6 +27,7 @@ type
     StatusBar1: TStatusBar;
     VorbisOut1: TVorbisOut;
     Button2: TButton;
+    Panel1: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure VorbisOut1Done(Sender: TComponent);
     procedure VorbisOut1Progress(Sender: TComponent);

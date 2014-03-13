@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 223
   Top = 203
-  Width = 610
-  Height = 229
   Caption = 'AudioCutter'
+  ClientHeight = 195
+  ClientWidth = 602
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
@@ -30,6 +31,7 @@ object Form1: TForm1
       Height = 13
       Align = alBottom
       Caption = 'Selection End'
+      ExplicitWidth = 66
     end
     object Label1: TLabel
       Left = 1
@@ -38,6 +40,7 @@ object Form1: TForm1
       Height = 13
       Align = alBottom
       Caption = 'Selection Start'
+      ExplicitWidth = 69
     end
     object Panel2: TPanel
       Left = 1
@@ -62,17 +65,10 @@ object Form1: TForm1
       Height = 18
       Align = alBottom
       Max = 100
-      Orientation = trHorizontal
       ParentShowHint = False
-      Frequency = 1
-      Position = 0
-      SelEnd = 0
-      SelStart = 0
       ShowHint = False
       TabOrder = 1
       ThumbLength = 16
-      TickMarks = tmBottomRight
-      TickStyle = tsAuto
       OnChange = TrackBarChange
     end
     object TrackBar2: TTrackBar
@@ -82,11 +78,6 @@ object Form1: TForm1
       Height = 18
       Align = alBottom
       Max = 100
-      Orientation = trHorizontal
-      Frequency = 1
-      Position = 0
-      SelEnd = 0
-      SelStart = 0
       TabOrder = 2
       ThumbLength = 16
       TickMarks = tmTopLeft
@@ -593,6 +584,7 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 8
     Top = 152
   end
@@ -612,8 +604,11 @@ object Form1: TForm1
     OnDone = Done
     OnProgress = Progress
     DeviceNumber = 0
-    FramesInBuffer = 65536
+    Latency = 100
+    PrefetchData = True
     PollingInterval = 200
+    FramesInBuffer = 65536
+    SpeedFactor = 1.000000000000000000
     Left = 80
     Top = 152
   end
@@ -621,6 +616,7 @@ object Form1: TForm1
     Input = WaveIn1
     OnDone = Done
     OnProgress = Progress
+    ShareMode = 0
     WavType = wtPCM
     BlockSize = 512
     CreateNonMsHeaders = False

@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
@@ -174,12 +175,12 @@ object Form1: TForm1
     Filter = 'Wave|*.wav|Ogg Vorbis|*.ogg|FLAC|*.flac'
     OnTypeChange = SaveDialog1TypeChange
     Left = 296
-    Top = 176
+    Top = 152
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 336
-    Top = 168
+    Left = 296
+    Top = 104
   end
   object VorbisOut1: TVorbisOut
     Input = GainProcessor1
@@ -207,9 +208,7 @@ object Form1: TForm1
     Top = 208
   end
   object DXAudioIn1: TDXAudioIn
-    FramesInBuffer = 12000
     Latency = 70
-    PollingInterval = 80
     SamplesToRead = -1
     DeviceNumber = 0
     InBitsPerSample = 8
@@ -217,6 +216,8 @@ object Form1: TForm1
     InSampleRate = 44100
     RecTime = -1
     EchoRecording = False
+    FramesInBuffer = 12000
+    PollingInterval = 80
     Left = 16
     Top = 208
   end

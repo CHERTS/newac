@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 229
   Top = 225
   Caption = 'Ripper'
-  ClientHeight = 187
+  ClientHeight = 195
   ClientWidth = 358
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
@@ -36,11 +37,11 @@ object Form1: TForm1
     Caption = 'Rip to'
   end
   object Label4: TLabel
-    Left = 209
-    Top = 129
-    Width = 32
+    Left = 8
+    Top = 151
+    Width = 38
     Height = 13
-    Caption = 'Label4'
+    Caption = 'No error'
   end
   object Button1: TButton
     Left = 8
@@ -77,7 +78,6 @@ object Form1: TForm1
     Width = 161
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 3
     OnSelect = ComboBox1Select
   end
@@ -87,7 +87,6 @@ object Form1: TForm1
     Width = 105
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 4
     OnDropDown = ComboBox2DropDown
     OnEnter = ComboBox2Enter
@@ -113,13 +112,14 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 168
+    Top = 176
     Width = 358
     Height = 19
     Panels = <
       item
         Width = 50
       end>
+    ExplicitTop = 168
   end
   object ComboBox3: TComboBox
     Left = 288
@@ -127,7 +127,6 @@ object Form1: TForm1
     Width = 65
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     ItemIndex = 0
     TabOrder = 8
     Text = 'Ogg'
@@ -149,24 +148,26 @@ object Form1: TForm1
   object SaveDialog1: TSaveDialog
     DefaultExt = 'ogg'
     Filter = 'Vorbis files|*.ogg'
-    Left = 168
+    Left = 304
     Top = 128
   end
   object WaveOut1: TWaveOut
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     WavType = wtPCM
     BlockSize = 512
     CreateNonMsHeaders = False
     FileMode = foRewrite
-    Left = 104
+    Left = 240
     Top = 128
   end
   object VorbisOut1: TVorbisOut
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     Compression = 0.300000011920929000
     Comments.Track = '0'
     DesiredMaximumBitrate = brAutoSelect
@@ -174,13 +175,14 @@ object Form1: TForm1
     FileMode = foRewrite
     MinimumBitrate = brAutoSelect
     Serial = 0
-    Left = 136
+    Left = 272
     Top = 128
   end
   object FLACOut1: TFLACOut
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     BestModelSearch = False
     BlockSize = 4608
     CompressionLevel = -1
@@ -193,16 +195,17 @@ object Form1: TForm1
     QLPCoeffPrecisionSearch = False
     Tags.Track = '0'
     Verify = False
-    Left = 40
+    Left = 176
     Top = 128
   end
   object MACOut1: TMACOut
     Input = CDIn1
     OnDone = OutputDone
     OnProgress = Progress
+    ShareMode = 0
     CompressionLevel = 2000
     MaxAudioBytes = -1
-    Left = 72
+    Left = 208
     Top = 128
   end
   object CDIn1: TCDIn
@@ -211,7 +214,7 @@ object Form1: TForm1
     MultiReadCount = 0
     Paranoid = False
     ParanoiaMode = 0
-    Left = 8
+    Left = 144
     Top = 128
   end
 end

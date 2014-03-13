@@ -4,13 +4,14 @@ object Form1: TForm1
   Caption = 'DTS Player'
   ClientHeight = 263
   ClientWidth = 341
-  Color = clBlack
+  Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   DesignSize = (
     341
@@ -20,13 +21,13 @@ object Form1: TForm1
   object Label1: TLabel
     Left = 8
     Top = 73
-    Width = 73
-    Height = 17
+    Width = 113
+    Height = 13
     AutoSize = False
     Caption = 'bitrate'
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -36,12 +37,12 @@ object Form1: TForm1
   object Label4: TLabel
     Left = 8
     Top = 54
-    Width = 62
+    Width = 113
     Height = 13
     Caption = 'samplerate'
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -50,13 +51,13 @@ object Form1: TForm1
   end
   object Label8: TLabel
     Left = 8
-    Top = 96
-    Width = 31
+    Top = 92
+    Width = 113
     Height = 13
     Caption = 'mono'
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clLime
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -69,8 +70,6 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play'
-    DoubleBuffered = True
-    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -80,9 +79,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
   end
@@ -92,9 +89,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
   end
@@ -123,7 +118,7 @@ object Form1: TForm1
     Width = 325
     Height = 123
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Color = clNavy
+    Color = clBtnFace
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clAqua
     Font.Height = -11
@@ -157,8 +152,11 @@ object Form1: TForm1
     Input = AudioPlayList1
     OnDone = AudioOut1Done
     DeviceNumber = 0
-    FramesInBuffer = 32768
+    Latency = 100
+    PrefetchData = True
     PollingInterval = 100
+    FramesInBuffer = 32768
+    SpeedFactor = 1.000000000000000000
     Left = 152
     Top = 192
   end

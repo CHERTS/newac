@@ -4,13 +4,14 @@ object Form1: TForm1
   Caption = 'MP3 Player'
   ClientHeight = 190
   ClientWidth = 349
-  Color = clSilver
+  Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
@@ -20,8 +21,6 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play...'
-    DoubleBuffered = True
-    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -31,9 +30,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
   end
@@ -43,9 +40,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
   end
@@ -79,7 +74,7 @@ object Form1: TForm1
       Caption = 'Artist'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -89,12 +84,11 @@ object Form1: TForm1
     object Label3: TLabel
       Left = 48
       Top = 8
-      Width = 32
+      Width = 3
       Height = 13
-      Caption = 'Label3'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -109,7 +103,7 @@ object Form1: TForm1
       Caption = 'Album'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -117,14 +111,13 @@ object Form1: TForm1
       ParentFont = False
     end
     object Label9: TLabel
-      Left = 48
-      Top = 24
-      Width = 32
+      Left = 43
+      Top = 21
+      Width = 3
       Height = 13
-      Caption = 'Label9'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -139,7 +132,7 @@ object Form1: TForm1
       Caption = 'Title'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -149,12 +142,11 @@ object Form1: TForm1
     object Label11: TLabel
       Left = 48
       Top = 40
-      Width = 38
+      Width = 3
       Height = 13
-      Caption = 'Label11'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -169,7 +161,7 @@ object Form1: TForm1
       Caption = 'Year'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clYellow
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -179,12 +171,11 @@ object Form1: TForm1
     object Label13: TLabel
       Left = 48
       Top = 56
-      Width = 38
+      Width = 3
       Height = 13
-      Caption = 'Label13'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clLime
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = []
@@ -192,15 +183,15 @@ object Form1: TForm1
       ParentFont = False
     end
     object Label4: TLabel
-      Left = 230
+      Left = 232
       Top = 8
-      Width = 62
+      Width = 8
       Height = 13
       Anchors = [akTop, akRight]
-      Caption = 'samplerate'
+      Caption = '0'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -214,10 +205,10 @@ object Form1: TForm1
       Height = 17
       Anchors = [akTop, akRight]
       AutoSize = False
-      Caption = 'bitrate'
+      Caption = '0'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -233,7 +224,7 @@ object Form1: TForm1
       Caption = 'Total time'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -243,13 +234,13 @@ object Form1: TForm1
     object Label7: TLabel
       Left = 296
       Top = 56
-      Width = 39
+      Width = 8
       Height = 13
       Anchors = [akTop, akRight]
-      Caption = 'Label7'
+      Caption = '0'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -265,7 +256,7 @@ object Form1: TForm1
       Caption = 'mono'
       Color = clBlack
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
+      Font.Color = clBlack
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
@@ -310,27 +301,29 @@ object Form1: TForm1
   end
   object OpenDialog1: TOpenDialog
     Filter = 'MP3 Files|*.mp3'
-    Left = 80
-    Top = 152
+    Left = 240
+    Top = 40
   end
   object MP3In1: TMP3In
     Loop = False
     EndSample = -1
+    StartSample = 0
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
-    Left = 8
-    Top = 152
+    Left = 168
+    Top = 40
   end
   object DXAudioOut1: TDXAudioOut
     Input = MP3In1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
-    FramesInBuffer = 24576
     Latency = 80
-    PollingInterval = 100
     PrefetchData = True
-    Left = 48
-    Top = 152
+    PollingInterval = 100
+    FramesInBuffer = 24576
+    SpeedFactor = 1.000000000000000000
+    Left = 208
+    Top = 40
   end
 end

@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 194
   Top = 110
-  Width = 325
-  Height = 200
   Caption = 'Real Time Mixer Demo'
+  ClientHeight = 166
+  ClientWidth = 317
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
@@ -62,14 +63,8 @@ object Form1: TForm1
     Width = 150
     Height = 25
     Max = 65535
-    Orientation = trHorizontal
-    Frequency = 1
-    Position = 0
-    SelEnd = 0
-    SelStart = 0
     TabOrder = 3
     ThumbLength = 16
-    TickMarks = tmBottomRight
     TickStyle = tsNone
     OnChange = TrackBar1Change
   end
@@ -79,14 +74,8 @@ object Form1: TForm1
     Width = 150
     Height = 25
     Max = 65535
-    Orientation = trHorizontal
-    Frequency = 1
-    Position = 0
-    SelEnd = 0
-    SelStart = 0
     TabOrder = 4
     ThumbLength = 16
-    TickMarks = tmBottomRight
     TickStyle = tsNone
     OnChange = TrackBar2Change
   end
@@ -114,12 +103,14 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 16
     Top = 128
   end
   object WaveIn2: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 48
     Top = 128
   end
@@ -137,14 +128,18 @@ object Form1: TForm1
     Input = RealTimeMixer1
     OnDone = WaveOut1Done
     DeviceNumber = 0
-    FramesInBuffer = 65536
+    Latency = 100
+    PrefetchData = True
     PollingInterval = 200
+    FramesInBuffer = 65536
+    SpeedFactor = 1.000000000000000000
     Left = 168
     Top = 128
   end
   object WaveOut1: TWaveOut
     Input = RealTimeMixer1
     OnDone = WaveOut1Done
+    ShareMode = 0
     WavType = wtPCM
     BlockSize = 512
     CreateNonMsHeaders = False
