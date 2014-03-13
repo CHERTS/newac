@@ -47,6 +47,7 @@ Version  Change
 
 interface
 
+{$IFNDEF CPUX64}
 {Procedures only interfaced for testing and validation purposes}
   procedure MoveJOH_PAS_6 (const Source; var Dest; Count : Integer);
   procedure MoveJOH_IA32_6(const Source; var Dest; Count : Integer);
@@ -54,6 +55,7 @@ interface
   procedure MoveJOH_SSE_6 (const Source; var Dest; Count : Integer);
 
   procedure ReplaceMove;
+{$ENDIF CPUX64}
 
 implementation
 
@@ -63,6 +65,7 @@ uses
 var
   PrefetchLimit : Integer; {Used within SSE2 Move}
 
+{$IFNDEF CPUX64}
 {-------------------------------------------------------------------------}
 {Move without using any BASM Code}
 procedure MoveJOH_PAS_6(const Source; var Dest; Count : Integer);
@@ -1023,5 +1026,7 @@ initialization
 {.$IFOPT D-} {Prevent continually stepping into FastMove code while Debugging}
   ReplaceMove; {Patch Delphi's System.Move}
 {.$ENDIF}
+
+{$ENDIF CPUX64}
 end.
 

@@ -48,6 +48,8 @@ Version  Changes
 
 interface
 
+function IsSSE3Present : boolean;
+
 {$I Fastcode.inc}
 
 type
@@ -178,6 +180,28 @@ const
   PMYonahEffModel = $E;
   P3LowestEffModel = 7;
 
+{$IFDEF CPUX64}
+function IsCPUID_Available : boolean;
+begin
+ 	   Result := true;
+end;
+
+procedure GetCPUID(Param: Cardinal; var Registers: TRegisters);
+asm
+   .pushnv rbx;                        {save affected registers}
+   .pushnv rdi;
+   MOV     RDI, Registers
+   MOV     EAX, Param;
+   XOR     RBX, RBX                    {clear EBX register}
+   XOR     RCX, RCX                    {clear ECX register}
+   XOR     RDX, RDX                    {clear EDX register}
+   DB $0F, $A2                         {CPUID opcode}
+   MOV     TRegisters(RDI).&EAX, EAX   {save EAX register}
+   MOV     TRegisters(RDI).&EBX, EBX   {save EBX register}
+   MOV     TRegisters(RDI).&ECX, ECX   {save ECX register}
+   MOV     TRegisters(RDI).&EDX, EDX   {save EDX register}
+end;
+{$ELSE}
 function IsCPUID_Available: Boolean; register;
 asm
   PUSHFD                 {save EFLAGS to stack}
@@ -191,25 +215,6 @@ asm
   XOR     EAX, EDX       {check if ID bit changed}
   JZ      @exit          {no, CPUID not available}
   MOV     EAX, True      {yes, CPUID is available}
-@exit:
-end;
-
-function IsFPU_Available: Boolean;
-var
-  _FCW, _FSW: Word;
-asm
-  MOV     EAX, False     {initialize return register}
-  MOV     _FSW, $5A5A    {store a non-zero value}
-  FNINIT                 {must use non-wait form}
-  FNSTSW  _FSW           {store the status}
-  CMP     _FSW, 0        {was the correct status read?}
-  JNE     @exit          {no, FPU not available}
-  FNSTCW  _FCW           {yes, now save control word}
-  MOV     DX, _FCW       {get the control word}
-  AND     DX, $103F      {mask the proper status bits}
-  CMP     DX, $3F        {is a numeric processor installed?}
-  JNE     @exit          {no, FPU not installed}
-  MOV     EAX, True      {yes, FPU is installed}
 @exit:
 end;
 
@@ -228,6 +233,26 @@ asm
   MOV     TRegisters(EDI).&EDX, EDX   {save EDX register}
   POP     EDI                         {restore registers}
   POP     EBX
+end;
+{$ENDIF}
+
+function IsFPU_Available: Boolean;
+var
+  _FCW, _FSW: Word;
+asm
+  MOV     EAX, False     {initialize return register}
+  MOV     _FSW, $5A5A    {store a non-zero value}
+  FNINIT                 {must use non-wait form}
+  FNSTSW  _FSW           {store the status}
+  CMP     _FSW, 0        {was the correct status read?}
+  JNE     @exit          {no, FPU not available}
+  FNSTCW  _FCW           {yes, now save control word}
+  MOV     DX, _FCW       {get the control word}
+  AND     DX, $103F      {mask the proper status bits}
+  CMP     DX, $3F        {is a numeric processor installed?}
+  JNE     @exit          {no, FPU not installed}
+  MOV     EAX, True      {yes, FPU is installed}
+@exit:
 end;
 
 procedure GetCPUVendor;
@@ -450,19 +475,25 @@ end;
 
 procedure VerifyOSSupportForXMMRegisters;
 begin
+  {$IFNDEF CPUX64}
   {try a SSE instruction that operates on XMM registers}
   try
     asm
       DB $0F, $54, $C0  // ANDPS XMM0, XMM0
     end
   except
+  {$ELSE}
+  if not IsSSE3Present then
+  {$ENDIF}
     begin
       {if it fails, assume that none of the SSE instruction sets are available}
       Exclude(CPU.InstructionSupport, isSSE);
       Exclude(CPU.InstructionSupport, isSSE2);
       Exclude(CPU.InstructionSupport, isSSE3);
     end;
+  {$IFNDEF CPUX64}
   end;
+  {$ENDIF}
 end;
 
 procedure GetCPUInfo;
@@ -572,6 +603,18 @@ begin
    FastCodeTarget := fctPascalSizePenalty;
  {$ENDIF}
 
+end;
+
+function IsSSE3Present : boolean;
+var
+  reg : TRegisters;
+begin
+  Result := False;
+  if IsCPUID_Available then
+  begin
+    GetCPUID($00000001, reg);
+    Result := (reg.ECX and $00000001) <> 0;
+  end;
 end;
 
 initialization
