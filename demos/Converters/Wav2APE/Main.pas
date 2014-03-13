@@ -12,7 +12,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Wave, Spin, ACS_MAC;
+  Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Wave, Spin, ACS_MAC,
+  Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -35,6 +36,7 @@ type
     Edit4: TEdit;
     Label9: TLabel;
     Edit5: TEdit;
+    Panel2: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure MP3Out1ThreadException(Sender: TComponent;
       const Msg: String);

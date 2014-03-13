@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 395
   Top = 226
   Caption = 'Wav2WMA Converter'
-  ClientHeight = 290
+  ClientHeight = 273
   ClientWidth = 296
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,54 +11,55 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object Label6: TLabel
     Left = 8
-    Top = 80
+    Top = 66
     Width = 29
     Height = 13
     Caption = 'Album'
   end
   object Label7: TLabel
     Left = 8
-    Top = 104
+    Top = 90
     Width = 23
     Height = 13
     Caption = 'Artist'
   end
   object Label8: TLabel
     Left = 8
-    Top = 128
+    Top = 114
     Width = 23
     Height = 13
     Caption = 'Date'
   end
   object Label9: TLabel
     Left = 8
-    Top = 152
+    Top = 138
     Width = 29
     Height = 13
     Caption = 'Genre'
   end
   object Label10: TLabel
     Left = 8
-    Top = 176
+    Top = 162
     Width = 20
     Height = 13
     Caption = 'Title'
   end
   object Label11: TLabel
     Left = 8
-    Top = 200
+    Top = 186
     Width = 28
     Height = 13
     Caption = 'Track'
   end
   object Label1: TLabel
     Left = 8
-    Top = 56
+    Top = 42
     Width = 69
     Height = 13
     Caption = 'Desired Bitrate'
@@ -74,69 +75,72 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 243
+    Top = 218
     Width = 296
-    Height = 9
+    Height = 17
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 214
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 271
+    Top = 254
     Width = 296
     Height = 19
     Panels = <
       item
         Width = 50
       end>
+    ExplicitTop = 245
   end
   object Panel1: TPanel
     Left = 0
-    Top = 252
+    Top = 235
     Width = 296
     Height = 19
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
+    ExplicitTop = 226
   end
   object AlbumEdit: TEdit
-    Left = 56
-    Top = 80
-    Width = 201
+    Left = 83
+    Top = 63
+    Width = 174
     Height = 21
     TabOrder = 4
   end
   object ArtistEdit: TEdit
-    Left = 56
-    Top = 104
-    Width = 201
+    Left = 83
+    Top = 87
+    Width = 174
     Height = 21
     TabOrder = 5
   end
   object DateEdit: TEdit
-    Left = 56
-    Top = 128
-    Width = 201
+    Left = 83
+    Top = 111
+    Width = 174
     Height = 21
     TabOrder = 6
   end
   object GenreEdit: TEdit
-    Left = 56
-    Top = 152
-    Width = 201
+    Left = 83
+    Top = 135
+    Width = 174
     Height = 21
     TabOrder = 7
   end
   object TitleEdit: TEdit
-    Left = 56
-    Top = 176
-    Width = 201
+    Left = 83
+    Top = 159
+    Width = 174
     Height = 21
     TabOrder = 8
   end
   object TrackSpinEdit: TSpinEdit
-    Left = 56
-    Top = 200
+    Left = 83
+    Top = 183
     Width = 49
     Height = 22
     MaxValue = 99
@@ -145,9 +149,9 @@ object Form1: TForm1
     Value = 0
   end
   object Edit1: TEdit
-    Left = 88
-    Top = 48
-    Width = 73
+    Left = 83
+    Top = 39
+    Width = 174
     Height = 21
     TabOrder = 10
     Text = '128'
@@ -164,18 +168,19 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 72
-    Top = 240
+    StartSample = 0
+    Left = 192
+    Top = 175
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wav files|*.wav'
-    Left = 8
-    Top = 240
+    Left = 128
+    Top = 175
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'wma'
-    Left = 40
-    Top = 240
+    Left = 160
+    Top = 175
   end
   object WMAOut1: TWMAOut
     Input = WaveIn1
@@ -187,7 +192,7 @@ object Form1: TForm1
     Lossless = False
     VBR = False
     VBRQuality = 0
-    Left = 104
-    Top = 240
+    Left = 224
+    Top = 175
   end
 end

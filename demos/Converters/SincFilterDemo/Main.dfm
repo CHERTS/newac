@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 71
   Top = 141
   Caption = 'Sinc Filter Demo'
-  ClientHeight = 379
+  ClientHeight = 367
   ClientWidth = 400
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,7 +11,11 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
+  DesignSize = (
+    400
+    367)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -22,22 +26,22 @@ object Form1: TForm1
     Caption = 'Mag'
   end
   object Label2: TLabel
-    Left = 40
-    Top = 208
+    Left = 8
+    Top = 209
     Width = 21
     Height = 13
     Caption = 'Freq'
   end
   object Label3: TLabel
     Left = 8
-    Top = 248
+    Top = 228
     Width = 54
     Height = 13
     Caption = 'Low Cut-off'
   end
   object Label4: TLabel
     Left = 8
-    Top = 296
+    Top = 275
     Width = 56
     Height = 13
     Caption = 'High Cut-off'
@@ -52,10 +56,11 @@ object Form1: TForm1
     OnClick = Button1Click
   end
   object ProgressBar1: TProgressBar
-    Left = 80
-    Top = 352
-    Width = 289
+    Left = 0
+    Top = 312
+    Width = 400
     Height = 17
+    Anchors = [akLeft, akRight, akBottom]
     Step = 2
     TabOrder = 1
   end
@@ -93,9 +98,9 @@ object Form1: TForm1
   end
   object TrackBar1: TTrackBar
     Left = 80
-    Top = 248
+    Top = 224
     Width = 297
-    Height = 45
+    Height = 41
     Max = 50
     Min = 1
     PageSize = 1
@@ -105,9 +110,9 @@ object Form1: TForm1
   end
   object TrackBar2: TTrackBar
     Left = 80
-    Top = 296
+    Top = 271
     Width = 297
-    Height = 45
+    Height = 34
     Max = 50
     Min = 1
     PageSize = 1
@@ -124,6 +129,25 @@ object Form1: TForm1
     TabOrder = 6
     OnClick = Button2Click
   end
+  object Panel2: TPanel
+    Left = 0
+    Top = 329
+    Width = 400
+    Height = 19
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 7
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 348
+    Width = 400
+    Height = 19
+    Panels = <
+      item
+        Width = 50
+      end>
+  end
   object SincFilter1: TSincFilter
     Input = WaveIn1
     FilterType = ftLowPass
@@ -131,29 +155,32 @@ object Form1: TForm1
     KernelWidth = 257
     LowFreq = 4000
     WindowType = fwHann
-    Left = 200
-    Top = 208
+    Left = 288
+    Top = 8
   end
   object OpenDialog1: TOpenDialog
     Filter = 'Wave files|*.wav'
-    Left = 128
-    Top = 208
+    Left = 216
+    Top = 8
   end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 168
-    Top = 208
+    StartSample = 0
+    Left = 256
+    Top = 8
   end
   object DXAudioOut1: TDXAudioOut
     Input = SincFilter1
     OnDone = AudioOut1Done
     OnProgress = AudioOut1Progress
     DeviceNumber = 0
-    FramesInBuffer = 24576
-    PollingInterval = 100
+    Latency = 100
     PrefetchData = True
-    Left = 248
-    Top = 208
+    PollingInterval = 100
+    FramesInBuffer = 24576
+    SpeedFactor = 1.000000000000000000
+    Left = 336
+    Top = 8
   end
 end

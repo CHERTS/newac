@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
@@ -90,8 +91,6 @@ object Form1: TForm1
     Width = 65
     Height = 25
     Caption = 'Play...'
-    DoubleBuffered = True
-    ParentDoubleBuffered = False
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -101,9 +100,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Pause'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = BitBtn2Click
   end
@@ -113,9 +110,7 @@ object Form1: TForm1
     Width = 49
     Height = 25
     Caption = 'Stop'
-    DoubleBuffered = True
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn3Click
   end
@@ -181,6 +176,7 @@ object Form1: TForm1
   object MACIn1: TMACIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 8
     Top = 120
   end
@@ -190,10 +186,11 @@ object Form1: TForm1
     OnProgress = AudioOut1Progress
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
-    FramesInBuffer = 65536
     Latency = 80
-    PollingInterval = 200
     PrefetchData = True
+    PollingInterval = 200
+    FramesInBuffer = 65536
+    SpeedFactor = 1.000000000000000000
     Left = 48
     Top = 120
   end

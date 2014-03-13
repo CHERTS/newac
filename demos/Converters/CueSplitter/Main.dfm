@@ -1,4 +1,4 @@
-object Form10: TForm10
+object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Cue-sheet Splitter'
@@ -11,6 +11,7 @@ object Form10: TForm10
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   DesignSize = (
     446
     195)
@@ -31,14 +32,13 @@ object Form10: TForm10
     Width = 430
     Height = 148
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Lines.Strings = (
-      'Memo1')
     ReadOnly = True
     TabOrder = 1
   end
   object MACIn1: TMACIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 32
     Top = 56
   end
@@ -46,12 +46,14 @@ object Form10: TForm10
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
+    StartSample = 0
     Left = 88
     Top = 56
   end
   object WVIn1: TWVIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 144
     Top = 56
   end

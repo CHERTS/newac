@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
@@ -91,11 +92,12 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 336
+    Top = 328
     Width = 467
-    Height = 9
+    Height = 17
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 327
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -207,8 +209,8 @@ object Form1: TForm1
     OnClick = Button2Click
   end
   object VBR: TCheckBox
-    Left = 200
-    Top = 8
+    Left = 169
+    Top = 12
     Width = 65
     Height = 17
     Caption = 'VBR'
@@ -236,6 +238,7 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 72
     Top = 320
   end

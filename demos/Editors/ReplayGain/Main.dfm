@@ -11,6 +11,7 @@ object Form10: TForm10
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   DesignSize = (
     405
     254)
@@ -62,6 +63,7 @@ object Form10: TForm10
   object MP3In1: TMP3In
     Loop = False
     EndSample = -1
+    StartSample = 0
     HighPrecision = False
     OutputChannels = cnMonoOrStereo
     Left = 80

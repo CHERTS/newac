@@ -12,7 +12,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ACS_Classes, ACS_Wave, Spin,
-  ACS_LAME;
+  ACS_LAME, Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -20,8 +20,6 @@ type
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     Button1: TButton;
-    ProgressBar1: TProgressBar;
-    StatusBar1: TStatusBar;
     ComboBox1: TComboBox;
     Label4: TLabel;
     Button2: TButton;
@@ -39,6 +37,9 @@ type
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
+    ProgressBar1: TProgressBar;
+    Panel2: TPanel;
+    StatusBar1: TStatusBar;
     procedure Button1Click(Sender: TObject);
     procedure MP3Out1Done(Sender: TComponent);
     procedure MP3Out1Progress(Sender: TComponent);

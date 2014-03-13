@@ -56,9 +56,9 @@ begin
     WMAOut1.Input := DTSIn1;
     if not DTSIn1.Valid then
     begin
-       WMAOut1.Input := AC3In1;
-        if not AC3In1.Valid then
-         raise Exception.Create('No DTS or AC-3 audio stream in the input file');
+      WMAOut1.Input := AC3In1;
+      if not AC3In1.Valid then
+        raise Exception.Create('No DTS or AC-3 audio stream in the input file');
     end;
     WMAOut1.FileName := SaveDialog1.FileName;
     WMAOut1.Id3v2Tags.Artist := Edit1.Text;

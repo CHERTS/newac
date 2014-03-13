@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 192
   Top = 114
-  Width = 233
-  Height = 172
   Caption = 'Sine Wave Generator'
+  ClientHeight = 97
+  ClientWidth = 309
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,25 +11,26 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 16
-    Top = 32
+    Top = 27
     Width = 50
     Height = 13
     Caption = 'Frequency'
   end
   object Label2: TLabel
-    Left = 16
-    Top = 64
+    Left = 148
+    Top = 27
     Width = 40
     Height = 13
     Caption = 'Duration'
   end
   object SpinEdit1: TSpinEdit
-    Left = 80
+    Left = 72
     Top = 24
     Width = 57
     Height = 22
@@ -40,8 +41,8 @@ object Form1: TForm1
     Value = 400
   end
   object SpinEdit2: TSpinEdit
-    Left = 80
-    Top = 56
+    Left = 194
+    Top = 24
     Width = 57
     Height = 22
     MaxValue = 10000
@@ -50,9 +51,9 @@ object Form1: TForm1
     Value = 1
   end
   object Button1: TButton
-    Left = 16
-    Top = 96
-    Width = 75
+    Left = 72
+    Top = 64
+    Width = 121
     Height = 25
     Caption = 'Play'
     TabOrder = 2
@@ -62,15 +63,18 @@ object Form1: TForm1
     Input = MemoryIn1
     OnDone = DXAudioOut1Done
     DeviceNumber = 0
-    Left = 144
-    Top = 96
+    Latency = 100
+    PrefetchData = True
+    PollingInterval = 100
+    FramesInBuffer = 24576
+    SpeedFactor = 1.000000000000000000
+    Left = 136
   end
   object MemoryIn1: TMemoryIn
     InBitsPerSample = 16
     InChannels = 1
     InSampleRate = 8000
     RepeatCount = 1
-    Left = 112
-    Top = 96
+    Left = 184
   end
 end

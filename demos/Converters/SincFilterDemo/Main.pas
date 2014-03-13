@@ -32,6 +32,8 @@ type
     Button2: TButton;
     WaveIn1: TWaveIn;
     DXAudioOut1: TDXAudioOut;
+    Panel2: TPanel;
+    StatusBar1: TStatusBar;
     procedure Button1Click(Sender: TObject);
     procedure AudioOut1Done(Sender: TComponent);
     procedure AudioOut1Progress(Sender: TComponent);

@@ -37,6 +37,7 @@ type
     Label6: TLabel;
     Edit4: TEdit;
     Edit5: TEdit;
+    Panel1: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure FLACOut1ThreadException(Sender: TComponent;
       const Msg: String);

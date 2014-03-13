@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ACS_Classes, ACS_Vorbis, ACS_WinMedia, StdCtrls, ComCtrls, Spin;
+  Dialogs, ACS_Classes, ACS_Vorbis, ACS_WinMedia, StdCtrls, ComCtrls, Spin,
+  Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -18,9 +19,10 @@ type
     SaveDialog1: TSaveDialog;
     WMIn1: TWMIn;
     VorbisOut1: TVorbisOut;
-    ProgressBar1: TProgressBar;
     Label2: TLabel;
     CheckBox1: TCheckBox;
+    Panel1: TPanel;
+    ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure VorbisOut1Progress(Sender: TComponent);

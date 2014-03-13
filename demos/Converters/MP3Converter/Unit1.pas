@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, ACS_Classes, ACS_WinMedia, ACS_smpeg, StdCtrls,
-  ACS_Wave;
+  ACS_Wave, Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -15,6 +15,8 @@ type
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     WaveOut1: TWaveOut;
+    Panel1: TPanel;
+    StatusBar1: TStatusBar;
     procedure Button1Click(Sender: TObject);
     procedure WaveOut1Done(Sender: TComponent);
     procedure WaveOut1Progress(Sender: TComponent);

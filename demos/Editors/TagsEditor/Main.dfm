@@ -11,6 +11,7 @@ object Form12: TForm12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   DesignSize = (
     420
     282)
@@ -106,8 +107,6 @@ object Form12: TForm12
       item
         Width = 50
       end>
-    ExplicitTop = 329
-    ExplicitWidth = 567
   end
   object Edit2: TEdit
     Left = 43

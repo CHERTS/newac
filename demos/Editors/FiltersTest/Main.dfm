@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 10
   Top = 91
-  Width = 1115
-  Height = 541
   Caption = 'Filter Test'
+  ClientHeight = 507
+  ClientWidth = 1107
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -159,6 +159,7 @@ object Form1: TForm1
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
+    StartSample = 0
     Left = 776
     Top = 400
   end
@@ -178,7 +179,7 @@ object Form1: TForm1
     NumberOfPoles = 8
     HighFreq = 8000
     LowFreq = 4000
-    Ripple = 0.5
+    Ripple = 0.500000000000000000
     Left = 808
     Top = 432
   end
@@ -187,6 +188,7 @@ object Form1: TForm1
     OnDone = FrequencyAnalysis1Done
     N = 2048
     Window = fwHamming
+    StartSample = 0
     EndSample = -1
     Left = 848
     Top = 400
@@ -201,6 +203,7 @@ object Form1: TForm1
     OnDone = FrequencyAnalysis2Done
     N = 2048
     Window = fwHamming
+    StartSample = 0
     EndSample = -1
     Left = 848
     Top = 432

@@ -2,7 +2,7 @@ object Form10: TForm10
   Left = 0
   Top = 0
   Caption = 'MP3 Converter'
-  ClientHeight = 222
+  ClientHeight = 185
   ClientWidth = 446
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,9 +11,10 @@ object Form10: TForm10
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   DesignSize = (
     446
-    222)
+    185)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -38,7 +39,7 @@ object Form10: TForm10
     Caption = 'VBR quality'
   end
   object Label4: TLabel
-    Left = 207
+    Left = 204
     Top = 97
     Width = 26
     Height = 13
@@ -59,7 +60,6 @@ object Form10: TForm10
     Width = 72
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     ItemIndex = 9
     TabOrder = 1
     Text = '128'
@@ -95,7 +95,6 @@ object Form10: TForm10
     Width = 56
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     ItemIndex = 3
     TabOrder = 3
     Text = '3'
@@ -121,23 +120,14 @@ object Form10: TForm10
     State = cbChecked
     TabOrder = 4
   end
-  object CheckBox3: TCheckBox
-    Left = 128
-    Top = 96
-    Width = 73
-    Height = 17
-    Caption = 'Strict ISO'
-    TabOrder = 5
-  end
   object ComboBox3: TComboBox
-    Left = 251
+    Left = 248
     Top = 94
     Width = 70
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     ItemIndex = 0
-    TabOrder = 6
+    TabOrder = 5
     Text = 'Stereo'
     Items.Strings = (
       'Stereo'
@@ -146,75 +136,97 @@ object Form10: TForm10
       'Mono')
   end
   object ProgressBar1: TProgressBar
-    Left = 8
-    Top = 182
-    Width = 430
+    Left = 0
+    Top = 129
+    Width = 446
     Height = 16
     Anchors = [akLeft, akRight, akBottom]
-    TabOrder = 7
+    TabOrder = 6
+    ExplicitTop = 166
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 203
+    Top = 166
     Width = 446
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    ExplicitLeft = 144
-    ExplicitTop = 208
-    ExplicitWidth = 0
+    ExplicitTop = 203
+  end
+  object CheckBox3: TCheckBox
+    Left = 111
+    Top = 96
+    Width = 65
+    Height = 17
+    Caption = 'Strict ISO'
+    TabOrder = 8
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 147
+    Width = 446
+    Height = 19
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 9
+    ExplicitTop = 159
   end
   object MACIn1: TMACIn
     Loop = False
     EndSample = -1
-    Left = 56
-    Top = 128
+    StartSample = 0
+    Left = 144
+    Top = 8
   end
   object FLACIn1: TFLACIn
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
-    Left = 96
-    Top = 128
+    StartSample = 0
+    Left = 184
+    Top = 8
   end
   object WVIn1: TWVIn
     Loop = False
     EndSample = -1
-    Left = 136
-    Top = 128
+    StartSample = 0
+    Left = 224
+    Top = 8
   end
   object OpenDialog1: TOpenDialog
     Filter = 
       'WavPack files|*.wv|Monkey Audio files|*.ape|FLAC files|*.flac|Wa' +
       've files|*.wav'
-    Left = 240
-    Top = 128
+    Left = 328
+    Top = 8
   end
   object MP3Out1: TMP3Out
     OnDone = MP3Out1Done
     OnProgress = MP3Out1Progress
+    ShareMode = 0
     BitRate = mbr128
     EnableBitReservoir = False
-    StrinctISO = False
+    StrictISO = False
     VBRQuality = mp3ql0
     EnableVBR = False
     AverageBitrate = mbrAuto
     MaximumBitrate = mbrAuto
-    Left = 184
-    Top = 128
+    Left = 272
+    Top = 8
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'mp3'
     Filter = 'MP3 files|*.mp3'
-    Left = 296
-    Top = 128
+    Left = 384
+    Top = 8
   end
   object WaveIn1: TWaveIn
     Loop = False
     EndSample = -1
-    Left = 8
-    Top = 128
+    StartSample = 0
+    Left = 96
+    Top = 8
   end
 end

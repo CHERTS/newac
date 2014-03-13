@@ -151,7 +151,7 @@ end;
 
 procedure TForm1.WMStreamedIn1StartedPlaying(Sender: TComponent);
 begin
-  Label14.Caption := 'Playing'
+  Label14.Caption := 'Playing...'
 end;
 
 end.

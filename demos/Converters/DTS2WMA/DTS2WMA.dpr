@@ -2,7 +2,7 @@ program DTS2WMA;
 
 uses
   Forms,
-  Main in '..\Wav2WMA-2\Main.pas' {Form1};
+  Main in 'Main.pas' {Form1};
 
 {$R *.res}
 

@@ -8,7 +8,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ACS_WavPack, ACS_FLAC, ACS_Classes, ACS_MAC, ACS_Misc, StdCtrls,
-  ACS_LAME, ComCtrls, ACS_Wave;
+  ACS_LAME, ComCtrls, ACS_Wave, Vcl.ExtCtrls;
 
 type
   TForm10 = class(TForm)
@@ -25,13 +25,14 @@ type
     ComboBox2: TComboBox;
     Label3: TLabel;
     CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
     Label4: TLabel;
     ComboBox3: TComboBox;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
     WaveIn1: TWaveIn;
     StatusBar1: TStatusBar;
+    CheckBox3: TCheckBox;
+    Panel1: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure MP3Out1Progress(Sender: TComponent);
     procedure MP3Out1Done(Sender: TComponent);
@@ -120,7 +121,7 @@ begin
         MP3Out1.BitRate := TMP3Bitrate(ComboBox1.ItemIndex);
       end;
       MP3Out1.EnableBitReservoir := CheckBox2.Checked;
-      MP3Out1.StrinctISO := CheckBox3.Checked;
+      MP3Out1.StrictISO := CheckBox3.Checked;
       Mp3Out1.Mode := TMP3Mode(ComboBox3.ItemIndex);
       Button1.Enabled := False;
       Mp3Out1.Run;

@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 395
   Top = 226
   Caption = 'AC3 -> WMA Converter'
-  ClientHeight = 518
+  ClientHeight = 492
   ClientWidth = 467
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,16 +11,17 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
     467
-    518)
+    492)
   PixelsPerInch = 96
   TextHeight = 13
   object Label6: TLabel
     Left = 8
-    Top = 343
+    Top = 317
     Width = 29
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -29,7 +30,7 @@ object Form1: TForm1
   end
   object Label7: TLabel
     Left = 8
-    Top = 367
+    Top = 341
     Width = 23
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -38,7 +39,7 @@ object Form1: TForm1
   end
   object Label8: TLabel
     Left = 8
-    Top = 391
+    Top = 365
     Width = 23
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -47,7 +48,7 @@ object Form1: TForm1
   end
   object Label9: TLabel
     Left = 8
-    Top = 415
+    Top = 389
     Width = 29
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -56,7 +57,7 @@ object Form1: TForm1
   end
   object Label10: TLabel
     Left = 8
-    Top = 439
+    Top = 413
     Width = 20
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -65,7 +66,7 @@ object Form1: TForm1
   end
   object Label11: TLabel
     Left = 8
-    Top = 463
+    Top = 437
     Width = 28
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -88,57 +89,63 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 499
+    Top = 473
     Width = 467
     Height = 19
     Panels = <
       item
         Width = 50
       end>
+    ExplicitTop = 499
   end
   object AlbumEdit: TEdit
     Left = 56
-    Top = 343
+    Top = 317
     Width = 201
     Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 1
+    ExplicitTop = 343
   end
   object ArtistEdit: TEdit
     Left = 56
-    Top = 367
+    Top = 341
     Width = 201
     Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 2
+    ExplicitTop = 367
   end
   object DateEdit: TEdit
     Left = 56
-    Top = 391
+    Top = 365
     Width = 201
     Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 3
+    ExplicitTop = 391
   end
   object GenreEdit: TEdit
     Left = 56
-    Top = 415
+    Top = 389
     Width = 201
     Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 4
+    ExplicitTop = 415
   end
   object TitleEdit: TEdit
     Left = 56
-    Top = 439
+    Top = 413
     Width = 201
     Height = 21
     Anchors = [akLeft, akBottom]
     TabOrder = 5
+    ExplicitTop = 439
   end
   object TrackSpinEdit: TSpinEdit
     Left = 56
-    Top = 463
+    Top = 437
     Width = 49
     Height = 22
     Anchors = [akLeft, akBottom]
@@ -146,6 +153,7 @@ object Form1: TForm1
     MinValue = 0
     TabOrder = 6
     Value = 0
+    ExplicitTop = 463
   end
   object Button2: TButton
     Left = 88
@@ -157,8 +165,8 @@ object Form1: TForm1
     OnClick = Button2Click
   end
   object VBR: TCheckBox
-    Left = 200
-    Top = 8
+    Left = 169
+    Top = 12
     Width = 65
     Height = 17
     Caption = 'VBR'
@@ -178,20 +186,22 @@ object Form1: TForm1
     Left = 272
     Top = 64
     Width = 185
-    Height = 412
+    Height = 386
     Anchors = [akLeft, akTop, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 10
+    ExplicitHeight = 412
   end
   object ListBox3: TListBox
     Left = 8
     Top = 176
     Width = 249
-    Height = 150
+    Height = 124
     Anchors = [akLeft, akTop, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 11
     OnClick = ListBox1Click
+    ExplicitHeight = 150
   end
   object Button3: TButton
     Left = 7
@@ -218,6 +228,7 @@ object Form1: TForm1
     OnDone = WMAOut1Done
     OnThreadException = WMAOut1ThreadException
     FileName = 'aqua.wma'
+    ShareMode = 0
     Id3v2Tags.Album = 'Aqua cosmos'
     DesiredBitrate = 0
     Lossless = False
@@ -229,6 +240,7 @@ object Form1: TForm1
   object AC3In1: TAC3In
     Loop = False
     VobAudioSubstream = acvStreamFirst
+    OutputChannels = acc5dot1
     Left = 104
     Top = 256
   end

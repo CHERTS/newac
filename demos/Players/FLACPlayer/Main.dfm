@@ -4,13 +4,14 @@ object Form1: TForm1
   Caption = 'FLAC Player'
   ClientHeight = 346
   ClientWidth = 291
-  Color = clNavy
+  Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnClose = FormClose
   DesignSize = (
     291
@@ -24,7 +25,7 @@ object Form1: TForm1
     Height = 13
     Caption = 'Sample rate'
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -49,7 +50,7 @@ object Form1: TForm1
     Height = 13
     Caption = 'Total time'
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -86,7 +87,7 @@ object Form1: TForm1
     Height = 13
     Caption = 'Comments'
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -99,7 +100,7 @@ object Form1: TForm1
     Height = 13
     Caption = 'Balance'
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = [fsBold]
@@ -135,7 +136,11 @@ object Form1: TForm1
     Top = 136
     Width = 25
     Height = 25
-    DoubleBuffered = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
     Glyph.Data = {
       76010000424D7601000000000000760000002800000020000000100000000100
       04000000000000010000130B0000130B00001000000000000000000000000000
@@ -150,7 +155,7 @@ object Form1: TForm1
       70E337F33333333337F3E0FFFFFFFFFFF0E337FFFFFFFFFFF7F3E00000000000
       00E33777777777777733EEEEEEEEEEEEEEE33333333333333333}
     NumGlyphs = 2
-    ParentDoubleBuffered = False
+    ParentFont = False
     TabOrder = 1
     OnClick = BitBtn1Click
   end
@@ -159,7 +164,6 @@ object Form1: TForm1
     Top = 136
     Width = 25
     Height = 25
-    DoubleBuffered = True
     Glyph.Data = {
       76010000424D7601000000000000760000002800000020000000100000000100
       04000000000000010000130B0000130B00001000000000000000000000000000
@@ -174,7 +178,6 @@ object Form1: TForm1
       70E337F33333333337F3E0FFFFFFFFFFF0E337FFFFFFFFFFF7F3E00000000000
       00E33777777777777733EEEEEEEEEEEEEEE33333333333333333}
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = BitBtn2Click
   end
@@ -183,7 +186,11 @@ object Form1: TForm1
     Top = 136
     Width = 25
     Height = 25
-    DoubleBuffered = True
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
     Glyph.Data = {
       76010000424D7601000000000000760000002800000020000000100000000100
       04000000000000010000130B0000130B00001000000000000000000000000000
@@ -198,7 +205,7 @@ object Form1: TForm1
       70E337F33333333337F3E0FFFFFFFFFFF0E337FFFFFFFFFFF7F3E00000000000
       00E33777777777777733EEEEEEEEEEEEEEE33333333333333333}
     NumGlyphs = 2
-    ParentDoubleBuffered = False
+    ParentFont = False
     TabOrder = 3
     OnClick = BitBtn3Click
   end
@@ -210,9 +217,9 @@ object Form1: TForm1
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvNone
     BevelOuter = bvNone
-    Color = 95
+    Color = clBtnFace
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clAqua
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
@@ -259,6 +266,7 @@ object Form1: TForm1
     Loop = False
     CheckMD5Signature = False
     EndSample = -1
+    StartSample = 0
     Left = 40
     Top = 232
   end
@@ -268,10 +276,11 @@ object Form1: TForm1
     OnProgress = AudioOut1Progress
     OnThreadException = DXAudioOut1ThreadException
     DeviceNumber = 0
-    FramesInBuffer = 65536
     Latency = 80
-    PollingInterval = 200
     PrefetchData = True
+    PollingInterval = 200
+    FramesInBuffer = 65536
+    SpeedFactor = 1.000000000000000000
     Left = 120
     Top = 232
   end

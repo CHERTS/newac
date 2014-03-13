@@ -24,6 +24,7 @@ type
     Edit1: TEdit;
     Label6: TLabel;
     Edit2: TEdit;
+    OpenDialog1: TOpenDialog;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -51,15 +52,20 @@ end;
 
 procedure TForm5.Button1Click(Sender: TObject);
 begin
-  WMStreamedOut1.Port := IntToStr(Edit1.Text);
-  WMStreamedOut1.DesiredBitrate := IntToStr(Edit2.Text);
-  WMStreamedOut1.Run;
-  Button1.Enabled := False;
+  if OpenDialog1.Execute then
+  begin
+    MP3In1.FileName := OpenDialog1.FileName;
+    WMStreamedOut1.Port := StrToInt(Edit1.Text);
+    WMStreamedOut1.DesiredBitrate := StrToInt(Edit2.Text);
+    WMStreamedOut1.Run;
+    Button1.Enabled := False;
+  end;
 end;
 
 procedure TForm5.Button2Click(Sender: TObject);
 begin
   WMStreamedOut1.Stop;
+  Button1.Enabled := True;
 end;
 
 procedure TForm5.FormClose(Sender: TObject; var Action: TCloseAction);
