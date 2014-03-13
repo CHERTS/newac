@@ -12,6 +12,8 @@ unit libwma1;
 (*  This Delphi unit provides a simple C-style interface for reading and writing WMA files.
     (c) 2007-2008 Andrei Borovsky *)
 
+{$I NewAC.inc}
+
 interface
 
 uses
@@ -330,8 +332,9 @@ implementation
        astream := 0;
        async_reader.reader.QueryInterface(IID_IWMHeaderInfo, async_reader.HeaderInfo);
        if async_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMDuration, datatype, PByte(@(async_reader.duration)), len) <> S_OK then
-         async_reader.duration := 0;
-       async_reader.duration := Round(async_reader.duration/1.e7);
+         async_reader.duration := 0
+       else
+         async_reader.duration := Round(async_reader.duration/{$IFDEF DELPHI16_UP}1e7{$ELSE}1.e7{$ENDIF DELPHI16_UP});
        len := 4;
        if async_reader.HeaderInfo.GetAttributeByName(astream, g_wszWMBitrate, datatype, PByte(@async_reader.Bitrate), len) <> S_OK then
          async_reader.Bitrate :=0;

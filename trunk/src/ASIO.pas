@@ -36,7 +36,7 @@ unit ASIO;
 
 interface
 
-{$I ASIO.INC}
+{$I NewAC.inc}
 {$IFDEF FPC} uses LCLIntf;
 {$ELSE} uses Windows; {$ENDIF}
 

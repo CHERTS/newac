@@ -16,6 +16,8 @@ unit NewAC_DSP;
     (c) 2008 Andrei Borovsky (anb@symmetrica.net). All rights reserved. See the
     LICENSE file for more details. *)
 
+{$I NewAC.inc}
+
 interface
 
 uses
@@ -375,12 +377,12 @@ implementation
   begin
     System.Assign(F, FileName);
     System.Rewrite(F);
-    OldSep := DecimalSeparator;
-    DecimalSeparator := '.';
+    OldSep := {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}DecimalSeparator;
+    {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}DecimalSeparator := '.';
     for i := 0 to _N div 2 do
       Write(F, FloatToStrF(GetMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
-    DecimalSeparator := OldSep;
+    {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}DecimalSeparator := OldSep;
     System.Close(F);
   end;
 
@@ -393,12 +395,12 @@ implementation
   begin
     System.Assign(F, FileName);
     System.Rewrite(F);
-    OldSep := DecimalSeparator;
-    DecimalSeparator := '.';
+    OldSep := {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}DecimalSeparator;
+    {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}DecimalSeparator := '.';
     for i := 0 to _N div 2 do
       Write(F, FloatToStrF(GetLogMagnitude(Channel, i), ffFixed, 7, 7), FSeparator);
     WriteLn(F, FloatToStrF(GetLogMagnitude(Channel, _N div 2 -1), ffFixed, 7, 7));
-    DecimalSeparator := OldSep;
+    {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}DecimalSeparator := OldSep;
     System.Close(F);
   end;
 
