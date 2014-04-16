@@ -51,6 +51,8 @@ unit uLog;
   - Set max logfile size and trim, possibly backing up (compressing?) old logs  
 }
 
+{$I NewAC.inc}
+
 interface
 
 {$I uLogOpts.inc}
@@ -217,7 +219,7 @@ begin
   if FFilename = '' then
     FFilename := ChangeFileExt(ParamStr(0), '.log');
   InitializeCriticalSection(FLogLock);
-  ShortDateFormat := 'yyyymmdd';
+  {$IFDEF DELPHI16_UP}FormatSettings.{$ENDIF}ShortDateFormat := 'yyyymmdd';
   Timestamp := true;
   FLogLevel := 5;
   FScreenLevel := 5;
