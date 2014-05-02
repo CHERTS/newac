@@ -524,7 +524,7 @@ end;
      {$ENDIF}
 
 
-
+      {$IFDEF USE_CDRIP_DLL_1001}
       CDRIni := TINIFile.Create(String(FilePath+'cdr.ini'));
       CDRIni.WriteString('CD-ROM','nActive','0');
       case GetWindowsVersion of
@@ -532,9 +532,10 @@ end;
         WINNT : CDRIni.WriteInteger('CD-ROM','nTransportLayer',1);
       end;
       CDRIni.Free;
+      {$ENDIF}
       {$IFDEF USE_CDRIP_DLL_12200}
       if CR_Init(1) <> RES_OK then
-         Windows.MessageBox(0, 'Failed to initialize CDRip (insufficient privileges?)', 'Error',  MB_ICONERROR or MB_OK);
+         Windows.MessageBox(0, PWideChar('Failed to initialize CDRip (insufficient privileges?) Error Code: ' + FloatToStr(CR_Init(1))), 'Error',  MB_ICONERROR or MB_OK);
       {$ENDIF}
       {$IFDEF USE_CDRIP_DLL_1001}
        CR_Init(PAnsiChar(FilePath+'cdr.ini'));
