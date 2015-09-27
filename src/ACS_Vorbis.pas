@@ -6,7 +6,7 @@
 
 *)
 
-(* $Id$ *)
+(* $Id: ACS_Vorbis.pas 1164 2010-01-31 08:47:53Z andrei.borovsky $ *)
 
 unit ACS_Vorbis;
 

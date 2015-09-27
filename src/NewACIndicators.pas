@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: NewACIndicators.pas 1166 2010-02-01 14:43:35Z andrei.borovsky $ *)
 
 unit NewACIndicators;
 

@@ -6,7 +6,7 @@
   by the XIPHOPHORUS Company http://www.xiph.org/
 *)
 
-(* $Id$ *)
+(* $Id: Codec.pas 1098 2010-01-20 06:11:48Z andrei.borovsky $ *)
 
 unit Codec;
 

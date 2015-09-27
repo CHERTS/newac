@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: AuSampleRate.pas 652 2008-07-04 06:21:49Z andrei.borovsky $ *)
 
 unit AuSampleRate;
 

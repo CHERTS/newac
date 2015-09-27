@@ -7,7 +7,7 @@
   Special thanks to Thomas Grelle <grelle@online.de> for improving this unit.
 *)
 
-(* $Id$ *)
+(* $Id: ACS_CDROM.pas 1193 2010-02-22 14:03:33Z andrei.borovsky $ *)
 
 unit ACS_CDROM;
 

@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: mp4ff.pas 1225 2010-07-17 22:36:06Z andrei.borovsky $ *)
 
 unit mp4ff;
 interface

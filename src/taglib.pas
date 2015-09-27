@@ -1,6 +1,6 @@
 unit taglib;
 
-(* $Id$ *)
+(* $Id: taglib.pas 1059 2009-12-16 05:17:16Z andrei.borovsky $ *)
 
 interface
 

@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: NewAC_AVI.pas 907 2009-09-04 01:44:54Z andrei.borovsky $ *)
 
 (* Title: NewAC_AVI
     This Unit contains the TAVIIn component which extracts audio streams from AVI files. *)

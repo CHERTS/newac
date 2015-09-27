@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_Streams.pas 1193 2010-02-22 14:03:33Z andrei.borovsky $ *)
 
 unit ACS_Streams;
 

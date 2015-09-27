@@ -6,7 +6,7 @@
   by the XIPHOPHORUS Company http://www.xiph.org/
 *)
 
-(* $Id$ *)
+(* $Id: VorbisEnc.pas 647 2008-07-02 05:12:26Z andrei.borovsky $ *)
 
 unit VorbisEnc;
 

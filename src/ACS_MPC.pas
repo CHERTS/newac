@@ -23,7 +23,7 @@
 
 unit ACS_MPC;
 
-(* $Id$ *)
+(* $Id: ACS_MPC.pas 1117 2010-01-22 09:28:59Z andrei.borovsky $ *)
 
 interface
 

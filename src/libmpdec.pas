@@ -6,7 +6,7 @@
 
 (* Written by Sergei Borisov *)
 
-(* $Id$ *)
+(* $Id: libmpdec.pas 649 2008-07-03 06:35:30Z andrei.borovsky $ *)
 
 unit libmpdec;
 

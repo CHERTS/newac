@@ -7,7 +7,7 @@
 
 (* C-style DMO management API. Copyright (c) 2008 Andrei Borovsky *)
 
-(* $Id$ *)
+(* $Id: msdmo.pas 552 2008-03-20 10:49:45Z andrei.borovsky $ *)
 
 unit msdmo;
 

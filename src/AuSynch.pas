@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: AuSynch.pas 1117 2010-01-22 09:28:59Z andrei.borovsky $ *)
 
 unit AuSynch;
 

@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: AuASIO.pas 1192 2010-02-18 14:39:19Z andrei.borovsky $ *)
 
 unit AuASIO;
 

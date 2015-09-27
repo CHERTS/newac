@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_Wave.pas 1256 2010-11-11 11:26:34Z andrei.borovsky $ *)
 
 unit ACS_Wave;
 

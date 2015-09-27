@@ -1,6 +1,6 @@
 unit TTALib;
 
-(* $Id$ *)
+(* $Id: TTALib.pas 647 2008-07-02 05:12:26Z andrei.borovsky $ *)
 
 interface
 

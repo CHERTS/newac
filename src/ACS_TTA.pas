@@ -11,7 +11,7 @@
 
 unit ACS_TTA;
 
-(* $Id$ *)
+(* $Id: ACS_TTA.pas 647 2008-07-02 05:12:26Z andrei.borovsky $ *)
 
 (* Title: ACS_TTA
     TTA (True Audio codec) encoder and decoder components.

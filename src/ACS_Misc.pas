@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_Misc.pas 1127 2010-01-23 18:35:12Z andrei.borovsky $ *)
 
 unit ACS_Misc;
 

@@ -1,5 +1,5 @@
 
-(* $Id$ *)
+(* $Id: GainAnalysis.pas 992 2009-09-27 12:19:26Z andrei.borovsky $ *)
 
 unit GainAnalysis;
 

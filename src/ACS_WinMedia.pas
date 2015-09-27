@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_WinMedia.pas 1160 2010-01-30 14:53:09Z andrei.borovsky $ *)
 
 unit ACS_WinMedia;
 

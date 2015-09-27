@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_FLAC.pas 1164 2010-01-31 08:47:53Z andrei.borovsky $ *)
 
 unit ACS_FLAC;
 

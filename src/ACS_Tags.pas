@@ -8,7 +8,7 @@
 (* This unit is written by Sergei Borisov, <jr_ross@mail.ru>
    with some extensions by  A. Borovsky. *)
 
-(* $Id$ *)
+(* $Id: ACS_Tags.pas 1117 2010-01-22 09:28:59Z andrei.borovsky $ *)
 
 unit ACS_Tags;
 

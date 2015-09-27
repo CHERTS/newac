@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_Filters.pas 1007 2009-10-09 22:17:10Z andrei.borovsky $ *)
 
 unit ACS_Filters;
 

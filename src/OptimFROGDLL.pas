@@ -1,6 +1,6 @@
 unit OptimFROGDLL;
 
-(* $Id$ *)
+(* $Id: OptimFROGDLL.pas 1117 2010-01-22 09:28:59Z andrei.borovsky $ *)
 
 interface
 

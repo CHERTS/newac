@@ -9,7 +9,7 @@
     This unit contains component wrappers around several DMOs. *)
 
 
-(* $Id$ *)
+(* $Id: AudioDMO.pas 574 2008-04-06 16:46:46Z wayne@wootcomputers.com $ *)
 
 unit AudioDMO;
 
@@ -69,13 +69,13 @@ type
     FBufSize : LongWord;
     FEndOfInput : Boolean;
     HasMoreOutput : Boolean;
-    FOutSampleRate : Word;
+    FOutSampleRate : LongWord;
     FEnableAGC : Boolean;
     FEnableNoiseReduction : Boolean;
     FEnableVAD : Boolean;
     filter : dmo_vcfilter;
     TailBuf : Pointer;
-    procedure SetOutSampleRate(value : Word);
+    procedure SetOutSampleRate(value : LongWord);
   protected
     function GetSR : LongWord; override;
     function GetCh : LongWord; override;
@@ -93,7 +93,7 @@ type
        output will always be mono with 16 bits per sample. You can select
        output sample rate though. The values allowed for OutSampleRate are
        8000, 11025, 16000, and 22050. *)
-    property OutSampleRate : Word read FOutSampleRate write SetOutSampleRate;
+    property OutSampleRate : LongWord read FOutSampleRate write SetOutSampleRate;
     (* Property: EnableAGC
        This property enables or disables the automatic gain control. *)
     property EnableAGC : Boolean read FEnableAGC write FEnableAGC;
@@ -388,7 +388,7 @@ implementation
     dmo_vcfilter_free(filter);
   end;
 
-  procedure TVoiceFilter.SetOutSampleRate(value: Word);
+  procedure TVoiceFilter.SetOutSampleRate(value: LongWord);
   begin
     FOutSampleRate := 8000;
     if value > 8000 then

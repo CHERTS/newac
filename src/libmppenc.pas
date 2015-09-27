@@ -4,7 +4,7 @@
   You can learn more about Musepack audio compression format at www.musepack.net.
 *)
 
-(* $Id$ *)
+(* $Id: libmppenc.pas 772 2008-09-23 11:26:04Z andrei.borovsky $ *)
 
 unit libmppenc;
 

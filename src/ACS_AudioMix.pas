@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_AudioMix.pas 1165 2010-02-01 14:42:59Z andrei.borovsky $ *)
 
 unit ACS_AudioMix;
 

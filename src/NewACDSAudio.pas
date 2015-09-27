@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: NewACDSAudio.pas 1251 2010-08-14 10:57:29Z andrei.borovsky $ *)
 
 unit NewACDSAudio;
 

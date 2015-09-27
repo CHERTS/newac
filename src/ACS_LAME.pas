@@ -6,7 +6,7 @@
 
 *)
 
-(* $Id$ *)
+(* $Id: ACS_LAME.pas 1160 2010-01-30 14:53:09Z andrei.borovsky $ *)
 
 unit ACS_LAME;
 

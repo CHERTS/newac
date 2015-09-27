@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: libwma1.pas 1256 2010-11-11 11:26:34Z andrei.borovsky $ *)
 
 unit libwma1;
 
@@ -33,22 +33,22 @@ type
      FStream : TStream;
    public
      procedure AssignStream(Stream : TStream); stdcall;
-    function Read(pv: Pointer; cb: Longint; pcbRead: PLongint): HResult;
+    function Read(pv: Pointer; cb: {$IFDEF DELPHI22_UP}FixedUInt{$ELSE}Longint{$ENDIF DELPHI22_UP}; pcbRead: {$IFDEF DELPHI22_UP}PFixedUInt{$ELSE}PLongint{$ENDIF DELPHI22_UP}): HResult;
       stdcall;
-    function Write(pv: Pointer; cb: Longint; pcbWritten: PLongint): HResult;
+    function Write(pv: Pointer; cb: {$IFDEF DELPHI22_UP}FixedUInt{$ELSE}Longint{$ENDIF DELPHI22_UP}; pcbWritten: {$IFDEF DELPHI22_UP}PFixedUInt{$ELSE}PLongint{$ENDIF DELPHI22_UP}): HResult;
       stdcall;
-    function Seek(dlibMove: Largeint; dwOrigin: Longint;
-      out libNewPosition: Largeint): HResult; stdcall;
-    function SetSize(libNewSize: Largeint): HResult; stdcall;
-    function CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint;
-      out cbWritten: Largeint): HResult; stdcall;
-    function Commit(grfCommitFlags: Longint): HResult; stdcall;
+    function Seek(dlibMove: Largeint; dwOrigin: {$IFDEF DELPHI22_UP}DWORD{$ELSE}Longint{$ENDIF DELPHI22_UP};
+      out libNewPosition: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP}): HResult; stdcall;
+    function SetSize(libNewSize: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP}): HResult; stdcall;
+    function CopyTo(stm: IStream; cb: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP}; out cbRead: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP};
+      out cbWritten: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP}): HResult; stdcall;
+    function Commit(grfCommitFlags: {$IFDEF DELPHI22_UP}DWORD{$ELSE}Longint{$ENDIF DELPHI22_UP}): HResult; stdcall;
     function Revert: HResult; stdcall;
-    function LockRegion(libOffset: Largeint; cb: Largeint;
-      dwLockType: Longint): HResult; stdcall;
-    function UnlockRegion(libOffset: Largeint; cb: Largeint;
-      dwLockType: Longint): HResult; stdcall;
-    function Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult;
+    function LockRegion(libOffset: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP}; cb: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP};
+      dwLockType: {$IFDEF DELPHI22_UP}DWORD{$ELSE}Longint{$ENDIF DELPHI22_UP}): HResult; stdcall;
+    function UnlockRegion(libOffset: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP}; cb: {$IFDEF DELPHI22_UP}LargeUInt{$ELSE}Largeint{$ENDIF DELPHI22_UP};
+      dwLockType: {$IFDEF DELPHI22_UP}DWORD{$ELSE}Longint{$ENDIF DELPHI22_UP}): HResult; stdcall;
+    function Stat(out statstg: TStatStg; grfStatFlag: {$IFDEF DELPHI22_UP}DWORD{$ELSE}Longint{$ENDIF DELPHI22_UP}): HResult;
       stdcall;
     function Clone(out stm: IStream): HResult; stdcall;
    end;
@@ -581,7 +581,7 @@ implementation
      format : PWAVEFORMATEX;
      datatype : WMT_ATTR_DATATYPE;
      len, astream : Word;
-     NP : Int64;
+     NP : {$IFDEF DELPHI22_UP}UInt64{$ELSE}Int64{$ENDIF DELPHI22_UP};
      Enable : LongBool;
      Value : LongWord;
      Cond : Boolean;
@@ -719,7 +719,7 @@ implementation
      OutputMediaType : PWMMEDIATYPE;
      datatype : WMT_ATTR_DATATYPE;
      len, astream : Word;
-     NP : Int64;
+     NP : {$IFDEF DELPHI22_UP}UInt64{$ELSE}Int64{$ENDIF DELPHI22_UP};
    begin
      CoInitialize(nil);
      FillChar(sync_reader, SizeOf(sync_reader), 0);

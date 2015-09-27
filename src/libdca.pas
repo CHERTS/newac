@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: libdca.pas 865 2009-08-09 19:24:22Z andrei.borovsky $ *)
 
 unit libdca;
 

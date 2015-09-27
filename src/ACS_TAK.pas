@@ -10,7 +10,7 @@
 
 unit ACS_TAK;
 
-(* $Id$ *)
+(* $Id: ACS_TAK.pas 1117 2010-01-22 09:28:59Z andrei.borovsky $ *)
 
 interface
 

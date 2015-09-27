@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: AudioPass.pas 304 2008-02-04 12:41:10Z andrei.borovsky $ *)
 
 (* Title: AudioPass
    This unit contains the <TAudioPass> component. *)

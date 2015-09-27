@@ -10,7 +10,7 @@
 
 *)
 
-(* $Id$ *)
+(* $Id: ACS_MAC.pas 1126 2010-01-23 17:52:50Z andrei.borovsky $ *)
 
 unit ACS_MAC;
 

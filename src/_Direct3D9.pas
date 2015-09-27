@@ -13,7 +13,7 @@
 {*    http://sourceforge.net/projects/delphi-dx9sdk                           *}
 {*                                                                            *}
 {*----------------------------------------------------------------------------*}
-{*  $Id$ }
+{*  $Id: _Direct3D9.pas 1101 2010-01-20 06:31:51Z andrei.borovsky $ }
 {******************************************************************************}
 {                                                                              }
 { Obtained through: Joint Endeavour of Delphi Innovators (Project JEDI)        }

@@ -11,7 +11,7 @@
 
 unit ACS_OptimFROG;
 
-(* $Id$ *)
+(* $Id: ACS_OptimFROG.pas 1117 2010-01-22 09:28:59Z andrei.borovsky $ *)
 
 (* Title: ACS_OptimFROG
     OptimFROG decoder component

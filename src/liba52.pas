@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: liba52.pas 888 2009-08-21 14:37:55Z andrei.borovsky $ *)
 
 unit liba52;
 

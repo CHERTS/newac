@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: neaac.pas 1234 2010-07-20 20:18:25Z andrei.borovsky $ *)
 
 unit neaac;
 

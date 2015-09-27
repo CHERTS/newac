@@ -5,7 +5,7 @@
   You can contact me at anb@symmetrica.net
 *)
 
-(* $Id$ *)
+(* $Id: ACS_Converters.pas 1252 2010-08-14 10:57:49Z andrei.borovsky $ *)
 
 unit ACS_Converters;
 

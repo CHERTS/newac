@@ -3,7 +3,7 @@
   You can contact me at anb@symmetrica.net
  *)
 
-(* $Id$ *)
+(* $Id: FLAC.pas 1098 2010-01-20 06:11:48Z andrei.borovsky $ *)
 
 
 unit FLAC;

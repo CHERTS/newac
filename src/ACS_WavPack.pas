@@ -10,7 +10,7 @@
   with some important modifications by Andrey Borovsky.
 *)
 
-(* $Id$ *)
+(* $Id: ACS_WavPack.pas 1198 2010-04-25 18:58:20Z fleeingtoelude $ *)
 
 (* Title: ACS_WavPack
     This unit contains components for decoding/encoding WavPack format. For
