@@ -117,7 +117,7 @@ type
   HACMDRIVERID__ = record
     Unused: Integer;
   end;
-  {$EXTERNALSYM HACMDRIVERID__}
+  //{$EXTERNALSYM HACMDRIVERID__}  {removed by DJ VK to produce C++ compability}
   HACMDRIVERID = ^HACMDRIVERID__;
   {$EXTERNALSYM HACMDRIVERID}
   PHACMDRIVERID = ^HACMDRIVERID;
@@ -128,7 +128,7 @@ type
   HACMDRIVER__ = record
     Unused: Integer;
   end;
-  {$EXTERNALSYM HACMDRIVER__}
+  //{$EXTERNALSYM HACMDRIVER__}  {removed by DJ VK to produce C++ compability}
   HACMDRIVER = ^HACMDRIVER__;
   {$EXTERNALSYM HACMDRIVER}
   PHACMDRIVER = ^HACMDRIVER;
@@ -139,7 +139,7 @@ type
   HACMSTREAM__ = record
     Unused: Integer;
   end;
-  {$EXTERNALSYM HACMSTREAM__}
+  //{$EXTERNALSYM HACMSTREAM__}  {removed by DJ VK to produce C++ compability}
   HACMSTREAM = ^HACMSTREAM__;
   {$EXTERNALSYM HACMSTREAM}
   PHACMSTREAM = ^HACMSTREAM;
@@ -150,7 +150,7 @@ type
   HACMOBJ__ = record
     Unused: Integer;
   end;
-  {$EXTERNALSYM HACMOBJ__}
+  //{$EXTERNALSYM HACMOBJ__}  {removed by DJ VK to produce C++ compability}
   HACMOBJ = ^HACMOBJ__;
   {$EXTERNALSYM HACMOBJ}
   PHACMOBJ = ^HACMOBJ;
@@ -464,7 +464,7 @@ type
     szLicensing: array [0..ACMDRIVERDETAILS_LICENSING_CHARS - 1] of AnsiChar;
     szFeatures: array [0..ACMDRIVERDETAILS_FEATURES_CHARS - 1]  of AnsiChar;
   end;
-  {$EXTERNALSYM _ACMDRIVERDETAILSA}
+  //{$EXTERNALSYM _ACMDRIVERDETAILSA}  {removed by DJ VK to produce C++ compability}
   _ACMDRIVERDETAILSW = packed record
     cbStruct: DWORD;
     fccType: FOURCC;
@@ -483,7 +483,7 @@ type
     szLicensing: array [0..ACMDRIVERDETAILS_LICENSING_CHARS - 1] of WideChar;
     szFeatures: array [0..ACMDRIVERDETAILS_FEATURES_CHARS - 1]  of WideChar;
   end;
-  {$EXTERNALSYM _ACMDRIVERDETAILSW}
+  //{$EXTERNALSYM _ACMDRIVERDETAILSW}  {removed by DJ VK to produce C++ compability}
   _ACMDRIVERDETAILS = _ACMDRIVERDETAILSA;
   TAcmDriverDetailsA = _ACMDRIVERDETAILSA;
   TAcmDriverDetailsW = _ACMDRIVERDETAILSW;
@@ -603,7 +603,7 @@ type
     cStandardFormats: DWORD;
     szFormatTag: array [0..ACMFORMATTAGDETAILS_FORMATTAG_CHARS - 1] of AnsiChar;
   end;
-  {$EXTERNALSYM _ACMFORMATTAGDETAILSA}
+  //{$EXTERNALSYM _ACMFORMATTAGDETAILSA}  {removed by DJ VK to produce C++ compability}
   _ACMFORMATTAGDETAILSW = packed record
     cbStruct: DWORD;
     dwFormatTagIndex: DWORD;
@@ -613,7 +613,7 @@ type
     cStandardFormats: DWORD;
     szFormatTag: array [0..ACMFORMATTAGDETAILS_FORMATTAG_CHARS - 1] of WideChar;
   end;
-  {$EXTERNALSYM _ACMFORMATTAGDETAILSW}
+  //{$EXTERNALSYM _ACMFORMATTAGDETAILSW}  {removed by DJ VK to produce C++ compability}
   _ACMFORMATTAGDETAILS = _ACMFORMATTAGDETAILSA;
   TAcmFormatTagDetailsA = _ACMFORMATTAGDETAILSA;
   TAcmFormatTagDetailsW = _ACMFORMATTAGDETAILSW;
@@ -693,7 +693,7 @@ type
     cbwfx: DWORD;
     szFormat: array [0..ACMFORMATDETAILS_FORMAT_CHARS - 1] of AnsiChar;
   end;
-  {$EXTERNALSYM _ACMFORMATDETAILSA}
+  //{$EXTERNALSYM _ACMFORMATDETAILSA}  {removed by DJ VK to produce C++ compability}
   _ACMFORMATDETAILSW = packed record
     cbStruct: DWORD;
     dwFormatIndex: DWORD;
@@ -703,7 +703,7 @@ type
     cbwfx: DWORD;
     szFormat: array [0..ACMFORMATDETAILS_FORMAT_CHARS - 1] of WideChar;
   end;
-  {$EXTERNALSYM _ACMFORMATDETAILSW}
+  //{$EXTERNALSYM _ACMFORMATDETAILSW}  {removed by DJ VK to produce C++ compability}
   _ACMFORMATDETAILS = _ACMFORMATDETAILSA;
   TAcmFormatDetailsA = _ACMFORMATDETAILSA;
   TAcmFormatDetailsW = _ACMFORMATDETAILSW;
@@ -866,7 +866,7 @@ type
     lCustData: LPARAM;
     pfnHook: ACMFORMATCHOOSEHOOKPROCA;
   end;
-  {$EXTERNALSYM _ACMFORMATCHOOSEA}
+  //{$EXTERNALSYM _ACMFORMATCHOOSEA}  {removed by DJ VK to produce C++ compability}
   _ACMFORMATCHOOSEW = packed record
     cbStruct: DWORD;
     fdwStyle: DWORD;
@@ -885,7 +885,7 @@ type
     lCustData: LPARAM;
     pfnHook: ACMFORMATCHOOSEHOOKPROCW;
   end;
-  {$EXTERNALSYM _ACMFORMATCHOOSEW}
+  //{$EXTERNALSYM _ACMFORMATCHOOSEW}  {removed by DJ VK to produce C++ compability}
   _ACMFORMATCHOOSE = _ACMFORMATCHOOSEA;
   TAcmFormatChooseA = _ACMFORMATCHOOSEA;
   TAcmFormatChooseW = _ACMFORMATCHOOSEW;
@@ -945,7 +945,7 @@ type
     cStandardFilters: DWORD;
     szFilterTag: array [0..ACMFILTERTAGDETAILS_FILTERTAG_CHARS-1] of AnsiChar;
   end;
-  {$EXTERNALSYM _ACMFILTERTAGDETAILSA}
+  //{$EXTERNALSYM _ACMFILTERTAGDETAILSA}  {removed by DJ VK to produce C++ compability}
   _ACMFILTERTAGDETAILSW = packed record
     cbStruct: DWORD;
     dwFilterTagIndex: DWORD;
@@ -955,7 +955,7 @@ type
     cStandardFilters: DWORD;
     szFilterTag: array [0..ACMFILTERTAGDETAILS_FILTERTAG_CHARS-1] of WideChar;
   end;
-  {$EXTERNALSYM _ACMFILTERTAGDETAILSW}
+  //{$EXTERNALSYM _ACMFILTERTAGDETAILSW}  {removed by DJ VK to produce C++ compability}
   _ACMFILTERTAGDETAILS = _ACMFILTERTAGDETAILSA;
   TAcmFilterTagDetailsA = _ACMFILTERTAGDETAILSA;
   TAcmFilterTagDetailsW = _ACMFILTERTAGDETAILSW;
@@ -1035,7 +1035,7 @@ type
     cbwfltr: DWORD;
     szFilter: array [0..ACMFILTERDETAILS_FILTER_CHARS - 1] of AnsiChar;
   end;
-  {$EXTERNALSYM _ACMFILTERDETAILSA}
+  //{$EXTERNALSYM _ACMFILTERDETAILSA}  {removed by DJ VK to produce C++ compability}
   _ACMFILTERDETAILSW = packed record
     cbStruct: DWORD;
     dwFilterIndex: DWORD;
@@ -1045,7 +1045,7 @@ type
     cbwfltr: DWORD;
     szFilter: array [0..ACMFILTERDETAILS_FILTER_CHARS - 1] of WideChar;
   end;
-  {$EXTERNALSYM _ACMFILTERDETAILSW}
+  //{$EXTERNALSYM _ACMFILTERDETAILSW}  {removed by DJ VK to produce C++ compability}
   _ACMFILTERDETAILS = _ACMFILTERDETAILSA;
   TAcmFilterDetailsA = _ACMFILTERDETAILSA;
   TAcmFilterDetailsW = _ACMFILTERDETAILSW;
@@ -1156,7 +1156,7 @@ type
     lCustData: LPARAM;
     pfnHook: ACMFILTERCHOOSEHOOKPROCA;
   end;
-  {$EXTERNALSYM _ACMFILTERCHOOSEA}
+  //{$EXTERNALSYM _ACMFILTERCHOOSEA}  {removed by DJ VK to produce C++ compability}
   _ACMFILTERCHOOSEW = packed record
     cbStruct: DWORD;
     fdwStyle: DWORD;
@@ -1175,7 +1175,7 @@ type
     lCustData: LPARAM;
     pfnHook: ACMFILTERCHOOSEHOOKPROCW;
   end;
-  {$EXTERNALSYM _ACMFILTERCHOOSEW}
+  //{$EXTERNALSYM _ACMFILTERCHOOSEW}  {removed by DJ VK to produce C++ compability}
   _ACMFILTERCHOOSE = _ACMFILTERCHOOSEA;
   TAcmFilterChooseA = _ACMFILTERCHOOSEA;
   TAcmFilterChooseW = _ACMFILTERCHOOSEW;

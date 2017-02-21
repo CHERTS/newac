@@ -65,8 +65,8 @@ type
   LPDIRECTSOUNDBUFFER  = ^IDirectSoundBuffer;
   LPDIRECTSOUNDCAPTURE = ^IDIRECTSOUNDCAPTURE;
   LPDIRECTSOUNDCAPTUREBUFFER = ^IDIRECTSOUNDCAPTUREBUFFER;
-  INT = Integer;
-  long = Integer;
+  //INT = Integer;  {removed by DJ VK}
+  longi = Integer; {renamed by DJ VK}
 
   DSoundWrapper = record
     dsw_pDirectSound : IDIRECTSOUND;
@@ -139,7 +139,7 @@ type
   function DSW_RestartOutput(var dsw : DSoundWrapper) : HRESULT;
   function DSW_QueryOutputSpace(var dsw : DSoundWrapper; var bytesEmpty : LongWord) : HRESULT;
   function DSW_FillEmptySpace(var dsw : DSoundWrapper; Fill : Byte) : HRESULT;
-  function DSW_WriteBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : long) : HRESULT;
+  function DSW_WriteBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : longi{long renamed by DJ VK}) : HRESULT;
   function DSW_GetOutputStatus(var dsw : DSoundWrapper) : DWORD;
   function DSW_EnumerateOutputDevices(devices : PDSW_Devices) : HRESULT;
   function DSW_EnumerateInputDevices(devices : PDSW_Devices) : HRESULT;
@@ -148,8 +148,8 @@ type
                 nFrameRate : LongWord; nChannels, bufSize : Integer) : HRESULT;
   function DSW_StartInput(var dsw : DSoundWrapper) : HRESULT;
   function DSW_StopInput(var dsw : DSoundWrapper) : HRESULT;
-  function DSW_QueryInputFilled(var dsw : DSoundWrapper; var bytesFilled : long) : HRESULT;
-  function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; var numBytes : long) : HRESULT;
+  function DSW_QueryInputFilled(var dsw : DSoundWrapper; var bytesFilled : longi{long renamed by DJ VK}) : HRESULT;
+  function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; var numBytes : longi{long renamed by DJ VK}) : HRESULT;
   procedure DSW_Term(var dsw : DSoundWrapper);
 
   function DSW_FlushOutputBuffer(var dsw : DSoundWrapper; BytesToLeave : Integer) : HRESULT;
@@ -519,13 +519,13 @@ var
   //hr : HRESULT;
   playCursor :  DWORD;
   writeCursor : DWORD;
-  numBytesEmpty :  long;
-  playWriteGap :  long;
+  numBytesEmpty :  longi{long renamed by DJ VK};
+  playWriteGap :  longi{long renamed by DJ VK};
   currentTime : LARGE_INTEGER;
   elapsedTime : LARGE_INTEGER;
-  bytesPlayed : long;
-  bytesExpected : long;
-  buffersWrapped : long;
+  bytesPlayed : longi{long renamed by DJ VK};
+  bytesExpected : longi{long renamed by DJ VK};
+  buffersWrapped : longi{long renamed by DJ VK};
 
 begin
     // Query to see how much room is in buffer.
@@ -617,7 +617,7 @@ begin
   end;
 end;
 
-function DSW_WriteBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : long) : HRESULT;
+function DSW_WriteBlock(var dsw : DSoundWrapper; buf : PByte; numBytes : longi{long renamed by DJ VK}) : HRESULT;
 var
   lpbuf1 : PBYTE;
   lpbuf2 : PBYTE;
@@ -751,11 +751,11 @@ begin
   else Result := 0;
 end;
 
-function DSW_QueryInputFilled(var dsw : DSoundWrapper; var bytesFilled : long) : HRESULT;
+function DSW_QueryInputFilled(var dsw : DSoundWrapper; var bytesFilled : longi{long renamed by DJ VK}) : HRESULT;
 var
   capturePos : DWORD;
   readPos : DWORD;
-  filled : long;
+  filled : longi{long renamed by DJ VK};
 begin
     // Query to see how much data is in buffer.
     // We don't need the capture position but sometimes DirectSound doesn't handle NULLS correctly
@@ -768,7 +768,7 @@ begin
   bytesFilled := filled;
 end;
 
-function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; var numBytes : long) : HRESULT;
+function DSW_ReadBlock(var dsw : DSoundWrapper; buf : PByte; var numBytes : longi{long renamed by DJ VK}) : HRESULT;
 var
   lpbuf1 : PBYTE;
   lpbuf2 : PBYTE;

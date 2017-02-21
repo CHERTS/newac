@@ -361,6 +361,7 @@ const
   WAVE_FORMAT_DVI_IMA_ADPCM = 17;
   WAVE_FORMAT_IMA_ADPCM = 17;
   WAVE_FORMAT_MP3 = 85;
+  WAVE_FORMAT_EXT = 65534; {inserted by DJ VK}
 
 type
 
@@ -1039,7 +1040,7 @@ begin
   Header.RIFFType := 'WAVE';
   Header.FmtChunkId := 'fmt ';
   Header.FmtChunkSize := SizeOf(Header.Format);
-  Header.Format.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+  Header.Format.Format.wFormatTag := WAVE_FORMAT_EXT{EXTENSIBLE replaced by DJ VK};
   Header.Format.Format.nChannels := FInput.Channels;
   Header.Format.Format.nSamplesPerSec := FInput.SampleRate;
   Header.Format.Format.wBitsPerSample := FInput.BitsPerSample;
@@ -1686,7 +1687,7 @@ end;
               WAVE_FORMAT_ADPCM : _WavType := wtMSADPCM;
               WAVE_FORMAT_MP3 : _WavType := wtACM;
               WAVE_FORMAT_IEEE_FLOAT : _WavType := wtIEEEFloat;
-              WAVE_FORMAT_EXTENSIBLE : _WavType := wtExtPCM;
+              WAVE_FORMAT_EXT{EXTENSIBLE replaced by DJ VK} : _WavType := wtExtPCM;
               else Exit;
             end;
             Move(Buff[i+2-ChunkSize], WordVal, 2);

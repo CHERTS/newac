@@ -337,20 +337,20 @@ end;
 
 procedure TAudioInputStream.InitInternal;
 begin
-  FIFO.EOF := False;
+  FIFO.EndOF{EOF replaced by DJ VK} := False;
 end;
 
 procedure TAudioInputStream.FlushInternal;
 begin
   FIFO.ReleaseReadBuffer;
-  FIFO.EOF := True;
+  FIFO.EndOF{EOF replaced by DJ VK} := True;
   FIFO.Reset;
 end;
 
 procedure TAudioInputStream.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
 begin
   FIFO.ReleaseReadBuffer;
-  if FIFO.EOF then
+  if FIFO.EndOF{EOF replaced by DJ VK} then
   begin
     Buffer := nil;
     Bytes := 0;

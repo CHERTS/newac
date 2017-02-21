@@ -1,4 +1,4 @@
-package NewAC_XE8;
+package NewAC_XE10;
 
 {$R *.res}
 {$R 'ACS_Wave.dcr'}
@@ -41,21 +41,21 @@ package NewAC_XE8;
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS OFF}
+{$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
-{$OPTIMIZATION ON}
+{$OPTIMIZATION OFF}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
-{$REFERENCEINFO OFF}
+{$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
-{$STACKFRAMES OFF}
+{$STACKFRAMES ON}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE RELEASE}
+{$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'New Audio Components v 2.6'}
 {$IMPLICITBUILD OFF}
@@ -141,14 +141,6 @@ contains
   NewACDSAudio in 'NewACDSAudio.pas',
   mp4ff in 'mp4ff.pas',
   neaac in 'neaac.pas',
-  ACS_AAC in 'ACS_AAC.pas',
-  TNV_AudioClasses in 'TNV_AudioClasses.pas',
-  TNV_AudioReverb in 'TNV_AudioReverb.pas',
-  TNV_AudioMixer in 'TNV_AudioMixer.pas',
-  TNV_AudioLimiter in 'TNV_AudioLimiter.pas',
-  TNV_AudioFilters in 'TNV_AudioFilters.pas',
-  TNV_AudioEqualizers in 'TNV_AudioEqualizers.pas',
-  TNV_AudioDynamics in 'TNV_AudioDynamics.pas',
-  TNV_AudioComponents in 'TNV_AudioComponents.pas';
+  ACS_AAC in 'ACS_AAC.pas';
 
 end.

@@ -20156,9 +20156,9 @@ type
   {$EXTERNALSYM WAVEFORMATEXTENSIBLE}
   TWaveFormatExtensible = WAVEFORMATEXTENSIBLE;
 
-const
-  WAVE_FORMAT_EXTENSIBLE          = $FFFE;
-  {$EXTERNALSYM WAVE_FORMAT_EXTENSIBLE}
+//const
+  //WAVE_FORMAT_EXTENSIBLE          = $FFFE;    {removed by DJ VK to c++ comability}
+  //{$EXTERNALSYM WAVE_FORMAT_EXTENSIBLE}
 
 type
 // DirectSound buffer description

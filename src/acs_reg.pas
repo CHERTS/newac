@@ -9,7 +9,7 @@ uses
   Classes, ACS_DXAudio, AuASIO,
   ACS_CDROM, ACS_AudioMix, ACS_Converters, NewAC_DSP,
   ACS_Misc, ACS_Vorbis, ACS_Wave, ACS_Filters, ACS_LAME, ACS_smpeg, ACS_MAC, ACS_Streams, ACS_FLAC, AuSampleRate, ACS_WavPack, ACS_WinMedia, ACS_TTA, AudioPass, ACS_OptimFROG, ACS_TAK, ACS_MPC, AudioDMO, NewAC_AVI, AuSynch, mr_cddb,
-  NewACDTS, NewACAC3, NewACIndicators, NewACDSAudio, ACS_AAC;
+  NewACDTS, NewACAC3, NewACIndicators, NewACDSAudio, ACS_AAC, {inserted by DJ VK} TNV_AudioComponents;
 
   procedure Register();
 
@@ -23,8 +23,12 @@ begin
   TWMAOut, TTTAIn, TTTAOut, TOFRIn, TWaveTap, TWMATap, TTAKIn, TMPCIn, TMPCOut, TWMADualPassOut, TAVIIn, TDTSIn, TAC3In, TMpgIn, TMP4In, TAACIn]);
   RegisterComponents('Audio Processing', [TAudioMixer, TFastResampler, TRealTimeMixer, TAudioConverter, TACMConverter,
   TAudioProcessor, TMSResampler, TBWFilter, TSincFilter, TChebyshevFilter,
-  TStereoBalance, TResampler, TDitherer, TAudioPass, TNormalizer, TVoiceFilter, TFrequencyAnalysis, TConvolver, TDifferenceEquation, TDownMixer, TGainAnalysis, TGainProcessor]);
-  RegisterComponents('Audio Utilities',  [TCDPlayer, TNULLOut, TAudioHiResTimer, TAudioSynchronizer, TCDDBInfo, TCueSplitter, TGainIndicator, TFastGainIndicator, TSpectrumIndicator, TTagEditor, TAudioCache, TAudioPlayList]);
+  TStereoBalance, TResampler, TDitherer, TAudioPass, TNormalizer, TVoiceFilter, TFrequencyAnalysis, TConvolver, TDifferenceEquation, TDownMixer, TGainAnalysis, TGainProcessor
+  , TNVCompressor, TNVGate, TNVDeesser, TNVLimiter, TNVreverb {inserted by DJ VK}
+  ,  TNVParametricEQ, TNVGraphicEQ, TNVVoiceProcessor         {inserted by DJ VK}
+  ]);
+
+  RegisterComponents('Audio Utilities',  [TCDPlayer, TNULLOut, TAudioHiResTimer, TAudioSynchronizer, TCDDBInfo, TCueSplitter, TGainIndicator, TFastGainIndicator, TSpectrumIndicator, TExSpectrumIndicator{inserted by DJ VK}, TTagEditor, TAudioCache, TAudioPlayList]);
 end;
 
 

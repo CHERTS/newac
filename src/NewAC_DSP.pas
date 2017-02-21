@@ -767,12 +767,12 @@ implementation
 
   procedure TGainProcessor.GetDataInternal;
   var
-    i, j : Integer;
+    i {,j removed by DJ VK} : Integer;
     t : Int64;
     B16 : PBuffer16;
     B32 : PBuffer32;
     B8 : PBuffer8;
-    tB : LongWord;
+    {tB : LongWord; removed by DJ VK}
   begin
     if FOffset >= FBufferSize then
     begin

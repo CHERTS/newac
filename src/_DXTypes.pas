@@ -42,6 +42,8 @@
 {$MINENUMSIZE 4}
 {$ALIGN ON}
 
+{$I DirectX.inc} {inserted by DJ VK}
+
 unit _DXTypes;
 
 interface
@@ -80,7 +82,8 @@ type
   PD3DValue = ^TD3DValue;
   {$NODEFINE PD3DValue}
 
-  D3DCOLOR = type DWord;
+  //D3DCOLOR = type DWord;  replaced by DJ VK
+  D3DCOLOR = {$IFDEF TYPE_IDENTITY}type {$ENDIF}DWord;
   {$EXTERNALSYM D3DCOLOR}
   TD3DColor = D3DCOLOR;
   {$NODEFINE TD3DColor}

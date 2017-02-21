@@ -63,6 +63,10 @@ type
     destructor Destroy; override;
     procedure Pause;
     procedure Resume;
+    {inserted by DJ VK}
+    function GetVolumeInPercent : Integer;
+    procedure SetVolumeInPercent(value : Integer);
+    {end of insertion}
     (* Procedure: Jump
         This method, being a wrapper around <Seek>, simpifies navigation in
         the input stream. Calling Jump moves you backward or forward relative
@@ -165,6 +169,18 @@ begin
   DSGetVolume(DS, Result);
   FVolume := Result; //DW
 end;
+
+{inserted by DJ VK}
+procedure TDSAudioOut.SetVolumeInPercent;
+begin
+  Volume := ((Value - 100) * 100);
+end;
+
+function TDSAudioOut.GetVolumeInPercent;
+begin
+  Result := Round(Volume / 100) + 100;
+end;
+{end of insertion}
 
 procedure TDSAudioOut.Done;
 begin
@@ -393,7 +409,7 @@ begin
 //    Res := DSInitOutputBuffer(DS, Wnd, BPS, SR, Chan, _BufSize);
   end else
   begin
-    FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+    FormatExt.Format.wFormatTag := 65534{WAVE_FORMAT_EXTENSIBLE replaced by DJ VK};
     FormatExt.Format.cbSize := SizeOf(FormatExt) - SizeOf(FormatExt.Format);
     FormatExt.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
     if Chan = 2 then
@@ -479,7 +495,7 @@ begin
       FormatExt.Format.nAvgBytesPerSec :=  SR*FormatExt.Format.nBlockAlign;
     end else
     begin
-      FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+      FormatExt.Format.wFormatTag := 65534{WAVE_FORMAT_EXTENSIBLE replaced by DJ VK};
       FormatExt.Format.cbSize := SizeOf(FormatExt) - SizeOf(FormatExt.Format);
       FormatExt.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
       if Chan = 2 then

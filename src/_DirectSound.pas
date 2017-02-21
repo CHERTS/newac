@@ -45,6 +45,8 @@
 {                                                                              }
 {******************************************************************************}
 
+{$I DirectX.inc}   {inserted by DJ VK}
+
 {$DEFINE DELPHI_2009}
 
 {$MINENUMSIZE 4}
@@ -94,7 +96,8 @@ type
   D3DVALUE = _DXTypes.D3DVALUE;
   {$EXTERNALSYM D3DVALUE}
   TD3DValue = _DXTypes.TD3DValue;
-  PD3DValue = _DXTypes.PD3DValue;
+  PD3DValue = _DXTypes. PD3DValue;
+  {$EXTERNALSYM PD3DValue}      {inserted by DJ VK to provide c++ support}
 
   D3DCOLOR = _DXTypes.D3DCOLOR;
   {$EXTERNALSYM D3DCOLOR}
@@ -106,6 +109,7 @@ type
   {$EXTERNALSYM D3DVECTOR}
   TD3DVector = _DXTypes.TD3DVector;
   PD3DVector = _DXTypes.PD3DVector;
+  {$EXTERNALSYM PD3DVector}      {inserted by DJ VK to provide c++ support}
 
 const
   _FACDS = $878;                { DirectSound's facility code }
@@ -406,6 +410,7 @@ type
   {$EXTERNALSYM REFERENCE_TIME}
   TReferenceTime = _DXTypes.TReferenceTime;
   PReferenceTime = _DXTypes.PReferenceTime;
+  {$EXTERNALSYM PReferenceTime}      //{inserted by DJ VK to provide c++ support}
 
 type
   {$HPPEMIT 'DECLARE_DINTERFACE_TYPE(IReferenceClock);'}

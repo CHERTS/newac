@@ -242,7 +242,7 @@ implementation
 
   procedure TMP4In.GetDataInternal(var Buffer: Pointer; var Bytes: Cardinal);
   var
-    dur : LongWord;
+    {dur : LongWord;     removed by DJ VK}
     rc : Integer;
     audio_buffer : PByte;
     audio_buffer_size : LongWord;
@@ -261,7 +261,7 @@ implementation
       frameInfo.samples := 0;
       while frameInfo.samples = 0 do
       begin
-        dur := mp4ff_get_sample_duration(MP4Handle, FTrack, FSampleId);
+        {dur :=    removed by DJ VK} mp4ff_get_sample_duration(MP4Handle, FTrack, FSampleId);
         audio_buffer_size := 0;
         audio_buffer := nil;
         rc := mp4ff_read_sample(MP4Handle, FTrack, FSampleId, audio_buffer,  audio_buffer_size);
@@ -464,9 +464,9 @@ end;
   procedure TAACIn.OpenFile;
   var
     config : NeAACDecConfigurationPtr;
-    mp4ASC : mp4AudioSpecificConfig;
+    {mp4ASC : mp4AudioSpecificConfig; removed by DJ VK}
     bread, tagsize : Integer;
-    bitrate, header_type, skip_size : Integer;
+    bitrate, {header_type, removed by DJ VK} skip_size : Integer;
     length  : Double;
     samplerate : LongWord;
     channels : Byte;
@@ -530,7 +530,7 @@ end;
         b.bytes_into_buffer := bread;
         b.bytes_consumed := 0;
         b.file_offset := tagsize;
-        header_type := 1;
+        {header_type := 1;    removed by DJ VK}
       end else
       if memcmp(b.buffer, 'ADIF', 4) = 0 then
       begin
@@ -547,7 +547,7 @@ end;
         if length <> 0 then
             length := (length*8)/bitrate + 0.5;
         bitrate := Trunc(bitrate/1000 + 0.5);
-         header_type := 2;
+        {header_type := 2;    removed by DJ VK}
       end;
       fill_buffer(b);
       bread := NeAACDecInit(hDecoder, @(b.buffer[0]), b.bytes_into_buffer, samplerate, channels);

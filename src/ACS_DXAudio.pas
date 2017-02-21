@@ -326,7 +326,7 @@ begin
       FormatExt.Format.cbSize := 0;
     end else
     begin
-      FormatExt.Format.wFormatTag := WAVE_FORMAT_EXTENSIBLE;
+      FormatExt.Format.wFormatTag := $FFFE;   {WAVE_FORMAT_EXTENSIBLE replaced by DJ VK};
       FormatExt.Format.cbSize := SizeOf(FormatExt) - SizeOf(FormatExt.Format);
       FormatExt.SubFormat := KSDATAFORMAT_SUBTYPE_PCM;
       if Chan = 2 then

@@ -54,7 +54,7 @@ type
 
 
   TMCN = array[0..13] of AnsiChar;
-
+  PMCN = ^TMCN; {inserted by DJ VK}
   (* Structures:
         These are the structures used by TCDIn andd TCDPlayer. *)
 
@@ -129,7 +129,11 @@ type
     procedure ForceClose;
     function GetDiscInfo : TCDInfo;
     procedure GetTrackStart(Track : Integer; var MSF : TCDMSF);
+    {$IFDEF DELPHI2010_UP}
     function GetMCN : TMCN;
+    {$ELSE} {inserted by DJ VK}
+    function GetMCN : PMCN;
+    {$ENDIF}
     function GetMediaChanged : Boolean;
     function GetNumTracks : Integer;
     function GetPosition : TCDPosition;
@@ -170,7 +174,11 @@ type
     (* Property: DriveLetter
        Select a CD-drive to play using an assigned letter. *)
     property DriveLetter[anIndex : Integer] : AnsiChar read GetDriveLetter;
+    {$IFDEF DELPHI2010_UP}
     property MCN : TMCN read GetMCN;
+    {$ELSE} {inserted by DJ VK}
+    property MCN : PMCN read GetMCN;
+    {$ENDIF}
     property MediaChanged : Boolean read GetMediaChanged;
     property Position : TCDPosition read GetPosition;
     property Status : TCDStatus read GetStatus;
@@ -774,7 +782,12 @@ procedure TCDPlayer.CloseCD;
 
   function TCDPlayer.GetMCN;
   begin
-    FillChar(Result, 14, Byte('0'));
+
+    {$IFDEF DELPHI2010_UP}
+         FillChar(Result, 14, Byte('0'));
+      {$ELSE} {inserted by DJ VK}
+         FillChar(Result^, 14, Byte('0'));
+      {$ENDIF}
   end;
 
   function TCDPlayer.GetMediaChanged;

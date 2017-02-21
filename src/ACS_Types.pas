@@ -114,6 +114,7 @@ type
   PSingleArray = ^TSingleArray;
 
   TMSConverterMode = (msmMonoToBoth, msmMonoToLeft, msmMonoToRight);
+  TSMConverterMode = (smmAverage, smmLeft, smmRight);   {inserted by DJ VK}
 
   TWaveFormatExtensible = packed record
     Format : TWaveFormatEx;
@@ -138,7 +139,7 @@ const
   TwoPi = 6.28318530718;
   HalfPi = 1.57079632679;
 
-  WAVE_FORMAT_EXTENSIBLE = $FFFE;
+  //WAVE_FORMAT_EXTENSIBLE = $FFFE;   {removed by DJ VK to c++ comability}
   KSDATAFORMAT_SUBTYPE_PCM : TGuid = '{00000001-0000-0010-8000-00aa00389b71}';
   KSDATAFORMAT_SUBTYPE_IEEE_FLOAT : TGuid = '{00000003-0000-0010-8000-00aa00389b71}';
 

@@ -170,8 +170,8 @@ type
 
         Integer - Number of bytes written
     *)
-    function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
-    function FillBufferUnprotected(Buffer : Pointer; BufferSize : LongWord; var EOF : Boolean) : LongWord;
+    function FillBuffer(Buffer : Pointer; BufferSize : LongWord; var EndOF{EOF replaced by DJ VK} : Boolean) : LongWord;
+    function FillBufferUnprotected(Buffer : Pointer; BufferSize : LongWord; var EndOF{EOF replaced by DJ VK} : Boolean) : LongWord;
     procedure Reset; virtual;
 
     (* Procedure: Init
@@ -826,7 +826,7 @@ type
     CS : TCriticalSection;
     Flags : Word;
     FBreak : Boolean;
-    FEOF : Boolean;
+    FEndOF{FEOF replaced by DJ VK} : Boolean;
   public
     constructor Create(BufSize : LongWord; Mode : Word = cbmBlocking);
     destructor Destroy; override;
@@ -846,7 +846,7 @@ type
     procedure Reset;
     procedure Reset2;
     procedure Stop;
-    property EOF : Boolean read FEOF write FEOF;
+    property EndOF{EOF replaced by DJ VK} : Boolean read FEndOF{FEOF replaced by DJ VK} write FEndOF{FEOF replaced by DJ VK};
   end;
 
   const
@@ -890,8 +890,8 @@ type
   private
     FCircularBuffer : TCircularBuffer;
     FBytesLocked : LongWord;
-    procedure SetEOF(v : Boolean);
-    function GetEOF : Boolean;
+    procedure SetEndOF{EOF replaced by DJ VK}(v : Boolean);
+    function GetEndOF{EOF replaced by DJ VK} : Boolean;
   protected
     function GetSize: Int64; {$IF CompilerVersion > 18}override;{$IFEND}
     procedure SetSize(NewSize: Longint); overload; override;
@@ -943,7 +943,7 @@ type
       After this the reader reads all the data that is left in the buffer and then <Read> calls start returning 0 as the resulting value (which is the End of File indicator for the reader).
 
     *)
-    property EOF : Boolean read GetEOF write SetEOF;
+    property EndOF{EOF replaced by DJ VK} : Boolean read GetEndOF{EOF replaced by DJ VK} write SetEndOF{EOF replaced by DJ VK};
   end;
 
 procedure CreateEventHandler;
@@ -1380,8 +1380,8 @@ constructor TAuOutput.Create;
   end;
 
   procedure TAuOutput.Stop;
-  var
-    e : TOutputDoneEvent;
+//  var
+//    e : TOutputDoneEvent;  {commented by DJ VK}
   begin
     if  GetCurrentThreadID = Thread.ThreadID then
       raise EAuException.Create('You are trying to stop this thread from the thread itself!');
@@ -1844,7 +1844,7 @@ constructor TAuOutput.Create;
         Move(P1^, P[Result], r);
       Result := Result + r;
     end;
-    EOF := r = 0;
+    EndOF{EOF replaced by DJ VK} := r = 0;
   end;
 
   function TAuInput.FillBufferUnprotected;
@@ -1874,7 +1874,7 @@ constructor TAuOutput.Create;
     finally
       DataCS.Leave;
     end;
-    EOF := r = 0;
+    EndOF{EOF replaced by DJ VK} := r = 0;
   end;
 
 
@@ -2137,7 +2137,8 @@ begin
     end else
     begin
       GetDataInternal(Buffer, Bytes);
-      Inc(FPosition, Bytes);
+   //   Inc(FPosition, Bytes);  Replaced by DJ VK
+      FPosition := FInput.Position;
       if (FSize > 0) and (FPosition > FSize) then
       begin
         Dec(Bytes, FPosition - FSize);
@@ -2395,7 +2396,7 @@ begin
   sp1 := LongWord(WritePos - ReadPos);
   if sp1 = 0 then
   begin
-    if ((Flags and cbmAlwaysRead)  <> 0) and (not FEOF) then
+    if ((Flags and cbmAlwaysRead)  <> 0) and (not FEndOF{FEOF replaced by DJ VK}) then
     begin
        FillChar(Buf^, BufSize, 0);
        Result := BufSize;
@@ -2404,7 +2405,7 @@ begin
     begin
       while sp1 = 0 do
       begin
-        if FEOF then
+        if FEndOF{FEOF replaced by DJ VK} then
         begin
           WritePos := 0;
           ReadPos := 0;
@@ -2445,7 +2446,7 @@ var
   _Buf : PBuffer8;
 begin
   _Buf := Buf;
-  if FEOF then
+  if FEndOF{FEOF replaced by DJ VK} then
   begin
     Result := 0;
     Exit;
@@ -2501,7 +2502,7 @@ begin
   ReadPos := 0;
   WritePos := 0;
   FBreak := False;
-  FEOF := False;
+  FEndOF{FEOF replaced by DJ VK} := False;
   CS.Leave;
 end;
 
@@ -2517,7 +2518,7 @@ begin
   ReadPos := 0;
   WritePos := 0;
   FBreak := True;
-  FEOF := True;
+  FEndOF{FEOF replaced by DJ VK} := True;
   CS.Leave;
 end;
 
@@ -2568,7 +2569,7 @@ end;
 
 destructor TAuFIFOStream.Destroy;
 begin
-  FCircularBuffer.EOF := True;
+  FCircularBuffer.EndOF{EOF replaced by DJ VK} := True;
   FCircularBuffer.CS.Enter;
   Sleep(0);
   FCircularBuffer.CS.Leave;
@@ -2576,14 +2577,14 @@ begin
   inherited;
 end;
 
-procedure TAuFIFOStream.SetEOF(v: Boolean);
+procedure TAuFIFOStream.SetEndOF{EOF replaced by DJ VK}(v: Boolean);
 begin
-  FCircularBuffer.EOF := v;
+  FCircularBuffer.EndOF{EOF replaced by DJ VK} := v;
 end;
 
-function TAuFIFOStream.GetEOF;
+function TAuFIFOStream.GetEndOF{EOF replaced by DJ VK};
 begin
-  Result := FCircularBuffer.EOF;
+  Result := FCircularBuffer.EndOF{EOF replaced by DJ VK};
 end;
 
 procedure TAuFIFOStream.SetSize(NewSize: Integer);
@@ -2613,7 +2614,7 @@ end;
 
 function TAuFIFOStream.WouldReadBlock;
 begin
-  Result := (FCircularBuffer.WritePos - FCircularBuffer.ReadPos = 0) and (not FCircularBuffer.EOF);
+  Result := (FCircularBuffer.WritePos - FCircularBuffer.ReadPos = 0) and (not FCircularBuffer.EndOF{EOF replaced by DJ VK});
 end;
 
 function TAuFIFOStream.WouldWriteBlock;
@@ -2687,7 +2688,7 @@ begin
     end;
     Sleep(0);
   end;
-  Buf.EOF := True;
+  Buf.EndOF{EOF replaced by DJ VK} := True;
   Stopped := True;
 end;
 

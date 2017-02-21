@@ -535,7 +535,15 @@ end;
       {$ENDIF}
       {$IFDEF USE_CDRIP_DLL_12200}
       if CR_Init(1) <> RES_OK then
+      begin
+      
+      {$IFDEF DELPHI2010_UP}
          Windows.MessageBox(0, PWideChar('Failed to initialize CDRip (insufficient privileges?) Error Code: ' + FloatToStr(CR_Init(1))), 'Error',  MB_ICONERROR or MB_OK);
+      {$ELSE} {inserted by DJ VK}
+         Windows.MessageBox(0, PChar('Failed to initialize CDRip (insufficient privileges?) Error Code: ' + FloatToStr(CR_Init(1))), 'Error',  MB_ICONERROR or MB_OK);
+    
+      {$ENDIF}
+      end;
       {$ENDIF}
       {$IFDEF USE_CDRIP_DLL_1001}
        CR_Init(PAnsiChar(FilePath+'cdr.ini'));

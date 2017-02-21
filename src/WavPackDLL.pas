@@ -23,6 +23,7 @@ type
   end;
 
   TMD5Sum = packed array [0 .. 15] of Byte;
+  PMD5Sum = ^TMD5Sum; {inserted by DJ VK}
 
   (* class TWavpackDecoder *)
 
@@ -71,7 +72,11 @@ type
     function GetRatio: Double;
     function GetAverageBitrate(CountWVC: Integer): Double;
     function GetFloatNormExp: Integer;
+    {$IFDEF DELPHI2010_UP}
     function GetMD5Sum: TMD5Sum;
+    {$ELSE} {inserted by DJ VK}
+    function GetMD5Sum: PMD5Sum;
+    {$ENDIF}
     function GetSampleIndex: Cardinal;
     function GetInstantBitrate: Double;
     function GetNumErrors: Integer;
@@ -108,7 +113,11 @@ type
     property Ratio: Double read GetRatio;
     property AverageBitrate[CountWVC: Integer]: Double read GetAverageBitrate;
     property FloatNormExp: Integer read GetFloatNormExp;
+    {$IFDEF DELPHI2010_UP}
     property MD5Sum: TMD5Sum read GetMD5Sum;
+    {$ELSE} {inserted by DJ VK}
+    property MD5Sum: PMD5Sum read GetMD5Sum;
+    {$ENDIF}
     property SampleIndex: Cardinal read GetSampleIndex;
     property InstantBitrate: Double read GetInstantBitrate;
     property NumErrors: Integer read GetNumErrors;
@@ -596,11 +605,21 @@ begin
   Result := WavpackGetFloatNormExp(FContext);
 end;
 
+
+{$IFDEF DELPHI2010_UP}
 function TWavpackDecoder.GetMD5Sum: TMD5Sum;
+{$ELSE} {inserted bby DJ VK}
+function TWavpackDecoder.GetMD5Sum: PMD5Sum;
+{$ENDIF}
 begin
   CheckFunc(@WavpackGetMD5Sum, WavpackGetMD5Sum_name);
 
+  {$IFDEF DELPHI2010_UP}
   WavpackGetMD5Sum(FContext, Result);
+  {$ELSE} {inserted bby DJ VK}
+  WavpackGetMD5Sum(FContext, Result^);
+  {$ENDIF}
+
 end;
 
 function TWavpackDecoder.GetSampleIndex: Cardinal;

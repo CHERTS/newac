@@ -177,9 +177,15 @@ type
 
   procedure Int32ToSingle(_in : PBuffer32; _out : PBufferSingle; len : Integer);
 
+  {replaced by DJ VK
   procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer);
-
-  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer);
+  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer);}
+  procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer); overload;
+  procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer; s2m : TSMConverterMode); overload;
+  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer); overload;
+  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer; m2s : TMSConverterMode); overload;
+  procedure SingleMultiToStereo(_inout : PBufferSingle; frames, channels : Integer);
+  {end of replacement}
 
   function GetRightOf(Delim : AnsiChar; const S : AnsiString) : AnsiString;
 
@@ -1466,6 +1472,57 @@ end;
     end;
   end;
 
+  {inserted by DJ VK}
+  procedure SingleStereoToMono(_inout : PBufferSingle; frames : Integer; s2m : TSMConverterMode);
+  var
+    i : Integer;
+  begin
+    for i := 0 to frames - 1 do
+      case s2m of
+        smmAverage: _inout[i] := (_inout[i * 2] + _inout[i * 2 + 1]) / 2;
+        smmLeft: _inout[i] := _inout[i * 2];
+        smmRight: _inout[i] := _inout[i * 2 + 1];
+      end;
+  end;
+
+  procedure SingleMonoToStereo(_inout : PBufferSingle; frames : Integer; m2s : TMSConverterMode);
+  var
+    i : Integer;
+  begin
+    for i := frames - 1 downto 0 do
+    begin
+      
+      case m2s of
+        msmMonoToBoth:
+          begin
+            _inout[i * 2] := _inout[i];
+            _inout[i * 2 + 1] := _inout[i];
+          end;
+        msmMonoToLeft:
+          begin
+            _inout[i * 2] := _inout[i];
+            _inout[i * 2 + 1] := 0.0;
+          end;
+        msmMonoToRight:
+          begin
+            _inout[i * 2] := 0.0;
+            _inout[i * 2 + 1] := _inout[i];
+          end;
+      end;
+    end;
+  end;
+
+  procedure SingleMultiToStereo(_inout : PBufferSingle; frames, channels : Integer);
+  var
+    i : Integer;
+  begin
+    for i := 0 to frames - 1 do
+    begin
+      _inout[i * 2] := _inout[i * channels];
+      _inout[i * 2 + 1] := _inout[i * channels + 1];
+    end;
+  end;
+  {end of insertion}
 
    function GUIDSEqual(const g1, g2 : TGUID) : Boolean;
    begin

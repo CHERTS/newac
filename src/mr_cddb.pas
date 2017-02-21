@@ -600,6 +600,9 @@ var
   CutBuffer: TStringList;
   posDelim: Integer;
   strEnum: string;
+  {$IFNDEF DELPHI2010_UP} {inserted by DJ VK}
+  i: Integer;
+  {$ENDIF}
 begin
   result := 'windows-1252';
   CutBuffer := TStringList.create;
@@ -620,13 +623,21 @@ begin
       end;
     end;
     // look for a line with charset
+    {$IFDEF DELPHI2010_UP}
     for strEnum in CutBuffer do
+    {$ELSE} {inserted by DJ VK}
+    for i := 0 to CutBuffer.Count do begin
+       strEnum := CutBuffer.Strings[i];
+    {$ENDIF}
       if (Pos(c_charset, strEnum) > 0) then
       begin
         Result := Copy(strEnum,
           Pos('=', strEnum) + 1,
           Length(strEnum));
       end;
+    {$IFNDEF DELPHI2010_UP} {inserted by DJ VK}
+    end;
+    {$ENDIF}
   finally
     FreeAndNil(CutBuffer);
   end;

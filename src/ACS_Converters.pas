@@ -1695,7 +1695,7 @@ begin
     if bf > ACBufLen then
       bf := ACBufLen;
     bf := bf - (bf mod ((Parent.BitsPerSample shr 3)*Parent.Channels));
-    if (bf > ACBufLen div 2) and not Buf.EOF then
+    if (bf > ACBufLen div 2) and not Buf.EndOF{EOF replaced by DJ VK} then
     begin
       t := 0;
       r:=bf;
@@ -1707,12 +1707,12 @@ begin
         Buf.AddBytesWritten(r);
         t := t + r; //.GetData(P, bf);
       end;
-      Buf.EOF := r = 0;
+      Buf.EndOF{EOF replaced by DJ VK} := r = 0;
     end;
     Sleep(10);
   end;
   Stopped := True;
-  Buf.EOF := True;
+  Buf.EndOF{EOF replaced by DJ VK} := True;
 end;
 
 
@@ -1724,7 +1724,7 @@ begin
   CacheThread := TAudioCacheThread.Create(True);
   CacheThread.Buf := TCircularBuffer.Create(AudioCacheSize);
   CacheThread.Buf.Reset;
-  CacheThread.Buf.EOF := False;
+  CacheThread.Buf.EndOF{EOF replaced by DJ VK} := False;
   CacheThread.Parent := FInput;
   CacheThread.Resume;
   FPOsition := 0;
@@ -1764,7 +1764,7 @@ end;
 
 procedure TAudioCache._Jump(Offs : Integer);
 begin
-  if CacheThread.Buf.EOF then
+  if CacheThread.Buf.EndOF{EOF replaced by DJ VK} then
      Exit;
   if Assigned(FInput) then
     FInput._Jump(Offs);
