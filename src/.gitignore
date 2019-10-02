@@ -1,3 +1,5 @@
 *.stat
 Win32
 *.local
+*.dcu
+*.identcache
