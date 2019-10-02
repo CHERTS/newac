@@ -1,0 +1,4 @@
+*.stat
+Win32
+*.local
+*.exe
