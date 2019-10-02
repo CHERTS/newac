@@ -2,3 +2,5 @@
 Win32
 *.local
 *.exe
+*.dcu
+*.identcache
