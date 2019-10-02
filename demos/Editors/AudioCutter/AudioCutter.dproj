@@ -7,7 +7,7 @@
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
-        <ProjectVersion>15.3</ProjectVersion>
+        <ProjectVersion>18.5</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -56,17 +56,23 @@
         <DCC_S>false</DCC_S>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=;CFBundleDisplayName=;UIDeviceFamily=;CFBundleIdentifier=;CFBundleVersion=;CFBundlePackageType=;CFBundleSignature=;CFBundleAllowMixedLocalizations=;UISupportedInterfaceOrientations=;CFBundleExecutable=;CFBundleResourceSpecification=;LSRequiresIPhoneOS=;CFBundleInfoDictionaryVersion=;CFBundleDevelopmentRegion=;package=;label=;versionCode=;versionName=;persistent=;restoreAnyVersion=;installLocation=;largeHeap=;theme=</VerInfo_Keys>
         <DCC_DebugInformation>true</DCC_DebugInformation>
+        <SanitizedProjectName>AudioCutter</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <Icon_MainIcon>AudioCutter_Icon.ico</Icon_MainIcon>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
+        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <Icon_MainIcon>AudioCutter_Icon.ico</Icon_MainIcon>
+        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
+        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
@@ -77,9 +83,10 @@
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <Icon_MainIcon>AudioCutter_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Bin</DCC_ExeOutput>
+        <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
@@ -89,7 +96,7 @@
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <Icon_MainIcon>AudioCutter_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Bin</DCC_ExeOutput>
     </PropertyGroup>
@@ -176,7 +183,6 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
-                <Platform value="Android">False</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">False</Platform>
             </Platforms>

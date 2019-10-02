@@ -4,7 +4,7 @@
         <MainSource>AC3ToWMA.dpr</MainSource>
         <Config Condition="'$(Config)'==''">Release</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-        <ProjectVersion>15.3</ProjectVersion>
+        <ProjectVersion>18.5</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -53,6 +53,7 @@
         <DCC_DependencyCheckOutputName>AC3ToWMA.exe</DCC_DependencyCheckOutputName>
         <DCC_ImageBase>00400000</DCC_ImageBase>
         <DCC_Platform>x86</DCC_Platform>
+        <SanitizedProjectName>AC3ToWMA</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
@@ -60,9 +61,14 @@
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
+        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <Icon_MainIcon>AC3ToWMA_Icon.ico</Icon_MainIcon>
+        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
+        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -75,6 +81,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_ExeOutput>..\..\Bin</DCC_ExeOutput>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -151,7 +158,6 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
-                <Platform value="Android">False</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">False</Platform>
             </Platforms>
